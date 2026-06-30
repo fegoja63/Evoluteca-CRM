@@ -38,6 +38,7 @@ export function Sidebar({ tenantNombre }: { tenantNombre: string }) {
       .filter(([, activo]) => activo)
       .map(([key]) => navOpcionales[key])
       .filter(Boolean),
+    { href: "/dashboard/datos", label: "Datos", emoji: "📥" },
     { href: "/dashboard/configuracion", label: "Configuración", emoji: "⚙️" },
   ];
 
