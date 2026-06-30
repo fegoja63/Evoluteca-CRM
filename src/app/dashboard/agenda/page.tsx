@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { KpiCard } from "@/components/kpi-card";
 
 type Actividad = {
   id: string;
@@ -97,11 +98,25 @@ export default function AgendaPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-medium text-neutral-900">Agenda</h1>
-          <p className="text-sm text-neutral-500">Tareas, llamadas y reuniones</p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-slate-900">Agenda</h1>
+        <p className="text-slate-500 text-sm mt-1">Tareas, llamadas y reuniones</p>
+      </div>
+
+      <div className="grid grid-cols-4 gap-4 mb-8">
+        <KpiCard label="Total actividades" valor={actividades.length} emoji="📅" color="bg-blue-500" />
+        <KpiCard label="Pendientes" valor={actividades.filter(a => !a.completada).length} emoji="⏳" color="bg-amber-500" />
+        <KpiCard label="Completadas" valor={actividades.filter(a => a.completada).length} emoji="✅" color="bg-emerald-500" />
+        <KpiCard
+          label="Vencidas"
+          valor={actividades.filter(a => !a.completada && new Date(a.fecha) < new Date()).length}
+          emoji="⚠️" color="bg-red-400"
+          sub="Sin completar y pasadas"
+        />
+      </div>
+
+      <div className="flex items-center justify-between mb-4">
+        <div></div>
         <button
           onClick={() => setMostrarForm(true)}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
