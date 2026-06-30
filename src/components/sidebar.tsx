@@ -13,6 +13,7 @@ const navItems = [
   { href: "/dashboard/agenda", label: "Agenda", icon: "calendar" },
   { href: "/dashboard/cotizaciones", label: "Cotizaciones", icon: "file-invoice" },
   { href: "/dashboard/reportes", label: "Reportes", icon: "chart-bar" },
+  { href: "/dashboard/equipo", label: "Equipo", icon: "users-group" },
 ];
 
 export function Sidebar({

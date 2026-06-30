@@ -1,0 +1,238 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+
+type Usuario = {
+  id: string;
+  nombre: string;
+  email: string;
+  rol: string;
+  activo: boolean;
+  creadoEn: string;
+};
+
+const ROLES = [
+  { key: "ADMINISTRADOR", label: "Administrador" },
+  { key: "GERENTE", label: "Gerente" },
+  { key: "COMERCIAL", label: "Comercial" },
+];
+
+export default function EquipoPage() {
+  const { data: session } = useSession();
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [mostrarForm, setMostrarForm] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState("");
+  const [form, setForm] = useState({ nombre: "", email: "", password: "", rol: "COMERCIAL" });
+
+  const esAdmin = session?.user?.rol === "ADMINISTRADOR";
+
+  async function cargar() {
+    setCargando(true);
+    const res = await fetch("/api/usuarios");
+    const data = await res.json();
+    setUsuarios(data);
+    setCargando(false);
+  }
+
+  useEffect(() => { cargar(); }, []);
+
+  async function handleGuardar(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setGuardando(true);
+    const res = await fetch("/api/usuarios", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error ?? "No se pudo invitar al usuario");
+      setGuardando(false);
+      return;
+    }
+    setForm({ nombre: "", email: "", password: "", rol: "COMERCIAL" });
+    setMostrarForm(false);
+    setGuardando(false);
+    cargar();
+  }
+
+  async function cambiarRol(id: string, rol: string) {
+    setUsuarios((prev) => prev.map((u) => (u.id === id ? { ...u, rol } : u)));
+    await fetch(`/api/usuarios/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rol }),
+    });
+  }
+
+  async function toggleActivo(id: string, activo: boolean) {
+    setUsuarios((prev) => prev.map((u) => (u.id === id ? { ...u, activo } : u)));
+    await fetch(`/api/usuarios/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ activo }),
+    });
+  }
+
+  return (
+    <div>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-medium text-neutral-900">Equipo</h1>
+          <p className="text-sm text-neutral-500">Usuarios con acceso a este CRM</p>
+        </div>
+        {esAdmin && (
+          <button
+            onClick={() => setMostrarForm(true)}
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            + Invitar usuario
+          </button>
+        )}
+      </div>
+
+      {!esAdmin && (
+        <div className="mb-6 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-4 text-center">
+          <p className="text-sm text-neutral-500">
+            Solo un administrador puede invitar o gestionar usuarios.
+          </p>
+        </div>
+      )}
+
+      {mostrarForm && (
+        <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+          <h2 className="mb-4 text-sm font-medium text-neutral-900">Invitar usuario</h2>
+          {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+          <form onSubmit={handleGuardar} className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs text-neutral-500">Nombre *</label>
+              <input
+                required
+                value={form.nombre}
+                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-neutral-500">Correo *</label>
+              <input
+                required
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-neutral-500">Contraseña temporal *</label>
+              <input
+                required
+                type="password"
+                minLength={8}
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+              />
+              <p className="mt-1 text-xs text-neutral-400">Mínimo 8 caracteres. Compártesela por un canal seguro.</p>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-neutral-500">Rol</label>
+              <select
+                value={form.rol}
+                onChange={(e) => setForm({ ...form, rol: e.target.value })}
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+              >
+                {ROLES.map((r) => (
+                  <option key={r.key} value={r.key}>{r.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="col-span-2 flex gap-2">
+              <button
+                type="submit"
+                disabled={guardando}
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {guardando ? "Invitando..." : "Invitar"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMostrarForm(false)}
+                className="rounded-md border border-neutral-300 px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-100"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {cargando ? (
+        <p className="text-sm text-neutral-400">Cargando...</p>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-neutral-200">
+          <table className="w-full text-sm">
+            <thead className="bg-neutral-50 text-left text-xs text-neutral-500">
+              <tr>
+                <th className="px-4 py-3 font-medium">Nombre</th>
+                <th className="px-4 py-3 font-medium">Correo</th>
+                <th className="px-4 py-3 font-medium">Rol</th>
+                <th className="px-4 py-3 font-medium">Estado</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-100">
+              {usuarios.map((u) => {
+                const esUnoMismo = u.id === session?.user?.id;
+                return (
+                  <tr key={u.id} className="hover:bg-neutral-50">
+                    <td className="px-4 py-3 font-medium text-neutral-900">
+                      {u.nombre} {esUnoMismo && <span className="text-xs text-neutral-400">(tú)</span>}
+                    </td>
+                    <td className="px-4 py-3 text-neutral-500">{u.email}</td>
+                    <td className="px-4 py-3">
+                      {esAdmin && !esUnoMismo ? (
+                        <select
+                          value={u.rol}
+                          onChange={(e) => cambiarRol(u.id, e.target.value)}
+                          className="rounded border border-neutral-200 px-2 py-1 text-xs outline-none"
+                        >
+                          {ROLES.map((r) => (
+                            <option key={r.key} value={r.key}>{r.label}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className="text-neutral-500">
+                          {ROLES.find((r) => r.key === u.rol)?.label}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {esAdmin && !esUnoMismo ? (
+                        <button
+                          onClick={() => toggleActivo(u.id, !u.activo)}
+                          className={`rounded px-2 py-1 text-xs font-medium ${
+                            u.activo ? "bg-green-50 text-green-700" : "bg-neutral-100 text-neutral-500"
+                          }`}
+                        >
+                          {u.activo ? "Activo" : "Inactivo"}
+                        </button>
+                      ) : (
+                        <span className={u.activo ? "text-green-700" : "text-neutral-400"}>
+                          {u.activo ? "Activo" : "Inactivo"}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
