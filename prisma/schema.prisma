@@ -29,10 +29,11 @@ model Tenant {
   activo    Boolean  @default(true)
   creadoEn  DateTime @default(now())
 
-  usuarios     Usuario[]
-  empresas     Empresa[]
-  contactos    Contacto[]
+  usuarios      Usuario[]
+  empresas      Empresa[]
+  contactos     Contacto[]
   oportunidades Oportunidad[]
+  actividades   Actividad[]
 
   @@map("tenants")
 }
@@ -65,8 +66,9 @@ model Empresa {
   tenantId    String
   tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  contactos   Contacto[]
+  contactos     Contacto[]
   oportunidades Oportunidad[]
+  actividades   Actividad[]
 
   @@index([tenantId])
   @@map("empresas")
@@ -84,9 +86,10 @@ model Contacto {
   tenantId    String
   tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  empresaId   String?
-  empresa     Empresa?  @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+  empresaId     String?
+  empresa       Empresa?  @relation(fields: [empresaId], references: [id], onDelete: SetNull)
   oportunidades Oportunidad[]
+  actividades   Actividad[]
 
   @@index([tenantId])
   @@map("contactos")
@@ -117,11 +120,43 @@ model Oportunidad {
 
   contactoId  String?
   contacto    Contacto?         @relation(fields: [contactoId], references: [id], onDelete: SetNull)
+  actividades Actividad[]
 
   @@index([tenantId])
   @@map("oportunidades")
 }
 
+enum TipoActividad {
+  LLAMADA
+  REUNION
+  TAREA
+  EMAIL
+}
+
+model Actividad {
+  id          String          @id @default(uuid())
+  tipo        TipoActividad   @default(TAREA)
+  titulo      String
+  fecha       DateTime
+  completada  Boolean         @default(false)
+  notas       String?
+  creadoEn    DateTime        @default(now())
+
+  tenantId    String
+  tenant      Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  empresaId     String?
+  empresa       Empresa?      @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+
+  contactoId    String?
+  contacto      Contacto?     @relation(fields: [contactoId], references: [id], onDelete: SetNull)
+
+  oportunidadId String?
+  oportunidad   Oportunidad?  @relation(fields: [oportunidadId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@map("actividades")
+}
+
 // ---- Modelos de sprints futuros (referencia, no migrados aún) ----
-// model Actividad { ... }        // Sprint 4
 // model Cotizacion { ... }       // Sprint 6
