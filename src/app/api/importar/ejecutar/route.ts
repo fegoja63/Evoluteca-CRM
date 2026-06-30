@@ -34,6 +34,19 @@ export async function POST(request: Request) {
     return fila[colExcel]?.trim() || null;
   }
 
+  // Columnas ya mapeadas a campos estándar del CRM
+  const columnasMapeadas = new Set(Object.values(mapeo).filter(v => v !== "__ignorar__"));
+
+  function getExtras(fila: Record<string, string>): Record<string, string> | null {
+    const extras: Record<string, string> = {};
+    for (const [col, val] of Object.entries(fila)) {
+      if (!columnasMapeadas.has(col) && val?.trim()) {
+        extras[col] = val.trim();
+      }
+    }
+    return Object.keys(extras).length > 0 ? extras : null;
+  }
+
   const filas: Record<string, string>[] = [];
   ws.eachRow((row, rowNum) => {
     if (rowNum === 1) return;
@@ -57,6 +70,7 @@ export async function POST(request: Request) {
             telefono: getCol(fila, "telefono"),
             sitioWeb: getCol(fila, "sitioWeb"),
             notas: getCol(fila, "notas"),
+            extras: getExtras(fila),
             tenantId,
           },
         });
@@ -80,6 +94,7 @@ export async function POST(request: Request) {
             telefono: getCol(fila, "telefono"),
             cargo: getCol(fila, "cargo"),
             notas: getCol(fila, "notas"),
+            extras: getExtras(fila),
             empresaId: empresaId || null,
             tenantId,
           },
@@ -108,6 +123,7 @@ export async function POST(request: Request) {
             etapa,
             valor: valor && !isNaN(valor) ? valor : null,
             notas: getCol(fila, "notas"),
+            extras: getExtras(fila),
             empresaId: empresaId || null,
             tenantId,
           },
@@ -130,6 +146,7 @@ export async function POST(request: Request) {
             telefono: getCol(fila, "telefono"),
             segmento,
             notas: getCol(fila, "notas"),
+            extras: getExtras(fila),
             tenantId,
           },
         });

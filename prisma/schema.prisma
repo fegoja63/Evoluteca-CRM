@@ -65,6 +65,7 @@ model Empresa {
   sitioWeb    String?
   telefono    String?
   notas       String?
+  extras      Json?
   creadoEn    DateTime  @default(now())
 
   tenantId    String
@@ -86,6 +87,7 @@ model Contacto {
   telefono    String?
   cargo       String?
   notas       String?
+  extras      Json?
   creadoEn    DateTime  @default(now())
 
   tenantId    String
@@ -117,6 +119,7 @@ model Oportunidad {
   valor       Decimal?          @db.Decimal(12, 2)
   etapa       EtapaOportunidad  @default(PROSPECTO)
   notas       String?
+  extras      Json?
   creadoEn    DateTime          @default(now())
 
   tenantId    String
@@ -247,6 +250,7 @@ model Espectador {
   telefono    String?
   segmento    SegmentoEspectador  @default(INDIVIDUAL)
   notas       String?
+  extras      Json?
   creadoEn    DateTime            @default(now())
 
   tenantId    String
