@@ -25,10 +25,10 @@ export default async function DashboardPage() {
   }
 
   const kpis = [
-    { label: "Cuentas", valor: empresas, href: "/dashboard/cuentas", color: "bg-blue-500", emoji: "🏢" },
-    { label: "Contactos", valor: contactos, href: "/dashboard/contactos", color: "bg-violet-500", emoji: "👤" },
-    { label: "Valor en pipeline", valor: formatoMoneda(valorPipeline), href: "/dashboard/pipeline", color: "bg-emerald-500", emoji: "◈" },
-    { label: "Tareas pendientes", valor: actividades, href: "/dashboard/agenda", color: "bg-amber-500", emoji: "📅" },
+    { label: "Cuentas", valor: empresas, href: "/dashboard/cuentas", color: "bg-blue-500", iconBg: "bg-blue-50", emoji: "🏢" },
+    { label: "Contactos", valor: contactos, href: "/dashboard/contactos", color: "bg-violet-500", iconBg: "bg-violet-50", emoji: "👤" },
+    { label: "Valor en pipeline", valor: formatoMoneda(valorPipeline), href: "/dashboard/pipeline", color: "bg-emerald-500", iconBg: "bg-emerald-50", emoji: "💰" },
+    { label: "Tareas pendientes", valor: actividades, href: "/dashboard/agenda", color: "bg-amber-500", iconBg: "bg-amber-50", emoji: "📅" },
   ];
 
   return (
@@ -46,11 +46,16 @@ export default async function DashboardPage() {
         {kpis.map((kpi) => (
           <Link key={kpi.href} href={kpi.href}>
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/60 hover:shadow-md transition-shadow cursor-pointer">
-              <div className={`w-10 h-10 ${kpi.color} rounded-xl flex items-center justify-center text-lg mb-4`}>
-                {kpi.emoji}
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="text-3xl font-bold text-slate-900">{kpi.valor}</p>
+                  <p className="text-sm text-slate-500 mt-1">{kpi.label}</p>
+                </div>
+                <div className={`w-11 h-11 ${kpi.iconBg} rounded-xl flex items-center justify-center text-xl`}>
+                  {kpi.emoji}
+                </div>
               </div>
-              <p className="text-2xl font-bold text-slate-900">{kpi.valor}</p>
-              <p className="text-sm text-slate-500 mt-1">{kpi.label}</p>
+              <div className={`h-1 ${kpi.color} rounded-full mt-2`} />
             </div>
           </Link>
         ))}

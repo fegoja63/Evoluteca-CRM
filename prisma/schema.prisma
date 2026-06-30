@@ -28,6 +28,7 @@ model Tenant {
   plan      String   @default("arranque") // arranque | empresa | corporativo
   activo    Boolean  @default(true)
   creadoEn  DateTime @default(now())
+  modulos   Json     @default("{}")
 
   usuarios      Usuario[]
   empresas      Empresa[]
@@ -35,6 +36,8 @@ model Tenant {
   oportunidades Oportunidad[]
   actividades   Actividad[]
   cotizaciones  Cotizacion[]
+  funciones     Funcion[]
+  espectadores  Espectador[]
 
   @@map("tenants")
 }
@@ -87,6 +90,8 @@ model Contacto {
 
   tenantId    String
   tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  segmento      String?   // INDIVIDUAL | GRUPO | EMPRESA | COLEGIO
 
   empresaId     String?
   empresa       Empresa?  @relation(fields: [empresaId], references: [id], onDelete: SetNull)
@@ -197,4 +202,74 @@ model ItemCotizacion {
 
   @@index([cotizacionId])
   @@map("items_cotizacion")
+}
+
+// ---- Módulos opcionales (activables en Configuración) ----
+
+enum CanalFuncion {
+  PLATAFORMA
+  TAQUILLA
+  INVITADOS
+  EMPRESA
+}
+
+model Funcion {
+  id              String        @id @default(uuid())
+  titulo          String
+  fecha           DateTime
+  sillasTotales   Int           @default(239)
+  sillasVendidas  Int           @default(0)
+  canal           CanalFuncion  @default(PLATAFORMA)
+  ingresoEstimado Decimal?      @db.Decimal(12, 2)
+  notas           String?
+  creadoEn        DateTime      @default(now())
+
+  tenantId        String
+  tenant          Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  npsList         NpsRespuesta[]
+
+  @@index([tenantId])
+  @@map("funciones")
+}
+
+enum SegmentoEspectador {
+  INDIVIDUAL
+  GRUPO
+  EMPRESA
+  COLEGIO
+}
+
+model Espectador {
+  id          String              @id @default(uuid())
+  nombre      String
+  email       String?
+  telefono    String?
+  segmento    SegmentoEspectador  @default(INDIVIDUAL)
+  notas       String?
+  creadoEn    DateTime            @default(now())
+
+  tenantId    String
+  tenant      Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  npsList     NpsRespuesta[]
+
+  @@index([tenantId])
+  @@map("espectadores")
+}
+
+model NpsRespuesta {
+  id            String      @id @default(uuid())
+  puntuacion    Int
+  comentario    String?
+  creadoEn      DateTime    @default(now())
+
+  funcionId     String
+  funcion       Funcion     @relation(fields: [funcionId], references: [id], onDelete: Cascade)
+
+  espectadorId  String?
+  espectador    Espectador? @relation(fields: [espectadorId], references: [id], onDelete: SetNull)
+
+  @@index([funcionId])
+  @@map("nps_respuestas")
 }
