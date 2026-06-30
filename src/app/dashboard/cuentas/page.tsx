@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type Empresa = {
   id: string;
@@ -162,7 +163,11 @@ export default function CuentasPage() {
             <tbody className="divide-y divide-neutral-100">
               {empresas.map((e) => (
                 <tr key={e.id} className="hover:bg-neutral-50">
-                  <td className="px-4 py-3 font-medium text-neutral-900">{e.nombre}</td>
+                  <td className="px-4 py-3 font-medium text-neutral-900">
+                    <Link href={`/dashboard/cuentas/${e.id}`} className="hover:underline">
+                      {e.nombre}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3 text-neutral-500">{e.sector ?? "—"}</td>
                   <td className="px-4 py-3 text-neutral-500">{e.telefono ?? "—"}</td>
                   <td className="px-4 py-3 text-neutral-500">{e._count.contactos}</td>

@@ -27,3 +27,19 @@ export async function PATCH(
 
   return NextResponse.json(actualizada);
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  const existente = await prisma.cotizacion.findFirst({
+    where: { id: params.id, tenantId: session.user.tenantId },
+  });
+  if (!existente) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
+
+  await prisma.cotizacion.delete({ where: { id: params.id } });
+  return NextResponse.json({ ok: true });
+}

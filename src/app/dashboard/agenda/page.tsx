@@ -81,6 +81,12 @@ export default function AgendaPage() {
     });
   }
 
+  async function eliminarActividad(id: string) {
+    if (!confirm("¿Eliminar esta actividad?")) return;
+    setActividades((prev) => prev.filter((a) => a.id !== id));
+    await fetch(`/api/actividades/${id}`, { method: "DELETE" });
+  }
+
   function formatoFecha(fecha: string) {
     return new Date(fecha).toLocaleString("es-ES", {
       day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
@@ -261,6 +267,13 @@ export default function AgendaPage() {
                   {a.oportunidad && ` · ${a.oportunidad.titulo}`}
                 </p>
               </div>
+              <button
+                onClick={() => eliminarActividad(a.id)}
+                className="text-neutral-300 hover:text-red-600"
+                title="Eliminar"
+              >
+                ×
+              </button>
             </div>
           ))}
         </div>

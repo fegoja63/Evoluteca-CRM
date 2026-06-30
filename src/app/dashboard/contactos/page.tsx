@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 type Contacto = {
   id: string;
@@ -183,7 +184,11 @@ export default function ContactosPage() {
             <tbody className="divide-y divide-neutral-100">
               {contactos.map((c) => (
                 <tr key={c.id} className="hover:bg-neutral-50">
-                  <td className="px-4 py-3 font-medium text-neutral-900">{c.nombre}</td>
+                  <td className="px-4 py-3 font-medium text-neutral-900">
+                    <Link href={`/dashboard/contactos/${c.id}`} className="hover:underline">
+                      {c.nombre}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3 text-neutral-500">{c.cargo ?? "—"}</td>
                   <td className="px-4 py-3 text-neutral-500">{c.email ?? "—"}</td>
                   <td className="px-4 py-3 text-neutral-500">{c.empresa?.nombre ?? "—"}</td>
