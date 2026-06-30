@@ -68,7 +68,7 @@ export default function CuentasPage() {
       </div>
 
       <div className="flex items-center justify-between mb-4">
-        <div>
+        <div></div>
         <button
           onClick={() => setMostrarForm(true)}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
