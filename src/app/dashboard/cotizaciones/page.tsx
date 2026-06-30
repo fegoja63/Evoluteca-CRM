@@ -101,6 +101,12 @@ export default function CotizacionesPage() {
     });
   }
 
+  async function eliminarCotizacion(id: string) {
+    if (!confirm("¿Eliminar esta cotización?")) return;
+    setCotizaciones((prev) => prev.filter((c) => c.id !== id));
+    await fetch(`/api/cotizaciones/${id}`, { method: "DELETE" });
+  }
+
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
@@ -246,6 +252,13 @@ export default function CotizacionesPage() {
                       <option key={es.key} value={es.key}>{es.label}</option>
                     ))}
                   </select>
+                  <button
+                    onClick={() => eliminarCotizacion(c.id)}
+                    className="text-neutral-300 hover:text-red-600"
+                    title="Eliminar"
+                  >
+                    ×
+                  </button>
                 </div>
               </div>
             </div>

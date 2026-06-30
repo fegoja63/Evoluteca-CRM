@@ -76,6 +76,12 @@ export default function PipelinePage() {
     });
   }
 
+  async function eliminarOportunidad(id: string) {
+    if (!confirm("¿Eliminar esta oportunidad?")) return;
+    setOportunidades((prev) => prev.filter((o) => o.id !== id));
+    await fetch(`/api/oportunidades/${id}`, { method: "DELETE" });
+  }
+
   function formatoMoneda(valor: string | null) {
     if (!valor) return null;
     return new Intl.NumberFormat("es-ES", { style: "currency", currency: "USD" }).format(Number(valor));
@@ -201,7 +207,16 @@ export default function PipelinePage() {
                 <div className="flex flex-col gap-2">
                   {items.map((o) => (
                     <div key={o.id} className="rounded-lg border border-neutral-200 bg-white p-3 text-xs">
-                      <p className="font-medium text-neutral-900">{o.titulo}</p>
+                      <div className="flex items-start justify-between gap-1">
+                        <p className="font-medium text-neutral-900">{o.titulo}</p>
+                        <button
+                          onClick={() => eliminarOportunidad(o.id)}
+                          className="text-neutral-300 hover:text-red-600"
+                          title="Eliminar"
+                        >
+                          ×
+                        </button>
+                      </div>
                       {o.empresa && <p className="mt-1 text-neutral-500">{o.empresa.nombre}</p>}
                       {o.valor && (
                         <p className="mt-1 font-medium text-green-700">{formatoMoneda(o.valor)}</p>
