@@ -7,8 +7,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum RolUsuario {
@@ -29,6 +30,8 @@ model Tenant {
   creadoEn  DateTime @default(now())
 
   usuarios  Usuario[]
+  empresas  Empresa[]
+  contactos Contacto[]
 
   @@map("tenants")
 }
@@ -49,9 +52,44 @@ model Usuario {
   @@map("usuarios")
 }
 
+model Empresa {
+  id          String    @id @default(uuid())
+  nombre      String
+  sector      String?
+  sitioWeb    String?
+  telefono    String?
+  notas       String?
+  creadoEn    DateTime  @default(now())
+
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  contactos   Contacto[]
+
+  @@index([tenantId])
+  @@map("empresas")
+}
+
+model Contacto {
+  id          String    @id @default(uuid())
+  nombre      String
+  email       String?
+  telefono    String?
+  cargo       String?
+  notas       String?
+  creadoEn    DateTime  @default(now())
+
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  empresaId   String?
+  empresa     Empresa?  @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@map("contactos")
+}
+
 // ---- Modelos de sprints futuros (referencia, no migrados aún) ----
-// model Empresa { ... }          // Sprint 2
-// model Contacto { ... }         // Sprint 2
 // model Oportunidad { ... }      // Sprint 3
 // model Actividad { ... }        // Sprint 4
 // model Cotizacion { ... }       // Sprint 6
