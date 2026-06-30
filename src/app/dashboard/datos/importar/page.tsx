@@ -15,14 +15,14 @@ type Resultado = { creados: number; errores: number; total: number };
 // Campos estándar disponibles por módulo
 const CAMPOS_CRM: Record<string, { key: string; label: string }[]> = {
   empresas: [
-    { key: "nombre", label: "Nombre *" },
+    { key: "nombre", label: "Nombre de la empresa *" },
     { key: "sector", label: "Sector" },
     { key: "telefono", label: "Teléfono" },
     { key: "sitioWeb", label: "Sitio Web" },
     { key: "notas", label: "Notas" },
   ],
   contactos: [
-    { key: "nombre", label: "Nombre *" },
+    { key: "nombre", label: "Nombre del contacto *" },
     { key: "email", label: "Email" },
     { key: "telefono", label: "Teléfono" },
     { key: "cargo", label: "Cargo" },
@@ -37,10 +37,10 @@ const CAMPOS_CRM: Record<string, { key: string; label: string }[]> = {
     { key: "notas", label: "Notas" },
   ],
   espectadores: [
-    { key: "nombre", label: "Nombre *" },
+    { key: "nombre", label: "Cliente / Nombre *" },
     { key: "email", label: "Email" },
     { key: "telefono", label: "Teléfono" },
-    { key: "segmento", label: "Segmento" },
+    { key: "segmento", label: "Segmento (INDIVIDUAL/GRUPO/EMPRESA/COLEGIO)" },
     { key: "notas", label: "Notas" },
   ],
 };
@@ -60,11 +60,13 @@ export default function ImportarAvanzadoPage() {
   const [mapeo, setMapeo] = useState<Record<string, string>>({});
   const [cargando, setCargando] = useState(false);
   const [resultado, setResultado] = useState<Resultado | null>(null);
+  const [archivoGuardado, setArchivoGuardado] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function handlePrevisualizar() {
     const file = fileRef.current?.files?.[0];
     if (!file || !modulo) return;
+    setArchivoGuardado(file);
     setCargando(true);
     const fd = new FormData();
     fd.append("archivo", file);
@@ -89,8 +91,17 @@ export default function ImportarAvanzadoPage() {
   }
 
   async function handleImportar() {
-    const file = fileRef.current?.files?.[0];
+    const file = archivoGuardado;
     if (!file || !modulo) return;
+
+    // Validar que el campo obligatorio esté mapeado
+    const campoObligatorio = modulo === "oportunidades" ? "titulo" : "nombre";
+    const tieneCampoObligatorio = Object.values(mapeo).includes(campoObligatorio);
+    if (!tieneCampoObligatorio) {
+      alert(`Debes asignar al menos una columna al campo "${campoObligatorio === "nombre" ? "Nombre *" : "Título *"}" antes de importar.`);
+      return;
+    }
+
     setCargando(true);
 
     // Convertir mapeo invertido (colExcel -> campoCRM) al formato que espera la API (campoCRM -> colExcel)
