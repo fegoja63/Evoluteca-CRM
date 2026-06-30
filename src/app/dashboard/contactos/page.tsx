@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { KpiCard } from "@/components/kpi-card";
 
 type Contacto = {
   id: string;
@@ -61,11 +62,20 @@ export default function ContactosPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-medium text-neutral-900">Contactos</h1>
-          <p className="text-sm text-neutral-500">Personas de tus cuentas</p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-slate-900">Contactos</h1>
+        <p className="text-slate-500 text-sm mt-1">Personas de tus cuentas</p>
+      </div>
+
+      <div className="grid grid-cols-4 gap-4 mb-8">
+        <KpiCard label="Total contactos" valor={contactos.length} emoji="👤" color="bg-violet-500" />
+        <KpiCard label="Con empresa" valor={contactos.filter(c => c.empresa).length} emoji="🏢" color="bg-blue-500" />
+        <KpiCard label="Sin empresa" valor={contactos.filter(c => !c.empresa).length} emoji="⚠️" color="bg-amber-500" sub="Sin vincular" />
+        <KpiCard label="Con email" valor={contactos.filter(c => c.email).length} emoji="✉️" color="bg-emerald-500" />
+      </div>
+
+      <div className="flex items-center justify-between mb-4">
+        <div></div>
         <button
           onClick={() => setMostrarForm(true)}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"

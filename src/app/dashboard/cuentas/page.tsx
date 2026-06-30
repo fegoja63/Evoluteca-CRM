@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { KpiCard } from "@/components/kpi-card";
 
 type Empresa = {
   id: string;
@@ -54,11 +55,20 @@ export default function CuentasPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-slate-900">Cuentas</h1>
+        <p className="text-slate-500 text-sm mt-1">Empresas y organizaciones</p>
+      </div>
+
+      <div className="grid grid-cols-4 gap-4 mb-8">
+        <KpiCard label="Total cuentas" valor={empresas.length} emoji="🏢" color="bg-blue-500" />
+        <KpiCard label="Con contactos" valor={empresas.filter(e => e._count.contactos > 0).length} emoji="👤" color="bg-violet-500" />
+        <KpiCard label="Sin contactos" valor={empresas.filter(e => e._count.contactos === 0).length} emoji="⚠️" color="bg-amber-500" sub="Requieren seguimiento" />
+        <KpiCard label="Total contactos vinculados" valor={empresas.reduce((acc, e) => acc + e._count.contactos, 0)} emoji="🔗" color="bg-emerald-500" />
+      </div>
+
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-lg font-medium text-neutral-900">Cuentas</h1>
-          <p className="text-sm text-neutral-500">Empresas y organizaciones</p>
-        </div>
         <button
           onClick={() => setMostrarForm(true)}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"

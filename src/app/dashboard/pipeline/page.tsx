@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { KpiCard } from "@/components/kpi-card";
 
 type Oportunidad = {
   id: string;
@@ -89,11 +90,26 @@ export default function PipelinePage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-medium text-neutral-900">Pipeline</h1>
-          <p className="text-sm text-neutral-500">Oportunidades de venta por etapa</p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-slate-900">Pipeline</h1>
+        <p className="text-slate-500 text-sm mt-1">Oportunidades de venta por etapa</p>
+      </div>
+
+      <div className="grid grid-cols-4 gap-4 mb-8">
+        <KpiCard label="Total oportunidades" valor={oportunidades.length} emoji="◈" color="bg-blue-500" />
+        <KpiCard
+          label="Valor en pipeline"
+          valor={new Intl.NumberFormat("es-ES", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(
+            oportunidades.filter(o => o.etapa !== "PERDIDA" && o.etapa !== "GANADA").reduce((acc, o) => acc + Number(o.valor ?? 0), 0)
+          )}
+          emoji="💰" color="bg-emerald-500"
+        />
+        <KpiCard label="Ganadas" valor={oportunidades.filter(o => o.etapa === "GANADA").length} emoji="✅" color="bg-violet-500" />
+        <KpiCard label="Perdidas" valor={oportunidades.filter(o => o.etapa === "PERDIDA").length} emoji="❌" color="bg-red-400" />
+      </div>
+
+      <div className="flex items-center justify-between mb-4">
+        <div></div>
         <button
           onClick={() => setMostrarForm(true)}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
