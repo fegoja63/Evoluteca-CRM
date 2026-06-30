@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { ExtrasPanel } from "@/components/extras-panel";
 
 type Detalle = {
   id: string;
   nombre: string;
   sector: string | null;
+  extras: Record<string, string> | null;
   sitioWeb: string | null;
   telefono: string | null;
   notas: string | null;
@@ -165,7 +167,9 @@ export default function FichaEmpresaPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <ExtrasPanel extras={empresa.extras} />
+
+      <div className="grid grid-cols-2 gap-4 mt-4">
         <div className="rounded-xl border border-neutral-200 p-4">
           <h2 className="mb-3 text-sm font-medium text-neutral-900">
             Contactos ({empresa.contactos.length})
