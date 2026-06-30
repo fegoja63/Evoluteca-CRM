@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh auth *)",
+      "Bash(git -C \"C:/Users/felip/OneDrive/Desktop/evoluteca-crm-sprint1 V2\" status)"
+    ]
+  }
+}

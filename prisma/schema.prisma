@@ -1,0 +1,57 @@
+// Evoluteca CRM — Esquema de base de datos
+// Sprint 1: Fundación y autenticación
+// Los modelos de sprints futuros están comentados como referencia.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RolUsuario {
+  ADMINISTRADOR
+  GERENTE
+  COMERCIAL
+}
+
+// Cada empresa cliente de Evoluteca es un "tenant" aislado.
+// Todas las tablas de negocio (empresas, contactos, oportunidades...)
+// llevan tenantId para garantizar separación de datos entre clientes.
+model Tenant {
+  id        String   @id @default(uuid())
+  nombre    String
+  slug      String   @unique
+  plan      String   @default("arranque") // arranque | empresa | corporativo
+  activo    Boolean  @default(true)
+  creadoEn  DateTime @default(now())
+
+  usuarios  Usuario[]
+
+  @@map("tenants")
+}
+
+model Usuario {
+  id            String      @id @default(uuid())
+  nombre        String
+  email         String      @unique
+  passwordHash  String
+  rol           RolUsuario  @default(COMERCIAL)
+  activo        Boolean     @default(true)
+  creadoEn      DateTime    @default(now())
+
+  tenantId      String
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("usuarios")
+}
+
+// ---- Modelos de sprints futuros (referencia, no migrados aún) ----
+// model Empresa { ... }          // Sprint 2
+// model Contacto { ... }         // Sprint 2
+// model Oportunidad { ... }      // Sprint 3
+// model Actividad { ... }        // Sprint 4
+// model Cotizacion { ... }       // Sprint 6
