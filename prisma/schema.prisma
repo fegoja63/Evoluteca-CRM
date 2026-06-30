@@ -34,6 +34,7 @@ model Tenant {
   contactos     Contacto[]
   oportunidades Oportunidad[]
   actividades   Actividad[]
+  cotizaciones  Cotizacion[]
 
   @@map("tenants")
 }
@@ -69,6 +70,7 @@ model Empresa {
   contactos     Contacto[]
   oportunidades Oportunidad[]
   actividades   Actividad[]
+  cotizaciones  Cotizacion[]
 
   @@index([tenantId])
   @@map("empresas")
@@ -158,5 +160,41 @@ model Actividad {
   @@map("actividades")
 }
 
-// ---- Modelos de sprints futuros (referencia, no migrados aún) ----
-// model Cotizacion { ... }       // Sprint 6
+enum EstadoCotizacion {
+  BORRADOR
+  ENVIADA
+  ACEPTADA
+  RECHAZADA
+}
+
+model Cotizacion {
+  id          String            @id @default(uuid())
+  numero      Int               @default(autoincrement())
+  estado      EstadoCotizacion  @default(BORRADOR)
+  notas       String?
+  creadoEn    DateTime          @default(now())
+
+  tenantId    String
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  empresaId   String?
+  empresa     Empresa?          @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+
+  items       ItemCotizacion[]
+
+  @@index([tenantId])
+  @@map("cotizaciones")
+}
+
+model ItemCotizacion {
+  id            String      @id @default(uuid())
+  descripcion   String
+  cantidad      Int         @default(1)
+  precioUnit    Decimal     @db.Decimal(12, 2)
+
+  cotizacionId  String
+  cotizacion    Cotizacion  @relation(fields: [cotizacionId], references: [id], onDelete: Cascade)
+
+  @@index([cotizacionId])
+  @@map("items_cotizacion")
+}
