@@ -1,0 +1,43 @@
+import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (session.user.rol !== "ADMINISTRADOR") {
+    return NextResponse.json({ error: "Solo un administrador puede editar usuarios" }, { status: 403 });
+  }
+
+  const existente = await prisma.usuario.findFirst({
+    where: { id: params.id, tenantId: session.user.tenantId },
+  });
+  if (!existente) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+
+  if (existente.id === session.user.id) {
+    return NextResponse.json({ error: "No puedes cambiar tu propio rol o estado" }, { status: 400 });
+  }
+
+  const body = await request.json();
+  const { rol, activo } = body;
+
+  const data: Record<string, unknown> = {};
+  if (rol !== undefined) {
+    if (!["ADMINISTRADOR", "GERENTE", "COMERCIAL"].includes(rol)) {
+      return NextResponse.json({ error: "Rol inválido" }, { status: 400 });
+    }
+    data.rol = rol;
+  }
+  if (activo !== undefined) data.activo = activo;
+
+  const actualizado = await prisma.usuario.update({
+    where: { id: params.id },
+    data,
+    select: { id: true, nombre: true, email: true, rol: true, activo: true, creadoEn: true },
+  });
+
+  return NextResponse.json(actualizado);
+}
