@@ -10,27 +10,38 @@ type Oportunidad = {
   etapa: string;
   empresa: { id: string; nombre: string } | null;
   contacto: { id: string; nombre: string } | null;
+  extras: Record<string, string> | null;
 };
 
 type Empresa = { id: string; nombre: string };
 type Contacto = { id: string; nombre: string };
 
 const ETAPAS = [
-  { key: "PROSPECTO", label: "Prospecto" },
-  { key: "CALIFICADO", label: "Calificado" },
-  { key: "PROPUESTA", label: "Propuesta" },
-  { key: "NEGOCIACION", label: "Negociación" },
-  { key: "GANADA", label: "Ganada" },
-  { key: "PERDIDA", label: "Perdida" },
+  { key: "PROSPECTO",   label: "Prospecto",   color: "border-t-slate-400",   badge: "bg-slate-100 text-slate-600" },
+  { key: "CALIFICADO",  label: "Calificado",  color: "border-t-blue-400",    badge: "bg-blue-50 text-blue-700" },
+  { key: "PROPUESTA",   label: "Propuesta",   color: "border-t-violet-400",  badge: "bg-violet-50 text-violet-700" },
+  { key: "NEGOCIACION", label: "Negociación", color: "border-t-amber-400",   badge: "bg-amber-50 text-amber-700" },
+  { key: "GANADA",      label: "Ganada",      color: "border-t-emerald-400", badge: "bg-emerald-50 text-emerald-700" },
+  { key: "PERDIDA",     label: "Perdida",     color: "border-t-red-400",     badge: "bg-red-50 text-red-600" },
 ];
+
+const MESES_LABEL: Record<string, number> = {
+  ENERO:1, FEBRERO:2, MARZO:3, ABRIL:4, MAYO:5, JUNIO:6,
+  JULIO:7, AGOSTO:8, SEPTIEMBRE:9, OCTUBRE:10, NOVIEMBRE:11, DICIEMBRE:12,
+};
+
+const MESES_NOMBRE = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
 export default function PipelinePage() {
   const [oportunidades, setOportunidades] = useState<Oportunidad[]>([]);
-  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [empresas, setEmpresas]   = useState<Empresa[]>([]);
   const [contactos, setContactos] = useState<Contacto[]>([]);
-  const [cargando, setCargando] = useState(true);
+  const [cargando, setCargando]   = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  const [busqueda, setBusqueda]   = useState("");
+  const [filtroAnio, setFiltroAnio] = useState("");
+  const [filtroMes, setFiltroMes]   = useState("");
   const [form, setForm] = useState({
     titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "",
   });
@@ -38,16 +49,12 @@ export default function PipelinePage() {
   async function cargar() {
     setCargando(true);
     const res = await fetch("/api/oportunidades");
-    const data = await res.json();
-    setOportunidades(data);
+    setOportunidades(await res.json());
     setCargando(false);
   }
 
   async function cargarRelaciones() {
-    const [resEmp, resCon] = await Promise.all([
-      fetch("/api/empresas"),
-      fetch("/api/contactos"),
-    ]);
+    const [resEmp, resCon] = await Promise.all([fetch("/api/empresas"), fetch("/api/contactos")]);
     setEmpresas(await resEmp.json());
     setContactos(await resCon.json());
   }
@@ -69,7 +76,7 @@ export default function PipelinePage() {
   }
 
   async function cambiarEtapa(id: string, etapa: string) {
-    setOportunidades((prev) => prev.map((o) => (o.id === id ? { ...o, etapa } : o)));
+    setOportunidades(prev => prev.map(o => o.id === id ? { ...o, etapa } : o));
     await fetch(`/api/oportunidades/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -79,128 +86,182 @@ export default function PipelinePage() {
 
   async function eliminarOportunidad(id: string) {
     if (!confirm("¿Eliminar esta oportunidad?")) return;
-    setOportunidades((prev) => prev.filter((o) => o.id !== id));
+    setOportunidades(prev => prev.filter(o => o.id !== id));
     await fetch(`/api/oportunidades/${id}`, { method: "DELETE" });
   }
 
-  function formatoMoneda(valor: string | null) {
+  function fmt(valor: string | null) {
     if (!valor) return null;
-    return new Intl.NumberFormat("es-ES", { style: "currency", currency: "USD" }).format(Number(valor));
+    return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(Number(valor));
   }
+  function fmtN(v: number) {
+    return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
+  }
+
+  // ── Años y meses disponibles desde extras ──
+  const aniosDisponibles = Array.from(new Set(
+    oportunidades.map(o => o.extras?.["AÑO"]).filter((v): v is string => !!v)
+  )).sort();
+
+  const mesesDisponibles = Array.from(new Set(
+    oportunidades
+      .filter(o => !filtroAnio || o.extras?.["AÑO"] === filtroAnio)
+      .map(o => o.extras?.["MES ELABORACION"])
+      .filter((v): v is string => !!v)
+  )).sort((a, b) => (MESES_LABEL[a.toUpperCase()] ?? 13) - (MESES_LABEL[b.toUpperCase()] ?? 13));
+
+  // ── Filtrado ──
+  const filtradas = oportunidades.filter(o => {
+    if (filtroAnio && o.extras?.["AÑO"] !== filtroAnio) return false;
+    if (filtroMes  && o.extras?.["MES ELABORACION"]?.toUpperCase() !== filtroMes.toUpperCase()) return false;
+    if (busqueda) {
+      const q = busqueda.toLowerCase();
+      if (!o.titulo.toLowerCase().includes(q) &&
+          !o.empresa?.nombre.toLowerCase().includes(q) &&
+          !(o.extras?.["COTIZACION NUMERO"] ?? "").toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  const hayFiltro = busqueda || filtroAnio || filtroMes;
+
+  // ── KPIs ──
+  const etapasActivas = ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"];
+  const activas  = filtradas.filter(o => etapasActivas.includes(o.etapa));
+  const ganadas  = filtradas.filter(o => o.etapa === "GANADA");
+  const perdidas = filtradas.filter(o => o.etapa === "PERDIDA");
+  const valorGanadas  = ganadas.reduce((acc,o)  => acc + Number(o.valor ?? 0), 0);
+  const valorPerdidas = perdidas.reduce((acc,o) => acc + Number(o.valor ?? 0), 0);
+  const valorActivas  = activas.reduce((acc,o)  => acc + Number(o.valor ?? 0), 0);
+  const tasa = (ganadas.length + perdidas.length) > 0
+    ? Math.round((ganadas.length / (ganadas.length + perdidas.length)) * 100) : 0;
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-5">
         <h1 className="text-2xl font-semibold text-slate-900">Pipeline</h1>
         <p className="text-slate-500 text-sm mt-1">Oportunidades de venta por etapa</p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        <KpiCard label="Total oportunidades" valor={oportunidades.length} emoji="◈" color="bg-blue-500" />
-        <KpiCard
-          label="Valor en pipeline"
-          valor={new Intl.NumberFormat("es-ES", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(
-            oportunidades.filter(o => o.etapa !== "PERDIDA" && o.etapa !== "GANADA").reduce((acc, o) => acc + Number(o.valor ?? 0), 0)
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <KpiCard label="En negociación activa" valor={fmtN(valorActivas)} emoji="🔄" color="bg-blue-500"
+          sub={`${activas.length} oportunidades`} />
+        <KpiCard label="Valor ganado" valor={fmtN(valorGanadas)} emoji="💰" color="bg-emerald-500"
+          sub={`${ganadas.length} negocios cerrados`} />
+        <KpiCard label="Valor perdido" valor={fmtN(valorPerdidas)} emoji="❌" color="bg-red-400"
+          sub={`${perdidas.length} perdidos`} />
+        <KpiCard label="Tasa de cierre" valor={`${tasa}%`} emoji="🎯" color="bg-amber-500"
+          sub={`${ganadas.length} ganadas · ${perdidas.length} perdidas`} />
+      </div>
+
+      {/* ── FILTROS ── */}
+      <div className="flex flex-wrap items-center gap-3 mb-5 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3">
+        {/* Búsqueda */}
+        <div className="relative flex-1 min-w-[200px]">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+          <input
+            type="text"
+            placeholder="Buscar cliente, evento o N° cotización..."
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 pl-8 pr-8 py-2 text-sm outline-none focus:border-blue-500"
+          />
+          {busqueda && (
+            <button onClick={() => setBusqueda("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-base leading-none">×</button>
           )}
-          emoji="💰" color="bg-emerald-500"
-        />
-        <KpiCard label="Ganadas" valor={oportunidades.filter(o => o.etapa === "GANADA").length} emoji="✅" color="bg-violet-500" />
-        <KpiCard label="Perdidas" valor={oportunidades.filter(o => o.etapa === "PERDIDA").length} emoji="❌" color="bg-red-400" />
+        </div>
+
+        {/* Año */}
+        <div className="flex items-center gap-1.5">
+          <label className="text-xs font-medium text-slate-500">Año:</label>
+          <select value={filtroAnio} onChange={e => { setFiltroAnio(e.target.value); setFiltroMes(""); }}
+            className="rounded-lg border border-slate-200 bg-white text-slate-900 text-sm px-2 py-2 outline-none cursor-pointer">
+            <option value="">Todos</option>
+            {aniosDisponibles.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+        </div>
+
+        {/* Mes */}
+        <div className="flex items-center gap-1.5">
+          <label className="text-xs font-medium text-slate-500">Mes:</label>
+          <select value={filtroMes} onChange={e => setFiltroMes(e.target.value)}
+            disabled={!filtroAnio}
+            className="rounded-lg border border-slate-200 bg-white text-slate-900 text-sm px-2 py-2 outline-none cursor-pointer disabled:opacity-40">
+            <option value="">Todos</option>
+            {mesesDisponibles.map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </div>
+
+        {/* Contador + limpiar */}
+        <div className="flex items-center gap-3 ml-auto">
+          {hayFiltro && (
+            <>
+              <span className="text-xs text-slate-500">{filtradas.length} de {oportunidades.length} oportunidades</span>
+              <button onClick={() => { setBusqueda(""); setFiltroAnio(""); setFiltroMes(""); }}
+                className="text-xs text-blue-600 hover:underline">× Limpiar filtros</button>
+            </>
+          )}
+          <button onClick={() => setMostrarForm(true)}
+            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            + Nueva oportunidad
+          </button>
+        </div>
       </div>
 
-      <div className="flex items-center justify-between mb-4">
-        <div></div>
-        <button
-          onClick={() => setMostrarForm(true)}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          + Nueva oportunidad
-        </button>
-      </div>
-
+      {/* ── FORMULARIO ── */}
       {mostrarForm && (
-        <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-          <h2 className="mb-4 text-sm font-medium text-neutral-900">Nueva oportunidad</h2>
+        <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-slate-800">Nueva oportunidad</h2>
+            <button onClick={() => setMostrarForm(false)} className="text-slate-400 hover:text-slate-600 text-lg">×</button>
+          </div>
           <form onSubmit={handleGuardar} className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
-              <label className="mb-1 block text-xs text-neutral-500">Título *</label>
-              <input
-                required
-                value={form.titulo}
-                onChange={(e) => setForm({ ...form, titulo: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
-              />
+              <label className="mb-1 block text-xs text-slate-500">Título *</label>
+              <input required value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-neutral-500">Valor estimado (USD)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={form.valor}
-                onChange={(e) => setForm({ ...form, valor: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
-              />
+              <label className="mb-1 block text-xs text-slate-500">Valor estimado (COP)</label>
+              <input type="number" value={form.valor} onChange={e => setForm({...form, valor: e.target.value})}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-neutral-500">Etapa</label>
-              <select
-                value={form.etapa}
-                onChange={(e) => setForm({ ...form, etapa: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
-              >
-                {ETAPAS.map((et) => (
-                  <option key={et.key} value={et.key}>{et.label}</option>
-                ))}
+              <label className="mb-1 block text-xs text-slate-500">Etapa</label>
+              <select value={form.etapa} onChange={e => setForm({...form, etapa: e.target.value})}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
+                {ETAPAS.map(et => <option key={et.key} value={et.key}>{et.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs text-neutral-500">Empresa</label>
-              <select
-                value={form.empresaId}
-                onChange={(e) => setForm({ ...form, empresaId: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
-              >
+              <label className="mb-1 block text-xs text-slate-500">Empresa</label>
+              <select value={form.empresaId} onChange={e => setForm({...form, empresaId: e.target.value})}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
                 <option value="">Sin empresa</option>
-                {empresas.map((emp) => (
-                  <option key={emp.id} value={emp.id}>{emp.nombre}</option>
-                ))}
+                {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs text-neutral-500">Contacto</label>
-              <select
-                value={form.contactoId}
-                onChange={(e) => setForm({ ...form, contactoId: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
-              >
+              <label className="mb-1 block text-xs text-slate-500">Contacto</label>
+              <select value={form.contactoId} onChange={e => setForm({...form, contactoId: e.target.value})}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
                 <option value="">Sin contacto</option>
-                {contactos.map((c) => (
-                  <option key={c.id} value={c.id}>{c.nombre}</option>
-                ))}
+                {contactos.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
               </select>
             </div>
             <div className="col-span-2">
-              <label className="mb-1 block text-xs text-neutral-500">Notas</label>
-              <textarea
-                value={form.notas}
-                onChange={(e) => setForm({ ...form, notas: e.target.value })}
-                rows={3}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
-              />
+              <label className="mb-1 block text-xs text-slate-500">Notas</label>
+              <textarea value={form.notas} onChange={e => setForm({...form, notas: e.target.value})}
+                rows={2} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
             <div className="col-span-2 flex gap-2">
-              <button
-                type="submit"
-                disabled={guardando}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-              >
+              <button type="submit" disabled={guardando}
+                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
                 {guardando ? "Guardando..." : "Guardar"}
               </button>
-              <button
-                type="button"
-                onClick={() => setMostrarForm(false)}
-                className="rounded-md border border-neutral-300 px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-100"
-              >
+              <button type="button" onClick={() => setMostrarForm(false)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
                 Cancelar
               </button>
             </div>
@@ -208,43 +269,46 @@ export default function PipelinePage() {
         </div>
       )}
 
+      {/* ── KANBAN ── */}
       {cargando ? (
-        <p className="text-sm text-neutral-400">Cargando...</p>
+        <p className="text-sm text-slate-400">Cargando...</p>
       ) : (
         <div className="grid grid-cols-6 gap-3">
-          {ETAPAS.map((etapa) => {
-            const items = oportunidades.filter((o) => o.etapa === etapa.key);
+          {ETAPAS.map(etapa => {
+            const items = filtradas.filter(o => o.etapa === etapa.key);
             return (
-              <div key={etapa.key} className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+              <div key={etapa.key}
+                className={`rounded-xl border-2 border-t-4 border-slate-200 ${etapa.color} bg-slate-50 p-3`}>
                 <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-xs font-medium text-neutral-700">{etapa.label}</h3>
-                  <span className="text-xs text-neutral-400">{items.length}</span>
+                  <h3 className="text-xs font-semibold text-slate-700">{etapa.label}</h3>
+                  <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${etapa.badge}`}>{items.length}</span>
                 </div>
-                <div className="flex flex-col gap-2">
-                  {items.map((o) => (
-                    <div key={o.id} className="rounded-lg border border-neutral-200 bg-white p-3 text-xs">
-                      <div className="flex items-start justify-between gap-1">
-                        <p className="font-medium text-neutral-900">{o.titulo}</p>
-                        <button
-                          onClick={() => eliminarOportunidad(o.id)}
-                          className="text-neutral-300 hover:text-red-600"
-                          title="Eliminar"
-                        >
-                          ×
-                        </button>
+                <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-0.5">
+                  {items.length === 0 && (
+                    <p className="text-xs text-slate-400 text-center py-4">Sin registros</p>
+                  )}
+                  {items.map(o => (
+                    <div key={o.id} className="rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-sm">
+                      <div className="flex items-start justify-between gap-1 mb-1">
+                        <p className="font-semibold text-slate-900 leading-snug">{o.titulo}</p>
+                        <button onClick={() => eliminarOportunidad(o.id)}
+                          className="text-slate-300 hover:text-red-500 shrink-0 leading-none text-base">×</button>
                       </div>
-                      {o.empresa && <p className="mt-1 text-neutral-500">{o.empresa.nombre}</p>}
-                      {o.valor && (
-                        <p className="mt-1 font-medium text-green-700">{formatoMoneda(o.valor)}</p>
+                      {o.empresa && <p className="text-slate-500 mb-1">{o.empresa.nombre}</p>}
+                      {o.extras?.["COTIZACION NUMERO"] && (
+                        <p className="text-slate-400 mb-1">{o.extras["COTIZACION NUMERO"]}</p>
                       )}
-                      <select
-                        value={o.etapa}
-                        onChange={(e) => cambiarEtapa(o.id, e.target.value)}
-                        className="mt-2 w-full rounded border border-neutral-200 px-1 py-1 text-xs outline-none"
-                      >
-                        {ETAPAS.map((et) => (
-                          <option key={et.key} value={et.key}>{et.label}</option>
-                        ))}
+                      {o.extras?.["AÑO"] && (
+                        <p className="text-slate-400">
+                          {o.extras["AÑO"]}{o.extras["MES ELABORACION"] ? ` · ${o.extras["MES ELABORACION"]}` : ""}
+                        </p>
+                      )}
+                      {o.valor && (
+                        <p className="mt-1.5 font-semibold text-emerald-700">{fmt(o.valor)}</p>
+                      )}
+                      <select value={o.etapa} onChange={e => cambiarEtapa(o.id, e.target.value)}
+                        className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-1.5 py-1 text-xs outline-none cursor-pointer">
+                        {ETAPAS.map(et => <option key={et.key} value={et.key}>{et.label}</option>)}
                       </select>
                     </div>
                   ))}

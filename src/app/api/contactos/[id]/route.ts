@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { puedeEliminar } from "@/lib/permisos";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
@@ -14,8 +10,8 @@ export async function GET(
     where: { id: params.id, tenantId: session.user.tenantId },
     include: {
       empresa: { select: { id: true, nombre: true } },
-      oportunidades: true,
-      actividades: { orderBy: { fecha: "asc" } },
+      oportunidades: { select: { id: true, titulo: true, etapa: true, valor: true } },
+      actividades: { select: { id: true, tipo: true, titulo: true, fecha: true, completada: true }, orderBy: { fecha: "desc" } },
     },
   });
 
@@ -23,55 +19,35 @@ export async function GET(
   return NextResponse.json(contacto);
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-
-  const existente = await prisma.contacto.findFirst({
-    where: { id: params.id, tenantId: session.user.tenantId },
-  });
-  if (!existente) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
   const body = await request.json();
   const { nombre, email, telefono, cargo, notas, empresaId } = body;
 
-  if (!nombre?.trim()) {
-    return NextResponse.json({ error: "El nombre es obligatorio" }, { status: 400 });
-  }
-
-  const contacto = await prisma.contacto.update({
-    where: { id: params.id },
+  const contacto = await prisma.contacto.updateMany({
+    where: { id: params.id, tenantId: session.user.tenantId },
     data: {
-      nombre: nombre.trim(),
-      email: email?.trim() || null,
-      telefono: telefono?.trim() || null,
-      cargo: cargo?.trim() || null,
-      notas: notas?.trim() || null,
-      empresaId: empresaId || null,
+      ...(nombre !== undefined && { nombre }),
+      ...(email !== undefined && { email: email || null }),
+      ...(telefono !== undefined && { telefono: telefono || null }),
+      ...(cargo !== undefined && { cargo: cargo || null }),
+      ...(notas !== undefined && { notas: notas || null }),
+      ...(empresaId !== undefined && { empresaId: empresaId || null }),
     },
   });
 
   return NextResponse.json(contacto);
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  if (!puedeEliminar(session.user.rol)) {
-    return NextResponse.json({ error: "No tienes permiso para eliminar" }, { status: 403 });
-  }
 
-  const existente = await prisma.contacto.findFirst({
+  await prisma.contacto.deleteMany({
     where: { id: params.id, tenantId: session.user.tenantId },
   });
-  if (!existente) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
-  await prisma.contacto.delete({ where: { id: params.id } });
   return NextResponse.json({ ok: true });
 }

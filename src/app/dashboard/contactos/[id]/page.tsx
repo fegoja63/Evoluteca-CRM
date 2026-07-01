@@ -78,7 +78,7 @@ export default function FichaContactoPage() {
 
   function formatoMoneda(valor: string | null) {
     if (!valor) return null;
-    return new Intl.NumberFormat("es-ES", { style: "currency", currency: "USD" }).format(Number(valor));
+    return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(Number(valor));
   }
 
   if (cargando) return <p className="text-sm text-neutral-400">Cargando...</p>;

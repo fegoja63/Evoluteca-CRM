@@ -8,11 +8,11 @@ import { cn } from "@/lib/cn";
 
 const navBase = [
   { href: "/dashboard", label: "Dashboard", emoji: "▦" },
-  { href: "/dashboard/cuentas", label: "Cuentas", emoji: "🏢" },
+  { href: "/dashboard/cuentas", label: "Clientes", emoji: "🏢" },
   { href: "/dashboard/contactos", label: "Contactos", emoji: "👤" },
   { href: "/dashboard/pipeline", label: "Pipeline", emoji: "◈" },
   { href: "/dashboard/agenda", label: "Agenda", emoji: "📅" },
-  { href: "/dashboard/cotizaciones", label: "Propuestas", emoji: "📄" },
+  { href: "/dashboard/cotizaciones", label: "Cotizaciones", emoji: "📄" },
   { href: "/dashboard/reportes", label: "Reportes", emoji: "📊" },
   { href: "/dashboard/equipo", label: "Equipo", emoji: "👥" },
 ];

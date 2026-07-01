@@ -15,12 +15,22 @@ export async function POST(request: Request) {
   await wb.xlsx.load(buffer as any);
 
   const hojas = wb.worksheets.map((ws) => ws.name);
-  const ws = wb.worksheets[0];
+  // Usar la hoja con más filas (ignora hojas de resumen/dashboard)
+  const ws = wb.worksheets.reduce((best, curr) =>
+    (curr.rowCount > best.rowCount ? curr : best), wb.worksheets[0]);
   if (!ws) return NextResponse.json({ error: "Archivo vacío" }, { status: 400 });
+
+  function leerCelda(cell: ExcelJS.Cell): string {
+    const v = cell.value;
+    if (v === null || v === undefined) return "";
+    if (typeof v === "object" && "result" in v) return String((v as ExcelJS.CellFormulaValue).result ?? "");
+    if (v instanceof Date) return v.toISOString();
+    return String(v);
+  }
 
   const columnas: string[] = [];
   ws.getRow(1).eachCell((cell) => {
-    const val = String(cell.value ?? "").trim();
+    const val = leerCelda(cell).trim();
     if (val) columnas.push(val);
   });
 
@@ -30,8 +40,7 @@ export async function POST(request: Request) {
     if (rowNum === 1 || count >= 3) return;
     const fila: Record<string, string> = {};
     columnas.forEach((col, i) => {
-      const cell = row.getCell(i + 1);
-      fila[col] = String(cell.value ?? "").trim();
+      fila[col] = leerCelda(row.getCell(i + 1)).trim();
     });
     if (Object.values(fila).some((v) => v)) { muestra.push(fila); count++; }
   });

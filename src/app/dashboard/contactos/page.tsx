@@ -84,13 +84,21 @@ export default function ContactosPage() {
         </button>
       </div>
 
-      <input
-        type="text"
-        placeholder="Buscar por nombre..."
-        value={busqueda}
-        onChange={(e) => setBusqueda(e.target.value)}
-        className="mb-4 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
-      />
+      <div className="relative mb-4">
+        <input
+          type="text"
+          placeholder="Buscar por nombre..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="w-full rounded-md border border-neutral-300 px-3 py-2 pr-8 text-sm outline-none focus:border-blue-500"
+        />
+        {busqueda && (
+          <button onClick={() => setBusqueda("")}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 text-lg leading-none">
+            ×
+          </button>
+        )}
+      </div>
 
       {mostrarForm && (
         <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">

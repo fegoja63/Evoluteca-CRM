@@ -15,6 +15,12 @@ type Resultado = {
   oportunidadesCreadas: number;
   errores: number;
   total: number;
+  debug?: {
+    contactosMapeados: number;
+    oportunidadesMapeadas: number;
+    contactosError: string;
+    oportunidadesError: string;
+  };
 };
 
 const CAMPOS = [
@@ -24,14 +30,21 @@ const CAMPOS = [
   { key: "telefonoContacto", label: "📞 Teléfono del contacto", desc: "" },
   { key: "cargoContacto", label: "💼 Cargo del contacto", desc: "" },
   { key: "tituloOportunidad", label: "◈ Tipo de negocio / evento", desc: "Nombre del negocio o tipo de evento" },
-  { key: "valorOportunidad", label: "💰 Valor del negocio", desc: "Solo números" },
   { key: "etapaOportunidad", label: "🏷️ Estado / Etapa", desc: "HECHO, DESCARTADO, EN PROCESO, etc." },
+  { key: "valorOportunidad", label: "💰 Valor cotizado", desc: "Solo números" },
+  { key: "fechaEvento", label: "📅 Fecha del evento", desc: "Fecha en que ocurre el evento" },
+  { key: "sede", label: "📍 Sede / Sala", desc: "Lugar del evento" },
+  { key: "segmento", label: "👥 Segmento", desc: "Tipo de cliente" },
 ];
+
+// Campos obligatorios para poder importar
+const CAMPOS_REQUERIDOS = ["empresa", "contacto", "tituloOportunidad"];
 
 export default function ImportarCompletoPage() {
   const [paso, setPaso] = useState<1 | 2 | 3>(1);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [mapeo, setMapeo] = useState<Record<string, string>>({});
+  const [autoDetectados, setAutoDetectados] = useState<Set<string>>(new Set());
   const [colsExtra, setColsExtra] = useState<string[]>([]);
   const [cargando, setCargando] = useState(false);
   const [resultado, setResultado] = useState<Resultado | null>(null);
@@ -49,7 +62,15 @@ export default function ImportarCompletoPage() {
     const data: Preview = await res.json();
     setPreview(data);
 
-    // Auto-mapeo por nombre de columna
+    // Devuelve true si la mayoría de los valores de muestra de esa columna son numéricos
+    function esColumnaNumerica(col: string): boolean {
+      const vals = data.muestra.map((f) => f[col]).filter(Boolean);
+      if (vals.length === 0) return false;
+      const numericos = vals.filter((v) => !isNaN(Number(v.replace(/[.,\s$€£]/g, "")))).length;
+      return numericos / vals.length >= 0.5;
+    }
+
+    // Auto-mapeo por nombre de columna + validación de datos
     const autoMapeo: Record<string, string> = {};
     const autoExtra: string[] = [];
     data.columnas.forEach((col) => {
@@ -59,12 +80,17 @@ export default function ImportarCompletoPage() {
       else if (norm.includes("email") || norm.includes("correo")) autoMapeo["emailContacto"] = col;
       else if (norm.includes("telefono") || norm.includes("celular")) autoMapeo["telefonoContacto"] = col;
       else if (norm.includes("cargo") || norm.includes("puesto")) autoMapeo["cargoContacto"] = col;
-      else if (norm.includes("tipo") || norm.includes("evento") || norm.includes("servicio") || norm.includes("producto")) autoMapeo["tituloOportunidad"] = col;
-      else if (norm.includes("valor") || norm.includes("precio") || norm.includes("monto") || norm.includes("cotiz")) autoMapeo["valorOportunidad"] = col;
+      else if ((norm.includes("tipo") || norm.includes("evento") || norm.includes("servicio") || norm.includes("producto")) && !norm.includes("norm") && !autoMapeo["tituloOportunidad"]) autoMapeo["tituloOportunidad"] = col;
+      else if ((norm.includes("tipo") || norm.includes("evento")) && norm.includes("norm") && !autoMapeo["tituloOportunidad"]) autoMapeo["tituloOportunidad"] = col;
+      else if ((norm.includes("valor") || norm.includes("precio") || norm.includes("monto")) && esColumnaNumerica(col) && !autoMapeo["valorOportunidad"]) autoMapeo["valorOportunidad"] = col;
       else if (norm.includes("estado") || norm.includes("etapa") || norm.includes("status")) autoMapeo["etapaOportunidad"] = col;
+      else if (norm.includes("fechaevento") || (norm.includes("fecha") && norm.includes("event"))) autoMapeo["fechaEvento"] = col;
+      else if (norm.includes("sede") || norm.includes("sala") || norm.includes("lugar")) autoMapeo["sede"] = col;
+      else if (norm.includes("segmento")) autoMapeo["segmento"] = col;
       else autoExtra.push(col);
     });
     setMapeo(autoMapeo);
+    setAutoDetectados(new Set(Object.keys(autoMapeo)));
     setColsExtra(autoExtra);
     setCargando(false);
     setPaso(2);
@@ -141,12 +167,21 @@ export default function ImportarCompletoPage() {
 
           <div className="grid grid-cols-2 gap-3 mb-6">
             {CAMPOS.map((campo) => {
-              const ejemplos = mapeo[campo.key]
+              const mapeado = !!mapeo[campo.key];
+              const requerido = CAMPOS_REQUERIDOS.includes(campo.key);
+              const autoDetectado = autoDetectados.has(campo.key);
+              const faltaRequerido = requerido && !mapeado;
+              const ejemplos = mapeado
                 ? preview.muestra.map((f) => f[mapeo[campo.key]]).filter(Boolean).slice(0, 2)
                 : [];
               return (
-                <div key={campo.key} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                  <label className="block text-xs font-medium text-slate-700 mb-1">{campo.label}</label>
+                <div key={campo.key} className={`rounded-xl border p-3 ${faltaRequerido ? "border-red-300 bg-red-50" : mapeado ? "border-emerald-200 bg-emerald-50" : "border-slate-100 bg-slate-50"}`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-medium text-slate-700">{campo.label}{requerido && <span className="text-red-500 ml-1">*</span>}</label>
+                    {autoDetectado && mapeado && (
+                      <span className="text-xs font-medium text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded">✓ Auto</span>
+                    )}
+                  </div>
                   {campo.desc && <p className="text-xs text-slate-400 mb-1.5">{campo.desc}</p>}
                   <select
                     value={mapeo[campo.key] ?? ""}
@@ -156,13 +191,14 @@ export default function ImportarCompletoPage() {
                       else delete nueva[campo.key];
                       setMapeo(nueva);
                     }}
-                    className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs outline-none focus:border-blue-500"
+                    className={`w-full rounded-lg border px-2 py-1.5 text-xs outline-none focus:border-blue-500 ${faltaRequerido ? "border-red-300" : "border-slate-200"}`}
                   >
                     <option value="">— No mapear —</option>
                     {preview.columnas.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
+                  {faltaRequerido && <p className="text-xs text-red-500 mt-1">Este campo es obligatorio</p>}
                   {ejemplos.length > 0 && (
                     <p className="text-xs text-slate-400 mt-1 truncate">Ej: {ejemplos.join(" · ")}</p>
                   )}
@@ -185,13 +221,24 @@ export default function ImportarCompletoPage() {
             </div>
           )}
 
-          <button onClick={handleImportar} disabled={cargando || !mapeo["empresa"]}
-            className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
-            {cargando ? "Importando..." : `↑ Importar ${preview.totalFilas} registros a Cuentas, Contactos y Pipeline`}
-          </button>
-          {!mapeo["empresa"] && (
-            <p className="text-xs text-red-500 mt-2">Debes asignar al menos el campo Empresa / Cliente.</p>
-          )}
+          {(() => {
+            const faltantes = CAMPOS_REQUERIDOS.filter((k) => !mapeo[k]).map(
+              (k) => CAMPOS.find((c) => c.key === k)?.label ?? k
+            );
+            return (
+              <>
+                <button onClick={handleImportar} disabled={cargando || faltantes.length > 0}
+                  className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                  {cargando ? "Importando..." : `↑ Importar ${preview.totalFilas} registros a Cuentas, Contactos y Pipeline`}
+                </button>
+                {faltantes.length > 0 && (
+                  <p className="text-xs text-red-500 mt-2">
+                    Faltan campos obligatorios: {faltantes.map(l => l.replace(/^.+?\s/, "")).join(", ")}
+                  </p>
+                )}
+              </>
+            );
+          })()}
         </div>
       )}
 
@@ -218,6 +265,17 @@ export default function ImportarCompletoPage() {
           </div>
           {resultado.errores > 0 && (
             <p className="text-sm text-amber-600 mb-4">{resultado.errores} filas con error</p>
+          )}
+          {resultado.debug && (resultado.debug.contactosError || resultado.debug.oportunidadesError) && (
+            <div className="text-left rounded-xl bg-red-50 border border-red-100 p-3 mb-4 text-xs text-red-700">
+              {resultado.debug.contactosError && <p><strong>Error contactos:</strong> {resultado.debug.contactosError}</p>}
+              {resultado.debug.oportunidadesError && <p><strong>Error oportunidades:</strong> {resultado.debug.oportunidadesError}</p>}
+            </div>
+          )}
+          {resultado.debug && (
+            <p className="text-xs text-slate-400 mb-4">
+              Filas mapeadas: {resultado.debug.contactosMapeados} contactos · {resultado.debug.oportunidadesMapeadas} oportunidades
+            </p>
           )}
           <div className="flex gap-3 justify-center">
             <Link href="/dashboard/cuentas"

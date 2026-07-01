@@ -8,12 +8,12 @@ export async function GET() {
 
   const actividades = await prisma.actividad.findMany({
     where: { tenantId: session.user.tenantId },
-    orderBy: { fecha: "asc" },
     include: {
       empresa: { select: { id: true, nombre: true } },
       contacto: { select: { id: true, nombre: true } },
       oportunidad: { select: { id: true, titulo: true } },
     },
+    orderBy: { fecha: "asc" },
   });
 
   return NextResponse.json(actividades);
@@ -26,20 +26,23 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { tipo, titulo, fecha, notas, empresaId, contactoId, oportunidadId } = body;
 
-  if (!titulo?.trim() || !fecha) {
-    return NextResponse.json({ error: "Título y fecha son obligatorios" }, { status: 400 });
-  }
+  if (!titulo || !fecha) return NextResponse.json({ error: "Título y fecha requeridos" }, { status: 400 });
 
   const actividad = await prisma.actividad.create({
     data: {
       tipo: tipo || "TAREA",
-      titulo: titulo.trim(),
+      titulo,
       fecha: new Date(fecha),
-      notas: notas?.trim() || null,
+      notas: notas || null,
       empresaId: empresaId || null,
       contactoId: contactoId || null,
       oportunidadId: oportunidadId || null,
       tenantId: session.user.tenantId,
+    },
+    include: {
+      empresa: { select: { id: true, nombre: true } },
+      contacto: { select: { id: true, nombre: true } },
+      oportunidad: { select: { id: true, titulo: true } },
     },
   });
 

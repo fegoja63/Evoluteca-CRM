@@ -11,7 +11,7 @@ export async function GET() {
     orderBy: { creadoEn: "desc" },
     include: {
       empresa: { select: { id: true, nombre: true } },
-      contacto: { select: { id: true, nombre: true } },
+      contacto: { select: { id: true, nombre: true, email: true } },
     },
   });
 

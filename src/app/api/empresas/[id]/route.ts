@@ -37,7 +37,7 @@ export async function PATCH(
   if (!existente) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
 
   const body = await request.json();
-  const { nombre, sector, sitioWeb, telefono, notas } = body;
+  const { nombre, email, sector, sitioWeb, telefono, notas } = body;
 
   if (!nombre?.trim()) {
     return NextResponse.json({ error: "El nombre es obligatorio" }, { status: 400 });
@@ -47,6 +47,7 @@ export async function PATCH(
     where: { id: params.id },
     data: {
       nombre: nombre.trim(),
+      email: email?.trim() || null,
       sector: sector?.trim() || null,
       sitioWeb: sitioWeb?.trim() || null,
       telefono: telefono?.trim() || null,

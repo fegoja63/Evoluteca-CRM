@@ -11,7 +11,14 @@ type MapeoCompleto = {
   cargoContacto?: string;
   tituloOportunidad?: string;
   valorOportunidad?: string;
+  costoOportunidad?: string;
   etapaOportunidad?: string;
+  fechaEvento?: string;
+  fechaCierre?: string;
+  sede?: string;
+  origenLead?: string;
+  segmento?: string;
+  recurrente?: string;
 };
 
 const ETAPAS_MAP: Record<string, string> = {
@@ -41,16 +48,26 @@ export async function POST(request: Request) {
   const buffer = Buffer.from(await file.arrayBuffer());
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load(buffer as any);
-  const ws = wb.worksheets[0];
+  // Usar la hoja con más filas para evitar leer hojas de resumen/dashboard
+  const ws = wb.worksheets.reduce((best, curr) =>
+    (curr.rowCount > best.rowCount ? curr : best), wb.worksheets[0]);
+
+  function leerCelda(cell: ExcelJS.Cell): string {
+    const v = cell.value;
+    if (v === null || v === undefined) return "";
+    if (typeof v === "object" && "result" in v) return String((v as ExcelJS.CellFormulaValue).result ?? "");
+    if (v instanceof Date) return v.toISOString();
+    return String(v);
+  }
 
   const headers: string[] = [];
-  ws.getRow(1).eachCell((cell) => headers.push(String(cell.value ?? "").trim()));
+  ws.getRow(1).eachCell((cell) => headers.push(leerCelda(cell).trim()));
 
   const filas: Record<string, string>[] = [];
   ws.eachRow((row, rowNum) => {
     if (rowNum === 1) return;
     const fila: Record<string, string> = {};
-    headers.forEach((h, i) => { fila[h] = String(row.getCell(i + 1).value ?? "").trim(); });
+    headers.forEach((h, i) => { fila[h] = leerCelda(row.getCell(i + 1)).trim(); });
     if (Object.values(fila).some((v) => v)) filas.push(fila);
   });
 
@@ -69,6 +86,20 @@ export async function POST(request: Request) {
       }
     }
     return Object.keys(extras).length > 0 ? extras : null;
+  }
+
+  function parseFecha(str: string | null): Date | null {
+    if (!str) return null;
+    // Intenta parsear formatos comunes: DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD
+    const limpio = str.trim();
+    const partes = limpio.split(/[\/\-\.]/);
+    if (partes.length === 3) {
+      const [a, b, c] = partes.map(Number);
+      if (c > 1900) return new Date(c, a - 1, b); // DD/MM/YYYY
+      if (a > 1900) return new Date(a, b - 1, c); // YYYY-MM-DD
+    }
+    const d = new Date(limpio);
+    return isNaN(d.getTime()) ? null : d;
   }
 
   function limpiarValor(str: string): number | null {
@@ -124,7 +155,15 @@ export async function POST(request: Request) {
       };
     });
 
-  const contactosResult = await prisma.contacto.createMany({ data: contactosData, skipDuplicates: false });
+  let contactosCreados = 0;
+  let contactosError = "";
+  try {
+    const r = await prisma.contacto.createMany({ data: contactosData, skipDuplicates: true });
+    contactosCreados = r.count;
+  } catch (e) {
+    contactosError = String(e);
+    console.error("Error creando contactos:", e);
+  }
 
   // ── PASO 3: Oportunidades en lote ────────────────────────────
   const oportunidadesData = filas
@@ -135,24 +174,51 @@ export async function POST(request: Request) {
       const etapaRaw = get(fila, "etapaOportunidad")?.toUpperCase().trim() ?? "";
       const etapa = (ETAPAS_MAP[etapaRaw] ?? "PROSPECTO") as "PROSPECTO" | "CALIFICADO" | "PROPUESTA" | "NEGOCIACION" | "GANADA" | "PERDIDA";
       const valor = limpiarValor(get(fila, "valorOportunidad") ?? "");
+      const costo = limpiarValor(get(fila, "costoOportunidad") ?? "");
+      const fechaEvento = parseFecha(get(fila, "fechaEvento"));
+      const fechaCierre = parseFecha(get(fila, "fechaCierre"));
+      const recurrenteRaw = get(fila, "recurrente")?.toUpperCase().trim();
+      const recurrente = recurrenteRaw === "SI" || recurrenteRaw === "SÍ" || recurrenteRaw === "YES" || recurrenteRaw === "1" ? true
+        : recurrenteRaw === "NO" || recurrenteRaw === "0" ? false : null;
       return {
         titulo: get(fila, "tituloOportunidad")!,
         etapa,
         valor,
+        costo,
+        fechaEvento,
+        fechaCierre,
+        sede: get(fila, "sede"),
+        origenLead: get(fila, "origenLead"),
+        segmento: get(fila, "segmento"),
+        recurrente,
         empresaId,
         extras: getExtras(fila) ?? undefined,
         tenantId,
       };
     });
 
-  const oportunidadesResult = await prisma.oportunidad.createMany({ data: oportunidadesData, skipDuplicates: false });
+  let oportunidadesCreadas = 0;
+  let oportunidadesError = "";
+  try {
+    const r = await prisma.oportunidad.createMany({ data: oportunidadesData, skipDuplicates: true });
+    oportunidadesCreadas = r.count;
+  } catch (e) {
+    oportunidadesError = String(e);
+    console.error("Error creando oportunidades:", e);
+  }
 
   return NextResponse.json({
     ok: true,
     empresasCreadas: empresasNuevas.size,
-    contactosCreados: contactosResult.count,
-    oportunidadesCreadas: oportunidadesResult.count,
+    contactosCreados,
+    oportunidadesCreadas,
     errores: 0,
     total: filas.length,
+    debug: {
+      contactosMapeados: contactosData.length,
+      oportunidadesMapeadas: oportunidadesData.length,
+      contactosError,
+      oportunidadesError,
+    },
   });
 }

@@ -25,10 +25,19 @@ export async function POST(request: Request) {
   const buffer = Buffer.from(await file.arrayBuffer());
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load(buffer as any);
-  const ws = wb.worksheets[0];
+  const ws = wb.worksheets.reduce((best, curr) =>
+    (curr.rowCount > best.rowCount ? curr : best), wb.worksheets[0]);
+
+  function leerCelda(cell: ExcelJS.Cell): string {
+    const v = cell.value;
+    if (v === null || v === undefined) return "";
+    if (typeof v === "object" && "result" in v) return String((v as ExcelJS.CellFormulaValue).result ?? "");
+    if (v instanceof Date) return v.toISOString();
+    return String(v);
+  }
 
   const headers: string[] = [];
-  ws.getRow(1).eachCell((cell) => headers.push(String(cell.value ?? "").trim()));
+  ws.getRow(1).eachCell((cell) => headers.push(leerCelda(cell).trim()));
 
   function getCol(fila: Record<string, string>, campo: string): string | null {
     const colExcel = mapeo[campo];
@@ -41,7 +50,7 @@ export async function POST(request: Request) {
 
   function getExtras(fila: Record<string, string>): Record<string, string> | null {
     const extras: Record<string, string> = {};
-    for (const col of colsExtraSet) {
+    for (const col of Array.from(colsExtraSet)) {
       const val = fila[col]?.trim();
       if (val) extras[col] = val;
     }
@@ -52,7 +61,7 @@ export async function POST(request: Request) {
   ws.eachRow((row, rowNum) => {
     if (rowNum === 1) return;
     const fila: Record<string, string> = {};
-    headers.forEach((h, i) => { fila[h] = String(row.getCell(i + 1).value ?? "").trim(); });
+    headers.forEach((h, i) => { fila[h] = leerCelda(row.getCell(i + 1)).trim(); });
     if (Object.values(fila).some((v) => v)) filas.push(fila);
   });
 
@@ -71,7 +80,7 @@ export async function POST(request: Request) {
             telefono: getCol(fila, "telefono"),
             sitioWeb: getCol(fila, "sitioWeb"),
             notas: getCol(fila, "notas"),
-            extras: getExtras(fila),
+            extras: getExtras(fila) ?? undefined,
             tenantId,
           },
         });
@@ -95,7 +104,7 @@ export async function POST(request: Request) {
             telefono: getCol(fila, "telefono"),
             cargo: getCol(fila, "cargo"),
             notas: getCol(fila, "notas"),
-            extras: getExtras(fila),
+            extras: getExtras(fila) ?? undefined,
             empresaId: empresaId || null,
             tenantId,
           },
@@ -124,7 +133,7 @@ export async function POST(request: Request) {
             etapa,
             valor: valor && !isNaN(valor) ? valor : null,
             notas: getCol(fila, "notas"),
-            extras: getExtras(fila),
+            extras: getExtras(fila) ?? undefined,
             empresaId: empresaId || null,
             tenantId,
           },
@@ -147,7 +156,7 @@ export async function POST(request: Request) {
             telefono: getCol(fila, "telefono"),
             segmento,
             notas: getCol(fila, "notas"),
-            extras: getExtras(fila),
+            extras: getExtras(fila) ?? undefined,
             tenantId,
           },
         });

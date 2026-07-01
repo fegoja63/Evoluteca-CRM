@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   const totalOp = oportunidades.length;
 
   function formatoMoneda(valor: number) {
-    return new Intl.NumberFormat("es-ES", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(valor);
+    return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(valor);
   }
 
   const kpis = [
@@ -38,7 +38,7 @@ export default async function DashboardPage() {
           Hola, {session?.user?.name?.split(" ")[0]} 👋
         </h1>
         <p className="text-slate-500 mt-1">
-          {session?.user?.tenantNombre} · {session?.user?.rol?.charAt(0) + session?.user?.rol?.slice(1).toLowerCase()}
+          {session?.user?.tenantNombre} · {session?.user?.rol ? session.user.rol.charAt(0) + session.user.rol.slice(1).toLowerCase() : ""}
         </p>
       </div>
 

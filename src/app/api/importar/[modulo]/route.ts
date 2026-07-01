@@ -19,12 +19,21 @@ export async function POST(
   const buffer = Buffer.from(await file.arrayBuffer());
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load(buffer as any);
-  const ws = wb.worksheets[0];
+  const ws = wb.worksheets.reduce((best, curr) =>
+    (curr.rowCount > best.rowCount ? curr : best), wb.worksheets[0]);
   if (!ws) return NextResponse.json({ error: "El archivo no tiene hojas" }, { status: 400 });
+
+  function leerCelda(cell: ExcelJS.Cell): string {
+    const v = cell.value;
+    if (v === null || v === undefined) return "";
+    if (typeof v === "object" && "result" in v) return String((v as ExcelJS.CellFormulaValue).result ?? "");
+    if (v instanceof Date) return v.toISOString();
+    return String(v);
+  }
 
   // Leer encabezados de la primera fila
   const headers: string[] = [];
-  ws.getRow(1).eachCell((cell) => { headers.push(String(cell.value ?? "").trim()); });
+  ws.getRow(1).eachCell((cell) => { headers.push(leerCelda(cell).trim()); });
 
   // Leer filas de datos (saltar fila 1 y filas vacías)
   const filas: Record<string, string>[] = [];
@@ -33,7 +42,7 @@ export async function POST(
     const fila: Record<string, string> = {};
     row.eachCell((cell, colNum) => {
       const header = headers[colNum - 1];
-      if (header) fila[header] = String(cell.value ?? "").trim();
+      if (header) fila[header] = leerCelda(cell).trim();
     });
     const tieneContenido = Object.values(fila).some((v) => v);
     if (tieneContenido) filas.push(fila);

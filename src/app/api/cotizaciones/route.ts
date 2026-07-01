@@ -11,6 +11,8 @@ export async function GET() {
     orderBy: { creadoEn: "desc" },
     include: {
       empresa: { select: { id: true, nombre: true } },
+      contacto: { select: { id: true, nombre: true, email: true } },
+      oportunidad: { select: { id: true, titulo: true, fechaEvento: true, sede: true } },
       items: true,
     },
   });
@@ -23,7 +25,7 @@ export async function POST(request: Request) {
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { empresaId, notas, items } = body;
+  const { empresaId, contactoId, oportunidadId, fechaEvento, sede, notas, fechaValidez, items } = body;
 
   if (!Array.isArray(items) || items.length === 0) {
     return NextResponse.json({ error: "Agrega al menos un ítem" }, { status: 400 });
@@ -38,7 +40,12 @@ export async function POST(request: Request) {
   const cotizacion = await prisma.cotizacion.create({
     data: {
       empresaId: empresaId || null,
+      contactoId: contactoId || null,
+      oportunidadId: oportunidadId || null,
+      fechaEvento: fechaEvento ? new Date(fechaEvento) : null,
+      sede: sede?.trim() || null,
       notas: notas?.trim() || null,
+      fechaValidez: fechaValidez ? new Date(fechaValidez) : null,
       tenantId: session.user.tenantId,
       items: {
         create: items.map((item: { descripcion: string; cantidad: number; precioUnit: number }) => ({
@@ -48,7 +55,7 @@ export async function POST(request: Request) {
         })),
       },
     },
-    include: { items: true },
+    include: { empresa: true, contacto: true, items: true },
   });
 
   return NextResponse.json(cotizacion, { status: 201 });
