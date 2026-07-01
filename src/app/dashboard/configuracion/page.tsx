@@ -86,11 +86,11 @@ export default function ConfiguracionPage() {
         <p className="text-xs text-slate-400 mb-4">Siempre activos para todos los tipos de negocio.</p>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { titulo: "Cuentas", emoji: "🏢", desc: "Empresas y organizaciones B2B" },
-            { titulo: "Contactos", emoji: "👤", desc: "Personas de tus cuentas" },
+            { titulo: "Clientes", emoji: "🏢", desc: "Empresas y organizaciones B2B" },
+            { titulo: "Contactos", emoji: "👤", desc: "Personas de tus clientes" },
             { titulo: "Pipeline", emoji: "◈", desc: "Oportunidades de venta" },
             { titulo: "Agenda", emoji: "📅", desc: "Tareas, llamadas y reuniones" },
-            { titulo: "Cotizaciones", emoji: "📄", desc: "Propuestas comerciales" },
+            { titulo: "Propuestas", emoji: "📄", desc: "Propuestas y cotizaciones activas" },
             { titulo: "Reportes", emoji: "📊", desc: "KPIs y métricas del negocio" },
             { titulo: "Equipo", emoji: "👥", desc: "Usuarios y roles" },
           ].map((m) => (

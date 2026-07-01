@@ -25,7 +25,7 @@ export default async function DashboardPage() {
   }
 
   const kpis = [
-    { label: "Cuentas", valor: empresas, href: "/dashboard/cuentas", color: "bg-blue-500", iconBg: "bg-blue-50", emoji: "🏢" },
+    { label: "Clientes", valor: empresas, href: "/dashboard/cuentas", color: "bg-blue-500", iconBg: "bg-blue-50", emoji: "🏢" },
     { label: "Contactos", valor: contactos, href: "/dashboard/contactos", color: "bg-violet-500", iconBg: "bg-violet-50", emoji: "👤" },
     { label: "Valor en pipeline", valor: formatoMoneda(valorPipeline), href: "/dashboard/pipeline", color: "bg-emerald-500", iconBg: "bg-emerald-50", emoji: "💰" },
     { label: "Tareas pendientes", valor: actividades, href: "/dashboard/agenda", color: "bg-amber-500", iconBg: "bg-amber-50", emoji: "📅" },
@@ -102,7 +102,7 @@ export default async function DashboardPage() {
               { label: "Nuevo contacto", href: "/dashboard/contactos", desc: "Agrega una persona" },
               { label: "Nueva oportunidad", href: "/dashboard/pipeline", desc: "Abre un negocio" },
               { label: "Nueva actividad", href: "/dashboard/agenda", desc: "Agenda una tarea o llamada" },
-              { label: "Nueva propuesta", href: "/dashboard/cotizaciones", desc: "Crea una propuesta comercial" },
+              { label: "Nueva propuesta", href: "/dashboard/cotizaciones", desc: "Registra una propuesta activa" },
             ].map((link) => (
               <Link key={link.href} href={link.href} className="flex items-center justify-between rounded-xl px-4 py-3 hover:bg-slate-50 border border-slate-100 transition-colors">
                 <div>

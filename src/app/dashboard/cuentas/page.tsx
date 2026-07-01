@@ -16,6 +16,13 @@ type Empresa = {
   _count: { contactos: number };
 };
 
+const SECTORES = [
+  "Arte y Cultura", "Educación", "Entretenimiento", "Eventos corporativos",
+  "Gobierno", "Hospitalidad y Turismo", "Medios y Comunicación", "Música",
+  "Religioso", "Salud", "Teatro y Artes escénicas", "Tecnología",
+  "Otro",
+];
+
 export default function ClientesPage() {
   const router = useRouter();
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
@@ -111,8 +118,11 @@ export default function ClientesPage() {
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Sector</label>
-              <input value={form.sector} onChange={e => setForm({ ...form, sector: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+              <select value={form.sector} onChange={e => setForm({ ...form, sector: e.target.value })}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white">
+                <option value="">Sin sector</option>
+                {SECTORES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Sitio web</label>

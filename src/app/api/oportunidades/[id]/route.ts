@@ -3,6 +3,26 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
 
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  const op = await prisma.oportunidad.findFirst({
+    where: { id: params.id, tenantId: session.user.tenantId },
+    include: {
+      empresa:  { select: { id: true, nombre: true, sector: true, telefono: true } },
+      contacto: { select: { id: true, nombre: true, email: true, telefono: true, cargo: true } },
+      actividades: { orderBy: { fecha: "desc" }, take: 10 },
+    },
+  });
+
+  if (!op) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
+  return NextResponse.json(op);
+}
+
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }

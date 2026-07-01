@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { KpiCard } from "@/components/kpi-card";
 
 type Oportunidad = {
@@ -290,7 +291,10 @@ export default function PipelinePage() {
                   {items.map(o => (
                     <div key={o.id} className="rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-sm">
                       <div className="flex items-start justify-between gap-1 mb-1">
-                        <p className="font-semibold text-slate-900 leading-snug">{o.titulo}</p>
+                        <Link href={`/dashboard/pipeline/${o.id}`}
+                          className="font-semibold text-slate-900 leading-snug hover:text-blue-600 transition-colors">
+                          {o.titulo}
+                        </Link>
                         <button onClick={() => eliminarOportunidad(o.id)}
                           className="text-slate-300 hover:text-red-500 shrink-0 leading-none text-base">×</button>
                       </div>

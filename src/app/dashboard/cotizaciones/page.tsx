@@ -184,7 +184,7 @@ export default function CotizacionesPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Cotizaciones activas</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Propuestas activas</h1>
           <p className="text-slate-500 text-sm mt-1">Negocios en curso — todo lo que está por cerrar o perder</p>
         </div>
         <button
