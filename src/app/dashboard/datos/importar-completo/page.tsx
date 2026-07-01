@@ -24,17 +24,21 @@ type Resultado = {
 };
 
 const CAMPOS = [
-  { key: "empresa", label: "🏢 Empresa / Cliente", desc: "Nombre de la empresa o cliente" },
-  { key: "contacto", label: "👤 Contacto / Persona", desc: "Nombre de la persona de contacto" },
-  { key: "emailContacto", label: "✉️ Email del contacto", desc: "" },
-  { key: "telefonoContacto", label: "📞 Teléfono del contacto", desc: "" },
-  { key: "cargoContacto", label: "💼 Cargo del contacto", desc: "" },
+  { key: "empresa",           label: "🏢 Empresa / Cliente",      desc: "Nombre de la empresa o cliente" },
+  { key: "contacto",          label: "👤 Contacto / Persona",      desc: "Nombre de la persona de contacto" },
+  { key: "emailContacto",     label: "✉️ Email del contacto",      desc: "" },
+  { key: "telefonoContacto",  label: "📞 Teléfono del contacto",   desc: "" },
+  { key: "cargoContacto",     label: "💼 Cargo del contacto",      desc: "" },
   { key: "tituloOportunidad", label: "◈ Tipo de negocio / evento", desc: "Nombre del negocio o tipo de evento" },
-  { key: "etapaOportunidad", label: "🏷️ Estado / Etapa", desc: "HECHO, DESCARTADO, EN PROCESO, etc." },
-  { key: "valorOportunidad", label: "💰 Valor cotizado", desc: "Solo números" },
-  { key: "fechaEvento", label: "📅 Fecha del evento", desc: "Fecha en que ocurre el evento" },
-  { key: "sede", label: "📍 Sede / Sala", desc: "Lugar del evento" },
-  { key: "segmento", label: "👥 Segmento", desc: "Tipo de cliente" },
+  { key: "etapaOportunidad",  label: "🏷️ Estado / Etapa",          desc: "HECHO, DESCARTADO, EN PROCESO, etc." },
+  { key: "valorOportunidad",  label: "💰 Valor cotizado",          desc: "Solo números" },
+  { key: "costoOportunidad",  label: "💸 Costo del evento",        desc: "Costo interno del evento" },
+  { key: "fechaEvento",       label: "📅 Fecha del evento",        desc: "Fecha en que ocurre el evento" },
+  { key: "fechaCierre",       label: "📆 Fecha de cierre",         desc: "Fecha de cierre del negocio" },
+  { key: "sede",              label: "📍 Sede / Sala",             desc: "Lugar del evento" },
+  { key: "origenLead",        label: "🎯 Origen del lead",         desc: "Cómo llegó este cliente" },
+  { key: "segmento",          label: "👥 Segmento",                desc: "Tipo de cliente" },
+  { key: "recurrente",        label: "🔁 Recurrente",              desc: "SI / NO — si es cliente recurrente" },
 ];
 
 // Campos obligatorios para poder importar
@@ -75,19 +79,41 @@ export default function ImportarCompletoPage() {
     const autoExtra: string[] = [];
     data.columnas.forEach((col) => {
       const norm = col.toLowerCase().replace(/[^a-z0-9]/g, "");
-      if (norm.includes("cliente") || norm.includes("empresa") || norm.includes("razon")) autoMapeo["empresa"] = col;
-      else if (norm.includes("contacto") && !autoMapeo["contacto"]) autoMapeo["contacto"] = col;
-      else if (norm.includes("email") || norm.includes("correo")) autoMapeo["emailContacto"] = col;
-      else if (norm.includes("telefono") || norm.includes("celular")) autoMapeo["telefonoContacto"] = col;
-      else if (norm.includes("cargo") || norm.includes("puesto")) autoMapeo["cargoContacto"] = col;
-      else if ((norm.includes("tipo") || norm.includes("evento") || norm.includes("servicio") || norm.includes("producto")) && !norm.includes("norm") && !autoMapeo["tituloOportunidad"]) autoMapeo["tituloOportunidad"] = col;
-      else if ((norm.includes("tipo") || norm.includes("evento")) && norm.includes("norm") && !autoMapeo["tituloOportunidad"]) autoMapeo["tituloOportunidad"] = col;
-      else if ((norm.includes("valor") || norm.includes("precio") || norm.includes("monto")) && esColumnaNumerica(col) && !autoMapeo["valorOportunidad"]) autoMapeo["valorOportunidad"] = col;
-      else if (norm.includes("estado") || norm.includes("etapa") || norm.includes("status")) autoMapeo["etapaOportunidad"] = col;
-      else if (norm.includes("fechaevento") || (norm.includes("fecha") && norm.includes("event"))) autoMapeo["fechaEvento"] = col;
-      else if (norm.includes("sede") || norm.includes("sala") || norm.includes("lugar")) autoMapeo["sede"] = col;
-      else if (norm.includes("segmento")) autoMapeo["segmento"] = col;
-      else autoExtra.push(col);
+      if (norm.includes("cliente") || norm.includes("empresa") || norm.includes("razon")) {
+        autoMapeo["empresa"] = col;
+      } else if (norm.includes("contacto") && !autoMapeo["contacto"]) {
+        autoMapeo["contacto"] = col;
+      } else if (norm.includes("email") || norm.includes("correo")) {
+        autoMapeo["emailContacto"] = col;
+      } else if (norm.includes("telefono") || norm.includes("celular")) {
+        autoMapeo["telefonoContacto"] = col;
+      } else if (norm.includes("cargo") || norm.includes("puesto")) {
+        autoMapeo["cargoContacto"] = col;
+      } else if (norm.includes("estado") || norm.includes("etapa") || norm.includes("status")) {
+        autoMapeo["etapaOportunidad"] = col;
+      } else if (norm.includes("costo") && esColumnaNumerica(col)) {
+        autoMapeo["costoOportunidad"] = col;
+      } else if ((norm.includes("valor") || norm.includes("precio") || norm.includes("monto")) && esColumnaNumerica(col) && !autoMapeo["valorOportunidad"]) {
+        autoMapeo["valorOportunidad"] = col;
+      } else if (norm.includes("fechaevento") || (norm.includes("fecha") && (norm.includes("event") || norm.includes("acto")))) {
+        autoMapeo["fechaEvento"] = col;
+      } else if (norm.includes("fechacierre") || norm.includes("fechadecier") || (norm.includes("fecha") && norm.includes("cierr"))) {
+        autoMapeo["fechaCierre"] = col;
+      } else if (norm.includes("tipoevento") || norm.includes("tipodeneg") || (norm.includes("tipo") && norm.includes("event"))) {
+        if (!autoMapeo["tituloOportunidad"]) autoMapeo["tituloOportunidad"] = col;
+      } else if ((norm.includes("tipo") || norm.includes("evento") || norm.includes("negocio")) && !autoMapeo["tituloOportunidad"]) {
+        autoMapeo["tituloOportunidad"] = col;
+      } else if (norm.includes("sede") || norm.includes("sala") || norm.includes("lugar")) {
+        autoMapeo["sede"] = col;
+      } else if (norm.includes("origen") || norm.includes("lead") || norm.includes("fuente")) {
+        autoMapeo["origenLead"] = col;
+      } else if (norm.includes("segmento")) {
+        autoMapeo["segmento"] = col;
+      } else if (norm.includes("recurrente") || norm.includes("recurrent")) {
+        autoMapeo["recurrente"] = col;
+      } else {
+        autoExtra.push(col);
+      }
     });
     setMapeo(autoMapeo);
     setAutoDetectados(new Set(Object.keys(autoMapeo)));
