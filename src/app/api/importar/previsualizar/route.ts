@@ -15,7 +15,6 @@ export async function POST(request: Request) {
   await wb.xlsx.load(buffer as any);
 
   const hojas = wb.worksheets.map((ws) => ws.name);
-  // Usar la hoja con más filas (ignora hojas de resumen/dashboard)
   const ws = wb.worksheets.reduce((best, curr) =>
     (curr.rowCount > best.rowCount ? curr : best), wb.worksheets[0]);
   if (!ws) return NextResponse.json({ error: "Archivo vacío" }, { status: 400 });
@@ -28,19 +27,23 @@ export async function POST(request: Request) {
     return String(v);
   }
 
-  const columnas: string[] = [];
-  ws.getRow(1).eachCell((cell) => {
+  // Leer headers con su número de columna real (no índice secuencial)
+  const headerMap: { col: number; nombre: string }[] = [];
+  ws.getRow(1).eachCell({ includeEmpty: false }, (cell, colNumber) => {
     const val = leerCelda(cell).trim();
-    if (val) columnas.push(val);
+    if (val) headerMap.push({ col: colNumber, nombre: val });
   });
+
+  const columnas = headerMap.map(h => h.nombre);
 
   const muestra: Record<string, string>[] = [];
   let count = 0;
   ws.eachRow((row, rowNum) => {
-    if (rowNum === 1 || count >= 3) return;
+    if (rowNum === 1 || count >= 5) return;
     const fila: Record<string, string> = {};
-    columnas.forEach((col, i) => {
-      fila[col] = leerCelda(row.getCell(i + 1)).trim();
+    // Usar el número de columna real para leer el dato correcto
+    headerMap.forEach(({ col, nombre }) => {
+      fila[nombre] = leerCelda(row.getCell(col)).trim();
     });
     if (Object.values(fila).some((v) => v)) { muestra.push(fila); count++; }
   });

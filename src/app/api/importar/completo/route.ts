@@ -60,14 +60,18 @@ export async function POST(request: Request) {
     return String(v);
   }
 
-  const headers: string[] = [];
-  ws.getRow(1).eachCell((cell) => headers.push(leerCelda(cell).trim()));
+  // Leer headers con su número de columna real (evita desplazamiento si hay columnas vacías al inicio)
+  const headerMap: { col: number; nombre: string }[] = [];
+  ws.getRow(1).eachCell({ includeEmpty: false }, (cell, colNumber) => {
+    const val = leerCelda(cell).trim();
+    if (val) headerMap.push({ col: colNumber, nombre: val });
+  });
 
   const filas: Record<string, string>[] = [];
   ws.eachRow((row, rowNum) => {
     if (rowNum === 1) return;
     const fila: Record<string, string> = {};
-    headers.forEach((h, i) => { fila[h] = leerCelda(row.getCell(i + 1)).trim(); });
+    headerMap.forEach(({ col, nombre }) => { fila[nombre] = leerCelda(row.getCell(col)).trim(); });
     if (Object.values(fila).some((v) => v)) filas.push(fila);
   });
 
