@@ -250,7 +250,9 @@ export default function AudienciaPage() {
                 </tr>
               ) : (
                 <tr key={e.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-slate-900">{e.nombre}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900">
+                    <a href={`/dashboard/audiencia/${e.id}`} className="hover:text-blue-600 hover:underline">{e.nombre}</a>
+                  </td>
                   <td className="px-4 py-3">
                     <span className={`rounded-lg px-2 py-0.5 text-xs font-medium ${SEG_COLOR[e.segmento]}`}>
                       {SEGMENTOS.find(s => s.key === e.segmento)?.label}

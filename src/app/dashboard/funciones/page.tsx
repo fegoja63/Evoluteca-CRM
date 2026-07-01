@@ -272,7 +272,9 @@ export default function FuncionesPage() {
                 </tr>
               ) : (
                 <tr key={f.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-slate-900">{f.titulo}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900">
+                    <a href={`/dashboard/funciones/${f.id}`} className="hover:text-blue-600 hover:underline">{f.titulo}</a>
+                  </td>
                   <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
                     {new Date(f.fecha).toLocaleString("es-CO", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                   </td>

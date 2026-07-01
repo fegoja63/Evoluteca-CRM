@@ -1,0 +1,314 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+
+type NpsRespuesta = {
+  id: string;
+  puntuacion: number;
+  comentario: string | null;
+  creadoEn: string;
+  espectador: { id: string; nombre: string } | null;
+};
+
+type Funcion = {
+  id: string;
+  titulo: string;
+  fecha: string;
+  sillasTotales: number;
+  sillasVendidas: number;
+  canal: string;
+  ingresoEstimado: string | null;
+  notas: string | null;
+  npsList: NpsRespuesta[];
+};
+
+const CANALES: Record<string, string> = {
+  PLATAFORMA: "Plataforma",
+  TAQUILLA: "Taquilla",
+  INVITADOS: "Invitados",
+  EMPRESA: "Empresa",
+};
+
+function npsCategoria(p: number) {
+  if (p >= 9) return { label: "Promotor", color: "text-emerald-700 bg-emerald-50" };
+  if (p >= 7) return { label: "Pasivo", color: "text-amber-700 bg-amber-50" };
+  return { label: "Detractor", color: "text-red-600 bg-red-50" };
+}
+
+export default function FichaFuncionPage() {
+  const params = useParams();
+  const router = useRouter();
+  const id = params.id as string;
+
+  const [fn, setFn] = useState<Funcion | null>(null);
+  const [cargando, setCargando] = useState(true);
+  const [editando, setEditando] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [npsForm, setNpsForm] = useState({ puntuacion: "", comentario: "" });
+  const [enviandoNps, setEnviandoNps] = useState(false);
+  const [form, setForm] = useState({
+    titulo: "", fecha: "", sillasTotales: "", sillasVendidas: "", canal: "PLATAFORMA", ingresoEstimado: "", notas: "",
+  });
+
+  async function cargar() {
+    setCargando(true);
+    const res = await fetch(`/api/funciones/${id}`);
+    if (res.ok) {
+      const data = await res.json();
+      setFn(data);
+      setForm({
+        titulo: data.titulo,
+        fecha: data.fecha.slice(0, 10),
+        sillasTotales: String(data.sillasTotales),
+        sillasVendidas: String(data.sillasVendidas),
+        canal: data.canal,
+        ingresoEstimado: data.ingresoEstimado ?? "",
+        notas: data.notas ?? "",
+      });
+    }
+    setCargando(false);
+  }
+
+  useEffect(() => { cargar(); }, [id]);
+
+  async function handleGuardar(e: React.FormEvent) {
+    e.preventDefault();
+    setGuardando(true);
+    await fetch(`/api/funciones/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    setEditando(false);
+    setGuardando(false);
+    cargar();
+  }
+
+  async function handleEliminar() {
+    if (!confirm("¿Eliminar esta función? Esta acción no se puede deshacer.")) return;
+    await fetch(`/api/funciones/${id}`, { method: "DELETE" });
+    router.push("/dashboard/funciones");
+  }
+
+  async function handleNps(e: React.FormEvent) {
+    e.preventDefault();
+    setEnviandoNps(true);
+    await fetch(`/api/funciones/${id}/nps`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ puntuacion: Number(npsForm.puntuacion), comentario: npsForm.comentario }),
+    });
+    setNpsForm({ puntuacion: "", comentario: "" });
+    setEnviandoNps(false);
+    cargar();
+  }
+
+  function fmt(v: number) {
+    return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
+  }
+
+  if (cargando) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="flex gap-1">{[0,1,2].map(i => (
+        <div key={i} className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />
+      ))}</div>
+    </div>
+  );
+  if (!fn) return <p className="text-sm text-slate-400">No encontrada.</p>;
+
+  const ocupacion = fn.sillasTotales > 0 ? Math.round((fn.sillasVendidas / fn.sillasTotales) * 100) : 0;
+  const promotores = fn.npsList.filter(n => n.puntuacion >= 9).length;
+  const detractores = fn.npsList.filter(n => n.puntuacion <= 6).length;
+  const npsScore = fn.npsList.length > 0
+    ? Math.round(((promotores - detractores) / fn.npsList.length) * 100)
+    : null;
+
+  return (
+    <div className="max-w-4xl">
+      <div className="flex items-center gap-2 text-sm text-slate-400 mb-5">
+        <Link href="/dashboard/funciones" className="hover:text-blue-600 transition-colors">← Funciones</Link>
+        <span>/</span>
+        <span className="text-slate-600 truncate max-w-xs">{fn.titulo}</span>
+      </div>
+
+      {/* Header */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-5">
+        {editando ? (
+          <form onSubmit={handleGuardar} className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="text-xs text-slate-500 mb-1 block">Título *</label>
+              <input required value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 mb-1 block">Fecha</label>
+              <input type="date" value={form.fecha} onChange={e => setForm({...form, fecha: e.target.value})}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 mb-1 block">Canal</label>
+              <select value={form.canal} onChange={e => setForm({...form, canal: e.target.value})}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white">
+                {Object.entries(CANALES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 mb-1 block">Sillas totales</label>
+              <input type="number" value={form.sillasTotales} onChange={e => setForm({...form, sillasTotales: e.target.value})}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 mb-1 block">Sillas vendidas</label>
+              <input type="number" value={form.sillasVendidas} onChange={e => setForm({...form, sillasVendidas: e.target.value})}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 mb-1 block">Ingreso estimado (COP)</label>
+              <input type="number" value={form.ingresoEstimado} onChange={e => setForm({...form, ingresoEstimado: e.target.value})}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+            </div>
+            <div className="col-span-2">
+              <label className="text-xs text-slate-500 mb-1 block">Notas</label>
+              <textarea value={form.notas} onChange={e => setForm({...form, notas: e.target.value})} rows={2}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+            </div>
+            <div className="col-span-2 flex gap-2">
+              <button type="submit" disabled={guardando}
+                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                {guardando ? "Guardando..." : "Guardar"}
+              </button>
+              <button type="button" onClick={() => setEditando(false)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        ) : (
+          <>
+            <div className="flex items-start justify-between mb-5">
+              <div>
+                <p className="text-xs text-slate-400 mb-1">
+                  {new Date(fn.fecha).toLocaleDateString("es-CO", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+                  {" · "}{CANALES[fn.canal] ?? fn.canal}
+                </p>
+                <h1 className="text-xl font-bold text-slate-900">{fn.titulo}</h1>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button onClick={() => setEditando(true)}
+                  className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">
+                  Editar
+                </button>
+                <button onClick={handleEliminar}
+                  className="rounded-xl border border-red-100 px-3 py-1.5 text-sm text-red-500 hover:bg-red-50">
+                  Eliminar
+                </button>
+              </div>
+            </div>
+
+            {/* KPIs */}
+            <div className="grid grid-cols-4 gap-3">
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs text-slate-400 mb-1">Ocupación</p>
+                <p className="text-2xl font-bold text-blue-700">{ocupacion}%</p>
+                <p className="text-xs text-slate-400 mt-0.5">{fn.sillasVendidas} / {fn.sillasTotales} sillas</p>
+                <div className="mt-2 h-1.5 rounded-full bg-slate-200">
+                  <div className="h-1.5 rounded-full bg-blue-500 transition-all" style={{ width: `${ocupacion}%` }} />
+                </div>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs text-slate-400 mb-1">Ingresos</p>
+                <p className="text-lg font-bold text-emerald-700">
+                  {fn.ingresoEstimado ? fmt(Number(fn.ingresoEstimado)) : "—"}
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs text-slate-400 mb-1">Respuestas NPS</p>
+                <p className="text-2xl font-bold text-slate-800">{fn.npsList.length}</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs text-slate-400 mb-1">Score NPS</p>
+                {npsScore !== null ? (
+                  <p className={`text-2xl font-bold ${npsScore >= 50 ? "text-emerald-700" : npsScore >= 0 ? "text-amber-600" : "text-red-600"}`}>
+                    {npsScore > 0 ? "+" : ""}{npsScore}
+                  </p>
+                ) : <p className="text-slate-400 text-sm">Sin datos</p>}
+              </div>
+            </div>
+
+            {fn.notas && (
+              <div className="mt-4 rounded-xl bg-amber-50 border border-amber-100 px-4 py-3">
+                <p className="text-xs font-semibold text-amber-700 mb-1">Notas</p>
+                <p className="text-sm text-slate-700">{fn.notas}</p>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* NPS */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <h2 className="text-sm font-bold text-slate-900 mb-4">Encuesta NPS</h2>
+
+        {/* Form nueva respuesta */}
+        <form onSubmit={handleNps} className="flex gap-3 items-end mb-6 pb-6 border-b border-slate-100">
+          <div>
+            <label className="text-xs text-slate-500 mb-1 block">Puntuación (1–10) *</label>
+            <input
+              required type="number" min={1} max={10}
+              value={npsForm.puntuacion}
+              onChange={e => setNpsForm({...npsForm, puntuacion: e.target.value})}
+              placeholder="Ej: 9"
+              className="w-28 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="text-xs text-slate-500 mb-1 block">Comentario (opcional)</label>
+            <input
+              value={npsForm.comentario}
+              onChange={e => setNpsForm({...npsForm, comentario: e.target.value})}
+              placeholder="¿Qué le pareció la función?"
+              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            />
+          </div>
+          <button type="submit" disabled={enviandoNps}
+            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 shrink-0">
+            {enviandoNps ? "Enviando..." : "+ Registrar"}
+          </button>
+        </form>
+
+        {/* Lista de respuestas */}
+        {fn.npsList.length === 0 ? (
+          <p className="text-sm text-slate-400">Sin respuestas NPS aún.</p>
+        ) : (
+          <div className="space-y-3">
+            {fn.npsList.map(n => {
+              const cat = npsCategoria(n.puntuacion);
+              return (
+                <div key={n.id} className="flex items-start gap-4 py-2 border-b border-slate-50 last:border-0">
+                  <span className={`text-lg font-bold w-8 text-center rounded-lg py-0.5 ${cat.color}`}>
+                    {n.puntuacion}
+                  </span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cat.color}`}>{cat.label}</span>
+                      {n.espectador && (
+                        <Link href={`/dashboard/audiencia/${n.espectador.id}`}
+                          className="text-xs text-blue-600 hover:underline">{n.espectador.nombre}</Link>
+                      )}
+                      <span className="text-xs text-slate-400 ml-auto">
+                        {new Date(n.creadoEn).toLocaleDateString("es-CO", { day:"2-digit", month:"short" })}
+                      </span>
+                    </div>
+                    {n.comentario && <p className="text-sm text-slate-600">{n.comentario}</p>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

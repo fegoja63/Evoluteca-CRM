@@ -2,6 +2,24 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  const funcion = await prisma.funcion.findFirst({
+    where: { id: params.id, tenantId: session.user.tenantId },
+    include: {
+      npsList: {
+        orderBy: { creadoEn: "desc" },
+        include: { espectador: { select: { id: true, nombre: true } } },
+      },
+    },
+  });
+
+  if (!funcion) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
+  return NextResponse.json(funcion);
+}
+
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
