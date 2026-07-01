@@ -40,6 +40,8 @@ export default function PipelinePage() {
   const [cargando, setCargando]   = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  const [draggingId, setDraggingId]     = useState<string | null>(null);
+  const [dragOverEtapa, setDragOverEtapa] = useState<string | null>(null);
   const [busqueda, setBusqueda]   = useState("");
   const [filtroAnio, setFiltroAnio] = useState("");
   const [filtroMes, setFiltroMes]   = useState("");
@@ -277,22 +279,51 @@ export default function PipelinePage() {
         <div className="grid grid-cols-6 gap-3">
           {ETAPAS.map(etapa => {
             const items = filtradas.filter(o => o.etapa === etapa.key);
+            const isOver = dragOverEtapa === etapa.key;
             return (
               <div key={etapa.key}
-                className={`rounded-xl border-2 border-t-4 border-slate-200 ${etapa.color} bg-slate-50 p-3`}>
+                className={`rounded-xl border-2 border-t-4 border-slate-200 ${etapa.color} p-3 transition-colors ${
+                  isOver ? "bg-blue-50 border-blue-300" : "bg-slate-50"
+                }`}
+                onDragOver={e => { e.preventDefault(); setDragOverEtapa(etapa.key); }}
+                onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverEtapa(null); }}
+                onDrop={e => {
+                  e.preventDefault();
+                  const id = e.dataTransfer.getData("oportunidadId");
+                  if (id) cambiarEtapa(id, etapa.key);
+                  setDraggingId(null);
+                  setDragOverEtapa(null);
+                }}
+              >
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-xs font-semibold text-slate-700">{etapa.label}</h3>
                   <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${etapa.badge}`}>{items.length}</span>
                 </div>
                 <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-0.5">
                   {items.length === 0 && (
-                    <p className="text-xs text-slate-400 text-center py-4">Sin registros</p>
+                    <div className={`rounded-lg border-2 border-dashed py-6 text-center text-xs transition-colors ${
+                      isOver ? "border-blue-300 text-blue-400 bg-blue-50" : "border-slate-200 text-slate-400"
+                    }`}>
+                      {isOver ? "Soltar aquí" : "Sin registros"}
+                    </div>
                   )}
                   {items.map(o => (
-                    <div key={o.id} className="rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-sm">
+                    <div key={o.id}
+                      draggable
+                      onDragStart={e => {
+                        e.dataTransfer.setData("oportunidadId", o.id);
+                        e.dataTransfer.effectAllowed = "move";
+                        setDraggingId(o.id);
+                      }}
+                      onDragEnd={() => { setDraggingId(null); setDragOverEtapa(null); }}
+                      className={`rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-sm cursor-grab active:cursor-grabbing transition-opacity select-none ${
+                        draggingId === o.id ? "opacity-40" : "hover:shadow-md"
+                      }`}
+                    >
                       <div className="flex items-start justify-between gap-1 mb-1">
                         <Link href={`/dashboard/pipeline/${o.id}`}
-                          className="font-semibold text-slate-900 leading-snug hover:text-blue-600 transition-colors">
+                          className="font-semibold text-slate-900 leading-snug hover:text-blue-600 transition-colors"
+                          onClick={e => { if (draggingId) e.preventDefault(); }}>
                           {o.titulo}
                         </Link>
                         <button onClick={() => eliminarOportunidad(o.id)}
@@ -310,12 +341,14 @@ export default function PipelinePage() {
                       {o.valor && (
                         <p className="mt-1.5 font-semibold text-emerald-700">{fmt(o.valor)}</p>
                       )}
-                      <select value={o.etapa} onChange={e => cambiarEtapa(o.id, e.target.value)}
-                        className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-1.5 py-1 text-xs outline-none cursor-pointer">
-                        {ETAPAS.map(et => <option key={et.key} value={et.key}>{et.label}</option>)}
-                      </select>
                     </div>
                   ))}
+                  {/* Drop zone visible al final de columnas con items */}
+                  {items.length > 0 && isOver && (
+                    <div className="rounded-lg border-2 border-dashed border-blue-300 py-3 text-center text-xs text-blue-400">
+                      Soltar aquí
+                    </div>
+                  )}
                 </div>
               </div>
             );
