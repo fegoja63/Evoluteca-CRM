@@ -12,6 +12,8 @@ type NpsRespuesta = {
   espectador: { id: string; nombre: string } | null;
 };
 
+type Espectador = { id: string; nombre: string; segmento: string | null };
+
 type Funcion = {
   id: string;
   titulo: string;
@@ -43,10 +45,11 @@ export default function FichaFuncionPage() {
   const id = params.id as string;
 
   const [fn, setFn] = useState<Funcion | null>(null);
+  const [espectadores, setEspectadores] = useState<Espectador[]>([]);
   const [cargando, setCargando] = useState(true);
   const [editando, setEditando] = useState(false);
   const [guardando, setGuardando] = useState(false);
-  const [npsForm, setNpsForm] = useState({ puntuacion: "", comentario: "" });
+  const [npsForm, setNpsForm] = useState({ puntuacion: "", comentario: "", espectadorId: "" });
   const [enviandoNps, setEnviandoNps] = useState(false);
   const [form, setForm] = useState({
     titulo: "", fecha: "", sillasTotales: "", sillasVendidas: "", canal: "PLATAFORMA", ingresoEstimado: "", notas: "",
@@ -54,7 +57,10 @@ export default function FichaFuncionPage() {
 
   async function cargar() {
     setCargando(true);
-    const res = await fetch(`/api/funciones/${id}`);
+    const [res, resEsp] = await Promise.all([
+      fetch(`/api/funciones/${id}`),
+      fetch("/api/espectadores"),
+    ]);
     if (res.ok) {
       const data = await res.json();
       setFn(data);
@@ -67,6 +73,10 @@ export default function FichaFuncionPage() {
         ingresoEstimado: data.ingresoEstimado ?? "",
         notas: data.notas ?? "",
       });
+    }
+    if (resEsp.ok) {
+      const esp = await resEsp.json();
+      setEspectadores(esp);
     }
     setCargando(false);
   }
@@ -98,9 +108,13 @@ export default function FichaFuncionPage() {
     await fetch(`/api/funciones/${id}/nps`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ puntuacion: Number(npsForm.puntuacion), comentario: npsForm.comentario }),
+      body: JSON.stringify({
+        puntuacion: Number(npsForm.puntuacion),
+        comentario: npsForm.comentario || null,
+        espectadorId: npsForm.espectadorId || null,
+      }),
     });
-    setNpsForm({ puntuacion: "", comentario: "" });
+    setNpsForm({ puntuacion: "", comentario: "", espectadorId: "" });
     setEnviandoNps(false);
     cargar();
   }
@@ -252,30 +266,45 @@ export default function FichaFuncionPage() {
         <h2 className="text-sm font-bold text-slate-900 mb-4">Encuesta NPS</h2>
 
         {/* Form nueva respuesta */}
-        <form onSubmit={handleNps} className="flex gap-3 items-end mb-6 pb-6 border-b border-slate-100">
-          <div>
-            <label className="text-xs text-slate-500 mb-1 block">Puntuación (1–10) *</label>
-            <input
-              required type="number" min={1} max={10}
-              value={npsForm.puntuacion}
-              onChange={e => setNpsForm({...npsForm, puntuacion: e.target.value})}
-              placeholder="Ej: 9"
-              className="w-28 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
-            />
+        <form onSubmit={handleNps} className="mb-6 pb-6 border-b border-slate-100">
+          <div className="flex gap-3 items-end">
+            <div>
+              <label className="text-xs text-slate-500 mb-1 block">Puntuación (1–10) *</label>
+              <input
+                required type="number" min={1} max={10}
+                value={npsForm.puntuacion}
+                onChange={e => setNpsForm({...npsForm, puntuacion: e.target.value})}
+                placeholder="Ej: 9"
+                className="w-24 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+              />
+            </div>
+            <div className="w-48">
+              <label className="text-xs text-slate-500 mb-1 block">Espectador (opcional)</label>
+              <select
+                value={npsForm.espectadorId}
+                onChange={e => setNpsForm({...npsForm, espectadorId: e.target.value})}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+              >
+                <option value="">— Anónimo —</option>
+                {espectadores.map(e => (
+                  <option key={e.id} value={e.id}>{e.nombre}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="text-xs text-slate-500 mb-1 block">Comentario (opcional)</label>
+              <input
+                value={npsForm.comentario}
+                onChange={e => setNpsForm({...npsForm, comentario: e.target.value})}
+                placeholder="¿Qué le pareció la función?"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+              />
+            </div>
+            <button type="submit" disabled={enviandoNps}
+              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 shrink-0">
+              {enviandoNps ? "Enviando..." : "+ Registrar"}
+            </button>
           </div>
-          <div className="flex-1">
-            <label className="text-xs text-slate-500 mb-1 block">Comentario (opcional)</label>
-            <input
-              value={npsForm.comentario}
-              onChange={e => setNpsForm({...npsForm, comentario: e.target.value})}
-              placeholder="¿Qué le pareció la función?"
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
-            />
-          </div>
-          <button type="submit" disabled={enviandoNps}
-            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 shrink-0">
-            {enviandoNps ? "Enviando..." : "+ Registrar"}
-          </button>
         </form>
 
         {/* Lista de respuestas */}
