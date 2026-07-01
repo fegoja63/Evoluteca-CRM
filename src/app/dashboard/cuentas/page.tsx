@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -167,25 +167,25 @@ export default function ClientesPage() {
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-slate-200 text-left text-xs text-slate-500">
               <tr>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">Nombre</th>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">Email</th>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">Teléfono</th>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">Sector</th>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">Contactos</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Nombre</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Email</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Teléfono</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Sector</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Contactos</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {empresas.map((e) => (
                 <tr key={e.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-slate-900">
+                  <td className="px-4 py-1 font-medium text-slate-900">
                     <Link href={`/dashboard/cuentas/${e.id}`} className="hover:text-blue-600 hover:underline">
                       {e.nombre}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-slate-500">{e.email ?? "—"}</td>
-                  <td className="px-4 py-3 text-slate-500">{e.telefono ?? "—"}</td>
-                  <td className="px-4 py-3 text-slate-500">{e.sector ?? "—"}</td>
-                  <td className="px-4 py-3 text-slate-500">{e._count.contactos}</td>
+                  <td className="px-4 py-1 text-slate-500">{e.email ?? "—"}</td>
+                  <td className="px-4 py-1 text-slate-500">{e.telefono ?? "—"}</td>
+                  <td className="px-4 py-1 text-slate-500">{e.sector ?? "—"}</td>
+                  <td className="px-4 py-1 text-slate-500">{e._count.contactos}</td>
                 </tr>
               ))}
             </tbody>
@@ -195,3 +195,5 @@ export default function ClientesPage() {
     </div>
   );
 }
+
+

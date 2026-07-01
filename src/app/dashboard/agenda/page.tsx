@@ -33,7 +33,21 @@ export default function AgendaPage() {
   const [cargando, setCargando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  const [exportando, setExportando] = useState(false);
   const [filtro, setFiltro] = useState<"pendientes" | "todas">("pendientes");
+
+  async function exportarExcel() {
+    setExportando(true);
+    const res = await fetch("/api/exportar/agenda");
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `agenda-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setExportando(false);
+  }
   const [form, setForm] = useState({
     tipo: "TAREA", titulo: "", fecha: "", notas: "", empresaId: "", contactoId: "", oportunidadId: "",
   });
@@ -117,12 +131,18 @@ export default function AgendaPage() {
 
       <div className="flex items-center justify-between mb-4">
         <div></div>
-        <button
-          onClick={() => setMostrarForm(true)}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          + Nueva actividad
-        </button>
+        <div className="flex gap-2">
+          <button onClick={exportarExcel} disabled={exportando}
+            className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+            {exportando ? "Exportando..." : "⬇ Excel"}
+          </button>
+          <button
+            onClick={() => setMostrarForm(true)}
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            + Nueva actividad
+          </button>
+        </div>
       </div>
 
       <div className="mb-4 flex gap-2">

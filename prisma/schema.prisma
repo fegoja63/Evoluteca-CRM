@@ -30,14 +30,17 @@ model Tenant {
   creadoEn  DateTime @default(now())
   modulos   Json     @default("{}")
 
-  usuarios      Usuario[]
-  empresas      Empresa[]
-  contactos     Contacto[]
-  oportunidades Oportunidad[]
-  actividades   Actividad[]
-  cotizaciones  Cotizacion[]
-  funciones     Funcion[]
-  espectadores  Espectador[]
+  usuarios        Usuario[]
+  empresas        Empresa[]
+  contactos       Contacto[]
+  oportunidades   Oportunidad[]
+  actividades     Actividad[]
+  cotizaciones    Cotizacion[]
+  funciones       Funcion[]
+  espectadores    Espectador[]
+  productos       Producto[]
+  metasVenta      MetaVenta[]
+  eventosTimeline EventoTimeline[]
 
   @@map("tenants")
 }
@@ -72,10 +75,11 @@ model Empresa {
   tenantId    String
   tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  contactos     Contacto[]
-  oportunidades Oportunidad[]
-  actividades   Actividad[]
-  cotizaciones  Cotizacion[]
+  contactos       Contacto[]
+  oportunidades   Oportunidad[]
+  actividades     Actividad[]
+  cotizaciones    Cotizacion[]
+  eventosTimeline EventoTimeline[]
 
   @@index([tenantId])
   @@map("empresas")
@@ -96,11 +100,12 @@ model Contacto {
 
   segmento      String?   // INDIVIDUAL | GRUPO | EMPRESA | COLEGIO
 
-  empresaId     String?
-  empresa       Empresa?  @relation(fields: [empresaId], references: [id], onDelete: SetNull)
-  oportunidades Oportunidad[]
-  actividades   Actividad[]
-  cotizaciones  Cotizacion[]
+  empresaId       String?
+  empresa         Empresa?  @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+  oportunidades   Oportunidad[]
+  actividades     Actividad[]
+  cotizaciones    Cotizacion[]
+  eventosTimeline EventoTimeline[]
 
   @@index([tenantId])
   @@map("contactos")
@@ -224,6 +229,63 @@ model ItemCotizacion {
 
   @@index([cotizacionId])
   @@map("items_cotizacion")
+}
+
+// ---- Catálogo de servicios/productos ----
+
+model Producto {
+  id          String   @id @default(uuid())
+  nombre      String
+  descripcion String?
+  precioBase  Decimal  @db.Decimal(12, 2)
+  activo      Boolean  @default(true)
+  creadoEn    DateTime @default(now())
+
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("productos")
+}
+
+// ---- Metas de ventas ----
+
+model MetaVenta {
+  id             String   @id @default(uuid())
+  anio           Int
+  mes            Int?     // null = meta anual
+  valorObjetivo  Decimal  @db.Decimal(12, 2)
+  creadoEn       DateTime @default(now())
+
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, anio, mes])
+  @@index([tenantId])
+  @@map("metas_venta")
+}
+
+// ---- Timeline de eventos por cliente ----
+
+model EventoTimeline {
+  id            String   @id @default(uuid())
+  tipo          String   // NOTA | LLAMADA | EMAIL | REUNION | WHATSAPP
+  titulo        String
+  descripcion   String?
+  creadoEn      DateTime @default(now())
+
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  empresaId     String?
+  empresa       Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  contactoId    String?
+  contacto      Contacto? @relation(fields: [contactoId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([empresaId])
+  @@map("eventos_timeline")
 }
 
 // ---- Módulos opcionales (activables en Configuración) ----

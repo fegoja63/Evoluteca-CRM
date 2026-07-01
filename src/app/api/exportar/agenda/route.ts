@@ -7,27 +7,28 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-  const empresas = await prisma.empresa.findMany({
+  const actividades = await prisma.actividad.findMany({
     where: { tenantId: session.user.tenantId },
-    orderBy: { nombre: "asc" },
+    orderBy: { fecha: "asc" },
     include: {
-      _count: { select: { contactos: true, oportunidades: true } },
+      empresa:     { select: { nombre: true } },
+      contacto:    { select: { nombre: true } },
+      oportunidad: { select: { titulo: true } },
     },
   });
 
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet("Clientes");
+  const ws = wb.addWorksheet("Agenda");
 
   ws.columns = [
-    { header: "Nombre", key: "nombre", width: 35 },
-    { header: "Email", key: "email", width: 30 },
-    { header: "Teléfono", key: "telefono", width: 18 },
-    { header: "Sector", key: "sector", width: 25 },
-    { header: "Sitio web", key: "sitioWeb", width: 28 },
-    { header: "Contactos", key: "contactos", width: 12 },
-    { header: "Oportunidades", key: "oportunidades", width: 14 },
-    { header: "Notas", key: "notas", width: 40 },
-    { header: "Fecha creación", key: "creadoEn", width: 16 },
+    { header: "Tipo",        key: "tipo",        width: 14 },
+    { header: "Título",      key: "titulo",      width: 35 },
+    { header: "Fecha",       key: "fecha",       width: 20 },
+    { header: "Estado",      key: "estado",      width: 14 },
+    { header: "Empresa",     key: "empresa",     width: 28 },
+    { header: "Contacto",    key: "contacto",    width: 25 },
+    { header: "Oportunidad", key: "oportunidad", width: 30 },
+    { header: "Notas",       key: "notas",       width: 40 },
   ];
 
   ws.getRow(1).eachCell((cell) => {
@@ -37,17 +38,16 @@ export async function GET() {
   });
   ws.getRow(1).height = 20;
 
-  for (const e of empresas) {
+  for (const a of actividades) {
     ws.addRow({
-      nombre: e.nombre,
-      email: e.email ?? "",
-      telefono: e.telefono ?? "",
-      sector: e.sector ?? "",
-      sitioWeb: e.sitioWeb ?? "",
-      contactos: e._count.contactos,
-      oportunidades: e._count.oportunidades,
-      notas: e.notas ?? "",
-      creadoEn: new Date(e.creadoEn).toLocaleDateString("es-CO"),
+      tipo:        a.tipo,
+      titulo:      a.titulo,
+      fecha:       new Date(a.fecha).toLocaleString("es-CO"),
+      estado:      a.completada ? "Completada" : "Pendiente",
+      empresa:     a.empresa?.nombre ?? "",
+      contacto:    a.contacto?.nombre ?? "",
+      oportunidad: a.oportunidad?.titulo ?? "",
+      notas:       a.notas ?? "",
     });
   }
 
@@ -70,7 +70,7 @@ export async function GET() {
     status: 200,
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="clientes-${hoy}.xlsx"`,
+      "Content-Disposition": `attachment; filename="agenda-${hoy}.xlsx"`,
     },
   });
 }

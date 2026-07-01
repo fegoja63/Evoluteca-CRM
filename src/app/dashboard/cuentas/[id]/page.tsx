@@ -12,6 +12,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ExtrasPanel } from "@/components/extras-panel";
 import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
+import { TimelineCliente } from "@/components/timeline-cliente";
 
 type Detalle = {
   id: string;
@@ -22,7 +23,7 @@ type Detalle = {
   sitioWeb: string | null;
   telefono: string | null;
   notas: string | null;
-  contactos: { id: string; nombre: string; cargo: string | null }[];
+  contactos: { id: string; nombre: string; cargo: string | null; telefono: string | null }[];
   oportunidades: { id: string; titulo: string; etapa: string; valor: string | null }[];
   actividades: { id: string; titulo: string; fecha: string; completada: boolean }[];
   cotizaciones: { id: string; numero: number; estado: string; items: { cantidad: number; precioUnit: string }[] }[];
@@ -183,10 +184,19 @@ export default function FichaClientePage() {
           {empresa.contactos.length === 0 ? (
             <p className="text-xs text-slate-400">Sin contactos vinculados.</p>
           ) : (
-            <ul className="flex flex-col gap-1 text-sm">
+            <ul className="flex flex-col gap-2 text-sm">
               {empresa.contactos.map((c) => (
-                <li key={c.id} className="text-slate-700">
-                  {c.nombre}{c.cargo && <span className="text-slate-400"> · {c.cargo}</span>}
+                <li key={c.id} className="flex items-center justify-between">
+                  <span className="text-slate-700">
+                    {c.nombre}{c.cargo && <span className="text-slate-400"> · {c.cargo}</span>}
+                  </span>
+                  {c.telefono && (
+                    <a href={`https://wa.me/${c.telefono.replace(/\D/g, "")}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg px-2 py-0.5 hover:bg-emerald-100 shrink-0">
+                      WhatsApp
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -241,7 +251,9 @@ export default function FichaClientePage() {
                 const total = c.items.reduce((acc, it) => acc + it.cantidad * Number(it.precioUnit), 0);
                 return (
                   <li key={c.id} className="text-slate-700">
-                    #{c.numero}
+                    <Link href={`/dashboard/cotizaciones-formales/${c.id}`} className="hover:text-blue-600">
+                      #{c.numero}
+                    </Link>
                     <span className="text-slate-400 text-xs ml-1">· {c.estado}</span>
                     <span className="text-xs font-semibold text-emerald-700 ml-1">· {fmt(String(total))}</span>
                   </li>
@@ -250,6 +262,14 @@ export default function FichaClientePage() {
             </ul>
           )}
         </div>
+      </div>
+
+      {/* Timeline 360° */}
+      <div className="mt-4">
+        <TimelineCliente
+          empresaId={empresa.id}
+          contactos={empresa.contactos.map(c => ({ id: c.id, nombre: c.nombre }))}
+        />
       </div>
     </div>
   );

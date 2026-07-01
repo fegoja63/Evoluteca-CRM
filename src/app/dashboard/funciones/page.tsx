@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { KpiCard } from "@/components/kpi-card";
@@ -209,14 +209,14 @@ export default function FuncionesPage() {
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-slate-200 text-left text-xs text-slate-500">
               <tr>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">Función / Obra</th>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">Fecha</th>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">Ocupación</th>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">Canal</th>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">Ingreso estimado</th>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">NPS</th>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">Notas</th>
-                <th className="px-4 py-3" />
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Función / Obra</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Fecha</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Ocupación</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Canal</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Ingreso estimado</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">NPS</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Notas</th>
+                <th className="px-4 py-1" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -272,13 +272,13 @@ export default function FuncionesPage() {
                 </tr>
               ) : (
                 <tr key={f.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-slate-900">
+                  <td className="px-4 py-1 font-medium text-slate-900">
                     <a href={`/dashboard/funciones/${f.id}`} className="hover:text-blue-600 hover:underline">{f.titulo}</a>
                   </td>
-                  <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
+                  <td className="px-4 py-1 text-slate-500 whitespace-nowrap">
                     {new Date(f.fecha).toLocaleString("es-CO", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-1">
                     <div className="flex items-center gap-2">
                       <div className="w-16 h-1.5 rounded-full bg-slate-100">
                         <div className={`h-1.5 rounded-full ${ocupacion(f) >= 70 ? "bg-emerald-500" : ocupacion(f) >= 40 ? "bg-amber-400" : "bg-red-400"}`}
@@ -288,11 +288,11 @@ export default function FuncionesPage() {
                     </div>
                     <p className="text-xs text-slate-400 mt-0.5">{f.sillasVendidas}/{f.sillasTotales}</p>
                   </td>
-                  <td className="px-4 py-3 text-slate-500">{CANALES.find(c => c.key === f.canal)?.label}</td>
-                  <td className="px-4 py-3 font-medium text-slate-700">{fmt(f.ingresoEstimado)}</td>
-                  <td className="px-4 py-3 text-slate-500">{f._count.npsList > 0 ? `${f._count.npsList} resp.` : "—"}</td>
-                  <td className="px-4 py-3 text-slate-400 text-xs max-w-[140px] truncate">{f.notas ?? "—"}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-1 text-slate-500">{CANALES.find(c => c.key === f.canal)?.label}</td>
+                  <td className="px-4 py-1 font-medium text-slate-700">{fmt(f.ingresoEstimado)}</td>
+                  <td className="px-4 py-1 text-slate-500">{f._count.npsList > 0 ? `${f._count.npsList} resp.` : "—"}</td>
+                  <td className="px-4 py-1 text-slate-400 text-xs max-w-[140px] truncate">{f.notas ?? "—"}</td>
+                  <td className="px-4 py-1">
                     <div className="flex gap-1 justify-end">
                       <button onClick={() => iniciarEdicion(f)}
                         className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-100">
@@ -316,3 +316,5 @@ export default function FuncionesPage() {
     </div>
   );
 }
+
+

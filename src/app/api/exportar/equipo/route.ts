@@ -7,27 +7,26 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-  const empresas = await prisma.empresa.findMany({
+  const usuarios = await prisma.usuario.findMany({
     where: { tenantId: session.user.tenantId },
     orderBy: { nombre: "asc" },
-    include: {
-      _count: { select: { contactos: true, oportunidades: true } },
-    },
   });
 
+  const ROL_LABEL: Record<string, string> = {
+    ADMINISTRADOR: "Administrador",
+    GERENTE: "Gerente",
+    COMERCIAL: "Comercial",
+  };
+
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet("Clientes");
+  const ws = wb.addWorksheet("Equipo");
 
   ws.columns = [
-    { header: "Nombre", key: "nombre", width: 35 },
-    { header: "Email", key: "email", width: 30 },
-    { header: "Teléfono", key: "telefono", width: 18 },
-    { header: "Sector", key: "sector", width: 25 },
-    { header: "Sitio web", key: "sitioWeb", width: 28 },
-    { header: "Contactos", key: "contactos", width: 12 },
-    { header: "Oportunidades", key: "oportunidades", width: 14 },
-    { header: "Notas", key: "notas", width: 40 },
-    { header: "Fecha creación", key: "creadoEn", width: 16 },
+    { header: "Nombre",         key: "nombre",   width: 28 },
+    { header: "Correo",         key: "email",    width: 32 },
+    { header: "Rol",            key: "rol",      width: 16 },
+    { header: "Estado",         key: "activo",   width: 12 },
+    { header: "Fecha de alta",  key: "creadoEn", width: 16 },
   ];
 
   ws.getRow(1).eachCell((cell) => {
@@ -37,17 +36,13 @@ export async function GET() {
   });
   ws.getRow(1).height = 20;
 
-  for (const e of empresas) {
+  for (const u of usuarios) {
     ws.addRow({
-      nombre: e.nombre,
-      email: e.email ?? "",
-      telefono: e.telefono ?? "",
-      sector: e.sector ?? "",
-      sitioWeb: e.sitioWeb ?? "",
-      contactos: e._count.contactos,
-      oportunidades: e._count.oportunidades,
-      notas: e.notas ?? "",
-      creadoEn: new Date(e.creadoEn).toLocaleDateString("es-CO"),
+      nombre:   u.nombre,
+      email:    u.email,
+      rol:      ROL_LABEL[u.rol] ?? u.rol,
+      activo:   u.activo ? "Activo" : "Inactivo",
+      creadoEn: new Date(u.creadoEn).toLocaleDateString("es-CO"),
     });
   }
 
@@ -70,7 +65,7 @@ export async function GET() {
     status: 200,
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="clientes-${hoy}.xlsx"`,
+      "Content-Disposition": `attachment; filename="equipo-${hoy}.xlsx"`,
     },
   });
 }

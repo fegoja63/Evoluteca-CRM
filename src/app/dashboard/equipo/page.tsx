@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -24,8 +24,22 @@ export default function EquipoPage() {
   const [cargando, setCargando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  const [exportando, setExportando] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({ nombre: "", email: "", password: "", rol: "COMERCIAL" });
+
+  async function exportarExcel() {
+    setExportando(true);
+    const res = await fetch("/api/exportar/equipo");
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `equipo-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setExportando(false);
+  }
 
   const esAdmin = session?.user?.rol === "ADMINISTRADOR";
 
@@ -85,14 +99,20 @@ export default function EquipoPage() {
           <h1 className="text-lg font-medium text-neutral-900">Equipo</h1>
           <p className="text-sm text-neutral-500">Usuarios con acceso a este CRM</p>
         </div>
-        {esAdmin && (
-          <button
-            onClick={() => setMostrarForm(true)}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            + Invitar usuario
+        <div className="flex gap-2">
+          <button onClick={exportarExcel} disabled={exportando}
+            className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+            {exportando ? "Exportando..." : "⬇ Excel"}
           </button>
-        )}
+          {esAdmin && (
+            <button
+              onClick={() => setMostrarForm(true)}
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              + Invitar usuario
+            </button>
+          )}
+        </div>
       </div>
 
       {!esAdmin && (
@@ -178,10 +198,10 @@ export default function EquipoPage() {
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-left text-xs text-neutral-500">
               <tr>
-                <th className="px-4 py-3 font-medium">Nombre</th>
-                <th className="px-4 py-3 font-medium">Correo</th>
-                <th className="px-4 py-3 font-medium">Rol</th>
-                <th className="px-4 py-3 font-medium">Estado</th>
+                <th className="px-4 py-1 font-medium">Nombre</th>
+                <th className="px-4 py-1 font-medium">Correo</th>
+                <th className="px-4 py-1 font-medium">Rol</th>
+                <th className="px-4 py-1 font-medium">Estado</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
@@ -189,11 +209,11 @@ export default function EquipoPage() {
                 const esUnoMismo = u.id === session?.user?.id;
                 return (
                   <tr key={u.id} className="hover:bg-neutral-50">
-                    <td className="px-4 py-3 font-medium text-neutral-900">
+                    <td className="px-4 py-1 font-medium text-neutral-900">
                       {u.nombre} {esUnoMismo && <span className="text-xs text-neutral-400">(tú)</span>}
                     </td>
-                    <td className="px-4 py-3 text-neutral-500">{u.email}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-1 text-neutral-500">{u.email}</td>
+                    <td className="px-4 py-1">
                       {esAdmin && !esUnoMismo ? (
                         <select
                           value={u.rol}
@@ -210,7 +230,7 @@ export default function EquipoPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-1">
                       {esAdmin && !esUnoMismo ? (
                         <button
                           onClick={() => toggleActivo(u.id, !u.activo)}
@@ -236,3 +256,5 @@ export default function EquipoPage() {
     </div>
   );
 }
+
+

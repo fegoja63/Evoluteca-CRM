@@ -13,6 +13,8 @@ const navBase = [
   { href: "/dashboard/pipeline", label: "Pipeline", emoji: "◈" },
   { href: "/dashboard/agenda", label: "Agenda", emoji: "📅" },
   { href: "/dashboard/cotizaciones", label: "Cotizaciones", emoji: "📄" },
+  { href: "/dashboard/cotizaciones-formales", label: "Nueva cotización", emoji: "📋" },
+  { href: "/dashboard/catalogo", label: "Catálogo", emoji: "📦" },
   { href: "/dashboard/reportes", label: "Reportes", emoji: "📊" },
   { href: "/dashboard/equipo", label: "Equipo", emoji: "👥" },
 ];
@@ -39,6 +41,7 @@ export function Sidebar({ tenantNombre }: { tenantNombre: string }) {
       .map(([key]) => navOpcionales[key])
       .filter(Boolean),
     { href: "/dashboard/datos", label: "Datos", emoji: "📥" },
+    { href: "/dashboard/bienvenida", label: "Guía de inicio", emoji: "🚀" },
     { href: "/dashboard/configuracion", label: "Configuración", emoji: "⚙️" },
   ];
 
@@ -62,7 +65,11 @@ export function Sidebar({ tenantNombre }: { tenantNombre: string }) {
 
       <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-0.5">
         {navItems.map((item) => {
-          const activo = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+          const activo = pathname === item.href ||
+            (item.href !== "/dashboard" &&
+             item.href !== "/dashboard/cotizaciones" &&
+             pathname.startsWith(item.href)) ||
+            (item.href === "/dashboard/cotizaciones" && (pathname === "/dashboard/cotizaciones" || (pathname.startsWith("/dashboard/cotizaciones") && !pathname.startsWith("/dashboard/cotizaciones-formales"))));
           return (
             <Link
               key={item.href}

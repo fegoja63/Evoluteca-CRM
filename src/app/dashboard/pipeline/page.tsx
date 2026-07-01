@@ -197,19 +197,13 @@ export default function PipelinePage() {
         </div>
 
         {/* Contador + limpiar */}
-        <div className="flex items-center gap-3 ml-auto">
-          {hayFiltro && (
-            <>
-              <span className="text-xs text-slate-500">{filtradas.length} de {oportunidades.length} oportunidades</span>
-              <button onClick={() => { setBusqueda(""); setFiltroAnio(""); setFiltroMes(""); }}
-                className="text-xs text-blue-600 hover:underline">× Limpiar filtros</button>
-            </>
-          )}
-          <button onClick={() => setMostrarForm(true)}
-            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-            + Nueva oportunidad
-          </button>
-        </div>
+        {hayFiltro && (
+          <div className="flex items-center gap-3 ml-auto">
+            <span className="text-xs text-slate-500">{filtradas.length} de {oportunidades.length} oportunidades</span>
+            <button onClick={() => { setBusqueda(""); setFiltroAnio(""); setFiltroMes(""); }}
+              className="text-xs text-blue-600 hover:underline">× Limpiar filtros</button>
+          </div>
+        )}
       </div>
 
       {/* ── FORMULARIO ── */}

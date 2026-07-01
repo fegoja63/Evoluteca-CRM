@@ -1,0 +1,253 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+
+type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
+type Cotizacion = {
+  id: string;
+  numero: number;
+  estado: string;
+  fechaEvento: string | null;
+  fechaValidez: string | null;
+  sede: string | null;
+  notas: string | null;
+  creadoEn: string;
+  empresa:     { id: string; nombre: string } | null;
+  contacto:    { id: string; nombre: string; email: string | null } | null;
+  oportunidad: { id: string; titulo: string } | null;
+  items: Item[];
+};
+
+const ESTADO_COLOR: Record<string, string> = {
+  BORRADOR:  "bg-slate-100 text-slate-600 border-slate-200",
+  ENVIADA:   "bg-blue-50 text-blue-700 border-blue-200",
+  ACEPTADA:  "bg-emerald-50 text-emerald-700 border-emerald-200",
+  RECHAZADA: "bg-red-50 text-red-600 border-red-200",
+};
+const ESTADO_LABEL: Record<string, string> = {
+  BORRADOR: "Borrador", ENVIADA: "Enviada", ACEPTADA: "Aceptada", RECHAZADA: "Rechazada",
+};
+
+const TRANSICIONES: Record<string, { label: string; estado: string; color: string }[]> = {
+  BORRADOR:  [{ label: "Marcar enviada",   estado: "ENVIADA",   color: "bg-blue-600 hover:bg-blue-700" }],
+  ENVIADA:   [
+    { label: "Marcar aceptada",  estado: "ACEPTADA",  color: "bg-emerald-600 hover:bg-emerald-700" },
+    { label: "Marcar rechazada", estado: "RECHAZADA", color: "bg-red-600 hover:bg-red-700" },
+  ],
+  ACEPTADA:  [],
+  RECHAZADA: [{ label: "Reabrir como borrador", estado: "BORRADOR", color: "bg-slate-600 hover:bg-slate-700" }],
+};
+
+function fmt(v: number) {
+  return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
+}
+function fmtFecha(s: string | null) {
+  if (!s) return "—";
+  return new Date(s).toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric" });
+}
+
+export default function CotizacionDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const router  = useRouter();
+
+  const [cot, setCot]           = useState<Cotizacion | null>(null);
+  const [cargando, setCargando] = useState(true);
+  const [editNotas, setEditNotas] = useState(false);
+  const [notas, setNotas]       = useState("");
+  const [guardando, setGuardando] = useState(false);
+
+  async function cargar() {
+    setCargando(true);
+    const res = await fetch(`/api/cotizaciones/${id}`);
+    if (!res.ok) { router.push("/dashboard/cotizaciones-formales"); return; }
+    const data = await res.json();
+    setCot(data);
+    setNotas(data.notas ?? "");
+    setCargando(false);
+  }
+
+  useEffect(() => { cargar(); }, [id]);
+
+  async function cambiarEstado(estado: string) {
+    await fetch(`/api/cotizaciones/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ estado }),
+    });
+    cargar();
+  }
+
+  async function guardarNotas() {
+    setGuardando(true);
+    await fetch(`/api/cotizaciones/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notas }),
+    });
+    setEditNotas(false);
+    setGuardando(false);
+    cargar();
+  }
+
+  async function eliminar() {
+    if (!confirm("¿Eliminar esta cotización? Esta acción no se puede deshacer.")) return;
+    await fetch(`/api/cotizaciones/${id}`, { method: "DELETE" });
+    router.push("/dashboard/cotizaciones-formales");
+  }
+
+  if (cargando || !cot) return <p className="text-sm text-slate-400 p-6">Cargando...</p>;
+
+  const total = cot.items.reduce((acc, i) => acc + i.cantidad * Number(i.precioUnit), 0);
+
+  return (
+    <div className="max-w-3xl">
+      {/* Breadcrumb */}
+      <div className="mb-6 flex items-center gap-3">
+        <Link href="/dashboard/cotizaciones-formales" className="text-slate-400 hover:text-slate-700 text-sm">
+          ← Cotizaciones
+        </Link>
+        <span className="text-slate-300">/</span>
+        <span className="text-sm font-mono font-bold text-slate-600">
+          #{String(cot.numero).padStart(4, "0")}
+        </span>
+      </div>
+
+      {/* Header */}
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <span className={`rounded-full border px-3 py-0.5 text-xs font-bold ${ESTADO_COLOR[cot.estado]}`}>
+              {ESTADO_LABEL[cot.estado]}
+            </span>
+            <span className="text-xs text-slate-400">Creada el {fmtFecha(cot.creadoEn)}</span>
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900">
+            Cotización #{String(cot.numero).padStart(4, "0")}
+          </h1>
+          {cot.empresa && (
+            <p className="text-slate-500 text-sm mt-1">{cot.empresa.nombre}</p>
+          )}
+        </div>
+
+        {/* Acciones de estado */}
+        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+          {TRANSICIONES[cot.estado]?.map(t => (
+            <button key={t.estado} onClick={() => cambiarEstado(t.estado)}
+              className={`rounded-xl px-4 py-2 text-sm font-medium text-white ${t.color} transition-colors`}>
+              {t.label}
+            </button>
+          ))}
+          <a href={`/api/cotizaciones/${cot.id}/pdf`} target="_blank" rel="noopener noreferrer"
+            className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5">
+            ⬇ Descargar PDF
+          </a>
+          <button onClick={eliminar}
+            className="rounded-xl border border-red-200 px-3 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors">
+            Eliminar
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-5">
+        {/* Datos generales */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <h2 className="text-sm font-bold text-slate-700 mb-4">Datos generales</h2>
+          <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+            {[
+              { label: "Empresa",         value: cot.empresa?.nombre },
+              { label: "Contacto",        value: cot.contacto ? `${cot.contacto.nombre}${cot.contacto.email ? ` · ${cot.contacto.email}` : ""}` : null },
+              { label: "Oportunidad",     value: cot.oportunidad?.titulo },
+              { label: "Sede / Lugar",    value: cot.sede },
+              { label: "Fecha del evento",value: fmtFecha(cot.fechaEvento) },
+              { label: "Validez hasta",   value: fmtFecha(cot.fechaValidez) },
+            ].map(r => (
+              <div key={r.label}>
+                <p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">{r.label}</p>
+                <p className={r.value ? "text-slate-900 font-medium" : "text-slate-300 italic text-xs"}>
+                  {r.value ?? "No especificado"}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Ítems */}
+        <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100">
+            <h2 className="text-sm font-bold text-slate-700">Servicios / Ítems</h2>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                <th className="px-5 py-3 text-left">Descripción</th>
+                <th className="px-5 py-3 text-center">Cant.</th>
+                <th className="px-5 py-3 text-right">Precio unit.</th>
+                <th className="px-5 py-3 text-right">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {cot.items.map(item => {
+                const sub = item.cantidad * Number(item.precioUnit);
+                return (
+                  <tr key={item.id}>
+                    <td className="px-5 py-3 text-slate-800">{item.descripcion}</td>
+                    <td className="px-5 py-3 text-center text-slate-600">{item.cantidad}</td>
+                    <td className="px-5 py-3 text-right text-slate-600">{fmt(Number(item.precioUnit))}</td>
+                    <td className="px-5 py-3 text-right font-semibold text-slate-900">{fmt(sub)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot>
+              <tr className="bg-slate-50 border-t-2 border-slate-200">
+                <td colSpan={3} className="px-5 py-4 text-sm font-bold text-slate-700 text-right uppercase tracking-wide">
+                  Total
+                </td>
+                <td className="px-5 py-4 text-right text-xl font-bold text-slate-900">{fmt(total)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        {/* Notas */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold text-slate-700">Notas / Observaciones</h2>
+            {!editNotas && (
+              <button onClick={() => setEditNotas(true)}
+                className="text-xs text-blue-600 hover:underline">
+                Editar
+              </button>
+            )}
+          </div>
+          {editNotas ? (
+            <div>
+              <textarea
+                rows={4}
+                value={notas}
+                onChange={e => setNotas(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 resize-none mb-3"
+              />
+              <div className="flex gap-2">
+                <button onClick={guardarNotas} disabled={guardando}
+                  className="rounded-xl bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+                  {guardando ? "Guardando..." : "Guardar"}
+                </button>
+                <button onClick={() => { setEditNotas(false); setNotas(cot.notas ?? ""); }}
+                  className="rounded-xl border border-slate-200 px-4 py-1.5 text-sm text-slate-600 hover:bg-slate-50">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className={cot.notas ? "text-sm text-slate-700 whitespace-pre-wrap" : "text-sm text-slate-300 italic"}>
+              {cot.notas || "Sin notas"}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -45,7 +45,7 @@ export default function RegistroPage() {
     });
 
     setCargando(false);
-    router.push("/dashboard");
+    router.push("/dashboard/bienvenida");
     router.refresh();
   };
 

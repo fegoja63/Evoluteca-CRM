@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 
 type ResAnio = { ganadas: number; perdidas: number; activas: number; valorGanado: number; valorPerdido: number; valorActivo: number; total: number };
 type ResMes  = { ganadas: number; perdidas: number; valorGanado: number; total: number };
+type Meta    = { id: string; anio: number; mes: number | null; valorObjetivo: string };
 
 type TopCliente = { nombre: string; valorGanado: number; ganadas: number; total: number };
 
@@ -46,6 +47,9 @@ export default function ReportesPage() {
   const [r, setR] = useState<Reporte | null>(null);
   const [anio, setAnio] = useState<string>("");
   const [mes, setMes] = useState<string>("");
+  const [metas, setMetas] = useState<Meta[]>([]);
+  const [editMeta, setEditMeta] = useState(false);
+  const [metaForm, setMetaForm] = useState({ anio: new Date().getFullYear(), mes: "", valorObjetivo: "" });
 
   function cargar(a = anio, m = mes) {
     const params = new URLSearchParams();
@@ -54,7 +58,31 @@ export default function ReportesPage() {
     fetch(`/api/reportes?${params}`).then(res => res.json()).then(setR);
   }
 
-  useEffect(() => { cargar(); }, []);
+  function cargarMetas() {
+    fetch("/api/metas").then(r => r.json()).then(setMetas);
+  }
+
+  async function guardarMeta() {
+    await fetch("/api/metas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ anio: metaForm.anio, mes: metaForm.mes || null, valorObjetivo: Number(metaForm.valorObjetivo) }),
+    });
+    setEditMeta(false);
+    setMetaForm({ anio: new Date().getFullYear(), mes: "", valorObjetivo: "" });
+    cargarMetas();
+  }
+
+  async function eliminarMeta(anioM: number, mesM: number | null) {
+    await fetch("/api/metas", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ anio: anioM, mes: mesM }),
+    });
+    cargarMetas();
+  }
+
+  useEffect(() => { cargar(); cargarMetas(); }, []);
 
   function fmt(v: number) {
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
@@ -117,7 +145,10 @@ export default function ReportesPage() {
     const vals    = MESES.map((_, i) => r!.porMes[i + 1]?.valorGanado ?? 0);
     const perdidos = MESES.map((_, i) => r!.porMes[i + 1]?.perdidas   ?? 0);
     const ganados  = MESES.map((_, i) => r!.porMes[i + 1]?.ganadas    ?? 0);
-    const maxVal  = Math.max(...vals, 1);
+    // Meta mensual para el año del gráfico
+    const metaMensual = metas.find(m => m.anio === r!.anioParaMes && m.mes === null);
+    const metaMes = (i: number) => metas.find(m => m.anio === r!.anioParaMes && m.mes === i + 1);
+    const maxVal  = Math.max(...vals, metaMensual ? Number(metaMensual.valorObjetivo) : 0, 1);
     const W = 580, H = 150, barW = 26, pad = 24;
     const slot = (W - pad) / 12;
     const hayDatos = vals.some(v => v > 0);
@@ -132,6 +163,11 @@ export default function ReportesPage() {
           <div className="flex items-center gap-4 text-xs text-slate-500">
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-500 inline-block" /> Ganado</span>
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-300 inline-block" /> Perdidos</span>
+            <span className="flex items-center gap-1"><span className="w-8 border-t-2 border-dashed border-amber-400 inline-block" /> Meta</span>
+            <button onClick={() => setEditMeta(v => !v)}
+              className="ml-2 text-xs text-amber-600 border border-amber-200 rounded-lg px-2 py-0.5 hover:bg-amber-50">
+              {editMeta ? "× Cerrar metas" : "🎯 Configurar metas"}
+            </button>
           </div>
         </div>
         {!hayDatos ? (
@@ -143,12 +179,19 @@ export default function ReportesPage() {
               const perdH = perdidos[i] > 0 ? Math.max(4, (perdidos[i] / Math.max(...perdidos, 1)) * 20) : 0;
               const x     = pad + i * slot + (slot - barW) / 2;
               const y     = H - 30 - barH;
+              const metaI = metaMes(i);
+              const metaV = metaI ? Number(metaI.valorObjetivo) : (metaMensual ? Number(metaMensual.valorObjetivo) : null);
+              const metaY = metaV ? H - 30 - Math.max(4, (metaV / maxVal) * (H - 45)) : null;
               return (
                 <g key={i}>
                   {/* barra ganado */}
                   <rect x={x} y={y} width={barW} height={barH} rx={3} fill="#10b981" opacity={0.85} />
-                  {/* indicador perdidos (pequeña barra roja debajo) */}
+                  {/* indicador perdidos */}
                   {perdH > 0 && <rect x={x + 2} y={H - 29} width={barW - 4} height={perdH} rx={2} fill="#fca5a5" opacity={0.9} />}
+                  {/* línea de meta */}
+                  {metaY !== null && (
+                    <line x1={x - 2} y1={metaY} x2={x + barW + 2} y2={metaY} stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="3,2" />
+                  )}
                   {v > 0 && (
                     <text x={x + barW / 2} y={y - 3} textAnchor="middle" fontSize={7.5} fill="#059669" fontWeight="700">
                       {fmtK(v)}
@@ -233,7 +276,7 @@ export default function ReportesPage() {
           </div>
 
           {/* ── FILTROS ── */}
-          <div className="flex items-center gap-2 bg-white/10 border border-white/20 rounded-2xl px-4 py-3">
+          <div className="flex items-center gap-2 bg-white/10 border border-white/20 rounded-2xl px-4 py-1.5">
             <div>
               <p className="text-blue-300 text-xs mb-1">Año</p>
               <select value={anio} onChange={e => { setAnio(e.target.value); setMes(""); cargar(e.target.value, ""); }}
@@ -244,9 +287,18 @@ export default function ReportesPage() {
             </div>
             <div>
               <p className="text-blue-300 text-xs mb-1">Mes</p>
-              <select value={mes} onChange={e => { setMes(e.target.value); cargar(anio, e.target.value); }}
-                disabled={!anio}
-                className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1.5 outline-none cursor-pointer disabled:opacity-40">
+              <select value={mes} onChange={e => {
+                const newMes = e.target.value;
+                setMes(newMes);
+                // Auto-seleccionar el año más reciente si no hay año elegido
+                let efectivoAnio = anio;
+                if (newMes && !anio && r.aniosDisponibles.length > 0) {
+                  efectivoAnio = String(Math.max(...r.aniosDisponibles));
+                  setAnio(efectivoAnio);
+                }
+                cargar(efectivoAnio, newMes);
+              }}
+                className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1.5 outline-none cursor-pointer">
                 <option value="">Todos</option>
                 {MESES.map((m, i) => <option key={i+1} value={String(i+1)}>{m}</option>)}
               </select>
@@ -411,6 +463,66 @@ export default function ReportesPage() {
       {/* ── GRÁFICA MENSUAL ── */}
       <GraficaMensual />
 
+      {/* ── PANEL METAS ── */}
+      {editMeta && (
+        <div className="mt-4 bg-white rounded-2xl border border-amber-200 p-5">
+          <h2 className="text-sm font-bold text-slate-900 mb-4">🎯 Metas de ventas</h2>
+          <div className="flex gap-3 items-end mb-5">
+            <div>
+              <p className="text-xs text-slate-500 mb-1">Año</p>
+              <input type="number" value={metaForm.anio} onChange={e => setMetaForm(f => ({ ...f, anio: Number(e.target.value) }))}
+                className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm w-24 outline-none focus:border-amber-400" />
+            </div>
+            <div>
+              <p className="text-xs text-slate-500 mb-1">Mes (vacío = meta anual)</p>
+              <select value={metaForm.mes} onChange={e => setMetaForm(f => ({ ...f, mes: e.target.value }))}
+                className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm bg-white outline-none focus:border-amber-400">
+                <option value="">— Anual —</option>
+                {MESES.map((m, i) => <option key={i+1} value={String(i+1)}>{m}</option>)}
+              </select>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500 mb-1">Valor objetivo (COP)</p>
+              <input type="number" min={0} step={1000000} value={metaForm.valorObjetivo}
+                onChange={e => setMetaForm(f => ({ ...f, valorObjetivo: e.target.value }))}
+                placeholder="Ej: 50000000"
+                className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm w-44 outline-none focus:border-amber-400" />
+            </div>
+            <button onClick={guardarMeta} disabled={!metaForm.valorObjetivo}
+              className="rounded-xl bg-amber-500 px-4 py-1.5 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50">
+              Guardar meta
+            </button>
+          </div>
+          {metas.length > 0 && (
+            <div className="flex flex-col gap-2">
+              {metas.map(m => {
+                const realAnual = m.mes === null
+                  ? Object.values(r?.porMes ?? {}).reduce((acc, mes) => acc + (mes.valorGanado ?? 0), 0)
+                  : r?.anioParaMes === m.anio ? (r?.porMes[m.mes!]?.valorGanado ?? 0) : 0;
+                const pct = Math.min(100, Math.round((realAnual / Number(m.valorObjetivo)) * 100));
+                return (
+                  <div key={m.id} className="flex items-center gap-4">
+                    <div className="w-32 shrink-0">
+                      <p className="text-xs font-medium text-slate-700">{m.mes ? `${MESES[m.mes - 1]} ${m.anio}` : `Año ${m.anio}`}</p>
+                    </div>
+                    <div className="flex-1 relative h-5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-5 rounded-full bg-amber-400 transition-all" style={{ width: `${pct}%` }} />
+                      <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-700">{pct}%</span>
+                    </div>
+                    <div className="w-36 text-right text-xs shrink-0">
+                      <span className="font-bold text-slate-800">{fmtK(realAnual)}</span>
+                      <span className="text-slate-400"> / {fmtK(Number(m.valorObjetivo))}</span>
+                    </div>
+                    <button onClick={() => eliminarMeta(m.anio, m.mes)}
+                      className="text-slate-300 hover:text-red-400 text-sm">×</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── COMPARATIVA POR AÑO ── */}
       {aniosOrden.length > 1 && (
         <div className="mt-6 bg-white rounded-2xl border border-slate-200 p-6">
@@ -476,3 +588,4 @@ export default function ReportesPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -199,23 +199,23 @@ export default function ContactosPage() {
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-left text-xs text-neutral-500">
               <tr>
-                <th className="px-4 py-3 font-medium">Nombre</th>
-                <th className="px-4 py-3 font-medium">Cargo</th>
-                <th className="px-4 py-3 font-medium">Email</th>
-                <th className="px-4 py-3 font-medium">Empresa</th>
+                <th className="px-4 py-1 font-medium">Nombre</th>
+                <th className="px-4 py-1 font-medium">Cargo</th>
+                <th className="px-4 py-1 font-medium">Email</th>
+                <th className="px-4 py-1 font-medium">Empresa</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
               {contactos.map((c) => (
                 <tr key={c.id} className="hover:bg-neutral-50">
-                  <td className="px-4 py-3 font-medium text-neutral-900">
+                  <td className="px-4 py-1 font-medium text-neutral-900">
                     <Link href={`/dashboard/contactos/${c.id}`} className="hover:underline">
                       {c.nombre}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-neutral-500">{c.cargo ?? "—"}</td>
-                  <td className="px-4 py-3 text-neutral-500">{c.email ?? "—"}</td>
-                  <td className="px-4 py-3 text-neutral-500">{c.empresa?.nombre ?? "—"}</td>
+                  <td className="px-4 py-1 text-neutral-500">{c.cargo ?? "—"}</td>
+                  <td className="px-4 py-1 text-neutral-500">{c.email ?? "—"}</td>
+                  <td className="px-4 py-1 text-neutral-500">{c.empresa?.nombre ?? "—"}</td>
                 </tr>
               ))}
             </tbody>
@@ -225,3 +225,5 @@ export default function ContactosPage() {
     </div>
   );
 }
+
+

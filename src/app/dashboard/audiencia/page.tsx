@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { KpiCard } from "@/components/kpi-card";
@@ -200,13 +200,13 @@ export default function AudienciaPage() {
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-slate-200 text-left text-xs text-slate-500">
               <tr>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">Nombre</th>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">Segmento</th>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">Email</th>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">Teléfono</th>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">Notas</th>
-                <th className="px-4 py-3 font-semibold uppercase tracking-wide">NPS</th>
-                <th className="px-4 py-3" />
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Nombre</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Segmento</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Email</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Teléfono</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Notas</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">NPS</th>
+                <th className="px-4 py-1" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -250,19 +250,19 @@ export default function AudienciaPage() {
                 </tr>
               ) : (
                 <tr key={e.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-slate-900">
+                  <td className="px-4 py-1 font-medium text-slate-900">
                     <a href={`/dashboard/audiencia/${e.id}`} className="hover:text-blue-600 hover:underline">{e.nombre}</a>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-1">
                     <span className={`rounded-lg px-2 py-0.5 text-xs font-medium ${SEG_COLOR[e.segmento]}`}>
                       {SEGMENTOS.find(s => s.key === e.segmento)?.label}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-slate-500">{e.email ?? "—"}</td>
-                  <td className="px-4 py-3 text-slate-500">{e.telefono ?? "—"}</td>
-                  <td className="px-4 py-3 text-slate-400 text-xs max-w-[160px] truncate">{e.notas ?? "—"}</td>
-                  <td className="px-4 py-3 text-slate-500">{e._count.npsList > 0 ? `${e._count.npsList} resp.` : "—"}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-1 text-slate-500">{e.email ?? "—"}</td>
+                  <td className="px-4 py-1 text-slate-500">{e.telefono ?? "—"}</td>
+                  <td className="px-4 py-1 text-slate-400 text-xs max-w-[160px] truncate">{e.notas ?? "—"}</td>
+                  <td className="px-4 py-1 text-slate-500">{e._count.npsList > 0 ? `${e._count.npsList} resp.` : "—"}</td>
+                  <td className="px-4 py-1">
                     <div className="flex gap-1 justify-end">
                       <button onClick={() => iniciarEdicion(e)}
                         className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-100">
@@ -286,3 +286,5 @@ export default function AudienciaPage() {
     </div>
   );
 }
+
+

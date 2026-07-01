@@ -99,6 +99,13 @@ export default function FichaContactoPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          {contacto.telefono && (
+            <a href={`https://wa.me/${contacto.telefono.replace(/\D/g, "")}`}
+              target="_blank" rel="noopener noreferrer"
+              className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700 hover:bg-emerald-100 flex items-center gap-1">
+              💬 WhatsApp
+            </a>
+          )}
           <button
             onClick={() => setEditando(!editando)}
             className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100"

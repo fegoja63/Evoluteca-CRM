@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -188,12 +188,10 @@ export default function CotizacionesPage() {
           <h1 className="text-2xl font-semibold text-slate-900">Cotizaciones activas</h1>
           <p className="text-slate-500 text-sm mt-1">Negocios en curso — todo lo que está por cerrar o perder</p>
         </div>
-        <button
-          onClick={() => setMostrarForm(true)}
-          className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
+        <Link href="/dashboard/cotizaciones-formales/nueva"
+          className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
           + Nueva cotización
-        </button>
+        </Link>
       </div>
 
       {/* KPIs */}
@@ -367,36 +365,36 @@ export default function CotizacionesPage() {
       ) : listado.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
           <p className="text-sm text-slate-500 mb-3">No hay cotizaciones activas en esta etapa.</p>
-          <button onClick={() => setMostrarForm(true)}
+          <Link href="/dashboard/cotizaciones-formales/nueva"
             className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
             + Nueva cotización
-          </button>
+          </Link>
         </div>
       ) : (
         <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                <th className="px-4 py-3 text-left">N° Cotización</th>
-                <th className="px-4 py-3 text-left">Empresa / Cliente</th>
-                <th className="px-4 py-3 text-left">Tipo de evento</th>
-                <th className="px-4 py-3 text-left">Mes / Año</th>
-                <th className="px-4 py-3 text-left">Trimestre</th>
-                <th className="px-4 py-3 text-right">Valor cotizado</th>
-                <th className="px-4 py-3 text-center">Etapa</th>
+                <th className="px-4 py-1 text-left">N° Cotización</th>
+                <th className="px-4 py-1 text-left">Empresa / Cliente</th>
+                <th className="px-4 py-1 text-left">Tipo de evento</th>
+                <th className="px-4 py-1 text-left">Mes / Año</th>
+                <th className="px-4 py-1 text-left">Trimestre</th>
+                <th className="px-4 py-1 text-right">Valor cotizado</th>
+                <th className="px-4 py-1 text-center">Etapa</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {listado.map((o) => (
                 <tr key={o.id} className="hover:bg-slate-50 transition-colors group">
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-4 py-1 whitespace-nowrap">
                     <Link href={`/dashboard/pipeline/${o.id}`} className="block">
                       {o.extras?.["COTIZACION NUMERO"]
                         ? <span className="font-mono text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg">{o.extras["COTIZACION NUMERO"]}</span>
                         : <span className="text-slate-400 text-xs">—</span>}
                     </Link>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-1">
                     <Link href={`/dashboard/pipeline/${o.id}`} className="block">
                       <p className="font-medium text-slate-900 group-hover:text-blue-600 transition-colors">
                         {o.empresa?.nombre ?? <span className="text-slate-400 italic text-xs">Sin empresa</span>}
@@ -404,30 +402,30 @@ export default function CotizacionesPage() {
                       {o.contacto && <p className="text-xs text-slate-400 mt-0.5">{o.contacto.nombre}</p>}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-slate-700 max-w-[200px]">
+                  <td className="px-4 py-1 text-slate-700 max-w-[200px]">
                     <Link href={`/dashboard/pipeline/${o.id}`} className="block">
                       <p className="truncate" title={o.titulo}>{o.titulo}</p>
                       {o.extras?.["TIPO SERVICIO"] && <p className="text-xs text-slate-400">{o.extras["TIPO SERVICIO"]}</p>}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-slate-600 whitespace-nowrap text-sm">
+                  <td className="px-4 py-1 text-slate-600 whitespace-nowrap text-sm">
                     <Link href={`/dashboard/pipeline/${o.id}`} className="block">
                       {o.extras?.["MES ELABORACION"] && o.extras?.["AÑO"]
                         ? `${o.extras["MES ELABORACION"]} ${o.extras["AÑO"]}`
                         : <span className="text-slate-400">—</span>}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-slate-500 text-xs">
+                  <td className="px-4 py-1 text-slate-500 text-xs">
                     <Link href={`/dashboard/pipeline/${o.id}`} className="block">
                       {o.extras?.["TRIMESTRE"] ?? <span className="text-slate-400">—</span>}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-right font-semibold text-slate-900 whitespace-nowrap">
+                  <td className="px-4 py-1 text-right font-semibold text-slate-900 whitespace-nowrap">
                     <Link href={`/dashboard/pipeline/${o.id}`} className="block">
                       {o.valor ? fmt(Number(o.valor)) : <span className="text-slate-400 font-normal">—</span>}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-1 text-center">
                     <select
                       value={o.etapa}
                       disabled={cambiandoEtapa === o.id}
@@ -446,10 +444,10 @@ export default function CotizacionesPage() {
             </tbody>
             <tfoot>
               <tr className="bg-slate-50 border-t-2 border-slate-200">
-                <td colSpan={5} className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                <td colSpan={5} className="px-4 py-1 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                   Total ({listado.length} cotizaciones)
                 </td>
-                <td className="px-4 py-3 text-right font-bold text-slate-900 whitespace-nowrap">
+                <td className="px-4 py-1 text-right font-bold text-slate-900 whitespace-nowrap">
                   {fmt(listado.reduce((acc, o) => acc + Number(o.valor ?? 0), 0))}
                 </td>
                 <td />
@@ -461,3 +459,5 @@ export default function CotizacionesPage() {
     </div>
   );
 }
+
+
