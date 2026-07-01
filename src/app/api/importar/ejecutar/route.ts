@@ -14,12 +14,14 @@ export async function POST(request: Request) {
   const file = formData.get("archivo") as File;
   const modulo = formData.get("modulo") as string;
   const mapeoRaw = formData.get("mapeo") as string;
+  const colsExtraRaw = formData.get("colsExtra") as string;
 
   if (!file || !modulo || !mapeoRaw) {
     return NextResponse.json({ error: "Faltan datos" }, { status: 400 });
   }
 
   const mapeo: Mapeo = JSON.parse(mapeoRaw);
+  const colsExtra: string[] = colsExtraRaw ? JSON.parse(colsExtraRaw) : [];
   const buffer = Buffer.from(await file.arrayBuffer());
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load(buffer);
@@ -34,15 +36,14 @@ export async function POST(request: Request) {
     return fila[colExcel]?.trim() || null;
   }
 
-  // Columnas ya mapeadas a campos estándar del CRM
-  const columnasMapeadas = new Set(Object.values(mapeo).filter(v => v !== "__ignorar__"));
+  // Columnas marcadas explícitamente como extras por el usuario
+  const colsExtraSet = new Set(colsExtra);
 
   function getExtras(fila: Record<string, string>): Record<string, string> | null {
     const extras: Record<string, string> = {};
-    for (const [col, val] of Object.entries(fila)) {
-      if (!columnasMapeadas.has(col) && val?.trim()) {
-        extras[col] = val.trim();
-      }
+    for (const col of colsExtraSet) {
+      const val = fila[col]?.trim();
+      if (val) extras[col] = val;
     }
     return Object.keys(extras).length > 0 ? extras : null;
   }

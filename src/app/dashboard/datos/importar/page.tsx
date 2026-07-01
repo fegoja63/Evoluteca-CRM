@@ -12,88 +12,124 @@ type Preview = {
 
 type Resultado = { creados: number; errores: number; total: number };
 
-const MODULOS = [
-  { key: "empresas", label: "Empresas / Cuentas", emoji: "🏢", campos: [
-    { key: "nombre", label: "Nombre *" },
+// Campos estándar disponibles por módulo
+const CAMPOS_CRM: Record<string, { key: string; label: string }[]> = {
+  empresas: [
+    { key: "nombre", label: "Nombre de la empresa *" },
     { key: "sector", label: "Sector" },
     { key: "telefono", label: "Teléfono" },
     { key: "sitioWeb", label: "Sitio Web" },
     { key: "notas", label: "Notas" },
-  ]},
-  { key: "contactos", label: "Contactos", emoji: "👤", campos: [
-    { key: "nombre", label: "Nombre *" },
+  ],
+  contactos: [
+    { key: "nombre", label: "Nombre del contacto *" },
     { key: "email", label: "Email" },
     { key: "telefono", label: "Teléfono" },
     { key: "cargo", label: "Cargo" },
-    { key: "empresa", label: "Empresa (nombre exacto)" },
+    { key: "empresa", label: "Empresa" },
     { key: "notas", label: "Notas" },
-  ]},
-  { key: "oportunidades", label: "Pipeline / Oportunidades", emoji: "◈", campos: [
+  ],
+  oportunidades: [
     { key: "titulo", label: "Título *" },
-    { key: "empresa", label: "Empresa (nombre exacto)" },
-    { key: "etapa", label: "Etapa (PROSPECTO/CALIFICADO/PROPUESTA/NEGOCIACION/GANADA/PERDIDA)" },
+    { key: "empresa", label: "Empresa" },
+    { key: "etapa", label: "Etapa" },
     { key: "valor", label: "Valor (número)" },
     { key: "notas", label: "Notas" },
-  ]},
-  { key: "espectadores", label: "Audiencia / Espectadores", emoji: "🎪", campos: [
-    { key: "nombre", label: "Nombre *" },
+  ],
+  espectadores: [
+    { key: "nombre", label: "Cliente / Nombre *" },
     { key: "email", label: "Email" },
     { key: "telefono", label: "Teléfono" },
     { key: "segmento", label: "Segmento (INDIVIDUAL/GRUPO/EMPRESA/COLEGIO)" },
     { key: "notas", label: "Notas" },
-  ]},
+  ],
+};
+
+const MODULOS = [
+  { key: "empresas", label: "Empresas / Cuentas", emoji: "🏢" },
+  { key: "contactos", label: "Contactos", emoji: "👤" },
+  { key: "oportunidades", label: "Pipeline / Oportunidades", emoji: "◈" },
+  { key: "espectadores", label: "Audiencia / Espectadores", emoji: "🎪" },
 ];
 
 export default function ImportarAvanzadoPage() {
   const [paso, setPaso] = useState<1 | 2 | 3>(1);
   const [modulo, setModulo] = useState<string>("");
   const [preview, setPreview] = useState<Preview | null>(null);
+  // mapeo invertido: columnaExcel -> campoCRM ("__extra__" = guardar como extra, "__ignorar__" = ignorar)
   const [mapeo, setMapeo] = useState<Record<string, string>>({});
   const [cargando, setCargando] = useState(false);
   const [resultado, setResultado] = useState<Resultado | null>(null);
+  const [archivoGuardado, setArchivoGuardado] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const fileRef2 = useRef<HTMLInputElement>(null);
-
-  const moduloActual = MODULOS.find((m) => m.key === modulo);
 
   async function handlePrevisualizar() {
     const file = fileRef.current?.files?.[0];
     if (!file || !modulo) return;
+    setArchivoGuardado(file);
     setCargando(true);
     const fd = new FormData();
     fd.append("archivo", file);
     const res = await fetch("/api/importar/previsualizar", { method: "POST", body: fd });
-    const data = await res.json();
+    const data: Preview = await res.json();
     setPreview(data);
-    // Mapeo automático: intenta hacer match por similaridad
+
+    // Auto-mapeo: para cada columna del Excel intentamos detectar a qué campo del CRM corresponde
+    const campos = CAMPOS_CRM[modulo] ?? [];
     const autoMapeo: Record<string, string> = {};
-    if (moduloActual && data.columnas) {
-      moduloActual.campos.forEach(({ key }) => {
-        const match = data.columnas.find((col: string) =>
-          col.toLowerCase().replace(/[^a-z0-9]/g, "").includes(key.replace(/[^a-z0-9]/g, "").toLowerCase())
-        );
-        autoMapeo[key] = match ?? "__ignorar__";
-      });
-    }
+    data.columnas.forEach((col) => {
+      const colNorm = col.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const match = campos.find(({ key }) =>
+        colNorm.includes(key.replace(/[^a-z0-9]/g, "")) ||
+        key.replace(/[^a-z0-9]/g, "").includes(colNorm)
+      );
+      autoMapeo[col] = match ? match.key : "__extra__";
+    });
     setMapeo(autoMapeo);
     setCargando(false);
     setPaso(2);
   }
 
   async function handleImportar() {
-    const file = fileRef.current?.files?.[0];
+    const file = archivoGuardado;
     if (!file || !modulo) return;
+
+    // Validar que el campo obligatorio esté mapeado
+    const campoObligatorio = modulo === "oportunidades" ? "titulo" : "nombre";
+    const tieneCampoObligatorio = Object.values(mapeo).includes(campoObligatorio);
+    if (!tieneCampoObligatorio) {
+      alert(`Debes asignar al menos una columna al campo "${campoObligatorio === "nombre" ? "Nombre *" : "Título *"}" antes de importar.`);
+      return;
+    }
+
     setCargando(true);
+
+    // Convertir mapeo invertido (colExcel -> campoCRM) al formato que espera la API (campoCRM -> colExcel)
+    const mapeoAPI: Record<string, string> = {};
+    Object.entries(mapeo).forEach(([col, campo]) => {
+      if (campo !== "__extra__" && campo !== "__ignorar__") {
+        mapeoAPI[campo] = col;
+      }
+    });
+
     const fd = new FormData();
     fd.append("archivo", file);
     fd.append("modulo", modulo);
-    fd.append("mapeo", JSON.stringify(mapeo));
+    fd.append("mapeo", JSON.stringify(mapeoAPI));
+    // Columnas marcadas como extra las mandamos también
+    const colsExtra = Object.entries(mapeo)
+      .filter(([, v]) => v === "__extra__")
+      .map(([col]) => col);
+    fd.append("colsExtra", JSON.stringify(colsExtra));
+
     const res = await fetch("/api/importar/ejecutar", { method: "POST", body: fd });
     const data = await res.json();
     setResultado(data);
     setCargando(false);
     setPaso(3);
   }
+
+  const campos = CAMPOS_CRM[modulo] ?? [];
 
   return (
     <div>
@@ -107,7 +143,7 @@ export default function ImportarAvanzadoPage() {
       <div className="flex items-center gap-2 mb-8">
         {[
           { n: 1, label: "Seleccionar archivo" },
-          { n: 2, label: "Mapear columnas" },
+          { n: 2, label: "Asignar columnas" },
           { n: 3, label: "Resultado" },
         ].map((p, i) => (
           <div key={p.n} className="flex items-center gap-2">
@@ -137,7 +173,7 @@ export default function ImportarAvanzadoPage() {
           </div>
 
           <h2 className="text-sm font-semibold text-slate-800 mb-2">Sube tu archivo Excel</h2>
-          <p className="text-xs text-slate-400 mb-3">Puede ser tu propio formato — no necesitas usar la plantilla de Evoluteca.</p>
+          <p className="text-xs text-slate-400 mb-3">Sube tu propio formato — en el siguiente paso verás todas tus columnas y decidirás qué hacer con cada una.</p>
           <input ref={fileRef} type="file" accept=".xlsx,.xls"
             className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 mb-5" />
 
@@ -149,62 +185,70 @@ export default function ImportarAvanzadoPage() {
       )}
 
       {/* PASO 2 */}
-      {paso === 2 && preview && moduloActual && (
+      {paso === 2 && preview && (
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-5 flex items-center justify-between">
             <div>
-              <h2 className="text-sm font-semibold text-slate-800">Mapea las columnas de tu archivo</h2>
-              <p className="text-xs text-slate-400 mt-0.5">Se detectaron {preview.columnas.length} columnas · {preview.totalFilas} filas de datos</p>
+              <h2 className="text-sm font-semibold text-slate-800">¿Qué hago con cada columna de tu Excel?</h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {preview.columnas.length} columnas detectadas · {preview.totalFilas} filas de datos
+              </p>
             </div>
             <button onClick={() => setPaso(1)} className="text-xs text-slate-400 hover:underline">← Cambiar archivo</button>
           </div>
 
-          {/* Muestra de datos */}
-          <div className="mb-5 overflow-x-auto rounded-xl border border-slate-100 bg-slate-50">
-            <table className="text-xs min-w-full">
-              <thead>
-                <tr>
-                  {preview.columnas.map((c) => (
-                    <th key={c} className="px-3 py-2 text-left font-medium text-slate-500 whitespace-nowrap">{c}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {preview.muestra.map((fila, i) => (
-                  <tr key={i} className="border-t border-slate-100">
-                    {preview.columnas.map((c) => (
-                      <td key={c} className="px-3 py-1.5 text-slate-600 whitespace-nowrap max-w-[160px] truncate">{fila[c] ?? "—"}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Leyenda */}
+          <div className="flex gap-4 mb-5 text-xs text-slate-500">
+            <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-blue-500 inline-block" /> Campo del CRM</div>
+            <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-emerald-500 inline-block" /> Guardar como dato extra</div>
+            <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-slate-200 inline-block" /> Ignorar</div>
           </div>
 
-          {/* Mapeo */}
-          <h3 className="text-xs font-semibold text-slate-700 mb-3">¿Cuál columna de tu archivo corresponde a cada campo del CRM?</h3>
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            {moduloActual.campos.map((campo) => (
-              <div key={campo.key}>
-                <label className="block text-xs text-slate-500 mb-1">{campo.label}</label>
-                <select
-                  value={mapeo[campo.key] ?? "__ignorar__"}
-                  onChange={(e) => setMapeo({ ...mapeo, [campo.key]: e.target.value })}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
-                >
-                  <option value="__ignorar__">— No importar —</option>
-                  {preview.columnas.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
-            ))}
+          <div className="flex flex-col gap-2 mb-6">
+            {preview.columnas.map((col) => {
+              const ejemplos = preview.muestra.map((f) => f[col]).filter(Boolean).slice(0, 2);
+              const valor = mapeo[col] ?? "__extra__";
+              return (
+                <div key={col} className={`flex items-center gap-4 rounded-xl border p-3 ${
+                  valor === "__ignorar__" ? "border-slate-100 bg-slate-50 opacity-60" :
+                  valor === "__extra__" ? "border-emerald-100 bg-emerald-50" :
+                  "border-blue-100 bg-blue-50"
+                }`}>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800 truncate">{col}</p>
+                    {ejemplos.length > 0 && (
+                      <p className="text-xs text-slate-400 truncate">Ej: {ejemplos.join(" · ")}</p>
+                    )}
+                  </div>
+                  <select
+                    value={valor}
+                    onChange={(e) => setMapeo({ ...mapeo, [col]: e.target.value })}
+                    className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs outline-none focus:border-blue-500 min-w-[200px]"
+                  >
+                    <option value="__extra__">💾 Guardar como dato extra</option>
+                    <option value="__ignorar__">✕ Ignorar esta columna</option>
+                    <optgroup label="─── Campo del CRM ───">
+                      {campos.map((c) => (
+                        <option key={c.key} value={c.key}>{c.label}</option>
+                      ))}
+                    </optgroup>
+                  </select>
+                </div>
+              );
+            })}
           </div>
 
-          <button onClick={handleImportar} disabled={cargando}
-            className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
-            {cargando ? "Importando..." : `↑ Importar ${preview.totalFilas} registros`}
-          </button>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-400">
+              {Object.values(mapeo).filter(v => v !== "__extra__" && v !== "__ignorar__").length} campos del CRM mapeados ·{" "}
+              {Object.values(mapeo).filter(v => v === "__extra__").length} columnas como extras ·{" "}
+              {Object.values(mapeo).filter(v => v === "__ignorar__").length} ignoradas
+            </p>
+            <button onClick={handleImportar} disabled={cargando}
+              className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+              {cargando ? "Importando..." : `↑ Importar ${preview.totalFilas} registros`}
+            </button>
+          </div>
         </div>
       )}
 
@@ -221,8 +265,8 @@ export default function ImportarAvanzadoPage() {
           </h2>
           <p className="text-slate-500 text-sm mb-6">
             <span className="font-semibold text-emerald-700">{resultado.creados} registros</span> importados correctamente
-            {resultado.errores > 0 && <> · <span className="font-semibold text-amber-700">{resultado.errores} con error</span> (nombre vacío o dato inválido)</>}
-            {" · "}{resultado.total} filas procesadas en total
+            {resultado.errores > 0 && <> · <span className="font-semibold text-amber-700">{resultado.errores} con error</span></>}
+            {" · "}{resultado.total} filas procesadas
           </p>
           <div className="flex gap-3 justify-center">
             <Link href="/dashboard/datos"

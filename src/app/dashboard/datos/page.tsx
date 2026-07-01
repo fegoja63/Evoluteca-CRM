@@ -10,7 +10,7 @@ const MODULOS_EXPORT = [
   { key: "contactos", label: "Contactos", emoji: "👤" },
   { key: "pipeline", label: "Pipeline", emoji: "◈" },
   { key: "agenda", label: "Agenda", emoji: "📅" },
-  { key: "cotizaciones", label: "Cotizaciones", emoji: "📄" },
+  { key: "cotizaciones", label: "Propuestas", emoji: "📄" },
   { key: "espectadores", label: "Audiencia", emoji: "🎪" },
   { key: "funciones", label: "Funciones", emoji: "🎭" },
 ];
@@ -55,15 +55,27 @@ export default function DatosPage() {
         <p className="text-slate-500 text-sm mt-1">Importa y exporta información del CRM en formato Excel</p>
       </div>
 
+      {/* IMPORTACION COMPLETA */}
+      <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold text-emerald-900">🚀 Importación completa desde un solo Excel</p>
+          <p className="text-xs text-emerald-700 mt-1">Crea Cuentas, Contactos y Pipeline vinculados en una sola operación.</p>
+        </div>
+        <Link href="/dashboard/datos/importar-completo"
+          className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 shrink-0 ml-4">
+          Importar todo →
+        </Link>
+      </div>
+
       {/* IMPORTACION AVANZADA */}
       <div className="mb-8 rounded-2xl border border-blue-200 bg-blue-50 p-5 flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold text-blue-900">¿Tienes tu propia base de datos en Excel?</p>
-          <p className="text-xs text-blue-600 mt-1">Sube tu archivo tal como está y mapea tus columnas a los campos del CRM.</p>
+          <p className="text-sm font-semibold text-blue-900">¿Quieres importar un módulo específico?</p>
+          <p className="text-xs text-blue-600 mt-1">Sube tu archivo y mapea tus columnas a los campos del CRM.</p>
         </div>
         <Link href="/dashboard/datos/importar"
           className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 shrink-0 ml-4">
-          Importar mi base de datos →
+          Importar un módulo →
         </Link>
       </div>
 

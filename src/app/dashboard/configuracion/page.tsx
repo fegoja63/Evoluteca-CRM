@@ -31,6 +31,16 @@ export default function ConfiguracionPage() {
   const [guardado, setGuardado] = useState(false);
 
   const esAdmin = session?.user?.rol === "ADMINISTRADOR";
+  const [limpiando, setLimpiando] = useState(false);
+
+  async function handleLimpiar() {
+    if (!confirm("¿Estás seguro? Esto borrará TODAS las empresas, contactos, oportunidades, actividades, propuestas, funciones y espectadores. Tu usuario y configuración se conservan.")) return;
+    if (!confirm("Segunda confirmación: ¿borrar todos los datos de prueba?")) return;
+    setLimpiando(true);
+    await fetch("/api/configuracion/limpiar", { method: "DELETE" });
+    setLimpiando(false);
+    alert("✓ Datos eliminados. El CRM está limpio.");
+  }
 
   useEffect(() => {
     fetch("/api/configuracion")
@@ -139,6 +149,22 @@ export default function ConfiguracionPage() {
           </div>
         )}
       </div>
+
+      {esAdmin && (
+        <div className="mt-10 rounded-2xl border border-red-200 bg-red-50 p-5">
+          <h2 className="text-sm font-semibold text-red-800 mb-1">Zona de peligro</h2>
+          <p className="text-xs text-red-600 mb-4">
+            Borra todos los datos del CRM (empresas, contactos, oportunidades, propuestas, actividades, funciones y espectadores). Tu usuario y configuración se conservan. Útil para limpiar datos de prueba antes de empezar en producción.
+          </p>
+          <button
+            onClick={handleLimpiar}
+            disabled={limpiando}
+            className="rounded-xl border border-red-400 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+          >
+            {limpiando ? "Limpiando..." : "🗑️ Limpiar todos los datos de prueba"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
