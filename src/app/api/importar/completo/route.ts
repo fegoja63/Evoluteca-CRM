@@ -12,23 +12,14 @@ type MapeoCompleto = {
   tituloOportunidad?: string;
   valorOportunidad?: string;
   etapaOportunidad?: string;
-  segmentoAudiencia?: string;
 };
 
 const ETAPAS_MAP: Record<string, string> = {
-  "HECHO": "GANADA",
-  "GANADO": "GANADA",
-  "GANADA": "GANADA",
-  "DESCARTADO": "PERDIDA",
-  "PERDIDO": "PERDIDA",
-  "PERDIDA": "PERDIDA",
-  "PROPUESTA": "PROPUESTA",
-  "NEGOCIACION": "NEGOCIACION",
-  "NEGOCIACIÓN": "NEGOCIACION",
-  "CALIFICADO": "CALIFICADO",
-  "PROSPECTO": "PROSPECTO",
-  "EN PROCESO": "PROPUESTA",
-  "PROCESO": "PROPUESTA",
+  "HECHO": "GANADA", "GANADO": "GANADA", "GANADA": "GANADA",
+  "DESCARTADO": "PERDIDA", "PERDIDO": "PERDIDA", "PERDIDA": "PERDIDA",
+  "PROPUESTA": "PROPUESTA", "NEGOCIACION": "NEGOCIACION", "NEGOCIACIÓN": "NEGOCIACION",
+  "CALIFICADO": "CALIFICADO", "PROSPECTO": "PROSPECTO",
+  "EN PROCESO": "PROPUESTA", "PROCESO": "PROPUESTA",
 };
 
 export async function POST(request: Request) {
@@ -45,6 +36,7 @@ export async function POST(request: Request) {
 
   const mapeo: MapeoCompleto = JSON.parse(mapeoRaw);
   const colsExtra: string[] = colsExtraRaw ? JSON.parse(colsExtraRaw) : [];
+  const colsUsadas = new Set(Object.values(mapeo).filter(Boolean));
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const wb = new ExcelJS.Workbook();
@@ -70,9 +62,8 @@ export async function POST(request: Request) {
 
   function getExtras(fila: Record<string, string>): Record<string, string> | null {
     const extras: Record<string, string> = {};
-    const usadas = new Set(Object.values(mapeo).filter(Boolean));
     for (const col of colsExtra) {
-      if (!usadas.has(col)) {
+      if (!colsUsadas.has(col)) {
         const val = fila[col]?.trim();
         if (val) extras[col] = val;
       }
@@ -80,93 +71,88 @@ export async function POST(request: Request) {
     return Object.keys(extras).length > 0 ? extras : null;
   }
 
-  // Cache de empresas ya creadas en esta importación
-  const empresaCache = new Map<string, string>(); // nombre → id
-  // Pre-cargar empresas existentes
+  function limpiarValor(str: string): number | null {
+    const limpio = str.replace(/[^0-9,.-]/g, "").replace(/\./g, "").replace(",", ".");
+    const n = Number(limpio);
+    return limpio && !isNaN(n) ? n : null;
+  }
+
+  // ── PASO 1: Empresas ──────────────────────────────────────────
+  // Pre-cargar empresas ya existentes
   const existentes = await prisma.empresa.findMany({ where: { tenantId }, select: { id: true, nombre: true } });
-  existentes.forEach((e) => empresaCache.set(e.nombre.toLowerCase(), e.id));
+  const empresaCache = new Map<string, string>(existentes.map((e) => [e.nombre.toLowerCase(), e.id]));
 
-  let empresasCreadas = 0;
-  let contactosCreados = 0;
-  let oportunidadesCreadas = 0;
-  let errores = 0;
-
+  // Colectar empresas nuevas únicas
+  const empresasNuevas = new Map<string, Record<string, string>>(); // nombre.lower → fila representativa
   for (const fila of filas) {
-    try {
-      const nombreEmpresa = get(fila, "empresa");
-      let empresaId: string | null = null;
-
-      // Crear empresa si no existe
-      if (nombreEmpresa) {
-        const key = nombreEmpresa.toLowerCase();
-        if (empresaCache.has(key)) {
-          empresaId = empresaCache.get(key)!;
-        } else {
-          const emp = await prisma.empresa.create({
-            data: {
-              nombre: nombreEmpresa,
-              extras: getExtras(fila),
-              tenantId,
-            },
-          });
-          empresaId = emp.id;
-          empresaCache.set(key, emp.id);
-          empresasCreadas++;
-        }
-      }
-
-      // Crear contacto
-      const nombreContacto = get(fila, "contacto");
-      let contactoId: string | null = null;
-      if (nombreContacto) {
-        const c = await prisma.contacto.create({
-          data: {
-            nombre: nombreContacto,
-            email: get(fila, "emailContacto"),
-            telefono: get(fila, "telefonoContacto"),
-            cargo: get(fila, "cargoContacto"),
-            empresaId,
-            tenantId,
-          },
-        });
-        contactoId = c.id;
-        contactosCreados++;
-      }
-
-      // Crear oportunidad
-      const tituloOp = get(fila, "tituloOportunidad");
-      if (tituloOp) {
-        const etapaRaw = get(fila, "etapaOportunidad")?.toUpperCase().trim() ?? "";
-        const etapa = (ETAPAS_MAP[etapaRaw] ?? "PROSPECTO") as "PROSPECTO" | "CALIFICADO" | "PROPUESTA" | "NEGOCIACION" | "GANADA" | "PERDIDA";
-        const valorStr = get(fila, "valorOportunidad") ?? "";
-        // Soporta formatos: $1.500.000 / 1,500,000 / 1500000
-        const valorLimpio = valorStr.replace(/[^0-9,.-]/g, "").replace(/\./g, "").replace(",", ".");
-        const valor = valorLimpio && !isNaN(Number(valorLimpio)) ? Number(valorLimpio) : null;
-
-        await prisma.oportunidad.create({
-          data: {
-            titulo: tituloOp,
-            etapa,
-            valor,
-            empresaId,
-            contactoId,
-            extras: getExtras(fila),
-            tenantId,
-          },
-        });
-        oportunidadesCreadas++;
-      }
-    } catch {
-      errores++;
+    const nombre = get(fila, "empresa");
+    if (!nombre) continue;
+    const key = nombre.toLowerCase();
+    if (!empresaCache.has(key) && !empresasNuevas.has(key)) {
+      empresasNuevas.set(key, fila);
     }
   }
 
+  // Insertar empresas nuevas en lote
+  if (empresasNuevas.size > 0) {
+    await prisma.empresa.createMany({
+      data: Array.from(empresasNuevas.entries()).map(([, fila]) => ({
+        nombre: get(fila, "empresa")!,
+        extras: getExtras(fila),
+        tenantId,
+      })),
+      skipDuplicates: true,
+    });
+    // Recargar para obtener IDs
+    const recargadas = await prisma.empresa.findMany({ where: { tenantId }, select: { id: true, nombre: true } });
+    recargadas.forEach((e) => empresaCache.set(e.nombre.toLowerCase(), e.id));
+  }
+
+  // ── PASO 2: Contactos en lote ─────────────────────────────────
+  const contactosData = filas
+    .filter((f) => get(f, "contacto"))
+    .map((fila) => {
+      const empresaNombre = get(fila, "empresa");
+      const empresaId = empresaNombre ? empresaCache.get(empresaNombre.toLowerCase()) ?? null : null;
+      return {
+        nombre: get(fila, "contacto")!,
+        email: get(fila, "emailContacto"),
+        telefono: get(fila, "telefonoContacto"),
+        cargo: get(fila, "cargoContacto"),
+        empresaId,
+        tenantId,
+      };
+    });
+
+  const contactosResult = await prisma.contacto.createMany({ data: contactosData, skipDuplicates: false });
+
+  // ── PASO 3: Oportunidades en lote ────────────────────────────
+  const oportunidadesData = filas
+    .filter((f) => get(f, "tituloOportunidad"))
+    .map((fila) => {
+      const empresaNombre = get(fila, "empresa");
+      const empresaId = empresaNombre ? empresaCache.get(empresaNombre.toLowerCase()) ?? null : null;
+      const etapaRaw = get(fila, "etapaOportunidad")?.toUpperCase().trim() ?? "";
+      const etapa = (ETAPAS_MAP[etapaRaw] ?? "PROSPECTO") as "PROSPECTO" | "CALIFICADO" | "PROPUESTA" | "NEGOCIACION" | "GANADA" | "PERDIDA";
+      const valor = limpiarValor(get(fila, "valorOportunidad") ?? "");
+      return {
+        titulo: get(fila, "tituloOportunidad")!,
+        etapa,
+        valor,
+        empresaId,
+        extras: getExtras(fila),
+        tenantId,
+      };
+    });
+
+  const oportunidadesResult = await prisma.oportunidad.createMany({ data: oportunidadesData, skipDuplicates: false });
+
   return NextResponse.json({
     ok: true,
-    empresasCreadas,
-    contactosCreados,
-    oportunidadesCreadas,
-    errores,
+    empresasCreadas: empresasNuevas.size,
+    contactosCreados: contactosResult.count,
+    oportunidadesCreadas: oportunidadesResult.count,
+    errores: 0,
     total: filas.length,
   });
 }

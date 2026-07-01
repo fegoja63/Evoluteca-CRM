@@ -23,7 +23,7 @@ const CAMPOS = [
   { key: "emailContacto", label: "✉️ Email del contacto", desc: "" },
   { key: "telefonoContacto", label: "📞 Teléfono del contacto", desc: "" },
   { key: "cargoContacto", label: "💼 Cargo del contacto", desc: "" },
-  { key: "tituloOportunidad", label: "◈ Título del negocio / evento", desc: "Nombre del negocio o tipo de evento" },
+  { key: "tituloOportunidad", label: "◈ Tipo de negocio / evento", desc: "Nombre del negocio o tipo de evento" },
   { key: "valorOportunidad", label: "💰 Valor del negocio", desc: "Solo números" },
   { key: "etapaOportunidad", label: "🏷️ Estado / Etapa", desc: "HECHO, DESCARTADO, EN PROCESO, etc." },
 ];
