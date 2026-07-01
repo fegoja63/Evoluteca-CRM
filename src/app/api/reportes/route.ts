@@ -50,7 +50,7 @@ export async function GET(request: Request) {
     prisma.contacto.count({ where: { tenantId } }),
     prisma.oportunidad.findMany({
       where: { tenantId },
-      select: { etapa: true, valor: true, fechaEvento: true, creadoEn: true, extras: true },
+      select: { etapa: true, valor: true, fechaEvento: true, creadoEn: true, extras: true, empresa: { select: { nombre: true } } },
     }),
     prisma.actividad.count({ where: { tenantId, completada: false } }),
   ]);
@@ -102,19 +102,32 @@ export async function GET(request: Request) {
     if (etapasActivas.includes(o.etapa))    { porAnio[a].activas++;  porAnio[a].valorActivo  += val; }
   }
 
-  // ── Por mes del año seleccionado ──
+  // ── Por mes: del año filtrado, o últimos 12 meses si no hay filtro ──
   const porMes: Record<number, { ganadas: number; perdidas: number; valorGanado: number; total: number }> = {};
-  if (anioFiltro) {
-    for (let m = 1; m <= 12; m++) porMes[m] = { ganadas: 0, perdidas: 0, valorGanado: 0, total: 0 };
-    for (const o of todasOps) {
-      if (getAnio(o) !== anioFiltro) continue;
-      const m = getMes(o);
-      if (!m) continue;
-      porMes[m].total++;
-      if (o.etapa === "GANADA")  { porMes[m].ganadas++;  porMes[m].valorGanado += Number(o.valor ?? 0); }
-      if (o.etapa === "PERDIDA") { porMes[m].perdidas++; }
-    }
+  for (let m = 1; m <= 12; m++) porMes[m] = { ganadas: 0, perdidas: 0, valorGanado: 0, total: 0 };
+
+  const anioParaMes = anioFiltro ?? (aniosDisponibles.length > 0 ? Math.max(...aniosDisponibles) : new Date().getFullYear());
+  for (const o of todasOps) {
+    if (getAnio(o) !== anioParaMes) continue;
+    const m = getMes(o);
+    if (!m) continue;
+    porMes[m].total++;
+    if (o.etapa === "GANADA")  { porMes[m].ganadas++;  porMes[m].valorGanado += Number(o.valor ?? 0); }
+    if (o.etapa === "PERDIDA") { porMes[m].perdidas++; }
   }
+
+  // ── Top 5 clientes por valor ganado ──
+  const clienteMap = new Map<string, { nombre: string; valorGanado: number; ganadas: number; total: number }>();
+  for (const o of oportunidades) {
+    const nombre = o.empresa?.nombre ?? "Sin cliente";
+    const entry = clienteMap.get(nombre) ?? { nombre, valorGanado: 0, ganadas: 0, total: 0 };
+    entry.total++;
+    if (o.etapa === "GANADA") { entry.valorGanado += Number(o.valor ?? 0); entry.ganadas++; }
+    clienteMap.set(nombre, entry);
+  }
+  const topClientes = Array.from(clienteMap.values())
+    .sort((a, b) => b.valorGanado - a.valorGanado)
+    .slice(0, 5);
 
   return NextResponse.json({
     totalEmpresas,
@@ -133,6 +146,8 @@ export async function GET(request: Request) {
     aniosDisponibles,
     porAnio,
     porMes,
+    anioParaMes,
+    topClientes,
     filtro: { anio: anioFiltro, mes: mesFiltro },
   });
 }

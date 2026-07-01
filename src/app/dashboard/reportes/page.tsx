@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 type ResAnio = { ganadas: number; perdidas: number; activas: number; valorGanado: number; valorPerdido: number; valorActivo: number; total: number };
 type ResMes  = { ganadas: number; perdidas: number; valorGanado: number; total: number };
 
+type TopCliente = { nombre: string; valorGanado: number; ganadas: number; total: number };
+
 type Reporte = {
   totalEmpresas: number;
   totalContactos: number;
@@ -22,6 +24,8 @@ type Reporte = {
   aniosDisponibles: number[];
   porAnio: Record<number, ResAnio>;
   porMes: Record<number, ResMes>;
+  anioParaMes: number;
+  topClientes: TopCliente[];
   filtro: { anio: number | null; mes: number | null };
 };
 
@@ -107,43 +111,104 @@ export default function ReportesPage() {
     );
   }
 
-  // ── Gráfica mensual ──
+  // ── Gráfica mensual (siempre visible, año más reciente por defecto) ──
   function GraficaMensual() {
-    if (!r || !r.filtro.anio || !r.porMes) return null;
-    const vals = MESES.map((_, i) => r!.porMes[i + 1]?.valorGanado ?? 0);
-    const maxVal = Math.max(...vals, 1);
-    const W = 560, H = 130, barW = 28, pad = 20;
+    if (!r) return null;
+    const vals    = MESES.map((_, i) => r!.porMes[i + 1]?.valorGanado ?? 0);
+    const perdidos = MESES.map((_, i) => r!.porMes[i + 1]?.perdidas   ?? 0);
+    const ganados  = MESES.map((_, i) => r!.porMes[i + 1]?.ganadas    ?? 0);
+    const maxVal  = Math.max(...vals, 1);
+    const W = 580, H = 150, barW = 26, pad = 24;
     const slot = (W - pad) / 12;
+    const hayDatos = vals.some(v => v > 0);
 
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 mt-6">
-        <p className="text-sm font-bold text-slate-900 mb-4">Valor ganado por mes — {r!.filtro.anio}</p>
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
-          {vals.map((v, i) => {
-            const barH = Math.max(v > 0 ? 3 : 0, (v / maxVal) * (H - 40));
-            const x = pad + i * slot + (slot - barW) / 2;
-            const y = H - 28 - barH;
-            const ganadas = r!.porMes[i + 1]?.ganadas ?? 0;
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 mt-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-sm font-bold text-slate-900">Actividad mensual — {r!.anioParaMes}</p>
+            <p className="text-xs text-slate-400 mt-0.5">Valor ganado · negocios cerrados por mes</p>
+          </div>
+          <div className="flex items-center gap-4 text-xs text-slate-500">
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-500 inline-block" /> Ganado</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-300 inline-block" /> Perdidos</span>
+          </div>
+        </div>
+        {!hayDatos ? (
+          <p className="text-sm text-slate-400 text-center py-8">Sin datos para {r!.anioParaMes}</p>
+        ) : (
+          <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+            {vals.map((v, i) => {
+              const barH  = Math.max(v > 0 ? 4 : 0, (v / maxVal) * (H - 45));
+              const perdH = perdidos[i] > 0 ? Math.max(4, (perdidos[i] / Math.max(...perdidos, 1)) * 20) : 0;
+              const x     = pad + i * slot + (slot - barW) / 2;
+              const y     = H - 30 - barH;
+              return (
+                <g key={i}>
+                  {/* barra ganado */}
+                  <rect x={x} y={y} width={barW} height={barH} rx={3} fill="#10b981" opacity={0.85} />
+                  {/* indicador perdidos (pequeña barra roja debajo) */}
+                  {perdH > 0 && <rect x={x + 2} y={H - 29} width={barW - 4} height={perdH} rx={2} fill="#fca5a5" opacity={0.9} />}
+                  {v > 0 && (
+                    <text x={x + barW / 2} y={y - 3} textAnchor="middle" fontSize={7.5} fill="#059669" fontWeight="700">
+                      {fmtK(v)}
+                    </text>
+                  )}
+                  {ganados[i] > 0 && barH > 14 && (
+                    <text x={x + barW / 2} y={y + 11} textAnchor="middle" fontSize={7.5} fill="white" fontWeight="700">
+                      {ganados[i]}
+                    </text>
+                  )}
+                  <text x={x + barW / 2} y={H - 8} textAnchor="middle" fontSize={8} fill="#94a3b8">
+                    {MESES[i]}
+                  </text>
+                </g>
+              );
+            })}
+            <line x1={pad} y1={H - 30} x2={W} y2={H - 30} stroke="#e2e8f0" strokeWidth={1} />
+          </svg>
+        )}
+      </div>
+    );
+  }
+
+  // ── Funnel de conversión ──
+  function Funnel() {
+    const etapasFunnel = ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION","GANADA"];
+    const colores = ["#94a3b8","#60a5fa","#8b5cf6","#fbbf24","#10b981"];
+    const vals = etapasFunnel.map(e => r!.oportunidadesPorEtapa[e] ?? 0);
+    const maxV = Math.max(...vals, 1);
+    const W = 260, H = 220, rowH = H / etapasFunnel.length;
+
+    return (
+      <div>
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Embudo de conversión</p>
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-xs mx-auto">
+          {etapasFunnel.map((etapa, i) => {
+            const v = vals[i];
+            const ancho = Math.max(0.15, v / maxV);
+            const y = i * rowH;
+            const xIzq = W / 2 - (W * ancho) / 2;
+            const xDer = W / 2 + (W * ancho) / 2;
+            const anchoSig = i < etapasFunnel.length - 1 ? Math.max(0.15, vals[i + 1] / maxV) : ancho * 0.6;
+            const xIzqSig = W / 2 - (W * anchoSig) / 2;
+            const xDerSig = W / 2 + (W * anchoSig) / 2;
+            const label = ETAPAS.find(e => e.key === etapa)?.label ?? etapa;
+            const conv = i > 0 && vals[i - 1] > 0 ? Math.round((v / vals[i - 1]) * 100) : null;
             return (
-              <g key={i}>
-                <rect x={x} y={y} width={barW} height={barH} rx={4} fill="#10b981" opacity={0.8} />
-                {v > 0 && (
-                  <text x={x + barW / 2} y={y - 4} textAnchor="middle" fontSize={8} fill="#059669" fontWeight="600">
-                    {fmtK(v)}
-                  </text>
-                )}
-                {ganadas > 0 && (
-                  <text x={x + barW / 2} y={y + 11} textAnchor="middle" fontSize={8} fill="white" fontWeight="700">
-                    {ganadas}
-                  </text>
-                )}
-                <text x={x + barW / 2} y={H - 10} textAnchor="middle" fontSize={8} fill="#94a3b8">
-                  {MESES[i]}
+              <g key={etapa}>
+                <polygon
+                  points={`${xIzq},${y + 2} ${xDer},${y + 2} ${xDerSig},${y + rowH - 2} ${xIzqSig},${y + rowH - 2}`}
+                  fill={colores[i]}
+                  opacity={0.85}
+                />
+                <text x={W / 2} y={y + rowH / 2 - 4} textAnchor="middle" fontSize={9} fill="white" fontWeight="700">{label}</text>
+                <text x={W / 2} y={y + rowH / 2 + 7} textAnchor="middle" fontSize={9} fill="white" opacity={0.9}>
+                  {v}{conv !== null ? ` (${conv}%)` : ""}
                 </text>
               </g>
             );
           })}
-          <line x1={pad} y1={H - 28} x2={W} y2={H - 28} stroke="#e2e8f0" strokeWidth={1} />
         </svg>
       </div>
     );
@@ -217,13 +282,13 @@ export default function ReportesPage() {
 
       <div className="grid grid-cols-3 gap-6">
 
-        {/* ── PIPELINE ── */}
+        {/* ── PIPELINE BARRAS ── */}
         <div className="col-span-2 bg-white rounded-2xl border border-slate-200 p-6">
           <div className="mb-5">
             <h2 className="text-base font-bold text-slate-900">Pipeline por etapa</h2>
             <p className="text-xs text-slate-400 mt-0.5">{r.totalOportunidades} oportunidades · {periodoLabel}</p>
           </div>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 mb-6">
             {ETAPAS.map(etapa => {
               const qty = r.oportunidadesPorEtapa[etapa.key] ?? 0;
               const val = r.valorPorEtapa[etapa.key] ?? 0;
@@ -233,7 +298,7 @@ export default function ReportesPage() {
                   <div className="w-24 shrink-0">
                     <span className="text-xs font-medium text-slate-600">{etapa.label}</span>
                   </div>
-                  <div className="flex-1 relative h-8 bg-slate-50 rounded-xl overflow-hidden">
+                  <div className="flex-1 relative h-7 bg-slate-50 rounded-xl overflow-hidden">
                     <div className="h-full rounded-xl transition-all duration-700"
                       style={{ width: `${Math.max(pct, qty > 0 ? 3 : 0)}%`, backgroundColor: etapa.colorBar, opacity: 0.85 }} />
                     {qty > 0 && (
@@ -247,42 +312,14 @@ export default function ReportesPage() {
               );
             })}
           </div>
-        </div>
 
-        {/* ── CIERRE ── */}
-        <div className="flex flex-col gap-5">
-          <div className="bg-white rounded-2xl border border-slate-200 p-5">
-            <h2 className="text-sm font-bold text-slate-900 mb-4">Negocios cerrados</h2>
-            <div className="flex gap-4 mb-4">
-              <div className="flex-1">
-                <p className="text-xs text-slate-400 mb-1">Ganados</p>
-                <p className="text-2xl font-bold text-emerald-600">{r.ganadas}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{fmtK(r.valorGanado)}</p>
-              </div>
-              <div className="flex-1">
-                <p className="text-xs text-slate-400 mb-1">Perdidos</p>
-                <p className="text-2xl font-bold text-red-500">{r.perdidas}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{fmtK(r.valorPerdido)}</p>
-              </div>
-            </div>
-            {totalCerradas > 0 && (
-              <div className="h-3 rounded-full overflow-hidden flex mb-1">
-                <div className="bg-emerald-500" style={{ width: `${(r.ganadas / totalCerradas) * 100}%` }} />
-                <div className="bg-red-400 flex-1" />
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span className="text-xs text-emerald-600 font-medium">{r.tasaCierre}% tasa de cierre</span>
-              <span className="text-xs text-slate-400">{totalCerradas} cerrados</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200 p-5">
-            <h2 className="text-sm font-bold text-slate-900 mb-4">Valor del negocio</h2>
+          {/* Valor del negocio */}
+          <div className="pt-5 border-t border-slate-100">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Valor del negocio</p>
             {[
-              { label: "Ganado",  valor: r.valorGanado,  color: "bg-emerald-500", text: "text-emerald-700" },
-              { label: "En juego",valor: r.valorActivo,  color: "bg-blue-500",    text: "text-blue-700" },
-              { label: "Perdido", valor: r.valorPerdido, color: "bg-red-400",     text: "text-red-600" },
+              { label: "Ganado",   valor: r.valorGanado,  color: "bg-emerald-500", text: "text-emerald-700" },
+              { label: "En juego", valor: r.valorActivo,  color: "bg-blue-500",    text: "text-blue-700" },
+              { label: "Perdido",  valor: r.valorPerdido, color: "bg-red-400",     text: "text-red-600" },
             ].map(item => {
               const total = r.valorGanado + r.valorActivo + r.valorPerdido;
               const pct = total > 0 ? (item.valor / total) * 100 : 0;
@@ -299,7 +336,40 @@ export default function ReportesPage() {
               );
             })}
           </div>
+        </div>
 
+        {/* ── COLUMNA DERECHA ── */}
+        <div className="flex flex-col gap-5">
+          {/* Cierre */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5">
+            <h2 className="text-sm font-bold text-slate-900 mb-3">Negocios cerrados</h2>
+            <div className="flex gap-4 mb-3">
+              <div className="flex-1 rounded-xl bg-emerald-50 p-3 text-center">
+                <p className="text-2xl font-bold text-emerald-600">{r.ganadas}</p>
+                <p className="text-xs text-emerald-500 mt-0.5">Ganados</p>
+                <p className="text-xs text-slate-400">{fmtK(r.valorGanado)}</p>
+              </div>
+              <div className="flex-1 rounded-xl bg-red-50 p-3 text-center">
+                <p className="text-2xl font-bold text-red-500">{r.perdidas}</p>
+                <p className="text-xs text-red-400 mt-0.5">Perdidos</p>
+                <p className="text-xs text-slate-400">{fmtK(r.valorPerdido)}</p>
+              </div>
+            </div>
+            {totalCerradas > 0 && (
+              <div className="h-2.5 rounded-full overflow-hidden flex mb-1">
+                <div className="bg-emerald-500 transition-all" style={{ width: `${(r.ganadas / totalCerradas) * 100}%` }} />
+                <div className="bg-red-400 flex-1" />
+              </div>
+            )}
+            <p className="text-xs text-center font-semibold text-emerald-600 mt-1">{r.tasaCierre}% tasa de cierre</p>
+          </div>
+
+          {/* Funnel */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5">
+            <Funnel />
+          </div>
+
+          {/* Tareas */}
           <div className={`rounded-2xl border p-4 flex items-center gap-3 ${r.actividadesPendientes > 0 ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200"}`}>
             <span className="text-2xl">{r.actividadesPendientes > 0 ? "⏳" : "✅"}</span>
             <div>
@@ -309,6 +379,34 @@ export default function ReportesPage() {
           </div>
         </div>
       </div>
+
+      {/* ── TOP CLIENTES ── */}
+      {r.topClientes.length > 0 && (
+        <div className="mt-6 bg-white rounded-2xl border border-slate-200 p-6">
+          <h2 className="text-base font-bold text-slate-900 mb-4">Top clientes por valor ganado</h2>
+          <div className="flex flex-col gap-2">
+            {r.topClientes.map((c, i) => {
+              const maxVal = r.topClientes[0].valorGanado || 1;
+              const pct = (c.valorGanado / maxVal) * 100;
+              return (
+                <div key={c.nombre} className="flex items-center gap-4">
+                  <span className="text-xs font-bold text-slate-400 w-5 text-right shrink-0">{i + 1}</span>
+                  <div className="w-48 shrink-0">
+                    <p className="text-sm font-medium text-slate-800 truncate">{c.nombre}</p>
+                    <p className="text-xs text-slate-400">{c.ganadas} ganadas · {c.total} totales</p>
+                  </div>
+                  <div className="flex-1 relative h-6 bg-slate-50 rounded-xl overflow-hidden">
+                    <div className="h-full rounded-xl bg-emerald-500 transition-all" style={{ width: `${Math.max(pct, 3)}%`, opacity: 0.8 }} />
+                  </div>
+                  <div className="w-24 text-right shrink-0">
+                    <span className="text-sm font-bold text-emerald-700">{fmtK(c.valorGanado)}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ── GRÁFICA MENSUAL ── */}
       <GraficaMensual />
