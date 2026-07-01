@@ -18,7 +18,7 @@ export async function POST(
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const wb = new ExcelJS.Workbook();
-  await wb.xlsx.load(buffer);
+  await wb.xlsx.load(buffer as any);
   const ws = wb.worksheets[0];
   if (!ws) return NextResponse.json({ error: "El archivo no tiene hojas" }, { status: 400 });
 
