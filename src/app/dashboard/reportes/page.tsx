@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 
@@ -53,7 +53,7 @@ export default function ReportesPage() {
   }, []);
 
   function formatoMoneda(valor: number) {
-    return new Intl.NumberFormat("es-ES", { style: "currency", currency: "USD" }).format(valor);
+    return new Intl.NumberFormat("es-ES", { style: "currency", currency: "COP" }).format(valor);
   }
 
   if (cargando || !reporte) {
@@ -105,7 +105,7 @@ export default function ReportesPage() {
 
         <div className="rounded-xl border border-neutral-200 p-4">
           <h2 className="mb-3 text-sm font-medium text-neutral-900">
-            Cotizaciones por estado ({reporte.totalCotizaciones} total · {formatoMoneda(reporte.valorCotizado)})
+            Propuestas por estado ({reporte.totalCotizaciones} total · {formatoMoneda(reporte.valorCotizado)})
           </h2>
           <div className="flex flex-col gap-2">
             {Object.entries(ESTADOS_LABEL).map(([key, label]) => {

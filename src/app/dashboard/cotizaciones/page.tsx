@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { KpiCard } from "@/components/kpi-card";
@@ -74,7 +74,7 @@ export default function CotizacionesPage() {
   }
 
   function formatoMoneda(valor: number) {
-    return new Intl.NumberFormat("es-ES", { style: "currency", currency: "USD" }).format(valor);
+    return new Intl.NumberFormat("es-ES", { style: "currency", currency: "COP" }).format(valor);
   }
 
   async function handleGuardar(e: React.FormEvent) {
@@ -111,15 +111,15 @@ export default function CotizacionesPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-slate-900">Cotizaciones</h1>
-        <p className="text-slate-500 text-sm mt-1">Propuestas comerciales</p>
+        <h1 className="text-2xl font-semibold text-slate-900">Propuestas</h1>
+        <p className="text-slate-500 text-sm mt-1">Cotizaciones y propuestas comerciales</p>
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-8">
-        <KpiCard label="Total cotizaciones" valor={cotizaciones.length} emoji="📄" color="bg-blue-500" />
+        <KpiCard label="Total propuestas" valor={cotizaciones.length} emoji="📄" color="bg-blue-500" />
         <KpiCard
           label="Valor total cotizado"
-          valor={new Intl.NumberFormat("es-ES", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(
+          valor={new Intl.NumberFormat("es-ES", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(
             cotizaciones.reduce((acc, c) => acc + totalCotizacion(c), 0)
           )}
           emoji="💰" color="bg-emerald-500"
@@ -134,13 +134,13 @@ export default function CotizacionesPage() {
           onClick={() => setMostrarForm(true)}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
-          + Nueva cotización
+          + Nueva propuesta
         </button>
       </div>
 
       {mostrarForm && (
         <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-          <h2 className="mb-4 text-sm font-medium text-neutral-900">Nueva cotización</h2>
+          <h2 className="mb-4 text-sm font-medium text-neutral-900">Nueva propuesta</h2>
           <form onSubmit={handleGuardar}>
             <div className="mb-3">
               <label className="mb-1 block text-xs text-neutral-500">Empresa</label>

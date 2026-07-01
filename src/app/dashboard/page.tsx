@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+﻿import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   const totalOp = oportunidades.length;
 
   function formatoMoneda(valor: number) {
-    return new Intl.NumberFormat("es-ES", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(valor);
+    return new Intl.NumberFormat("es-ES", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(valor);
   }
 
   const kpis = [
@@ -102,7 +102,7 @@ export default async function DashboardPage() {
               { label: "Nuevo contacto", href: "/dashboard/contactos", desc: "Agrega una persona" },
               { label: "Nueva oportunidad", href: "/dashboard/pipeline", desc: "Abre un negocio" },
               { label: "Nueva actividad", href: "/dashboard/agenda", desc: "Agenda una tarea o llamada" },
-              { label: "Nueva cotización", href: "/dashboard/cotizaciones", desc: "Crea una propuesta" },
+              { label: "Nueva propuesta", href: "/dashboard/cotizaciones", desc: "Crea una propuesta comercial" },
             ].map((link) => (
               <Link key={link.href} href={link.href} className="flex items-center justify-between rounded-xl px-4 py-3 hover:bg-slate-50 border border-slate-100 transition-colors">
                 <div>

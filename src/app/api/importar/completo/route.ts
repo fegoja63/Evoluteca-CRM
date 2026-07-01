@@ -138,8 +138,10 @@ export async function POST(request: Request) {
       if (tituloOp) {
         const etapaRaw = get(fila, "etapaOportunidad")?.toUpperCase().trim() ?? "";
         const etapa = (ETAPAS_MAP[etapaRaw] ?? "PROSPECTO") as "PROSPECTO" | "CALIFICADO" | "PROPUESTA" | "NEGOCIACION" | "GANADA" | "PERDIDA";
-        const valorRaw = get(fila, "valorOportunidad")?.replace(/[^0-9.]/g, "");
-        const valor = valorRaw && !isNaN(Number(valorRaw)) ? Number(valorRaw) : null;
+        const valorStr = get(fila, "valorOportunidad") ?? "";
+        // Soporta formatos: $1.500.000 / 1,500,000 / 1500000
+        const valorLimpio = valorStr.replace(/[^0-9,.-]/g, "").replace(/\./g, "").replace(",", ".");
+        const valor = valorLimpio && !isNaN(Number(valorLimpio)) ? Number(valorLimpio) : null;
 
         await prisma.oportunidad.create({
           data: {
