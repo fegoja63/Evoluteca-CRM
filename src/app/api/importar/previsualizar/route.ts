@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const wb = new ExcelJS.Workbook();
-  await wb.xlsx.load(buffer);
+  await wb.xlsx.load(buffer as any);
 
   const hojas = wb.worksheets.map((ws) => ws.name);
   const ws = wb.worksheets[0];

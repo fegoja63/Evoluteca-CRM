@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   const colsExtra: string[] = colsExtraRaw ? JSON.parse(colsExtraRaw) : [];
   const buffer = Buffer.from(await file.arrayBuffer());
   const wb = new ExcelJS.Workbook();
-  await wb.xlsx.load(buffer);
+  await wb.xlsx.load(buffer as any);
   const ws = wb.worksheets[0];
 
   const headers: string[] = [];
