@@ -76,12 +76,18 @@ export default function ContactosPage() {
 
       <div className="flex items-center justify-between mb-4">
         <div></div>
-        <button
-          onClick={() => setMostrarForm(true)}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          + Nuevo contacto
-        </button>
+        <div className="flex gap-2">
+          <a href="/api/exportar/contactos"
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1.5">
+            ↓ Exportar Excel
+          </a>
+          <button
+            onClick={() => setMostrarForm(true)}
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            + Nuevo contacto
+          </button>
+        </div>
       </div>
 
       <div className="relative mb-4">

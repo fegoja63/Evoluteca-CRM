@@ -11,6 +11,7 @@ type Oportunidad = {
   fechaEvento: string | null;
   sede: string | null;
   segmento: string | null;
+  extras: Record<string, string> | null;
   empresa: { id: string; nombre: string } | null;
   contacto: { id: string; nombre: string; email: string | null } | null;
 };
@@ -169,14 +170,18 @@ export default function CotizacionesPage() {
     if (filtroEtapa !== "TODAS" && o.etapa !== filtroEtapa) return false;
     if (busqueda) {
       const q = busqueda.toLowerCase();
-      const enEmpresa  = o.empresa?.nombre.toLowerCase().includes(q);
-      const enContacto = o.contacto?.nombre.toLowerCase().includes(q);
-      const enTitulo   = o.titulo.toLowerCase().includes(q);
-      if (!enEmpresa && !enContacto && !enTitulo) return false;
+      const campos = [
+        o.titulo,
+        o.empresa?.nombre,
+        o.contacto?.nombre,
+        o.sede,
+        o.extras?.["COTIZACION NUMERO"],
+        o.extras?.["TIPO SERVICIO"],
+        o.extras?.["AÑO"],
+        o.extras?.["MES ELABORACION"],
+      ].filter(Boolean).map(v => v!.toLowerCase());
+      if (!campos.some(c => c.includes(q))) return false;
     }
-    if (filtros.empresa && !o.empresa?.nombre.toLowerCase().includes(filtros.empresa.toLowerCase())) return false;
-    if (filtros.tipoEvento && !o.titulo.toLowerCase().includes(filtros.tipoEvento.toLowerCase())) return false;
-    if (filtros.sede && !(o.sede ?? "").toLowerCase().includes(filtros.sede.toLowerCase())) return false;
     return true;
   });
 
@@ -327,7 +332,7 @@ export default function CotizacionesPage() {
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
             <input
               type="text"
-              placeholder="Buscar cliente, contacto o evento..."
+              placeholder="Buscar por cliente, evento, N° cotización, mes, año..."
               value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
               className="w-full rounded-xl border border-slate-200 pl-8 pr-8 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
@@ -375,63 +380,39 @@ export default function CotizacionesPage() {
         <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                <th className="px-4 pt-3 pb-1 text-left">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Empresa / Cliente</span>
-                  <input value={filtros.empresa} onChange={e => setFiltro("empresa", e.target.value)}
-                    placeholder="Filtrar..." className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1 text-xs outline-none focus:border-blue-400 font-normal normal-case tracking-normal" />
-                </th>
-                <th className="px-4 pt-3 pb-1 text-left">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Contacto</span>
-                  <div className="mt-1 h-6" />
-                </th>
-                <th className="px-4 pt-3 pb-1 text-left">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Tipo de evento</span>
-                  <input value={filtros.tipoEvento} onChange={e => setFiltro("tipoEvento", e.target.value)}
-                    placeholder="Filtrar..." className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1 text-xs outline-none focus:border-blue-400 font-normal normal-case tracking-normal" />
-                </th>
-                <th className="px-4 pt-3 pb-1 text-left">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Fecha evento</span>
-                  <div className="mt-1 h-6" />
-                </th>
-                <th className="px-4 pt-3 pb-1 text-left">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Sede</span>
-                  <input value={filtros.sede} onChange={e => setFiltro("sede", e.target.value)}
-                    placeholder="Filtrar..." className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1 text-xs outline-none focus:border-blue-400 font-normal normal-case tracking-normal" />
-                </th>
-                <th className="px-4 pt-3 pb-1 text-right">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Valor cotizado</span>
-                  <div className="mt-1 h-6" />
-                </th>
-                <th className="px-4 pt-3 pb-1 text-center">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Etapa</span>
-                  <div className="mt-1 h-6" />
-                </th>
+              <tr className="bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                <th className="px-4 py-3 text-left">N° Cotización</th>
+                <th className="px-4 py-3 text-left">Empresa / Cliente</th>
+                <th className="px-4 py-3 text-left">Tipo de evento</th>
+                <th className="px-4 py-3 text-left">Mes / Año</th>
+                <th className="px-4 py-3 text-left">Trimestre</th>
+                <th className="px-4 py-3 text-right">Valor cotizado</th>
+                <th className="px-4 py-3 text-center">Etapa</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {listado.map((o) => (
                 <tr key={o.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-slate-900">
-                    {o.empresa?.nombre ?? <span className="text-slate-400 italic text-xs">Sin empresa</span>}
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {o.extras?.["COTIZACION NUMERO"]
+                      ? <span className="font-mono text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg">{o.extras["COTIZACION NUMERO"]}</span>
+                      : <span className="text-slate-400 text-xs">—</span>}
                   </td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {o.contacto ? (
-                      <div>
-                        <p>{o.contacto.nombre}</p>
-                        {o.contacto.email && <p className="text-xs text-slate-400">{o.contacto.email}</p>}
-                      </div>
-                    ) : <span className="text-slate-400">—</span>}
+                  <td className="px-4 py-3">
+                    <p className="font-medium text-slate-900">{o.empresa?.nombre ?? <span className="text-slate-400 italic text-xs">Sin empresa</span>}</p>
+                    {o.contacto && <p className="text-xs text-slate-400 mt-0.5">{o.contacto.nombre}</p>}
                   </td>
                   <td className="px-4 py-3 text-slate-700 max-w-[200px]">
                     <p className="truncate" title={o.titulo}>{o.titulo}</p>
-                    {o.segmento && <p className="text-xs text-slate-400">{o.segmento}</p>}
+                    {o.extras?.["TIPO SERVICIO"] && <p className="text-xs text-slate-400">{o.extras["TIPO SERVICIO"]}</p>}
                   </td>
-                  <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
-                    {fmtFecha(o.fechaEvento) ?? <span className="text-slate-400">—</span>}
+                  <td className="px-4 py-3 text-slate-600 whitespace-nowrap text-sm">
+                    {o.extras?.["MES ELABORACION"] && o.extras?.["AÑO"]
+                      ? `${o.extras["MES ELABORACION"]} ${o.extras["AÑO"]}`
+                      : <span className="text-slate-400">—</span>}
                   </td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {o.sede ?? <span className="text-slate-400">—</span>}
+                  <td className="px-4 py-3 text-slate-500 text-xs">
+                    {o.extras?.["TRIMESTRE"] ?? <span className="text-slate-400">—</span>}
                   </td>
                   <td className="px-4 py-3 text-right font-semibold text-slate-900 whitespace-nowrap">
                     {o.valor ? fmt(Number(o.valor)) : <span className="text-slate-400 font-normal">—</span>}

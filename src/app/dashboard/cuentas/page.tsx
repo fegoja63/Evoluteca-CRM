@@ -89,12 +89,18 @@ export default function ClientesPage() {
             </button>
           )}
         </div>
-        <button
-          onClick={() => setMostrarForm(true)}
-          className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          + Nuevo cliente
-        </button>
+        <div className="flex gap-2">
+          <a href="/api/exportar/clientes"
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1.5">
+            ↓ Exportar Excel
+          </a>
+          <button
+            onClick={() => setMostrarForm(true)}
+            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            + Nuevo cliente
+          </button>
+        </div>
       </div>
 
       {mostrarForm && (
