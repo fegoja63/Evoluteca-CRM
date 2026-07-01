@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { KpiCard } from "@/components/kpi-card";
 
 type Oportunidad = {
@@ -146,12 +147,7 @@ export default function CotizacionesPage() {
   const valorTotal = activas.reduce((acc, o) => acc + Number(o.valor ?? 0), 0);
 
   const [busqueda, setBusqueda] = useState("");
-  const [filtros, setFiltros] = useState({ empresa: "", tipoEvento: "", sede: "" });
   const [cambiandoEtapa, setCambiandoEtapa] = useState<string | null>(null);
-
-  function setFiltro(campo: keyof typeof filtros, valor: string) {
-    setFiltros(prev => ({ ...prev, [campo]: valor }));
-  }
 
   async function cambiarEtapa(id: string, nuevaEtapa: string) {
     setCambiandoEtapa(id);
@@ -345,10 +341,10 @@ export default function CotizacionesPage() {
             )}
           </div>
           <div className="flex items-center gap-2 text-xs text-slate-500">
-            {(filtros.empresa || filtros.tipoEvento || filtros.sede || busqueda) && (
+            {(busqueda || filtroEtapa !== "TODAS") && (
               <>
                 <span>{listado.length} de {cotizaciones.length}</span>
-                <button onClick={() => { setFiltros({ empresa: "", tipoEvento: "", sede: "" }); setBusqueda(""); setFiltroEtapa("TODAS"); }}
+                <button onClick={() => { setBusqueda(""); setFiltroEtapa("TODAS"); }}
                   className="text-blue-600 hover:underline">
                   × Limpiar todo
                 </button>
@@ -392,30 +388,44 @@ export default function CotizacionesPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {listado.map((o) => (
-                <tr key={o.id} className="hover:bg-slate-50 transition-colors">
+                <tr key={o.id} className="hover:bg-slate-50 transition-colors group">
                   <td className="px-4 py-3 whitespace-nowrap">
-                    {o.extras?.["COTIZACION NUMERO"]
-                      ? <span className="font-mono text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg">{o.extras["COTIZACION NUMERO"]}</span>
-                      : <span className="text-slate-400 text-xs">—</span>}
+                    <Link href={`/dashboard/pipeline/${o.id}`} className="block">
+                      {o.extras?.["COTIZACION NUMERO"]
+                        ? <span className="font-mono text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg">{o.extras["COTIZACION NUMERO"]}</span>
+                        : <span className="text-slate-400 text-xs">—</span>}
+                    </Link>
                   </td>
                   <td className="px-4 py-3">
-                    <p className="font-medium text-slate-900">{o.empresa?.nombre ?? <span className="text-slate-400 italic text-xs">Sin empresa</span>}</p>
-                    {o.contacto && <p className="text-xs text-slate-400 mt-0.5">{o.contacto.nombre}</p>}
+                    <Link href={`/dashboard/pipeline/${o.id}`} className="block">
+                      <p className="font-medium text-slate-900 group-hover:text-blue-600 transition-colors">
+                        {o.empresa?.nombre ?? <span className="text-slate-400 italic text-xs">Sin empresa</span>}
+                      </p>
+                      {o.contacto && <p className="text-xs text-slate-400 mt-0.5">{o.contacto.nombre}</p>}
+                    </Link>
                   </td>
                   <td className="px-4 py-3 text-slate-700 max-w-[200px]">
-                    <p className="truncate" title={o.titulo}>{o.titulo}</p>
-                    {o.extras?.["TIPO SERVICIO"] && <p className="text-xs text-slate-400">{o.extras["TIPO SERVICIO"]}</p>}
+                    <Link href={`/dashboard/pipeline/${o.id}`} className="block">
+                      <p className="truncate" title={o.titulo}>{o.titulo}</p>
+                      {o.extras?.["TIPO SERVICIO"] && <p className="text-xs text-slate-400">{o.extras["TIPO SERVICIO"]}</p>}
+                    </Link>
                   </td>
                   <td className="px-4 py-3 text-slate-600 whitespace-nowrap text-sm">
-                    {o.extras?.["MES ELABORACION"] && o.extras?.["AÑO"]
-                      ? `${o.extras["MES ELABORACION"]} ${o.extras["AÑO"]}`
-                      : <span className="text-slate-400">—</span>}
+                    <Link href={`/dashboard/pipeline/${o.id}`} className="block">
+                      {o.extras?.["MES ELABORACION"] && o.extras?.["AÑO"]
+                        ? `${o.extras["MES ELABORACION"]} ${o.extras["AÑO"]}`
+                        : <span className="text-slate-400">—</span>}
+                    </Link>
                   </td>
                   <td className="px-4 py-3 text-slate-500 text-xs">
-                    {o.extras?.["TRIMESTRE"] ?? <span className="text-slate-400">—</span>}
+                    <Link href={`/dashboard/pipeline/${o.id}`} className="block">
+                      {o.extras?.["TRIMESTRE"] ?? <span className="text-slate-400">—</span>}
+                    </Link>
                   </td>
                   <td className="px-4 py-3 text-right font-semibold text-slate-900 whitespace-nowrap">
-                    {o.valor ? fmt(Number(o.valor)) : <span className="text-slate-400 font-normal">—</span>}
+                    <Link href={`/dashboard/pipeline/${o.id}`} className="block">
+                      {o.valor ? fmt(Number(o.valor)) : <span className="text-slate-400 font-normal">—</span>}
+                    </Link>
                   </td>
                   <td className="px-4 py-3 text-center">
                     <select
