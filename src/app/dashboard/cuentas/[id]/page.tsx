@@ -11,6 +11,7 @@ const SECTORES = [
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ExtrasPanel } from "@/components/extras-panel";
+import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 
 type Detalle = {
   id: string;
@@ -213,18 +214,20 @@ export default function FichaClientePage() {
         {/* Actividades */}
         <div className="rounded-2xl border border-slate-200 p-4">
           <h2 className="mb-3 text-sm font-semibold text-slate-800">Actividades ({empresa.actividades.length})</h2>
-          {empresa.actividades.length === 0 ? (
-            <p className="text-xs text-slate-400">Sin actividades.</p>
-          ) : (
-            <ul className="flex flex-col gap-1 text-sm">
-              {empresa.actividades.map((a) => (
-                <li key={a.id} className={a.completada ? "text-slate-400 line-through" : "text-slate-700"}>
+          <div className="flex flex-col gap-1 text-sm mb-3">
+            {empresa.actividades.length === 0 ? (
+              <p className="text-xs text-slate-400">Sin actividades.</p>
+            ) : (
+              empresa.actividades.map((a) => (
+                <div key={a.id} className={`flex items-center gap-2 ${a.completada ? "text-slate-400 line-through" : "text-slate-700"}`}>
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-current opacity-50" />
                   {a.titulo}
-                  <span className="text-slate-400 text-xs ml-1">· {new Date(a.fecha).toLocaleDateString("es-CO")}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+                  <span className="text-slate-400 text-xs ml-auto">{new Date(a.fecha).toLocaleDateString("es-CO")}</span>
+                </div>
+              ))
+            )}
+          </div>
+          <NuevaActividadInline empresaId={empresa.id} onGuardado={cargar} />
         </div>
 
         {/* Cotizaciones */}

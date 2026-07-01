@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ExtrasPanel } from "@/components/extras-panel";
+import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 
 type Empresa = { id: string; nombre: string };
 
@@ -216,17 +217,20 @@ export default function FichaContactoPage() {
           <h2 className="mb-3 text-sm font-medium text-neutral-900">
             Actividades ({contacto.actividades.length})
           </h2>
-          {contacto.actividades.length === 0 ? (
-            <p className="text-xs text-neutral-400">Sin actividades.</p>
-          ) : (
-            <ul className="flex flex-col gap-1 text-sm">
-              {contacto.actividades.map((a) => (
-                <li key={a.id} className={a.completada ? "text-neutral-400 line-through" : "text-neutral-700"}>
-                  {a.titulo} <span className="text-neutral-400">· {new Date(a.fecha).toLocaleDateString("es-ES")}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+          <div className="flex flex-col gap-1 text-sm mb-3">
+            {contacto.actividades.length === 0 ? (
+              <p className="text-xs text-neutral-400">Sin actividades.</p>
+            ) : (
+              contacto.actividades.map((a) => (
+                <div key={a.id} className={`flex items-center gap-2 ${a.completada ? "text-neutral-400 line-through" : "text-neutral-700"}`}>
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-current opacity-50" />
+                  {a.titulo}
+                  <span className="text-neutral-400 text-xs ml-auto">{new Date(a.fecha).toLocaleDateString("es-CO")}</span>
+                </div>
+              ))
+            )}
+          </div>
+          <NuevaActividadInline contactoId={contacto.id} empresaId={contacto.empresa?.id} onGuardado={cargar} />
         </div>
       </div>
     </div>

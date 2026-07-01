@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 
 type Oportunidad = {
   id: string;
@@ -254,15 +255,17 @@ export default function OportunidadDetallePage() {
         </div>
       )}
 
-      {/* Actividades recientes */}
-      {op.actividades.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
-          <h2 className="text-sm font-bold text-slate-900 mb-3">Actividades recientes</h2>
-          <div className="space-y-2">
+      {/* Actividades */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <h2 className="text-sm font-bold text-slate-900 mb-3">
+          Actividades {op.actividades.length > 0 && `(${op.actividades.length})`}
+        </h2>
+        {op.actividades.length > 0 && (
+          <div className="space-y-2 mb-4">
             {op.actividades.map(a => (
               <div key={a.id} className="flex items-start gap-3 text-sm py-2 border-b border-slate-50 last:border-0">
                 <span className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${a.completada ? "bg-emerald-400" : "bg-amber-400"}`} />
-                <div>
+                <div className="flex-1">
                   <p className="font-medium text-slate-800">{a.titulo}</p>
                   <p className="text-xs text-slate-400">
                     {a.tipo} · {new Date(a.fecha).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" })}
@@ -271,8 +274,14 @@ export default function OportunidadDetallePage() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+        <NuevaActividadInline
+          oportunidadId={op.id}
+          empresaId={op.empresa?.id}
+          contactoId={op.contacto?.id}
+          onGuardado={cargar}
+        />
+      </div>
     </div>
   );
 }
