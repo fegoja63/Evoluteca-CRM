@@ -24,7 +24,7 @@ const ETAPAS_ACTIVAS = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION", "
 const ETAPA_LABEL: Record<string, string> = {
   PROSPECTO:   "Prospecto",
   CALIFICADO:  "Calificado",
-  PROPUESTA:   "Propuesta",
+  PROPUESTA:   "Cotización",
   NEGOCIACION: "Negociación",
   GANADA:      "Ganada",
   PERDIDA:     "Perdida",
@@ -189,7 +189,7 @@ export default function CotizacionesPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Propuestas activas</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Cotizaciones activas</h1>
           <p className="text-slate-500 text-sm mt-1">Negocios en curso — todo lo que está por cerrar o perder</p>
         </div>
         <button
@@ -206,7 +206,7 @@ export default function CotizacionesPage() {
           sub={fmt(valorTotal) + " potencial"} />
         <KpiCard label="Prospecto" valor={conteoEtapas.PROSPECTO} emoji="🎯" color="bg-slate-500" />
         <KpiCard label="Calificado" valor={conteoEtapas.CALIFICADO} emoji="✅" color="bg-blue-400" />
-        <KpiCard label="Propuesta" valor={conteoEtapas.PROPUESTA} emoji="📄" color="bg-violet-500" />
+        <KpiCard label="Cotización" valor={conteoEtapas.PROPUESTA} emoji="📄" color="bg-violet-500" />
         <KpiCard label="Negociación" valor={conteoEtapas.NEGOCIACION} emoji="🤝" color="bg-amber-500" />
       </div>
 

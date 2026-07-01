@@ -25,7 +25,7 @@ export async function GET() {
     { header: "Sector", key: "sector", width: 25 },
     { header: "Sitio web", key: "sitioWeb", width: 28 },
     { header: "Contactos", key: "contactos", width: 12 },
-    { header: "Propuestas", key: "oportunidades", width: 12 },
+    { header: "Cotizaciones", key: "oportunidades", width: 12 },
     { header: "Notas", key: "notas", width: 40 },
     { header: "Fecha creación", key: "creadoEn", width: 16 },
   ];

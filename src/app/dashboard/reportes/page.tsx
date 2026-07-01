@@ -32,7 +32,7 @@ type Reporte = {
 const ETAPAS = [
   { key: "PROSPECTO",   label: "Prospecto",   colorBar: "#94a3b8" },
   { key: "CALIFICADO",  label: "Calificado",  colorBar: "#60a5fa" },
-  { key: "PROPUESTA",   label: "Propuesta",   colorBar: "#8b5cf6" },
+  { key: "PROPUESTA",   label: "Cotización",  colorBar: "#8b5cf6" },
   { key: "NEGOCIACION", label: "Negociación", colorBar: "#fbbf24" },
   { key: "GANADA",      label: "Ganada",      colorBar: "#10b981" },
   { key: "PERDIDA",     label: "Perdida",     colorBar: "#f87171" },

@@ -34,7 +34,7 @@ export default function ConfiguracionPage() {
   const [limpiando, setLimpiando] = useState(false);
 
   async function handleLimpiar() {
-    if (!confirm("¿Estás seguro? Esto borrará TODAS las empresas, contactos, oportunidades, actividades, propuestas, funciones y espectadores. Tu usuario y configuración se conservan.")) return;
+    if (!confirm("¿Estás seguro? Esto borrará TODAS las empresas, contactos, oportunidades, actividades, cotizaciones, funciones y espectadores. Tu usuario y configuración se conservan.")) return;
     if (!confirm("Segunda confirmación: ¿borrar todos los datos de prueba?")) return;
     setLimpiando(true);
     await fetch("/api/configuracion/limpiar", { method: "DELETE" });
@@ -90,7 +90,7 @@ export default function ConfiguracionPage() {
             { titulo: "Contactos", emoji: "👤", desc: "Personas de tus clientes" },
             { titulo: "Pipeline", emoji: "◈", desc: "Oportunidades de venta" },
             { titulo: "Agenda", emoji: "📅", desc: "Tareas, llamadas y reuniones" },
-            { titulo: "Propuestas", emoji: "📄", desc: "Propuestas y cotizaciones activas" },
+            { titulo: "Cotizaciones", emoji: "📄", desc: "Cotizaciones activas" },
             { titulo: "Reportes", emoji: "📊", desc: "KPIs y métricas del negocio" },
             { titulo: "Equipo", emoji: "👥", desc: "Usuarios y roles" },
           ].map((m) => (
@@ -154,7 +154,7 @@ export default function ConfiguracionPage() {
         <div className="mt-10 rounded-2xl border border-red-200 bg-red-50 p-5">
           <h2 className="text-sm font-semibold text-red-800 mb-1">Zona de peligro</h2>
           <p className="text-xs text-red-600 mb-4">
-            Borra todos los datos del CRM (empresas, contactos, oportunidades, propuestas, actividades, funciones y espectadores). Tu usuario y configuración se conservan. Útil para limpiar datos de prueba antes de empezar en producción.
+            Borra todos los datos del CRM (empresas, contactos, oportunidades, cotizaciones, actividades, funciones y espectadores). Tu usuario y configuración se conservan. Útil para limpiar datos de prueba antes de empezar en producción.
           </p>
           <button
             onClick={handleLimpiar}

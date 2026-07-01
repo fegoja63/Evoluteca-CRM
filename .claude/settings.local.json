@@ -2,7 +2,18 @@
   "permissions": {
     "allow": [
       "Bash(gh auth *)",
-      "Bash(git -C \"C:/Users/felip/OneDrive/Desktop/evoluteca-crm-sprint1 V2\" status)"
+      "Bash(git -C \"C:/Users/felip/OneDrive/Desktop/evoluteca-crm-sprint1 V2\" status)",
+      "Bash(npx prisma *)",
+      "Bash(vercel env *)",
+      "Bash(vercel --prod)",
+      "Bash(node -e ' *)",
+      "Bash(npx next *)",
+      "Bash(Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue)",
+      "Bash(npx tsc *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git checkout *)",
+      "Bash(git merge sprint13/extras-json --no-ff -m 'merge: sprint13/extras-json → master *)"
     ]
   }
 }

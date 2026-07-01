@@ -102,7 +102,7 @@ export default async function DashboardPage() {
               {[
                 { label: "Prospecto",   key: "PROSPECTO",   color: "bg-slate-400" },
                 { label: "Calificado",  key: "CALIFICADO",  color: "bg-blue-400" },
-                { label: "Propuesta",   key: "PROPUESTA",   color: "bg-violet-400" },
+                { label: "Cotización",  key: "PROPUESTA",   color: "bg-violet-400" },
                 { label: "Negociación", key: "NEGOCIACION", color: "bg-amber-400" },
                 { label: "Ganada",      key: "GANADA",      color: "bg-emerald-500" },
                 { label: "Perdida",     key: "PERDIDA",     color: "bg-red-400" },
@@ -209,7 +209,7 @@ export default async function DashboardPage() {
             <div className="flex flex-col gap-1.5">
               {[
                 { label: "Nuevo cliente",      href: "/dashboard/cuentas",      emoji: "🏢" },
-                { label: "Nueva propuesta",    href: "/dashboard/cotizaciones",  emoji: "📋" },
+                { label: "Nueva cotización",   href: "/dashboard/cotizaciones",  emoji: "📋" },
                 { label: "Nueva actividad",    href: "/dashboard/agenda",        emoji: "📅" },
                 { label: "Ver reportes",       href: "/dashboard/reportes",      emoji: "📊" },
               ].map((link) => (

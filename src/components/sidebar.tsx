@@ -12,7 +12,7 @@ const navBase = [
   { href: "/dashboard/contactos", label: "Contactos", emoji: "👤" },
   { href: "/dashboard/pipeline", label: "Pipeline", emoji: "◈" },
   { href: "/dashboard/agenda", label: "Agenda", emoji: "📅" },
-  { href: "/dashboard/cotizaciones", label: "Propuestas", emoji: "📄" },
+  { href: "/dashboard/cotizaciones", label: "Cotizaciones", emoji: "📄" },
   { href: "/dashboard/reportes", label: "Reportes", emoji: "📊" },
   { href: "/dashboard/equipo", label: "Equipo", emoji: "👥" },
 ];

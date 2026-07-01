@@ -10,7 +10,7 @@ const MODULOS_EXPORT = [
   { key: "contactos", label: "Contactos", emoji: "👤" },
   { key: "pipeline", label: "Pipeline", emoji: "◈" },
   { key: "agenda", label: "Agenda", emoji: "📅" },
-  { key: "cotizaciones", label: "Propuestas", emoji: "📄" },
+  { key: "cotizaciones", label: "Cotizaciones", emoji: "📄" },
   { key: "espectadores", label: "Audiencia", emoji: "🎪" },
   { key: "funciones", label: "Funciones", emoji: "🎭" },
 ];

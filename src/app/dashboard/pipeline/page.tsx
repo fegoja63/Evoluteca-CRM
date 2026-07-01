@@ -20,7 +20,7 @@ type Contacto = { id: string; nombre: string };
 const ETAPAS = [
   { key: "PROSPECTO",   label: "Prospecto",   color: "border-t-slate-400",   badge: "bg-slate-100 text-slate-600" },
   { key: "CALIFICADO",  label: "Calificado",  color: "border-t-blue-400",    badge: "bg-blue-50 text-blue-700" },
-  { key: "PROPUESTA",   label: "Propuesta",   color: "border-t-violet-400",  badge: "bg-violet-50 text-violet-700" },
+  { key: "PROPUESTA",   label: "Cotización",  color: "border-t-violet-400",  badge: "bg-violet-50 text-violet-700" },
   { key: "NEGOCIACION", label: "Negociación", color: "border-t-amber-400",   badge: "bg-amber-50 text-amber-700" },
   { key: "GANADA",      label: "Ganada",      color: "border-t-emerald-400", badge: "bg-emerald-50 text-emerald-700" },
   { key: "PERDIDA",     label: "Perdida",     color: "border-t-red-400",     badge: "bg-red-50 text-red-600" },

@@ -45,7 +45,7 @@ export async function GET() {
   const ETAPA_LABEL: Record<string, string> = {
     PROSPECTO: "Prospecto",
     CALIFICADO: "Calificado",
-    PROPUESTA: "Propuesta",
+    PROPUESTA: "Cotización",
     NEGOCIACION: "Negociación",
   };
 
