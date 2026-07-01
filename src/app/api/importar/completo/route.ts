@@ -98,7 +98,7 @@ export async function POST(request: Request) {
     await prisma.empresa.createMany({
       data: Array.from(empresasNuevas.entries()).map(([, fila]) => ({
         nombre: get(fila, "empresa")!,
-        extras: getExtras(fila),
+        extras: getExtras(fila) ?? undefined,
         tenantId,
       })),
       skipDuplicates: true,
@@ -140,7 +140,7 @@ export async function POST(request: Request) {
         etapa,
         valor,
         empresaId,
-        extras: getExtras(fila),
+        extras: getExtras(fila) ?? undefined,
         tenantId,
       };
     });
