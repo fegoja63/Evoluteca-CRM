@@ -78,6 +78,19 @@ export default async function DashboardPage() {
     prisma.actividad.findFirst({ where: { tenantId, completada: true, ...ownerFiltro }, orderBy: { fecha: "desc" }, select: { fecha: true } }),
   ]);
 
+  // ── Oportunidades que cierran esta semana ──
+  const cierranEstaSemana = await prisma.oportunidad.findMany({
+    where: {
+      tenantId,
+      etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] },
+      fechaCierre: { gte: hoy, lte: fin7dias },
+      ...ownerFiltro,
+    },
+    select: { id: true, titulo: true, fechaCierre: true, empresa: { select: { nombre: true } } },
+    orderBy: { fechaCierre: "asc" },
+    take: 5,
+  });
+
   // ── Negocios estancados: activos sin actividad en 14+ días ──
   const opActivasConActividad = await prisma.oportunidad.findMany({
     where: { tenantId, etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] }, ...ownerFiltro },
@@ -205,13 +218,13 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── ALERTAS ── */}
-      {(actividadesVencidas.length > 0 || cotizacionesSinMovimiento.length > 0 || negociosEstancados.length > 0) && (
+      {(actividadesVencidas.length > 0 || cotizacionesSinMovimiento.length > 0 || negociosEstancados.length > 0 || cierranEstaSemana.length > 0) && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg">⚠️</span>
             <h2 className="text-sm font-bold text-amber-800">Requieren atención</h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {actividadesVencidas.length > 0 && (
               <div>
                 <p className="text-xs font-semibold text-amber-700 mb-2">
@@ -241,6 +254,24 @@ export default async function DashboardPage() {
                       className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-3 py-1.5 hover:border-amber-300 transition-colors">
                       <span className="text-xs font-medium text-slate-800 truncate">{o.empresa?.nombre ?? o.titulo}</span>
                       <span className="text-xs text-slate-400 ml-auto shrink-0">{o.etapa.charAt(0) + o.etapa.slice(1).toLowerCase()}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+            {cierranEstaSemana.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-amber-700 mb-2">
+                  🎯 {cierranEstaSemana.length} negocio{cierranEstaSemana.length !== 1 ? "s" : ""} que cierran esta semana
+                </p>
+                <div className="flex flex-col gap-1">
+                  {cierranEstaSemana.map(o => (
+                    <Link key={o.id} href={`/dashboard/pipeline/${o.id}`}
+                      className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-3 py-1.5 hover:border-amber-300 transition-colors">
+                      <span className="text-xs font-medium text-slate-800 truncate">{o.empresa?.nombre ?? o.titulo}</span>
+                      <span className="text-xs text-slate-400 ml-auto shrink-0">
+                        {new Date(o.fechaCierre!).toLocaleDateString("es-CO", { day:"2-digit", month:"short" })}
+                      </span>
                     </Link>
                   ))}
                 </div>

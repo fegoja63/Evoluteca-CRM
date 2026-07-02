@@ -12,6 +12,8 @@ type Oportunidad = {
   etapa: string;
   notas: string | null;
   creadoEn: string;
+  fechaCierre: string | null;
+  probabilidad: number | null;
   extras: Record<string, string> | null;
   empresa:  { id: string; nombre: string; sector: string | null; telefono: string | null } | null;
   contacto: { id: string; nombre: string; email: string | null; telefono: string | null; cargo: string | null } | null;
@@ -37,7 +39,7 @@ export default function OportunidadDetallePage() {
   const [op, setOp] = useState<Oportunidad | null>(null);
   const [editando, setEditando] = useState(false);
   const [guardando, setGuardando] = useState(false);
-  const [form, setForm] = useState({ titulo: "", valor: "", etapa: "", notas: "" });
+  const [form, setForm] = useState({ titulo: "", valor: "", etapa: "", notas: "", fechaCierre: "", probabilidad: "" });
   const [modalPerdida, setModalPerdida] = useState(false);
   const [motivoPerdida, setMotivoPerdida] = useState("");
   const [otroMotivo, setOtroMotivo] = useState("");
@@ -56,7 +58,11 @@ export default function OportunidadDetallePage() {
     const res = await fetch(`/api/oportunidades/${id}`);
     const data = await res.json();
     setOp(data);
-    setForm({ titulo: data.titulo, valor: data.valor ?? "", etapa: data.etapa, notas: data.notas ?? "" });
+    setForm({
+      titulo: data.titulo, valor: data.valor ?? "", etapa: data.etapa, notas: data.notas ?? "",
+      fechaCierre: data.fechaCierre ? data.fechaCierre.substring(0, 10) : "",
+      probabilidad: String(data.probabilidad ?? 50),
+    });
   }
 
   useEffect(() => { cargar(); }, [id]);
@@ -67,7 +73,10 @@ export default function OportunidadDetallePage() {
     await fetch(`/api/oportunidades/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ titulo: form.titulo, valor: form.valor || null, etapa: form.etapa, notas: form.notas || null }),
+      body: JSON.stringify({
+        titulo: form.titulo, valor: form.valor || null, etapa: form.etapa, notas: form.notas || null,
+        fechaCierre: form.fechaCierre || null, probabilidad: Number(form.probabilidad),
+      }),
     });
     setEditando(false);
     setGuardando(false);
@@ -162,6 +171,19 @@ export default function OportunidadDetallePage() {
                   {ETAPAS.map(e => <option key={e.key} value={e.key}>{e.label}</option>)}
                 </select>
               </div>
+              <div>
+                <label className="text-xs text-slate-500 mb-1 block">Fecha de cierre estimada</label>
+                <input type="date" value={form.fechaCierre} onChange={e => setForm({...form, fechaCierre: e.target.value})}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+              </div>
+              <div>
+                <label className="text-xs text-slate-500 mb-1 block">
+                  Probabilidad: <span className="font-semibold text-blue-600">{form.probabilidad}%</span>
+                </label>
+                <input type="range" min="0" max="100" step="5" value={form.probabilidad}
+                  onChange={e => setForm({...form, probabilidad: e.target.value})}
+                  className="w-full accent-blue-600 mt-2" />
+              </div>
               <div className="col-span-2">
                 <label className="text-xs text-slate-500 mb-1 block">Notas</label>
                 <textarea value={form.notas} onChange={e => setForm({...form, notas: e.target.value})}
@@ -203,15 +225,21 @@ export default function OportunidadDetallePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-xs text-slate-400 mb-1">Valor cotizado</p>
                 <p className="text-lg font-bold text-emerald-700">{op.valor ? fmt(Number(op.valor)) : "—"}</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
-                <p className="text-xs text-slate-400 mb-1">Año / Mes</p>
+                <p className="text-xs text-slate-400 mb-1">Probabilidad</p>
+                <p className="text-lg font-bold text-blue-600">{op.probabilidad ?? 50}%</p>
+              </div>
+              <div className={`rounded-xl p-4 ${op.fechaCierre && new Date(op.fechaCierre) < new Date() && !["GANADA","PERDIDA"].includes(op.etapa) ? "bg-red-50" : "bg-slate-50"}`}>
+                <p className="text-xs text-slate-400 mb-1">Cierre estimado</p>
                 <p className="text-sm font-semibold text-slate-800">
-                  {op.extras?.["AÑO"] ?? "—"} · {op.extras?.["MES ELABORACION"] ?? "—"}
+                  {op.fechaCierre
+                    ? new Date(op.fechaCierre).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" })
+                    : "—"}
                 </p>
               </div>
               <div className="rounded-xl bg-slate-50 p-4">

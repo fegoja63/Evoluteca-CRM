@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { titulo, valor, etapa, notas, empresaId, contactoId } = body;
+  const { titulo, valor, etapa, notas, empresaId, contactoId, probabilidad, fechaCierre } = body;
 
   if (!titulo?.trim()) {
     return NextResponse.json({ error: "El título es obligatorio" }, { status: 400 });
@@ -38,6 +38,8 @@ export async function POST(request: Request) {
       notas: notas?.trim() || null,
       empresaId: empresaId || null,
       contactoId: contactoId || null,
+      probabilidad: probabilidad !== undefined ? Number(probabilidad) : 50,
+      fechaCierre: fechaCierre ? new Date(fechaCierre) : null,
       tenantId: session.user.tenantId,
       creadoBy: session.user.id,
     },

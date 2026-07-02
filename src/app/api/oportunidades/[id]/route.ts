@@ -31,7 +31,7 @@ export async function PATCH(
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { titulo, valor, etapa, notas, empresaId, contactoId } = body;
+  const { titulo, valor, etapa, notas, empresaId, contactoId, probabilidad, fechaCierre } = body;
 
   const oportunidad = await prisma.oportunidad.findFirst({
     where: { id: params.id, tenantId: session.user.tenantId },
@@ -48,6 +48,8 @@ export async function PATCH(
   if (notas !== undefined) data.notas = notas?.trim() || null;
   if (empresaId !== undefined) data.empresaId = empresaId || null;
   if (contactoId !== undefined) data.contactoId = contactoId || null;
+  if (probabilidad !== undefined) data.probabilidad = Number(probabilidad);
+  if (fechaCierre !== undefined) data.fechaCierre = fechaCierre ? new Date(fechaCierre) : null;
 
   const actualizada = await prisma.oportunidad.update({
     where: { id: params.id },

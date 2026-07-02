@@ -10,6 +10,7 @@ type Oportunidad = {
   valor: string | null;
   etapa: string;
   creadoEn: string;
+  fechaCierre: string | null;
   probabilidad: number | null;
   empresa: { id: string; nombre: string } | null;
   contacto: { id: string; nombre: string } | null;
@@ -30,6 +31,16 @@ function urgenciaBorde(dias: number, etapa: string): string {
 function urgenciaBadge(dias: number, etapa: string): string | null {
   if (etapa === "GANADA" || etapa === "PERDIDA") return null;
   return `${dias}d`;
+}
+
+function cierreBadge(fechaCierre: string | null, etapa: string): { label: string; color: string } | null {
+  if (!fechaCierre || etapa === "GANADA" || etapa === "PERDIDA") return null;
+  const dias = Math.ceil((new Date(fechaCierre).getTime() - Date.now()) / 86_400_000);
+  if (dias < 0)  return { label: `Vencido ${Math.abs(dias)}d`, color: "bg-red-100 text-red-700" };
+  if (dias === 0) return { label: "Cierra hoy", color: "bg-red-100 text-red-700" };
+  if (dias <= 7)  return { label: `${dias}d para cierre`, color: "bg-amber-100 text-amber-700" };
+  if (dias <= 30) return { label: `${dias}d para cierre`, color: "bg-blue-50 text-blue-600" };
+  return null;
 }
 
 function urgenciaBadgeColor(dias: number): string {
@@ -70,7 +81,7 @@ export default function PipelinePage() {
   const [filtroAnio, setFiltroAnio] = useState("");
   const [filtroMes, setFiltroMes]   = useState("");
   const [form, setForm] = useState({
-    titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50",
+    titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50", fechaCierre: "",
   });
 
   async function cargar() {
@@ -96,7 +107,7 @@ export default function PipelinePage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
-    setForm({ titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50" });
+    setForm({ titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50", fechaCierre: "" });
     setMostrarForm(false);
     setGuardando(false);
     cargar();
@@ -282,6 +293,11 @@ export default function PipelinePage() {
                 onChange={e => setForm({...form, probabilidad: e.target.value})}
                 className="w-full accent-blue-600" />
             </div>
+            <div>
+              <label className="mb-1 block text-xs text-slate-500">Fecha de cierre estimada</label>
+              <input type="date" value={form.fechaCierre} onChange={e => setForm({...form, fechaCierre: e.target.value})}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+            </div>
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({...form, notas: e.target.value})}
@@ -362,6 +378,9 @@ export default function PipelinePage() {
                           className="text-slate-300 hover:text-red-500 shrink-0 leading-none text-base">×</button>
                       </div>
                       {o.empresa && <p className="text-slate-500 mb-1">{o.empresa.nombre}</p>}
+                      {(() => { const cb = cierreBadge(o.fechaCierre, o.etapa); return cb ? (
+                        <span className={`inline-block rounded-full px-1.5 py-0.5 text-xs font-semibold mb-1 ${cb.color}`}>📅 {cb.label}</span>
+                      ) : null; })()}
                       {o.extras?.["COTIZACION NUMERO"] && (
                         <p className="text-slate-400 mb-1">{o.extras["COTIZACION NUMERO"]}</p>
                       )}
