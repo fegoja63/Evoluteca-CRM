@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { WhatsAppBtn } from "@/components/whatsapp-btn";
 import { ExtrasPanel } from "@/components/extras-panel";
 import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 import { NotasRapidas } from "@/components/notas-rapidas";
@@ -101,11 +102,7 @@ export default function FichaContactoPage() {
         </div>
         <div className="flex gap-2">
           {contacto.telefono && (
-            <a href={`https://wa.me/${contacto.telefono.replace(/\D/g, "")}`}
-              target="_blank" rel="noopener noreferrer"
-              className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700 hover:bg-emerald-100 flex items-center gap-1">
-              💬 WhatsApp
-            </a>
+            <WhatsAppBtn telefono={contacto.telefono} nombre={contacto.nombre} />
           )}
           <button
             onClick={() => setEditando(!editando)}

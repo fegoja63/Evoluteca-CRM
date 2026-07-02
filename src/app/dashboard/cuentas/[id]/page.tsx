@@ -15,6 +15,7 @@ import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 import { TimelineCliente } from "@/components/timeline-cliente";
 import { NotasRapidas } from "@/components/notas-rapidas";
 import { Etiquetas } from "@/components/etiquetas";
+import { WhatsAppBtn } from "@/components/whatsapp-btn";
 
 type Detalle = {
   id: string;
@@ -223,11 +224,7 @@ export default function FichaClientePage() {
                     {c.nombre}{c.cargo && <span className="text-slate-400"> · {c.cargo}</span>}
                   </span>
                   {c.telefono && (
-                    <a href={`https://wa.me/${c.telefono.replace(/\D/g, "")}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg px-2 py-0.5 hover:bg-emerald-100 shrink-0">
-                      WhatsApp
-                    </a>
+                    <WhatsAppBtn telefono={c.telefono} nombre={c.nombre} />
                   )}
                 </li>
               ))}
