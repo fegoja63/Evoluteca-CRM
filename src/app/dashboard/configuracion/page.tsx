@@ -26,9 +26,13 @@ const MODULOS_DISPONIBLES = [
 export default function ConfiguracionPage() {
   const { data: session } = useSession();
   const [modulos, setModulos] = useState<Modulos>({});
+  const [logoUrl, setLogoUrl] = useState("");
+  const [logoInput, setLogoInput] = useState("");
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [guardado, setGuardado] = useState(false);
+  const [guardandoLogo, setGuardandoLogo] = useState(false);
+  const [logoOk, setLogoOk] = useState(false);
 
   const esAdmin = session?.user?.rol === "ADMINISTRADOR";
   const [limpiando, setLimpiando] = useState(false);
@@ -47,9 +51,24 @@ export default function ConfiguracionPage() {
       .then((res) => res.json())
       .then((data) => {
         setModulos((data.modulos as Modulos) ?? {});
+        setLogoUrl(data.logoUrl ?? "");
+        setLogoInput(data.logoUrl ?? "");
         setCargando(false);
       });
   }, []);
+
+  async function guardarLogo() {
+    setGuardandoLogo(true);
+    await fetch("/api/configuracion", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ logoUrl: logoInput }),
+    });
+    setLogoUrl(logoInput);
+    setGuardandoLogo(false);
+    setLogoOk(true);
+    setTimeout(() => setLogoOk(false), 2500);
+  }
 
   async function toggleModulo(key: string, valor: boolean) {
     if (!esAdmin) return;
@@ -81,8 +100,50 @@ export default function ConfiguracionPage() {
         </div>
       )}
 
+      {/* Logo de la empresa */}
+      <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-5">
+        <h2 className="text-sm font-semibold text-slate-700 mb-1">Logo de la empresa</h2>
+        <p className="text-xs text-slate-400 mb-4">
+          Se muestra en el encabezado de tus cotizaciones en PDF. Pega la URL pública de tu logo (PNG o JPG, fondo transparente recomendado).
+        </p>
+        <div className="flex flex-col sm:flex-row items-start gap-3">
+          {logoUrl && (
+            <img src={logoUrl} alt="Logo" className="h-14 w-auto rounded-lg border border-slate-200 bg-slate-50 p-1 object-contain" />
+          )}
+          <div className="flex-1 w-full">
+            <input
+              type="url"
+              placeholder="https://tuempresa.com/logo.png"
+              value={logoInput}
+              onChange={e => setLogoInput(e.target.value)}
+              disabled={!esAdmin}
+              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 disabled:opacity-50 mb-2"
+            />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={guardarLogo}
+                disabled={!esAdmin || guardandoLogo || logoInput === logoUrl}
+                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              >
+                {guardandoLogo ? "Guardando..." : "Guardar logo"}
+              </button>
+              {logoOk && <span className="text-xs text-emerald-600">✅ Logo guardado</span>}
+              {logoUrl && (
+                <button
+                  onClick={() => { setLogoInput(""); }}
+                  disabled={!esAdmin}
+                  className="text-xs text-red-500 hover:underline disabled:opacity-50"
+                >
+                  Quitar logo
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="mb-8">
-        <h2 className="text-sm font-semibold text-slate-700 mb-1">MÃ³dulos estÃ¡ndar</h2>
+        <h2 className="text-sm font-semibold text-slate-700 mb-1">Módulos estándar</h2>
         <p className="text-xs text-slate-400 mb-4">Siempre activos para todos los tipos de negocio.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[

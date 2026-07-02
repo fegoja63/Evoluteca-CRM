@@ -8,10 +8,10 @@ export async function GET() {
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: session.user.tenantId },
-    select: { modulos: true, nombre: true },
+    select: { modulos: true, nombre: true, logoUrl: true },
   });
 
-  return NextResponse.json({ modulos: tenant?.modulos ?? {}, tenantNombre: tenant?.nombre ?? "" });
+  return NextResponse.json({ modulos: tenant?.modulos ?? {}, tenantNombre: tenant?.nombre ?? "", logoUrl: tenant?.logoUrl ?? "" });
 }
 
 export async function PATCH(request: Request) {
@@ -20,10 +20,14 @@ export async function PATCH(request: Request) {
   if (session.user.rol !== "ADMINISTRADOR") return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
 
   const body = await request.json();
+  const data: Record<string, unknown> = {};
+  if (body.modulos !== undefined) data.modulos = body.modulos;
+  if (body.logoUrl !== undefined) data.logoUrl = body.logoUrl;
+
   const tenant = await prisma.tenant.update({
     where: { id: session.user.tenantId },
-    data: { modulos: body.modulos },
+    data,
   });
 
-  return NextResponse.json({ modulos: tenant.modulos });
+  return NextResponse.json({ modulos: tenant.modulos, logoUrl: tenant.logoUrl ?? "" });
 }

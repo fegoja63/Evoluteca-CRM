@@ -29,6 +29,7 @@ model Tenant {
   activo    Boolean  @default(true)
   creadoEn  DateTime @default(now())
   modulos   Json     @default("{}")
+  logoUrl   String?
 
   usuarios        Usuario[]
   empresas        Empresa[]

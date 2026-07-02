@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { renderToBuffer, Document, Page, Text, View, StyleSheet, Font } from "@react-pdf/renderer";
+import { renderToBuffer, Document, Page, Text, View, StyleSheet, Font, Image } from "@react-pdf/renderer";
 import React from "react";
 
 export const dynamic = "force-dynamic";
@@ -64,7 +64,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       contacto:    { select: { nombre: true, email: true, cargo: true } },
       oportunidad: { select: { titulo: true } },
       items:       { orderBy: { id: "asc" } },
-      tenant:      { select: { nombre: true } },
+      tenant:      { select: { nombre: true, logoUrl: true } },
     },
   });
   if (!cot) return new NextResponse("No encontrada", { status: 404 });
@@ -77,9 +77,11 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       // Header
       React.createElement(View, { style: styles.header },
         React.createElement(View, { style: { flexDirection: "row", alignItems: "center", gap: 10 } },
-          React.createElement(View, { style: styles.logoBox },
-            React.createElement(Text, { style: styles.logoText }, "E")
-          ),
+          cot.tenant.logoUrl
+            ? React.createElement(Image, { src: cot.tenant.logoUrl, style: { width: 44, height: 44, objectFit: "contain" } })
+            : React.createElement(View, { style: styles.logoBox },
+                React.createElement(Text, { style: styles.logoText }, "E")
+              ),
           React.createElement(View, null,
             React.createElement(Text, { style: styles.tenantName }, cot.tenant.nombre),
             React.createElement(Text, { style: styles.tenantSub }, "Desarrollado con Evoluteca CRM")
