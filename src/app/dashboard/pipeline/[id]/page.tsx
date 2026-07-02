@@ -19,6 +19,7 @@ type Oportunidad = {
   empresa:  { id: string; nombre: string; sector: string | null; telefono: string | null } | null;
   contacto: { id: string; nombre: string; email: string | null; telefono: string | null; cargo: string | null } | null;
   actividades: { id: string; tipo: string; titulo: string; fecha: string; completada: boolean; notas: string | null }[];
+  cambiosEtapa: { id: string; etapaAnterior: string; etapaNueva: string; creadoEn: string; creadoByNombre: string | null }[];
 };
 
 const ETAPAS = [
@@ -355,6 +356,54 @@ export default function OportunidadDetallePage() {
           onGuardado={cargar}
         />
       </div>
+
+      {/* ── HISTORIAL DE ETAPAS ── */}
+      {op.cambiosEtapa.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-5">
+          <h3 className="text-sm font-semibold text-slate-700 mb-4">🔄 Historial de etapas</h3>
+          <div className="relative">
+            <div className="absolute left-3.5 top-0 bottom-0 w-px bg-slate-100" />
+            <div className="space-y-3">
+              {/* Entrada original */}
+              <div className="flex items-start gap-3 relative">
+                <div className="w-7 h-7 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center shrink-0 z-10 text-xs">🎯</div>
+                <div className="flex-1 pt-0.5">
+                  <p className="text-xs font-semibold text-slate-700">Creada como Prospecto</p>
+                  <p className="text-xs text-slate-400">{new Date(op.creadoEn).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" })}</p>
+                </div>
+              </div>
+              {op.cambiosEtapa.map((c, i) => {
+                const etapaAnterior = ETAPAS.find(e => e.key === c.etapaAnterior);
+                const etapaNueva   = ETAPAS.find(e => e.key === c.etapaNueva);
+                const esGanada  = c.etapaNueva === "GANADA";
+                const esPerdida = c.etapaNueva === "PERDIDA";
+                const iconColor = esGanada ? "bg-emerald-100" : esPerdida ? "bg-red-100" : "bg-blue-100";
+                const icon = esGanada ? "🏆" : esPerdida ? "❌" : "→";
+                const diasDesdeAnterior = i === 0
+                  ? Math.floor((new Date(c.creadoEn).getTime() - new Date(op.creadoEn).getTime()) / 86_400_000)
+                  : Math.floor((new Date(c.creadoEn).getTime() - new Date(op.cambiosEtapa[i-1].creadoEn).getTime()) / 86_400_000);
+                return (
+                  <div key={c.id} className="flex items-start gap-3 relative">
+                    <div className={`w-7 h-7 rounded-full ${iconColor} border-2 border-white flex items-center justify-center shrink-0 z-10 text-xs`}>{icon}</div>
+                    <div className="flex-1 pt-0.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-xs rounded-full px-2 py-0.5 font-medium ${etapaAnterior?.color ?? "bg-slate-100 text-slate-600"}`}>{etapaAnterior?.label ?? c.etapaAnterior}</span>
+                        <span className="text-slate-300 text-xs">→</span>
+                        <span className={`text-xs rounded-full px-2 py-0.5 font-medium ${etapaNueva?.color ?? "bg-slate-100 text-slate-600"}`}>{etapaNueva?.label ?? c.etapaNueva}</span>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        {new Date(c.creadoEn).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" })}
+                        {c.creadoByNombre && <span> · {c.creadoByNombre}</span>}
+                        <span className="ml-2 text-slate-300">({diasDesdeAnterior === 0 ? "mismo día" : `${diasDesdeAnterior}d en etapa anterior`})</span>
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal motivo de pérdida */}
       {modalPerdida && (

@@ -16,6 +16,7 @@ export async function GET(
       empresa:  { select: { id: true, nombre: true, sector: true, telefono: true } },
       contacto: { select: { id: true, nombre: true, email: true, telefono: true, cargo: true } },
       actividades: { orderBy: { fecha: "desc" }, take: 10 },
+      cambiosEtapa: { orderBy: { creadoEn: "asc" } },
     },
   });
 
@@ -55,6 +56,19 @@ export async function PATCH(
     where: { id: params.id },
     data,
   });
+
+  // Registrar cambio de etapa si cambió
+  if (etapa !== undefined && etapa !== oportunidad.etapa) {
+    await prisma.cambioEtapa.create({
+      data: {
+        oportunidadId: params.id,
+        etapaAnterior: oportunidad.etapa,
+        etapaNueva: etapa,
+        creadoBy: session.user.id ?? null,
+        creadoByNombre: session.user.name ?? null,
+      },
+    });
+  }
 
   return NextResponse.json(actualizada);
 }

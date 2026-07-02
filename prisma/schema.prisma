@@ -152,11 +152,27 @@ model Oportunidad {
 
   contactoId  String?
   contacto    Contacto?         @relation(fields: [contactoId], references: [id], onDelete: SetNull)
-  actividades Actividad[]
-  cotizaciones Cotizacion[]
+  actividades   Actividad[]
+  cotizaciones  Cotizacion[]
+  cambiosEtapa  CambioEtapa[]
 
   @@index([tenantId])
   @@map("oportunidades")
+}
+
+model CambioEtapa {
+  id              String   @id @default(uuid())
+  etapaAnterior   String
+  etapaNueva      String
+  creadoEn        DateTime @default(now())
+  creadoBy        String?
+  creadoByNombre  String?
+
+  oportunidadId   String
+  oportunidad     Oportunidad @relation(fields: [oportunidadId], references: [id], onDelete: Cascade)
+
+  @@index([oportunidadId])
+  @@map("cambios_etapa")
 }
 
 enum TipoActividad {
