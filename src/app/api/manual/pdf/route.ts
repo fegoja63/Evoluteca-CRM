@@ -24,13 +24,15 @@ const C = {
 const s = StyleSheet.create({
   page:        { fontFamily: "Helvetica", fontSize: 10, color: C.negro, backgroundColor: C.blanco, paddingBottom: 50 },
   // Portada
-  portada:     { backgroundColor: C.azul, flex: 1, paddingHorizontal: 60, paddingBottom: 60, paddingTop: 0, justifyContent: "flex-start" },
+  portada:     { flex: 1, flexDirection: "column" },
+  portadaLogos:{ backgroundColor: C.blanco, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 60, paddingVertical: 20 },
+  portadaAzul: { backgroundColor: C.azul, flex: 1, paddingHorizontal: 60, paddingTop: 60, paddingBottom: 60, justifyContent: "flex-start" },
   portadaTit:  { fontSize: 36, fontFamily: "Helvetica-Bold", color: C.blanco, marginBottom: 8 },
   portadaSub:  { fontSize: 16, color: "#93c5fd", marginBottom: 40 },
   portadaVer:  { fontSize: 10, color: "#64748b", borderTopWidth: 1, borderTopColor: "#334155", paddingTop: 16 },
   logoBox:     { width: 60, height: 60, backgroundColor: "#2563eb", borderRadius: 12, alignItems: "center", justifyContent: "center", marginBottom: 32 },
   logoTxt:     { fontSize: 32, fontFamily: "Helvetica-Bold", color: C.blanco },
-  logosRow:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 80, marginHorizontal: -60, backgroundColor: "#ffffff", paddingHorizontal: 60, paddingVertical: 16 },
+  logosRow:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   logoEvol:    { height: 40, width: 140, objectFit: "contain" },
   logoFGJ:     { height: 44, width: 100, objectFit: "contain", borderRadius: 6 },
   // Header páginas internas
@@ -162,10 +164,13 @@ export async function GET() {
     // ── PORTADA ──
     React.createElement(Page, { size: "A4", style: s.page },
       React.createElement(View, { style: s.portada },
-        React.createElement(View, { style: s.logosRow },
+        // Franja blanca con logos — FUERA del azul
+        React.createElement(View, { style: s.portadaLogos },
           React.createElement(Image, { style: s.logoEvol, src: "https://evoluteca-crm-six.vercel.app/Logo%20Evoluteca.png" }),
           React.createElement(Image, { style: s.logoFGJ,  src: "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" }),
         ),
+        // Bloque azul que ocupa el resto de la página
+        React.createElement(View, { style: s.portadaAzul },
         React.createElement(Text, { style: s.portadaTit }, "Evoluteca CRM"),
         React.createElement(Text, { style: s.portadaSub }, "Manual de Usuario — Guía completa"),
         React.createElement(View, { style: { marginTop: 60 } },
@@ -187,8 +192,9 @@ export async function GET() {
         React.createElement(View, { style: { marginTop: 40 } },
           React.createElement(Text, { style: s.portadaVer }, `Versión 1.5 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · evoluteca-crm.vercel.app`),
         ),
-      ),
-    ),
+        ), // cierre portadaAzul
+      ),   // cierre portada
+    ),     // cierre Page
 
     // ── CAPÍTULO 1: PRIMEROS PASOS ──
     React.createElement(Page, { size: "A4", style: s.page },
