@@ -89,6 +89,14 @@ export default function OportunidadDetallePage() {
   );
 
   const etapaInfo = ETAPAS.find(e => e.key === op.etapa)!;
+  function formatearValorExtra(k: string, v: string): string {
+    if (k === "MES" && v.includes("T00:00")) {
+      const d = new Date(v);
+      return d.toLocaleDateString("es-CO", { month: "short", year: "numeric" });
+    }
+    return v;
+  }
+
   const extrasRelevantes = op.extras ? Object.entries(op.extras).filter(([k]) =>
     !["AÑO","MES ELABORACION","ELABORACIÓN"].includes(k)
   ) : [];
@@ -248,7 +256,7 @@ export default function OportunidadDetallePage() {
             {extrasRelevantes.map(([k, v]) => (
               <div key={k} className="flex gap-2 text-sm border-b border-slate-50 pb-1.5">
                 <span className="text-slate-400 w-40 shrink-0 truncate">{k}</span>
-                <span className="text-slate-800 font-medium">{v}</span>
+                <span className="text-slate-800 font-medium">{formatearValorExtra(k, v)}</span>
               </div>
             ))}
           </div>
