@@ -313,7 +313,7 @@ export default function ReportesPage() {
         </div>
 
         {/* KPIs hero */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { label: "Clientes",       valor: r.totalEmpresas,       emoji: "🏢", sub: `${r.totalContactos} contactos` },
             { label: "En negociación", valor: r.cantidadActiva,      emoji: "🔄", sub: fmtK(r.valorActivo) + " potencial" },
@@ -332,7 +332,7 @@ export default function ReportesPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
 
         {/* ── PIPELINE BARRAS ── */}
         <div className="col-span-2 bg-white rounded-2xl border border-slate-200 p-6">

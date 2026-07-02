@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { KpiCard } from "@/components/kpi-card";
@@ -21,7 +21,7 @@ type Oportunidad = { id: string; titulo: string };
 const TIPOS = [
   { key: "TAREA", label: "Tarea" },
   { key: "LLAMADA", label: "Llamada" },
-  { key: "REUNION", label: "Reunión" },
+  { key: "REUNION", label: "ReuniÃ³n" },
   { key: "EMAIL", label: "Email" },
 ];
 
@@ -97,7 +97,7 @@ export default function AgendaPage() {
   }
 
   async function eliminarActividad(id: string) {
-    if (!confirm("¿Eliminar esta actividad?")) return;
+    if (!confirm("Â¿Eliminar esta actividad?")) return;
     setActividades((prev) => prev.filter((a) => a.id !== id));
     await fetch(`/api/actividades/${id}`, { method: "DELETE" });
   }
@@ -117,14 +117,14 @@ export default function AgendaPage() {
         <p className="text-slate-500 text-sm mt-1">Tareas, llamadas y reuniones</p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        <KpiCard label="Total actividades" valor={actividades.length} emoji="📅" color="bg-blue-500" />
-        <KpiCard label="Pendientes" valor={actividades.filter(a => !a.completada).length} emoji="⏳" color="bg-amber-500" />
-        <KpiCard label="Completadas" valor={actividades.filter(a => a.completada).length} emoji="✅" color="bg-emerald-500" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <KpiCard label="Total actividades" valor={actividades.length} emoji="ðŸ“…" color="bg-blue-500" />
+        <KpiCard label="Pendientes" valor={actividades.filter(a => !a.completada).length} emoji="â³" color="bg-amber-500" />
+        <KpiCard label="Completadas" valor={actividades.filter(a => a.completada).length} emoji="âœ…" color="bg-emerald-500" />
         <KpiCard
           label="Vencidas"
           valor={actividades.filter(a => !a.completada && new Date(a.fecha) < new Date()).length}
-          emoji="⚠️" color="bg-red-400"
+          emoji="âš ï¸" color="bg-red-400"
           sub="Sin completar y pasadas"
         />
       </div>
@@ -134,7 +134,7 @@ export default function AgendaPage() {
         <div className="flex gap-2">
           <button onClick={exportarExcel} disabled={exportando}
             className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
-            {exportando ? "Exportando..." : "⬇ Excel"}
+            {exportando ? "Exportando..." : "â¬‡ Excel"}
           </button>
           <button
             onClick={() => setMostrarForm(true)}
@@ -167,9 +167,9 @@ export default function AgendaPage() {
       {mostrarForm && (
         <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
           <h2 className="mb-4 text-sm font-medium text-neutral-900">Nueva actividad</h2>
-          <form onSubmit={handleGuardar} className="grid grid-cols-2 gap-3">
+          <form onSubmit={handleGuardar} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
-              <label className="mb-1 block text-xs text-neutral-500">Título *</label>
+              <label className="mb-1 block text-xs text-neutral-500">TÃ­tulo *</label>
               <input
                 required
                 value={form.titulo}
@@ -272,7 +272,7 @@ export default function AgendaPage() {
       ) : visibles.length === 0 ? (
         <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
           <p className="text-sm text-neutral-500">
-            {filtro === "pendientes" ? "No tienes actividades pendientes." : "Aún no tienes actividades."}
+            {filtro === "pendientes" ? "No tienes actividades pendientes." : "AÃºn no tienes actividades."}
           </p>
         </div>
       ) : (
@@ -297,9 +297,9 @@ export default function AgendaPage() {
                 </p>
                 <p className="text-xs text-neutral-500">
                   {formatoFecha(a.fecha)}
-                  {a.empresa && ` · ${a.empresa.nombre}`}
-                  {a.contacto && ` · ${a.contacto.nombre}`}
-                  {a.oportunidad && ` · ${a.oportunidad.titulo}`}
+                  {a.empresa && ` Â· ${a.empresa.nombre}`}
+                  {a.contacto && ` Â· ${a.contacto.nombre}`}
+                  {a.oportunidad && ` Â· ${a.oportunidad.titulo}`}
                 </p>
               </div>
               <button
@@ -307,7 +307,7 @@ export default function AgendaPage() {
                 className="text-neutral-300 hover:text-red-600"
                 title="Eliminar"
               >
-                ×
+                Ã—
               </button>
             </div>
           ))}

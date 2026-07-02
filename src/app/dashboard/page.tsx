@@ -196,7 +196,7 @@ export default async function DashboardPage() {
             <span className="text-lg">⚠️</span>
             <h2 className="text-sm font-bold text-amber-800">Requieren atención</h2>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {actividadesVencidas.length > 0 && (
               <div>
                 <p className="text-xs font-semibold text-amber-700 mb-2">
@@ -237,7 +237,7 @@ export default async function DashboardPage() {
 
       {/* ── VISTA DE HOY ── */}
       {(actividadesHoy.length > 0 || actividadesSemana.length > 0) && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {actividadesHoy.length > 0 && (
             <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
               <div className="flex items-center justify-between mb-3">
@@ -294,7 +294,7 @@ export default async function DashboardPage() {
       )}
 
       {/* ── KPI CARDS ── */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           {
             label: "Clientes activos",
@@ -351,7 +351,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── FILA PRINCIPAL ── */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
         {/* Pipeline funnel */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
@@ -518,7 +518,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── SALUD COMERCIAL + PRODUCTIVIDAD ── */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
         {/* Salud comercial */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
@@ -596,7 +596,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── ACCESOS RÁPIDOS ── */}
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
           { label: "Nuevo cliente",     href: "/dashboard/cuentas",                    emoji: "🏢",  color: "hover:border-blue-300 hover:bg-blue-50" },
           { label: "Nueva cotización",  href: "/dashboard/cotizaciones-formales/nueva", emoji: "📄",  color: "hover:border-violet-300 hover:bg-violet-50" },

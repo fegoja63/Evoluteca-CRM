@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -83,7 +83,7 @@ export default function NuevaCotizacionPage() {
 
     const lineasValidas = lineas.filter(l => l.descripcion.trim());
     if (lineasValidas.length === 0) {
-      setError("Agrega al menos una línea de servicio con descripción.");
+      setError("Agrega al menos una lÃ­nea de servicio con descripciÃ³n.");
       return;
     }
 
@@ -124,22 +124,22 @@ export default function NuevaCotizacionPage() {
     <div className="max-w-3xl">
       <div className="mb-6 flex items-center gap-3">
         <Link href="/dashboard/cotizaciones-formales" className="text-slate-400 hover:text-slate-700 text-sm">
-          ← Cotizaciones
+          â† Cotizaciones
         </Link>
         <span className="text-slate-300">/</span>
-        <h1 className="text-xl font-semibold text-slate-900">Nueva cotización</h1>
+        <h1 className="text-xl font-semibold text-slate-900">Nueva cotizaciÃ³n</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         {/* Cliente */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <h2 className="text-sm font-bold text-slate-700 mb-4">Cliente y oportunidad</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Empresa</label>
               <select value={empresaId} onChange={e => { setEmpresaId(e.target.value); setContactoId(""); setOportunidadId(""); }}
                 className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-blue-500">
-                <option value="">— Sin empresa —</option>
+                <option value="">â€” Sin empresa â€”</option>
                 {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
               </select>
             </div>
@@ -147,7 +147,7 @@ export default function NuevaCotizacionPage() {
               <label className="block text-xs font-medium text-slate-600 mb-1">Contacto</label>
               <select value={contactoId} onChange={e => setContactoId(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-blue-500">
-                <option value="">— Sin contacto —</option>
+                <option value="">â€” Sin contacto â€”</option>
                 {contactosFiltrados.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
               </select>
             </div>
@@ -155,7 +155,7 @@ export default function NuevaCotizacionPage() {
               <label className="block text-xs font-medium text-slate-600 mb-1">Oportunidad vinculada</label>
               <select value={oportunidadId} onChange={e => setOportunidadId(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-blue-500">
-                <option value="">— Sin oportunidad —</option>
+                <option value="">â€” Sin oportunidad â€”</option>
                 {oportunidadesFiltradas.map(o => <option key={o.id} value={o.id}>{o.titulo}</option>)}
               </select>
             </div>
@@ -165,7 +165,7 @@ export default function NuevaCotizacionPage() {
         {/* Detalles del evento */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <h2 className="text-sm font-bold text-slate-700 mb-4">Detalles del evento</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Sede / Lugar</label>
               <input type="text" value={sede} onChange={e => setSede(e.target.value)}
@@ -185,12 +185,12 @@ export default function NuevaCotizacionPage() {
           </div>
         </div>
 
-        {/* Líneas de servicio */}
+        {/* LÃ­neas de servicio */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <h2 className="text-sm font-bold text-slate-700 mb-4">Servicios / Ítems</h2>
+          <h2 className="text-sm font-bold text-slate-700 mb-4">Servicios / Ãtems</h2>
 
           <div className="mb-2 grid grid-cols-[1fr_80px_120px_28px] gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wide px-1">
-            <span>Descripción</span>
+            <span>DescripciÃ³n</span>
             <span>Cant.</span>
             <span>Precio unit.</span>
             <span />
@@ -201,7 +201,7 @@ export default function NuevaCotizacionPage() {
               <div key={i} className="grid grid-cols-[1fr_80px_120px_28px] gap-2 items-center">
                 <input
                   type="text"
-                  placeholder="Ej: Iluminación escénica"
+                  placeholder="Ej: IluminaciÃ³n escÃ©nica"
                   value={linea.descripcion}
                   onChange={e => updateLinea(i, "descripcion", e.target.value)}
                   className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
@@ -224,7 +224,7 @@ export default function NuevaCotizacionPage() {
                 />
                 <button type="button" onClick={() => removeLinea(i)} disabled={lineas.length === 1}
                   className="text-slate-300 hover:text-red-500 disabled:opacity-30 text-lg font-bold leading-none">
-                  ×
+                  Ã—
                 </button>
               </div>
             ))}
@@ -233,11 +233,11 @@ export default function NuevaCotizacionPage() {
           <div className="mt-3 flex items-center gap-4">
             <button type="button" onClick={addLinea}
               className="text-sm text-blue-600 hover:underline">
-              + Línea vacía
+              + LÃ­nea vacÃ­a
             </button>
             {productos.length > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-400">o desde catálogo:</span>
+                <span className="text-xs text-slate-400">o desde catÃ¡logo:</span>
                 <select onChange={e => {
                   const p = productos.find(x => x.id === e.target.value);
                   if (!p) return;
@@ -245,10 +245,10 @@ export default function NuevaCotizacionPage() {
                   e.target.value = "";
                 }}
                   className="rounded-xl border border-slate-200 bg-white px-2 py-1 text-xs outline-none focus:border-blue-500">
-                  <option value="">Agregar servicio del catálogo...</option>
+                  <option value="">Agregar servicio del catÃ¡logo...</option>
                   {productos.map(p => (
                     <option key={p.id} value={p.id}>
-                      {p.nombre} — {new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(Number(p.precioBase))}
+                      {p.nombre} â€” {new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(Number(p.precioBase))}
                     </option>
                   ))}
                 </select>
@@ -271,7 +271,7 @@ export default function NuevaCotizacionPage() {
           <textarea
             value={notas} onChange={e => setNotas(e.target.value)}
             rows={3}
-            placeholder="Condiciones especiales, información adicional..."
+            placeholder="Condiciones especiales, informaciÃ³n adicional..."
             className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 resize-none"
           />
         </div>

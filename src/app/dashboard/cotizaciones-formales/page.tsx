@@ -106,7 +106,7 @@ export default function CotizacionesFormalesPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Borradores",  key: "BORRADOR",  color: "bg-slate-500" },
           { label: "Enviadas",    key: "ENVIADA",   color: "bg-blue-500" },

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 
@@ -62,7 +62,7 @@ export default function CatalogoPage() {
   }
 
   async function eliminar(id: string) {
-    if (!confirm("¿Desactivar este servicio del catálogo?")) return;
+    if (!confirm("Â¿Desactivar este servicio del catÃ¡logo?")) return;
     await fetch(`/api/productos/${id}`, { method: "DELETE" });
     cargar();
   }
@@ -77,17 +77,17 @@ export default function CatalogoPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Catálogo de servicios</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">CatÃ¡logo de servicios</h1>
           <p className="text-slate-500 text-sm mt-1">Servicios y productos que usas en tus cotizaciones</p>
         </div>
         <div className="flex gap-2">
           <button onClick={exportarExcel} disabled={exportando}
             className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
-            {exportando ? "Exportando..." : "⬇ Excel"}
+            {exportando ? "Exportando..." : "â¬‡ Excel"}
           </button>
           <button onClick={() => { setModo(modo === "nuevo" ? "lista" : "nuevo"); setEditId(null); setForm({ nombre: "", descripcion: "", precioBase: "" }); }}
             className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-            {modo === "nuevo" ? "× Cancelar" : "+ Nuevo servicio"}
+            {modo === "nuevo" ? "Ã— Cancelar" : "+ Nuevo servicio"}
           </button>
         </div>
       </div>
@@ -96,11 +96,11 @@ export default function CatalogoPage() {
       {modo === "nuevo" && (
         <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5">
           <h2 className="text-sm font-bold text-slate-700 mb-4">{editId ? "Editar servicio" : "Nuevo servicio"}</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="block text-xs font-medium text-slate-600 mb-1">Nombre del servicio *</label>
               <input type="text" value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
-                placeholder="Ej: Iluminación escénica, Sonido profesional..."
+                placeholder="Ej: IluminaciÃ³n escÃ©nica, Sonido profesional..."
                 className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
             <div>
@@ -110,16 +110,16 @@ export default function CatalogoPage() {
                 className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Descripción (opcional)</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1">DescripciÃ³n (opcional)</label>
               <input type="text" value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
-                placeholder="Breve descripción del servicio"
+                placeholder="Breve descripciÃ³n del servicio"
                 className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
           </div>
           <div className="mt-4 flex gap-2">
             <button onClick={guardar} disabled={guardando || !form.nombre.trim()}
               className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
-              {guardando ? "Guardando..." : editId ? "Guardar cambios" : "Agregar al catálogo"}
+              {guardando ? "Guardando..." : editId ? "Guardar cambios" : "Agregar al catÃ¡logo"}
             </button>
           </div>
         </div>
@@ -130,22 +130,22 @@ export default function CatalogoPage() {
         <p className="text-sm text-slate-400">Cargando...</p>
       ) : lista.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-12 text-center">
-          <p className="text-3xl mb-3">📦</p>
-          <p className="text-sm text-slate-500 mb-4">Aún no tienes servicios en el catálogo.</p>
-          <p className="text-xs text-slate-400">Agrega tus servicios habituales para usarlos rápidamente al crear cotizaciones.</p>
+          <p className="text-3xl mb-3">ðŸ“¦</p>
+          <p className="text-sm text-slate-500 mb-4">AÃºn no tienes servicios en el catÃ¡logo.</p>
+          <p className="text-xs text-slate-400">Agrega tus servicios habituales para usarlos rÃ¡pidamente al crear cotizaciones.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {lista.map(p => (
             <div key={p.id} className="rounded-2xl border border-slate-200 bg-white p-4 hover:border-blue-200 transition-all group">
               <div className="flex items-start justify-between mb-2">
                 <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-sm shrink-0">
-                  🎯
+                  ðŸŽ¯
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
                   <button onClick={() => iniciarEdicion(p)}
                     className="text-xs text-blue-600 hover:underline">Editar</button>
-                  <span className="text-slate-200">·</span>
+                  <span className="text-slate-200">Â·</span>
                   <button onClick={() => eliminar(p.id)}
                     className="text-xs text-red-400 hover:underline">Quitar</button>
                 </div>

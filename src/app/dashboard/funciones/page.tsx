@@ -122,7 +122,7 @@ export default function FuncionesPage() {
         <p className="text-slate-500 text-sm mt-1">Registro de ocupación por función o evento</p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         <KpiCard label="Total funciones" valor={funciones.length} emoji="🎭" color="bg-blue-500" />
         <KpiCard label="Ocupación promedio" valor={`${promOcupacion}%`} emoji="💺" color="bg-emerald-500" />
         <KpiCard label="Ingresos registrados" valor={fmt(String(totalIngreso))} emoji="💰" color="bg-violet-500" />
@@ -146,7 +146,7 @@ export default function FuncionesPage() {
       {mostrarForm && (
         <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
           <h2 className="mb-4 text-sm font-semibold text-slate-800">Nueva función</h2>
-          <form onSubmit={handleCrear} className="grid grid-cols-2 gap-3">
+          <form onSubmit={handleCrear} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Título / Obra *</label>
               <input required value={form.titulo} onChange={e => setForm({ ...form, titulo: e.target.value })}

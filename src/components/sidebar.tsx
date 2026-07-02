@@ -28,7 +28,7 @@ const navOpcionales: Record<string, { href: string; label: string; emoji: string
   audiencia: { href: "/dashboard/audiencia", label: "Audiencia", emoji: "🎪" },
 };
 
-export function Sidebar({ tenantNombre }: { tenantNombre: string }) {
+export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClose?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const [modulos, setModulos] = useState<Record<string, boolean>>({});
@@ -80,11 +80,14 @@ export function Sidebar({ tenantNombre }: { tenantNombre: string }) {
 
   return (
     <nav className="flex h-screen w-56 flex-col bg-blue-950 text-white">
-      <div className="px-5 py-6 border-b border-blue-900/50">
+      <div className="px-5 py-6 border-b border-blue-900/50 relative">
         <div className="flex items-center gap-2 mb-1">
           <div className="w-7 h-7 rounded-lg bg-blue-500 flex items-center justify-center text-xs font-bold">E</div>
           <span className="text-sm font-semibold tracking-tight">Evoluteca CRM</span>
         </div>
+        {onClose && (
+          <button onClick={onClose} className="absolute top-4 right-4 text-blue-300 hover:text-white text-xl leading-none">×</button>
+        )}
         <div className="text-xs text-blue-300 mt-1 pl-9">{tenantNombre}</div>
         <a
           href="https://www.felipegomezjaramillo.com"

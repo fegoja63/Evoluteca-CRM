@@ -163,7 +163,7 @@ export default function EquipoPage() {
         <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
           <h2 className="mb-4 text-sm font-medium text-neutral-900">Invitar usuario</h2>
           {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
-          <form onSubmit={handleGuardar} className="grid grid-cols-2 gap-3">
+          <form onSubmit={handleGuardar} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-xs text-neutral-500">Nombre *</label>
               <input

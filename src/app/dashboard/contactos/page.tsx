@@ -67,7 +67,7 @@ export default function ContactosPage() {
         <p className="text-slate-500 text-sm mt-1">Personas de tus cuentas</p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         <KpiCard label="Total contactos" valor={contactos.length} emoji="👤" color="bg-violet-500" />
         <KpiCard label="Con empresa" valor={contactos.filter(c => c.empresa).length} emoji="🏢" color="bg-blue-500" />
         <KpiCard label="Sin empresa" valor={contactos.filter(c => !c.empresa).length} emoji="⚠️" color="bg-amber-500" sub="Sin vincular" />
@@ -109,7 +109,7 @@ export default function ContactosPage() {
       {mostrarForm && (
         <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
           <h2 className="mb-4 text-sm font-medium text-neutral-900">Nuevo contacto</h2>
-          <form onSubmit={handleGuardar} className="grid grid-cols-2 gap-3">
+          <form onSubmit={handleGuardar} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-neutral-500">Nombre *</label>
               <input

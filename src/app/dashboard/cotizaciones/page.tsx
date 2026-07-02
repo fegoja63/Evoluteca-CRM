@@ -239,7 +239,7 @@ export default function CotizacionesPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
         <KpiCard label="En negociación" valor={activas.length} emoji="🔄" color="bg-blue-500"
           sub={fmt(valorTotal) + " potencial"} />
         <KpiCard label="Prospecto" valor={conteoEtapas.PROSPECTO} emoji="🎯" color="bg-slate-500" />
@@ -262,7 +262,7 @@ export default function CotizacionesPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {BUCKETS.map(b => {
             const n = conteoEdad[b.key as keyof typeof conteoEdad];
             const v = valorEdad[b.key as keyof typeof valorEdad];
@@ -330,7 +330,7 @@ export default function CotizacionesPage() {
             <button onClick={() => setMostrarForm(false)} className="text-slate-400 hover:text-slate-600 text-lg leading-none">×</button>
           </div>
           <form onSubmit={handleGuardar}>
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
 
               <div className="col-span-2">
                 <label className="mb-1 block text-xs text-slate-500">Tipo de evento / Negocio *</label>

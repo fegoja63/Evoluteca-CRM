@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -43,8 +43,8 @@ type Contacto = { id: string; nombre: string };
 const ETAPAS = [
   { key: "PROSPECTO",   label: "Prospecto",   color: "border-t-slate-400",   badge: "bg-slate-100 text-slate-600" },
   { key: "CALIFICADO",  label: "Calificado",  color: "border-t-blue-400",    badge: "bg-blue-50 text-blue-700" },
-  { key: "PROPUESTA",   label: "Cotización",  color: "border-t-violet-400",  badge: "bg-violet-50 text-violet-700" },
-  { key: "NEGOCIACION", label: "Negociación", color: "border-t-amber-400",   badge: "bg-amber-50 text-amber-700" },
+  { key: "PROPUESTA",   label: "CotizaciÃ³n",  color: "border-t-violet-400",  badge: "bg-violet-50 text-violet-700" },
+  { key: "NEGOCIACION", label: "NegociaciÃ³n", color: "border-t-amber-400",   badge: "bg-amber-50 text-amber-700" },
   { key: "GANADA",      label: "Ganada",      color: "border-t-emerald-400", badge: "bg-emerald-50 text-emerald-700" },
   { key: "PERDIDA",     label: "Perdida",     color: "border-t-red-400",     badge: "bg-red-50 text-red-600" },
 ];
@@ -111,7 +111,7 @@ export default function PipelinePage() {
   }
 
   async function eliminarOportunidad(id: string) {
-    if (!confirm("¿Eliminar esta oportunidad?")) return;
+    if (!confirm("Â¿Eliminar esta oportunidad?")) return;
     setOportunidades(prev => prev.filter(o => o.id !== id));
     await fetch(`/api/oportunidades/${id}`, { method: "DELETE" });
   }
@@ -124,21 +124,21 @@ export default function PipelinePage() {
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
   }
 
-  // ── Años y meses disponibles desde extras ──
+  // â”€â”€ AÃ±os y meses disponibles desde extras â”€â”€
   const aniosDisponibles = Array.from(new Set(
-    oportunidades.map(o => o.extras?.["AÑO"]).filter((v): v is string => !!v)
+    oportunidades.map(o => o.extras?.["AÃ‘O"]).filter((v): v is string => !!v)
   )).sort();
 
   const mesesDisponibles = Array.from(new Set(
     oportunidades
-      .filter(o => !filtroAnio || o.extras?.["AÑO"] === filtroAnio)
+      .filter(o => !filtroAnio || o.extras?.["AÃ‘O"] === filtroAnio)
       .map(o => o.extras?.["MES ELABORACION"])
       .filter((v): v is string => !!v)
   )).sort((a, b) => (MESES_LABEL[a.toUpperCase()] ?? 13) - (MESES_LABEL[b.toUpperCase()] ?? 13));
 
-  // ── Filtrado ──
+  // â”€â”€ Filtrado â”€â”€
   const filtradas = oportunidades.filter(o => {
-    if (filtroAnio && o.extras?.["AÑO"] !== filtroAnio) return false;
+    if (filtroAnio && o.extras?.["AÃ‘O"] !== filtroAnio) return false;
     if (filtroMes  && o.extras?.["MES ELABORACION"]?.toUpperCase() !== filtroMes.toUpperCase()) return false;
     if (busqueda) {
       const q = busqueda.toLowerCase();
@@ -151,7 +151,7 @@ export default function PipelinePage() {
 
   const hayFiltro = busqueda || filtroAnio || filtroMes;
 
-  // ── KPIs ──
+  // â”€â”€ KPIs â”€â”€
   const etapasActivas = ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"];
   const activas  = filtradas.filter(o => etapasActivas.includes(o.etapa));
   const ganadas  = filtradas.filter(o => o.etapa === "GANADA");
@@ -169,38 +169,38 @@ export default function PipelinePage() {
         <p className="text-slate-500 text-sm mt-1">Oportunidades de venta por etapa</p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <KpiCard label="En negociación activa" valor={fmtN(valorActivas)} emoji="🔄" color="bg-blue-500"
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <KpiCard label="En negociaciÃ³n activa" valor={fmtN(valorActivas)} emoji="ðŸ”„" color="bg-blue-500"
           sub={`${activas.length} oportunidades`} />
-        <KpiCard label="Valor ganado" valor={fmtN(valorGanadas)} emoji="💰" color="bg-emerald-500"
+        <KpiCard label="Valor ganado" valor={fmtN(valorGanadas)} emoji="ðŸ’°" color="bg-emerald-500"
           sub={`${ganadas.length} negocios cerrados`} />
-        <KpiCard label="Valor perdido" valor={fmtN(valorPerdidas)} emoji="❌" color="bg-red-400"
+        <KpiCard label="Valor perdido" valor={fmtN(valorPerdidas)} emoji="âŒ" color="bg-red-400"
           sub={`${perdidas.length} perdidos`} />
-        <KpiCard label="Tasa de cierre" valor={`${tasa}%`} emoji="🎯" color="bg-amber-500"
-          sub={`${ganadas.length} ganadas · ${perdidas.length} perdidas`} />
+        <KpiCard label="Tasa de cierre" valor={`${tasa}%`} emoji="ðŸŽ¯" color="bg-amber-500"
+          sub={`${ganadas.length} ganadas Â· ${perdidas.length} perdidas`} />
       </div>
 
-      {/* ── FILTROS ── */}
+      {/* â”€â”€ FILTROS â”€â”€ */}
       <div className="flex flex-wrap items-center gap-3 mb-5 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3">
-        {/* Búsqueda */}
+        {/* BÃºsqueda */}
         <div className="relative flex-1 min-w-[200px]">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">ðŸ”</span>
           <input
             type="text"
-            placeholder="Buscar cliente, evento o N° cotización..."
+            placeholder="Buscar cliente, evento o NÂ° cotizaciÃ³n..."
             value={busqueda}
             onChange={e => setBusqueda(e.target.value)}
             className="w-full rounded-xl border border-slate-200 pl-8 pr-8 py-2 text-sm outline-none focus:border-blue-500"
           />
           {busqueda && (
             <button onClick={() => setBusqueda("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-base leading-none">×</button>
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-base leading-none">Ã—</button>
           )}
         </div>
 
-        {/* Año */}
+        {/* AÃ±o */}
         <div className="flex items-center gap-1.5">
-          <label className="text-xs font-medium text-slate-500">Año:</label>
+          <label className="text-xs font-medium text-slate-500">AÃ±o:</label>
           <select value={filtroAnio} onChange={e => { setFiltroAnio(e.target.value); setFiltroMes(""); }}
             className="rounded-lg border border-slate-200 bg-white text-slate-900 text-sm px-2 py-2 outline-none cursor-pointer">
             <option value="">Todos</option>
@@ -224,21 +224,21 @@ export default function PipelinePage() {
           <div className="flex items-center gap-3 ml-auto">
             <span className="text-xs text-slate-500">{filtradas.length} de {oportunidades.length} oportunidades</span>
             <button onClick={() => { setBusqueda(""); setFiltroAnio(""); setFiltroMes(""); }}
-              className="text-xs text-blue-600 hover:underline">× Limpiar filtros</button>
+              className="text-xs text-blue-600 hover:underline">Ã— Limpiar filtros</button>
           </div>
         )}
       </div>
 
-      {/* ── FORMULARIO ── */}
+      {/* â”€â”€ FORMULARIO â”€â”€ */}
       {mostrarForm && (
         <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-slate-800">Nueva oportunidad</h2>
-            <button onClick={() => setMostrarForm(false)} className="text-slate-400 hover:text-slate-600 text-lg">×</button>
+            <button onClick={() => setMostrarForm(false)} className="text-slate-400 hover:text-slate-600 text-lg">Ã—</button>
           </div>
-          <form onSubmit={handleGuardar} className="grid grid-cols-2 gap-3">
+          <form onSubmit={handleGuardar} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
-              <label className="mb-1 block text-xs text-slate-500">Título *</label>
+              <label className="mb-1 block text-xs text-slate-500">TÃ­tulo *</label>
               <input required value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
@@ -289,11 +289,12 @@ export default function PipelinePage() {
         </div>
       )}
 
-      {/* ── KANBAN ── */}
+      {/* â”€â”€ KANBAN â”€â”€ */}
       {cargando ? (
         <p className="text-sm text-slate-400">Cargando...</p>
       ) : (
-        <div className="grid grid-cols-6 gap-3">
+        <div className="overflow-x-auto pb-2">
+        <div className="grid grid-cols-6 gap-3 min-w-[900px]">
           {ETAPAS.map(etapa => {
             const items = filtradas.filter(o => o.etapa === etapa.key);
             const isOver = dragOverEtapa === etapa.key;
@@ -321,7 +322,7 @@ export default function PipelinePage() {
                     <div className={`rounded-lg border-2 border-dashed py-6 text-center text-xs transition-colors ${
                       isOver ? "border-blue-300 text-blue-400 bg-blue-50" : "border-slate-200 text-slate-400"
                     }`}>
-                      {isOver ? "Soltar aquí" : "Sin registros"}
+                      {isOver ? "Soltar aquÃ­" : "Sin registros"}
                     </div>
                   )}
                   {items.map(o => {
@@ -347,15 +348,15 @@ export default function PipelinePage() {
                           {o.titulo}
                         </Link>
                         <button onClick={() => eliminarOportunidad(o.id)}
-                          className="text-slate-300 hover:text-red-500 shrink-0 leading-none text-base">×</button>
+                          className="text-slate-300 hover:text-red-500 shrink-0 leading-none text-base">Ã—</button>
                       </div>
                       {o.empresa && <p className="text-slate-500 mb-1">{o.empresa.nombre}</p>}
                       {o.extras?.["COTIZACION NUMERO"] && (
                         <p className="text-slate-400 mb-1">{o.extras["COTIZACION NUMERO"]}</p>
                       )}
-                      {o.extras?.["AÑO"] && (
+                      {o.extras?.["AÃ‘O"] && (
                         <p className="text-slate-400">
-                          {o.extras["AÑO"]}{o.extras["MES ELABORACION"] ? ` · ${o.extras["MES ELABORACION"]}` : ""}
+                          {o.extras["AÃ‘O"]}{o.extras["MES ELABORACION"] ? ` Â· ${o.extras["MES ELABORACION"]}` : ""}
                         </p>
                       )}
                       <div className="flex items-center justify-between mt-1.5">
@@ -375,13 +376,14 @@ export default function PipelinePage() {
                   {/* Drop zone visible al final de columnas con items */}
                   {items.length > 0 && isOver && (
                     <div className="rounded-lg border-2 border-dashed border-blue-300 py-3 text-center text-xs text-blue-400">
-                      Soltar aquí
+                      Soltar aquÃ­
                     </div>
                   )}
                 </div>
               </div>
             );
           })}
+        </div>
         </div>
       )}
     </div>

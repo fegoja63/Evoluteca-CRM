@@ -114,7 +114,7 @@ export default function AudienciaPage() {
         <p className="text-slate-500 text-sm mt-1">Espectadores y público de tus eventos</p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         <KpiCard label="Total espectadores" valor={espectadores.length} emoji="👥" color="bg-blue-500" />
         <KpiCard label="Con email" valor={conEmail} emoji="✉️" color="bg-emerald-500" sub="Alcanzables por campaña" />
         <KpiCard label="Con NPS registrado" valor={conNps} emoji="⭐" color="bg-violet-500" />
@@ -147,7 +147,7 @@ export default function AudienciaPage() {
       {mostrarForm && (
         <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
           <h2 className="mb-4 text-sm font-semibold text-slate-800">Nuevo espectador</h2>
-          <form onSubmit={handleCrear} className="grid grid-cols-2 gap-3">
+          <form onSubmit={handleCrear} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Nombre *</label>
               <input required value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })}
