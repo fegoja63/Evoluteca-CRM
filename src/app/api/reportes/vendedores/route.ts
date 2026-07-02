@@ -13,7 +13,10 @@ export async function GET() {
 
   const tenantId = session.user.tenantId;
 
-  const [usuarios, oportunidades, actividades] = await Promise.all([
+  const anioActual = new Date().getFullYear();
+  const mesActual  = new Date().getMonth() + 1;
+
+  const [usuarios, oportunidades, actividades, metas] = await Promise.all([
     prisma.usuario.findMany({
       where: { tenantId, activo: true },
       select: { id: true, nombre: true, rol: true },
@@ -26,6 +29,10 @@ export async function GET() {
     prisma.actividad.findMany({
       where: { tenantId, creadoBy: { not: null } },
       select: { id: true, completada: true, fecha: true, creadoBy: true },
+    }),
+    prisma.metaVendedor.findMany({
+      where: { tenantId, anio: anioActual, mes: mesActual },
+      select: { userId: true, meta: true },
     }),
   ]);
 
@@ -57,6 +64,8 @@ export async function GET() {
     const actsVencidas    = acts.filter(a => !a.completada && new Date(a.fecha) < hoy).length;
     const actsCompletadas = acts.filter(a => a.completada).length;
 
+    const metaMes = Number(metas.find(m => m.userId === u.id)?.meta ?? 0);
+
     return {
       id: u.id,
       nombre: u.nombre,
@@ -74,6 +83,7 @@ export async function GET() {
       actsPendientes,
       actsVencidas,
       actsCompletadas,
+      metaMes,
     };
   });
 

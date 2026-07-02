@@ -41,6 +41,7 @@ model Tenant {
   espectadores    Espectador[]
   productos       Producto[]
   metasVenta      MetaVenta[]
+  metasVendedor   MetaVendedor[]
   eventosTimeline EventoTimeline[]
 
   @@map("tenants")
@@ -58,7 +59,8 @@ model Usuario {
   resetTokenExpiry   DateTime?
 
   tenantId      String
-  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  metasVendedor MetaVendedor[]
 
   @@index([tenantId])
   @@map("usuarios")
@@ -270,6 +272,26 @@ model MetaVenta {
   @@unique([tenantId, anio, mes])
   @@index([tenantId])
   @@map("metas_venta")
+}
+
+// ---- Metas por vendedor ----
+
+model MetaVendedor {
+  id       String   @id @default(uuid())
+  anio     Int
+  mes      Int
+  meta     Decimal  @db.Decimal(14, 2)
+  creadoEn DateTime @default(now())
+
+  tenantId String
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  userId   String
+  usuario  Usuario  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId, anio, mes])
+  @@index([tenantId])
+  @@map("metas_vendedor")
 }
 
 // ---- Timeline de eventos por cliente ----
