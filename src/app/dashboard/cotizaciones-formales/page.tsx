@@ -37,6 +37,17 @@ function fmt(v: number) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
 }
 
+function validezBadge(fechaValidez: string | null, estado: string) {
+  if (!fechaValidez || estado === "ACEPTADA" || estado === "RECHAZADA") return null;
+  const ahora = Date.now();
+  const fecha = new Date(fechaValidez).getTime();
+  const dias = Math.ceil((fecha - ahora) / 86_400_000);
+  if (dias < 0)  return { label: `Vencida ${Math.abs(dias)}d`, color: "bg-red-100 text-red-700" };
+  if (dias === 0) return { label: "Vence hoy", color: "bg-red-100 text-red-700" };
+  if (dias <= 7)  return { label: `Vence en ${dias}d`, color: "bg-amber-100 text-amber-700" };
+  return null;
+}
+
 export default function CotizacionesFormalesPage() {
   const [lista, setLista] = useState<Cotizacion[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -85,6 +96,7 @@ export default function CotizacionesFormalesPage() {
   const valorTotal = listado.reduce((acc, c) => acc + total(c.items), 0);
   const conteos = { BORRADOR: 0, ENVIADA: 0, ACEPTADA: 0, RECHAZADA: 0 };
   lista.forEach(c => { if (c.estado in conteos) conteos[c.estado as keyof typeof conteos]++; });
+  const vencidas = lista.filter(c => validezBadge(c.fechaValidez, c.estado) !== null);
 
   return (
     <div>
@@ -121,6 +133,20 @@ export default function CotizacionesFormalesPage() {
           </button>
         ))}
       </div>
+
+      {/* Alerta vencidas */}
+      {vencidas.length > 0 && (
+        <div className="mb-5 rounded-2xl bg-red-50 border border-red-200 px-5 py-3 flex items-center gap-3">
+          <span className="text-lg">⚠️</span>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-red-800">
+              {vencidas.length} cotización{vencidas.length !== 1 ? "es" : ""} vencida{vencidas.length !== 1 ? "s" : ""} o próxima{vencidas.length !== 1 ? "s" : ""} a vencer
+            </p>
+            <p className="text-xs text-red-600 mt-0.5">Revisa y actualiza la fecha de validez o cambia el estado.</p>
+          </div>
+          <button onClick={() => setFiltroEstado("ENVIADA")} className="text-xs text-red-700 font-medium underline">Ver enviadas</button>
+        </div>
+      )}
 
       {/* Filtros */}
       <div className="flex items-center gap-3 mb-4">
@@ -192,8 +218,15 @@ export default function CotizacionesFormalesPage() {
                   <td className="px-4 py-1 text-slate-500 text-xs whitespace-nowrap">
                     {c.fechaEvento ? new Date(c.fechaEvento).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" }) : "—"}
                   </td>
-                  <td className="px-4 py-1 text-slate-500 text-xs whitespace-nowrap">
-                    {c.fechaValidez ? new Date(c.fechaValidez).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" }) : "—"}
+                  <td className="px-4 py-1 text-xs whitespace-nowrap">
+                    {c.fechaValidez ? (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-slate-500">{new Date(c.fechaValidez).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" })}</span>
+                        {(() => { const b = validezBadge(c.fechaValidez, c.estado); return b ? (
+                          <span className={`rounded-full px-1.5 py-0.5 text-xs font-semibold w-fit ${b.color}`}>{b.label}</span>
+                        ) : null; })()}
+                      </div>
+                    ) : "—"}
                   </td>
                   <td className="px-4 py-1 text-right font-bold text-slate-900 whitespace-nowrap">
                     {c.items.length > 0 ? fmt(total(c.items)) : <span className="text-slate-400 font-normal">—</span>}

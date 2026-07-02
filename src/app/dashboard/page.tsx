@@ -104,6 +104,18 @@ export default async function DashboardPage() {
     .filter(o => o.actividades.length === 0 || new Date(o.actividades[0].fecha) < hace14dias)
     .slice(0, 5);
 
+  // ── Cotizaciones formales con validez vencida o próxima a vencer (≤7 días) ──
+  const cotizacionesVencidas = await prisma.cotizacion.findMany({
+    where: {
+      tenantId,
+      estado: { in: ["BORRADOR", "ENVIADA"] },
+      fechaValidez: { lte: new Date(Date.now() + 7 * 86_400_000) },
+    },
+    select: { id: true, numero: true, fechaValidez: true, empresa: { select: { nombre: true } } },
+    orderBy: { fechaValidez: "asc" },
+    take: 5,
+  });
+
   const valorPipeline = oportunidades
     .filter((o) => !["PERDIDA", "GANADA"].includes(o.etapa))
     .reduce((acc, o) => acc + Number(o.valor ?? 0), 0);
@@ -221,13 +233,13 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── ALERTAS ── */}
-      {(actividadesVencidas.length > 0 || cotizacionesSinMovimiento.length > 0 || negociosEstancados.length > 0 || cierranEstaSemana.length > 0) && (
+      {(actividadesVencidas.length > 0 || cotizacionesSinMovimiento.length > 0 || negociosEstancados.length > 0 || cierranEstaSemana.length > 0 || cotizacionesVencidas.length > 0) && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg">⚠️</span>
             <h2 className="text-sm font-bold text-amber-800">Requieren atención</h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
             {actividadesVencidas.length > 0 && (
               <div>
                 <p className="text-xs font-semibold text-amber-700 mb-2">
@@ -277,6 +289,29 @@ export default async function DashboardPage() {
                       </span>
                     </Link>
                   ))}
+                </div>
+              </div>
+            )}
+            {cotizacionesVencidas.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-amber-700 mb-2">
+                  📄 {cotizacionesVencidas.length} cotización{cotizacionesVencidas.length !== 1 ? "es" : ""} formal{cotizacionesVencidas.length !== 1 ? "es" : ""} vencida{cotizacionesVencidas.length !== 1 ? "s" : ""}
+                </p>
+                <div className="flex flex-col gap-1">
+                  {cotizacionesVencidas.map(c => {
+                    const dias = Math.ceil((new Date(c.fechaValidez!).getTime() - hoy.getTime()) / 86_400_000);
+                    return (
+                      <Link key={c.id} href={`/dashboard/cotizaciones-formales/${c.id}`}
+                        className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-3 py-1.5 hover:border-amber-300 transition-colors">
+                        <span className="text-xs font-medium text-slate-800 truncate">
+                          #{String(c.numero).padStart(4,"0")} {c.empresa?.nombre ?? ""}
+                        </span>
+                        <span className={`text-xs ml-auto shrink-0 font-semibold ${dias < 0 ? "text-red-600" : "text-amber-600"}`}>
+                          {dias < 0 ? `Vencida ${Math.abs(dias)}d` : dias === 0 ? "Hoy" : `${dias}d`}
+                        </span>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             )}
