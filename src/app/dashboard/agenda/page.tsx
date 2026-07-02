@@ -35,6 +35,8 @@ export default function AgendaPage() {
   const [guardando, setGuardando] = useState(false);
   const [exportando, setExportando] = useState(false);
   const [filtro, setFiltro] = useState<"pendientes" | "todas">("pendientes");
+  const [notificando, setNotificando] = useState<string | null>(null);
+  const [notifOk, setNotifOk] = useState<string | null>(null);
 
   async function exportarExcel() {
     setExportando(true);
@@ -94,6 +96,26 @@ export default function AgendaPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ completada }),
     });
+  }
+
+  async function enviarRecordatorio(a: Actividad) {
+    setNotificando(a.id);
+    await fetch("/api/notificaciones/enviar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tipo: "RECORDATORIO_ACTIVIDAD",
+        datos: {
+          titulo: a.titulo,
+          tipo: TIPOS.find(t => t.key === a.tipo)?.label ?? a.tipo,
+          fecha: new Date(a.fecha).toLocaleString("es-CO", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
+          notas: "",
+        },
+      }),
+    });
+    setNotificando(null);
+    setNotifOk(a.id);
+    setTimeout(() => setNotifOk(null), 3000);
   }
 
   async function eliminarActividad(id: string) {
@@ -302,12 +324,22 @@ export default function AgendaPage() {
                   {a.oportunidad && ` Â· ${a.oportunidad.titulo}`}
                 </p>
               </div>
+              {!a.completada && new Date(a.fecha) < new Date() && (
+                <button
+                  onClick={() => enviarRecordatorio(a)}
+                  disabled={notificando === a.id}
+                  className="text-amber-400 hover:text-amber-600 disabled:opacity-50"
+                  title="Enviarme recordatorio por email"
+                >
+                  {notifOk === a.id ? "✅" : notificando === a.id ? "..." : "🔔"}
+                </button>
+              )}
               <button
                 onClick={() => eliminarActividad(a.id)}
                 className="text-neutral-300 hover:text-red-600"
                 title="Eliminar"
               >
-                Ã—
+                ×
               </button>
             </div>
           ))}
