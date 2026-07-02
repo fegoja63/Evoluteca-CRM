@@ -8,6 +8,13 @@ import { generarSlugUnico } from "@/lib/slug";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+
+    // Clave de activación requerida — solo Evoluteca puede crear tenants
+    const claveAdmin = process.env.ADMIN_REGISTRO_SECRET;
+    if (!claveAdmin || body.claveAdmin !== claveAdmin) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
     const parsed = registroSchema.safeParse(body);
 
     if (!parsed.success) {
