@@ -264,7 +264,7 @@ export default function CotizacionesPage() {
             return (
               <button
                 key={b.key}
-                onClick={() => setFiltroEdad(activo ? "TODAS" : b.key)}
+                onClick={() => { setFiltroEdad(activo ? "TODAS" : b.key); setFiltroEtapa("TODAS"); }}
                 className={`text-left rounded-xl p-4 border-2 transition-all ${
                   activo ? "border-blue-500 bg-blue-50" : "border-slate-100 hover:border-slate-300"
                 }`}
@@ -405,7 +405,7 @@ export default function CotizacionesPage() {
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide mr-1">Etapa:</span>
           <button
-            onClick={() => setFiltroEtapa("TODAS")}
+            onClick={() => { setFiltroEtapa("TODAS"); setFiltroEdad("TODAS"); }}
             className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
               filtroEtapa === "TODAS"
                 ? "bg-slate-900 text-white"
@@ -420,7 +420,7 @@ export default function CotizacionesPage() {
             return (
               <button
                 key={e}
-                onClick={() => setFiltroEtapa(activo ? "TODAS" : e)}
+                onClick={() => { setFiltroEtapa(activo ? "TODAS" : e); setFiltroEdad("TODAS"); }}
                 className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
                   activo ? ETAPA_PILL_ACTIVE[e] : ETAPA_PILL_INACTIVE[e]
                 }`}
