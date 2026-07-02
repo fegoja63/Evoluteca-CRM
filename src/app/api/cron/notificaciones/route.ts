@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
+import { EtapaOportunidad } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -82,11 +83,10 @@ export async function GET(req: Request) {
     }
 
     // ── 2. Negocios estancados (+14 días sin actividad) ──────────────────────
-    const etapasActivas = ["PROSPECTO", "CONTACTADO", "PROPUESTA", "NEGOCIACION"];
+    const etapasActivas: EtapaOportunidad[] = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];
     const opActivas = await prisma.oportunidad.findMany({
       where: { tenantId: u.tenantId, etapa: { in: etapasActivas }, ...ownerWhere },
-      select: {
-        id: true, nombre: true, etapa: true, valor: true,
+      include: {
         empresa: { select: { nombre: true } },
         actividades: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
       },
@@ -104,7 +104,7 @@ export async function GET(req: Request) {
           ? Math.floor((ahora.getTime() - new Date(ultima.fecha).getTime()) / 86_400_000)
           : null;
         return `<div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #f59e0b;border-radius:8px;padding:12px;margin-bottom:8px">
-          <p style="margin:0 0 4px;font-weight:600;font-size:13px;color:#1e293b">${o.nombre}</p>
+          <p style="margin:0 0 4px;font-weight:600;font-size:13px;color:#1e293b">${o.titulo}</p>
           <p style="margin:0;font-size:12px;color:#94a3b8">${o.empresa?.nombre ?? ""} · ${o.etapa} · <span style="color:#d97706;font-weight:600">${dias === null ? "Sin actividad registrada" : `${dias} días sin actividad`}</span></p>
         </div>`;
       }).join("");
@@ -130,7 +130,7 @@ export async function GET(req: Request) {
         ...ownerWhere,
       },
       orderBy: { fechaCierre: "asc" },
-      select: { id: true, nombre: true, valor: true, fechaCierre: true, empresa: { select: { nombre: true } } },
+      include: { empresa: { select: { nombre: true } } },
     });
 
     if (cierranProximo.length > 0) {
@@ -141,7 +141,7 @@ export async function GET(req: Request) {
         const dias = Math.ceil((new Date(o.fechaCierre!).getTime() - ahora.getTime()) / 86_400_000);
         const color = dias <= 2 ? "#dc2626" : "#2563eb";
         return `<div style="background:white;border:1px solid #e2e8f0;border-left:4px solid ${color};border-radius:8px;padding:12px;margin-bottom:8px">
-          <p style="margin:0 0 4px;font-weight:600;font-size:13px;color:#1e293b">${o.nombre}</p>
+          <p style="margin:0 0 4px;font-weight:600;font-size:13px;color:#1e293b">${o.titulo}</p>
           <p style="margin:0;font-size:12px;color:#94a3b8">${o.empresa?.nombre ?? ""} · ${fmt(Number(o.valor))} · <span style="color:${color};font-weight:600">${dias === 0 ? "Hoy" : dias === 1 ? "Mañana" : `en ${dias} días`}</span></p>
         </div>`;
       }).join("");

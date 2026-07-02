@@ -80,6 +80,9 @@ export default function PipelinePage() {
   const [busqueda, setBusqueda]   = useState("");
   const [filtroAnio, setFiltroAnio] = useState("");
   const [filtroMes, setFiltroMes]   = useState("");
+  const [filtroEtapa, setFiltroEtapa] = useState("");
+  const [vista, setVista] = useState<"kanban" | "tabla">("kanban");
+  const [orden, setOrden] = useState<{ col: string; dir: "asc" | "desc" }>({ col: "creadoEn", dir: "desc" });
   const [form, setForm] = useState({
     titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50", fechaCierre: "",
   });
@@ -150,8 +153,9 @@ export default function PipelinePage() {
 
   // ── Filtrado ──
   const filtradas = oportunidades.filter(o => {
-    if (filtroAnio && o.extras?.["AÑO"] !== filtroAnio) return false;
-    if (filtroMes  && o.extras?.["MES ELABORACION"]?.toUpperCase() !== filtroMes.toUpperCase()) return false;
+    if (filtroAnio  && o.extras?.["AÑO"] !== filtroAnio) return false;
+    if (filtroMes   && o.extras?.["MES ELABORACION"]?.toUpperCase() !== filtroMes.toUpperCase()) return false;
+    if (filtroEtapa && o.etapa !== filtroEtapa) return false;
     if (busqueda) {
       const q = busqueda.toLowerCase();
       if (!o.titulo.toLowerCase().includes(q) &&
@@ -161,7 +165,26 @@ export default function PipelinePage() {
     return true;
   });
 
-  const hayFiltro = busqueda || filtroAnio || filtroMes;
+  const hayFiltro = busqueda || filtroAnio || filtroMes || filtroEtapa;
+
+  // ── Ordenamiento para vista tabla ──
+  function ordenar(col: string) {
+    setOrden(prev => prev.col === col ? { col, dir: prev.dir === "asc" ? "desc" : "asc" } : { col, dir: "asc" });
+  }
+  function sortIcon(col: string) {
+    if (orden.col !== col) return <span className="text-slate-300 ml-1">↕</span>;
+    return <span className="text-blue-500 ml-1">{orden.dir === "asc" ? "↑" : "↓"}</span>;
+  }
+  const tablaOrdenada = [...filtradas].sort((a, b) => {
+    const dir = orden.dir === "asc" ? 1 : -1;
+    if (orden.col === "valor")       return dir * (Number(a.valor ?? 0) - Number(b.valor ?? 0));
+    if (orden.col === "probabilidad") return dir * ((a.probabilidad ?? 50) - (b.probabilidad ?? 50));
+    if (orden.col === "fechaCierre") return dir * ((a.fechaCierre ?? "").localeCompare(b.fechaCierre ?? ""));
+    if (orden.col === "etapa")       return dir * a.etapa.localeCompare(b.etapa);
+    if (orden.col === "empresa")     return dir * (a.empresa?.nombre ?? "").localeCompare(b.empresa?.nombre ?? "");
+    // creadoEn por defecto
+    return dir * a.creadoEn.localeCompare(b.creadoEn);
+  });
 
   // ── KPIs ──
   const etapasActivas = ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"];
@@ -195,7 +218,7 @@ export default function PipelinePage() {
           sub={`${ganadas.length} ganadas · ${perdidas.length} perdidas`} />
       </div>
 
-      {/* ── FILTROS ── */}
+      {/* ── FILTROS + TOGGLE ── */}
       <div className="flex flex-wrap items-center gap-3 mb-5 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3">
         {/* Búsqueda */}
         <div className="relative flex-1 min-w-[200px]">
@@ -234,14 +257,38 @@ export default function PipelinePage() {
           </select>
         </div>
 
-        {/* Contador + limpiar */}
-        {hayFiltro && (
-          <div className="flex items-center gap-3 ml-auto">
-            <span className="text-xs text-slate-500">{filtradas.length} de {oportunidades.length} oportunidades</span>
-            <button onClick={() => { setBusqueda(""); setFiltroAnio(""); setFiltroMes(""); }}
-              className="text-xs text-blue-600 hover:underline">× Limpiar filtros</button>
+        {/* Etapa (solo en tabla) */}
+        {vista === "tabla" && (
+          <div className="flex items-center gap-1.5">
+            <label className="text-xs font-medium text-slate-500">Etapa:</label>
+            <select value={filtroEtapa} onChange={e => setFiltroEtapa(e.target.value)}
+              className="rounded-lg border border-slate-200 bg-white text-slate-900 text-sm px-2 py-2 outline-none cursor-pointer">
+              <option value="">Todas</option>
+              {ETAPAS.map(et => <option key={et.key} value={et.key}>{et.label}</option>)}
+            </select>
           </div>
         )}
+
+        {/* Contador + limpiar */}
+        {hayFiltro && (
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-slate-500">{filtradas.length} de {oportunidades.length}</span>
+            <button onClick={() => { setBusqueda(""); setFiltroAnio(""); setFiltroMes(""); setFiltroEtapa(""); }}
+              className="text-xs text-blue-600 hover:underline">× Limpiar</button>
+          </div>
+        )}
+
+        {/* Toggle vista */}
+        <div className="ml-auto flex rounded-xl border border-slate-200 overflow-hidden bg-white">
+          <button onClick={() => setVista("kanban")}
+            className={`px-3 py-1.5 text-xs font-medium transition-colors ${vista === "kanban" ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"}`}>
+            ⊞ Kanban
+          </button>
+          <button onClick={() => setVista("tabla")}
+            className={`px-3 py-1.5 text-xs font-medium transition-colors ${vista === "tabla" ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"}`}>
+            ☰ Tabla
+          </button>
+        </div>
       </div>
 
       {/* ── FORMULARIO ── */}
@@ -317,9 +364,93 @@ export default function PipelinePage() {
         </div>
       )}
 
-      {/* ── KANBAN ── */}
+      {/* ── VISTAS ── */}
       {cargando ? (
         <p className="text-sm text-slate-400">Cargando...</p>
+      ) : vista === "tabla" ? (
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-xs text-slate-500 border-b border-slate-100">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold">Oportunidad</th>
+                  <th className="px-4 py-3 text-left font-semibold cursor-pointer select-none" onClick={() => ordenar("empresa")}>
+                    Cliente {sortIcon("empresa")}
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold cursor-pointer select-none" onClick={() => ordenar("etapa")}>
+                    Etapa {sortIcon("etapa")}
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold cursor-pointer select-none" onClick={() => ordenar("valor")}>
+                    Valor {sortIcon("valor")}
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold cursor-pointer select-none" onClick={() => ordenar("probabilidad")}>
+                    Prob. {sortIcon("probabilidad")}
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold cursor-pointer select-none" onClick={() => ordenar("fechaCierre")}>
+                    Cierre {sortIcon("fechaCierre")}
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold cursor-pointer select-none" onClick={() => ordenar("creadoEn")}>
+                    Creada {sortIcon("creadoEn")}
+                  </th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {tablaOrdenada.length === 0 && (
+                  <tr><td colSpan={8} className="px-4 py-8 text-center text-sm text-slate-400">Sin oportunidades</td></tr>
+                )}
+                {tablaOrdenada.map(o => {
+                  const etapa = ETAPAS.find(e => e.key === o.etapa);
+                  const cb = cierreBadge(o.fechaCierre, o.etapa);
+                  const dias = diasDesde(o.creadoEn);
+                  return (
+                    <tr key={o.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-3">
+                        <Link href={`/dashboard/pipeline/${o.id}`} className="font-medium text-slate-900 hover:text-blue-600 transition-colors">
+                          {o.titulo}
+                        </Link>
+                        {o.extras?.["COTIZACION NUMERO"] && (
+                          <p className="text-xs text-slate-400">{o.extras["COTIZACION NUMERO"]}</p>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">{o.empresa?.nombre ?? <span className="text-slate-300">—</span>}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs rounded-full px-2 py-0.5 font-medium ${etapa?.badge ?? ""}`}>
+                          {etapa?.label ?? o.etapa}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right font-semibold text-emerald-700">
+                        {o.valor ? fmt(o.valor) : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {o.etapa !== "GANADA" && o.etapa !== "PERDIDA"
+                          ? <span className="text-xs font-bold text-blue-600">{o.probabilidad ?? 50}%</span>
+                          : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        {cb
+                          ? <span className={`text-xs rounded-full px-2 py-0.5 font-medium ${cb.color}`}>📅 {cb.label}</span>
+                          : o.fechaCierre
+                            ? <span className="text-xs text-slate-400">{new Date(o.fechaCierre).toLocaleDateString("es-CO")}</span>
+                            : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-400">
+                        {new Date(o.creadoEn).toLocaleDateString("es-CO")}
+                        <span className={`ml-1 text-xs rounded-full px-1 ${urgenciaBadgeColor(dias)}`}>{dias}d</span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button onClick={() => eliminarOportunidad(o.id)} className="text-slate-300 hover:text-red-500 text-base leading-none">×</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="px-4 py-3 border-t border-slate-100 text-xs text-slate-400">
+            {tablaOrdenada.length} oportunidad{tablaOrdenada.length !== 1 ? "es" : ""}
+          </div>
+        </div>
       ) : (
         <div className="grid grid-cols-6 gap-3">
           {ETAPAS.map(etapa => {
