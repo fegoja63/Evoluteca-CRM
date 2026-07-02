@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { filtroOwner } from "@/lib/permisos";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -7,6 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const session = await auth();
   const tenantId = session?.user?.tenantId ?? "";
+  const ownerFiltro = filtroOwner(session?.user?.rol, session?.user?.id ?? "");
 
   const hoy = new Date();
   const inicioHoy  = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
@@ -30,12 +32,12 @@ export default async function DashboardPage() {
     totalActividadesHoy,
     ultimoContacto,
   ] = await Promise.all([
-    prisma.empresa.count({ where: { tenantId } }),
+    prisma.empresa.count({ where: { tenantId, ...ownerFiltro } }),
     prisma.contacto.count({ where: { tenantId } }),
-    prisma.oportunidad.findMany({ where: { tenantId }, select: { etapa: true, valor: true, creadoEn: true } }),
-    prisma.actividad.count({ where: { tenantId, completada: false } }),
+    prisma.oportunidad.findMany({ where: { tenantId, ...ownerFiltro }, select: { etapa: true, valor: true, creadoEn: true } }),
+    prisma.actividad.count({ where: { tenantId, completada: false, ...ownerFiltro } }),
     prisma.actividad.findMany({
-      where: { tenantId, completada: false, fecha: { gte: inicioHoy, lt: finHoy } },
+      where: { tenantId, completada: false, fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro },
       orderBy: { fecha: "asc" },
       take: 6,
       include: {
@@ -45,7 +47,7 @@ export default async function DashboardPage() {
       },
     }),
     prisma.actividad.findMany({
-      where: { tenantId, completada: false, fecha: { lt: inicioHoy } },
+      where: { tenantId, completada: false, fecha: { lt: inicioHoy }, ...ownerFiltro },
       orderBy: { fecha: "asc" },
       take: 5,
       include: { empresa: { select: { id: true, nombre: true } }, oportunidad: { select: { id: true, titulo: true } } },
@@ -56,23 +58,23 @@ export default async function DashboardPage() {
       take: 4,
     }).catch(() => []),
     prisma.oportunidad.findMany({
-      where: { tenantId, etapa: "GANADA", creadoEn: { gte: inicioMes } },
+      where: { tenantId, etapa: "GANADA", creadoEn: { gte: inicioMes }, ...ownerFiltro },
       select: { valor: true },
     }).catch(() => []),
     prisma.oportunidad.findMany({
-      where: { tenantId, etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] }, creadoEn: { lt: hace60dias } },
+      where: { tenantId, etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] }, creadoEn: { lt: hace60dias }, ...ownerFiltro },
       select: { id: true, titulo: true, etapa: true, empresa: { select: { nombre: true } } },
       take: 5,
     }),
     prisma.actividad.findMany({
-      where: { tenantId, completada: false, fecha: { gte: finHoy, lt: fin7dias } },
+      where: { tenantId, completada: false, fecha: { gte: finHoy, lt: fin7dias }, ...ownerFiltro },
       orderBy: { fecha: "asc" },
       take: 5,
       include: { empresa: { select: { nombre: true } }, oportunidad: { select: { titulo: true } } },
     }),
-    prisma.actividad.count({ where: { tenantId, completada: true, fecha: { gte: inicioHoy, lt: finHoy } } }),
-    prisma.actividad.count({ where: { tenantId, fecha: { gte: inicioHoy, lt: finHoy } } }),
-    prisma.actividad.findFirst({ where: { tenantId, completada: true }, orderBy: { fecha: "desc" }, select: { fecha: true } }),
+    prisma.actividad.count({ where: { tenantId, completada: true, fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro } }),
+    prisma.actividad.count({ where: { tenantId, fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro } }),
+    prisma.actividad.findFirst({ where: { tenantId, completada: true, ...ownerFiltro }, orderBy: { fecha: "desc" }, select: { fecha: true } }),
   ]);
 
   const valorPipeline = oportunidades

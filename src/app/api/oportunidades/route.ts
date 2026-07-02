@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { filtroOwner } from "@/lib/permisos";
 
 export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const oportunidades = await prisma.oportunidad.findMany({
-    where: { tenantId: session.user.tenantId },
+    where: { tenantId: session.user.tenantId, ...filtroOwner(session.user.rol, session.user.id) },
     orderBy: { creadoEn: "desc" },
     include: {
       empresa: { select: { id: true, nombre: true } },
@@ -38,6 +39,7 @@ export async function POST(request: Request) {
       empresaId: empresaId || null,
       contactoId: contactoId || null,
       tenantId: session.user.tenantId,
+      creadoBy: session.user.id,
     },
   });
 

@@ -73,6 +73,7 @@ model Empresa {
   notas       String?
   extras      Json?
   creadoEn    DateTime  @default(now())
+  creadoBy    String?
 
   tenantId    String
   tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -137,6 +138,7 @@ model Oportunidad {
   notas         String?
   extras        Json?
   creadoEn      DateTime          @default(now())
+  creadoBy      String?
 
   tenantId    String
   tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -168,6 +170,7 @@ model Actividad {
   completada  Boolean         @default(false)
   notas       String?
   creadoEn    DateTime        @default(now())
+  creadoBy    String?
 
   tenantId    String
   tenant      Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)

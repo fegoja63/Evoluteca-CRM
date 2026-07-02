@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { filtroOwner } from "@/lib/permisos";
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -12,6 +13,7 @@ export async function GET(request: Request) {
   const empresas = await prisma.empresa.findMany({
     where: {
       tenantId: session.user.tenantId,
+      ...filtroOwner(session.user.rol, session.user.id),
       ...(q ? { nombre: { contains: q, mode: "insensitive" } } : {}),
     },
     orderBy: { creadoEn: "desc" },
@@ -41,6 +43,7 @@ export async function POST(request: Request) {
       telefono: telefono?.trim() || null,
       notas: notas?.trim() || null,
       tenantId: session.user.tenantId,
+      creadoBy: session.user.id,
     },
   });
 

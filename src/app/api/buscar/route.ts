@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { filtroOwner } from "@/lib/permisos";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -10,10 +11,11 @@ export async function GET(req: NextRequest) {
   if (q.length < 2) return NextResponse.json([]);
 
   const tenantId = session.user.tenantId;
+  const ownerFiltro = filtroOwner(session.user.rol, session.user.id);
 
   const [empresas, contactos, oportunidades] = await Promise.all([
     prisma.empresa.findMany({
-      where: { tenantId, nombre: { contains: q, mode: "insensitive" } },
+      where: { tenantId, ...ownerFiltro, nombre: { contains: q, mode: "insensitive" } },
       select: { id: true, nombre: true, sector: true },
       take: 5,
     }),
@@ -32,6 +34,7 @@ export async function GET(req: NextRequest) {
     prisma.oportunidad.findMany({
       where: {
         tenantId,
+        ...ownerFiltro,
         OR: [
           { titulo: { contains: q, mode: "insensitive" } },
           { extras: { path: ["CLIENTE"],            string_contains: q } },
