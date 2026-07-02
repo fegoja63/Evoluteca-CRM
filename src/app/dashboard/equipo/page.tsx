@@ -27,6 +27,11 @@ export default function EquipoPage() {
   const [exportando, setExportando] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({ nombre: "", email: "", password: "", rol: "COMERCIAL" });
+  const [resetId, setResetId] = useState<string | null>(null);
+  const [resetNombre, setResetNombre] = useState("");
+  const [resetPass, setResetPass] = useState("");
+  const [reseteando, setReseteando] = useState(false);
+  const [resetOk, setResetOk] = useState(false);
 
   async function exportarExcel() {
     setExportando(true);
@@ -81,6 +86,19 @@ export default function EquipoPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rol }),
     });
+  }
+
+  async function resetearPassword(id: string) {
+    if (!resetPass || resetPass.length < 6) return;
+    setReseteando(true);
+    await fetch(`/api/usuarios/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nuevaPassword: resetPass }),
+    });
+    setReseteando(false);
+    setResetOk(true);
+    setTimeout(() => { setResetId(null); setResetPass(""); setResetOk(false); }, 2000);
   }
 
   async function toggleActivo(id: string, activo: boolean) {
@@ -202,6 +220,7 @@ export default function EquipoPage() {
                 <th className="px-4 py-1 font-medium">Correo</th>
                 <th className="px-4 py-1 font-medium">Rol</th>
                 <th className="px-4 py-1 font-medium">Estado</th>
+                {esAdmin && <th className="px-4 py-1 font-medium"></th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
@@ -246,11 +265,65 @@ export default function EquipoPage() {
                         </span>
                       )}
                     </td>
+                    {esAdmin && (
+                      <td className="px-4 py-1">
+                        {!esUnoMismo && (
+                          <button
+                            onClick={() => { setResetId(u.id); setResetNombre(u.nombre); setResetPass(""); setResetOk(false); }}
+                            className="text-xs text-blue-600 hover:underline"
+                          >
+                            Resetear contraseña
+                          </button>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 );
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Modal resetear contraseña */}
+      {resetId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            {resetOk ? (
+              <div className="text-center py-4">
+                <div className="text-3xl mb-2">✅</div>
+                <p className="text-sm font-medium text-slate-800">Contraseña actualizada</p>
+              </div>
+            ) : (
+              <>
+                <h2 className="text-base font-semibold text-slate-800 mb-1">Resetear contraseña</h2>
+                <p className="text-sm text-slate-500 mb-4">Nueva contraseña para <strong>{resetNombre}</strong></p>
+                <input
+                  type="text"
+                  value={resetPass}
+                  onChange={e => setResetPass(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 mb-4"
+                />
+                <p className="text-xs text-slate-400 mb-4">Comparte esta contraseña con el usuario por un canal seguro (WhatsApp, llamada). El usuario puede cambiarla después.</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => resetearPassword(resetId)}
+                    disabled={reseteando || resetPass.length < 6}
+                    className="flex-1 rounded-xl bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {reseteando ? "Guardando..." : "Guardar"}
+                  </button>
+                  <button
+                    onClick={() => { setResetId(null); setResetPass(""); }}
+                    className="flex-1 rounded-xl border border-slate-200 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
     </div>

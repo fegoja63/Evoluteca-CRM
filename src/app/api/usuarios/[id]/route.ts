@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 export async function PATCH(
   request: Request,
@@ -22,7 +23,7 @@ export async function PATCH(
   }
 
   const body = await request.json();
-  const { rol, activo } = body;
+  const { rol, activo, nuevaPassword } = body;
 
   const data: Record<string, unknown> = {};
   if (rol !== undefined) {
@@ -32,6 +33,12 @@ export async function PATCH(
     data.rol = rol;
   }
   if (activo !== undefined) data.activo = activo;
+  if (nuevaPassword !== undefined) {
+    if (typeof nuevaPassword !== "string" || nuevaPassword.length < 6) {
+      return NextResponse.json({ error: "La contraseña debe tener al menos 6 caracteres" }, { status: 400 });
+    }
+    data.passwordHash = await bcrypt.hash(nuevaPassword, 12);
+  }
 
   const actualizado = await prisma.usuario.update({
     where: { id: params.id },
