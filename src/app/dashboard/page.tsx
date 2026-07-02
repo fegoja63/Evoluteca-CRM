@@ -93,9 +93,9 @@ export default async function DashboardPage() {
   // ── Salud comercial ──
   const diasSinContacto = ultimoContacto
     ? Math.floor((hoy.getTime() - new Date(ultimoContacto.fecha).getTime()) / 86400000)
-    : 999;
+    : null;
 
-  const puntosContacto    = diasSinContacto <= 7 ? 25 : diasSinContacto <= 15 ? 18 : diasSinContacto <= 30 ? 10 : 0;
+  const puntosContacto    = diasSinContacto === null ? 15 : diasSinContacto <= 7 ? 25 : diasSinContacto <= 15 ? 18 : diasSinContacto <= 30 ? 10 : 0;
   const puntosConversion  = tasaCierre >= 40 ? 25 : tasaCierre >= 25 ? 18 : tasaCierre >= 10 ? 10 : 5;
   const puntosActividades = actividadesVencidas.length === 0 ? 25 : actividadesVencidas.length <= 3 ? 15 : actividadesVencidas.length <= 7 ? 8 : 0;
   const puntosPipeline    = valorPipeline > 0 ? (cotizacionesSinMovimiento.length === 0 ? 25 : cotizacionesSinMovimiento.length <= 3 ? 18 : 10) : 5;
@@ -104,8 +104,14 @@ export default async function DashboardPage() {
   const saludColor = saludScore >= 75 ? "text-emerald-600" : saludScore >= 50 ? "text-amber-600" : "text-red-500";
   const saludBg    = saludScore >= 75 ? "bg-emerald-500" : saludScore >= 50 ? "bg-amber-500" : "bg-red-500";
 
+  const textoContacto = diasSinContacto === null
+    ? "Registra tu primera actividad completada"
+    : diasSinContacto <= 15
+      ? `Seguimiento reciente (hace ${diasSinContacto} días)`
+      : `Sin actividad hace ${diasSinContacto} días`;
+
   const saludItems = [
-    { ok: diasSinContacto <= 15, texto: diasSinContacto <= 15 ? "Seguimiento reciente" : `Sin actividad hace ${diasSinContacto} días` },
+    { ok: diasSinContacto !== null && diasSinContacto <= 15, texto: textoContacto },
     { ok: tasaCierre >= 25,      texto: tasaCierre >= 25 ? `Buena tasa de cierre (${tasaCierre}%)` : `Tasa de cierre baja (${tasaCierre}%)` },
     { ok: actividadesVencidas.length === 0, texto: actividadesVencidas.length === 0 ? "Sin actividades vencidas" : `${actividadesVencidas.length} actividad${actividadesVencidas.length !== 1 ? "es" : ""} vencida${actividadesVencidas.length !== 1 ? "s" : ""}` },
     { ok: cotizacionesSinMovimiento.length <= 2, texto: cotizacionesSinMovimiento.length <= 2 ? "Pipeline activo" : `${cotizacionesSinMovimiento.length} cotizaciones estancadas` },
@@ -149,7 +155,7 @@ export default async function DashboardPage() {
     <div className="space-y-6">
 
       {/* ── HERO HEADER ── */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-8 py-7 text-white shadow-xl">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-8 py-4 text-white shadow-lg">
         {/* Decorative circles */}
         <div className="pointer-events-none absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5" />
         <div className="pointer-events-none absolute -bottom-8 right-32 w-32 h-32 rounded-full bg-white/5" />
@@ -160,21 +166,21 @@ export default async function DashboardPage() {
             <p className="text-blue-200 text-sm font-medium mb-1">
               {hoy.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
             </p>
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight">
               {saludo}, {nombre} 👋
             </h1>
-            <p className="text-blue-200 mt-1.5 text-sm">
+            <p className="text-blue-200 mt-0.5 text-xs">
               {session?.user?.tenantNombre} · {session?.user?.rol ? session.user.rol.charAt(0) + session.user.rol.slice(1).toLowerCase() : ""}
             </p>
           </div>
           <div className="hidden md:flex gap-6 text-right">
             <div>
-              <p className="text-3xl font-bold">{fmt(valorGanadoMes)}</p>
+              <p className="text-2xl font-bold">{fmt(valorGanadoMes)}</p>
               <p className="text-blue-200 text-xs mt-0.5">Ganado este mes</p>
             </div>
             <div className="w-px bg-white/20" />
             <div>
-              <p className="text-3xl font-bold">{tasaCierre}%</p>
+              <p className="text-2xl font-bold">{tasaCierre}%</p>
               <p className="text-blue-200 text-xs mt-0.5">Tasa de cierre</p>
             </div>
           </div>
