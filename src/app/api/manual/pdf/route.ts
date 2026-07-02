@@ -345,7 +345,7 @@ export async function GET() {
       React.createElement(P, null, "El CRM puede enviarte notificaciones por email de dos formas:"),
       React.createElement(LI, null, "Automático: cada mañana a las 8am recibes un email con todas tus actividades vencidas agrupadas, con indicador de días de atraso (rojo ≥7d, ámbar ≥2d)"),
       React.createElement(LI, null, "Manual: en la lista de la Agenda, las actividades vencidas muestran un ícono 🔔. Al tocarlo recibes el recordatorio en tu correo inmediatamente"),
-      React.createElement(Nota, null, "Las notificaciones requieren que el administrador técnico configure la variable RESEND_API_KEY. Si no ves el 🔔 o no recibes emails, contacta a tu administrador."),
+      React.createElement(Tip, null, "Las notificaciones están activas. Los emails llegan a la dirección registrada en tu perfil — asegúrate de tenerla actualizada en Mi Perfil."),
 
       React.createElement(H2, null, "4.5 Vista de calendario"),
       React.createElement(P, null, "La agenda muestra las actividades del mes en formato lista agrupadas por fecha. Usa los filtros de tipo y estado para encontrar rápidamente lo que buscas."),
@@ -522,7 +522,7 @@ export async function GET() {
       React.createElement(P, null, "Sí, pero creará duplicados. Si el cliente ya existe con el mismo nombre, el sistema lo reutiliza, pero si el nombre varía (mayúsculas, espacios extra) creará uno nuevo. Limpia los datos antes de importar."),
 
       React.createElement(H2, null, "¿Cómo activo las notificaciones por email?"),
-      React.createElement(P, null, "Las notificaciones requieren configurar una clave RESEND_API_KEY en las variables de entorno. Contacta al administrador técnico de tu cuenta para activarlas."),
+      React.createElement(P, null, "Las notificaciones ya están activas. Cada mañana a las 8am recibirás un email si tienes actividades vencidas. También puedes tocar el 🔔 en cualquier actividad vencida de la Agenda para recibir el recordatorio en ese momento."),
 
       React.createElement(H2, null, "¿El PDF de cotización incluye el logo de mi empresa?"),
       React.createElement(P, null, "Sí. Ve a ⚙️ Configuración → sección 'Logo de la empresa' y pega la URL pública de tu logo. A partir de ese momento, todos los PDFs de cotización mostrarán tu logo en el encabezado."),
