@@ -90,7 +90,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.4"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.5"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -185,7 +185,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.4 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · evoluteca-crm.vercel.app`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.5 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · evoluteca-crm.vercel.app`),
         ),
       ),
     ),
@@ -212,6 +212,13 @@ export async function GET() {
       React.createElement(P, null, "El menú lateral izquierdo contiene todos los módulos del CRM. El módulo activo se resalta en azul. Puedes navegar entre módulos en cualquier momento sin perder tu trabajo."),
       React.createElement(P, null, "En dispositivos móviles el menú lateral se oculta. Toca el ícono ☰ en la barra superior para abrirlo como panel deslizante. Toca fuera del panel o la × para cerrarlo."),
       React.createElement(Tip, null, "El CRM está optimizado para móvil. Puedes gestionar clientes, pipeline y agenda desde tu teléfono sin perder funcionalidad."),
+
+      React.createElement(H2, null, "1.4 Uso desde el celular"),
+      React.createElement(P, null, "En dispositivos móviles el CRM activa automáticamente una interfaz adaptada:"),
+      React.createElement(LI, null, "Barra de navegación inferior — acceso rápido a Dashboard, Clientes, Pipeline, Agenda y Cotizaciones con un solo toque"),
+      React.createElement(LI, null, "Botón flotante + (azul, esquina inferior derecha) — abre un menú con acciones rápidas: nueva actividad, nuevo cliente, nueva cotización y ver pipeline"),
+      React.createElement(LI, null, "Contenido con margen inferior para que la barra no tape el contenido"),
+      React.createElement(Tip, null, "El botón + se convierte en × al abrirse. Toca fuera del menú o toca × para cerrarlo sin navegar."),
 
       React.createElement(View, { style: { paddingHorizontal: 40 } },
         React.createElement(View, { style: s.tabla },
@@ -277,7 +284,17 @@ export async function GET() {
       React.createElement(P, null, "Si el contacto tiene teléfono, aparecerá un botón verde 💬 WhatsApp que abre la conversación directamente con ese número."),
       React.createElement(Nota, null, "Un contacto puede existir sin empresa (contacto independiente). También puede estar vinculado a múltiples oportunidades."),
 
-      React.createElement(H2, null, "2.6 Notas rápidas"),
+      React.createElement(H2, null, "2.6 WhatsApp con plantillas"),
+      React.createElement(P, null, "En las fichas de contacto y cliente, el botón 💬 WhatsApp abre un panel con plantillas de mensaje pre-llenadas. Elige la plantilla, edita el texto si quieres, y haz clic en 'Abrir WhatsApp' para enviar directamente desde tu app."),
+      React.createElement(LI, null, "Saludo inicial — presentación general para primer contacto"),
+      React.createElement(LI, null, "Seguimiento cotización — recordatorio amable sobre una propuesta enviada"),
+      React.createElement(LI, null, "Confirmar reunión — verificación de fecha y hora de una reunión"),
+      React.createElement(LI, null, "Recordatorio evento — mensaje previo a la fecha del evento"),
+      React.createElement(LI, null, "Cierre de negocio — impulso final para cerrar una oportunidad"),
+      React.createElement(LI, null, "Mensaje libre — escribe tu propio mensaje desde cero"),
+      React.createElement(Tip, null, "Todas las plantillas incluyen el nombre del contacto automáticamente. Puedes editar el texto antes de enviarlo — el mensaje nunca se envía sin que lo veas primero."),
+
+      React.createElement(H2, null, "2.7 Notas rápidas"),
       React.createElement(P, null, "En las fichas de cliente, contacto y oportunidad verás un área de notas internas. Haz clic en el texto (o en el área vacía si no hay notas) para activar la edición. Escribe tu nota y presiona Ctrl+Enter para guardar, o Esc para cancelar."),
       React.createElement(LI, null, "El botón ✓ Guardar también guarda la nota"),
       React.createElement(LI, null, "Al guardar aparece un mensaje '✓ Guardado' por 2 segundos"),
@@ -392,6 +409,14 @@ export async function GET() {
 
       React.createElement(H2, null, "4.5 Vista de calendario"),
       React.createElement(P, null, "La agenda muestra las actividades del mes en formato lista agrupadas por fecha. Usa los filtros de tipo y estado para encontrar rápidamente lo que buscas."),
+
+      React.createElement(H2, null, "4.6 Exportar al calendario (iCal)"),
+      React.createElement(P, null, "Haz clic en el botón 📅 iCal en la parte superior de la Agenda para descargar todas tus actividades pendientes como archivo .ics. Este archivo es compatible con:"),
+      React.createElement(LI, null, "Google Calendar — importar desde Configuración → Importar"),
+      React.createElement(LI, null, "Apple Calendar (iPhone / Mac) — abre directamente al descargar"),
+      React.createElement(LI, null, "Microsoft Outlook — Archivo → Abrir e importar"),
+      React.createElement(P, null, "Cada actividad se exporta con título, tipo, fecha y hora, nombre del cliente y oportunidad vinculada. La duración por defecto es 1 hora."),
+      React.createElement(Tip, null, "Descarga el .ics cada vez que quieras sincronizar — no es una sincronización automática en tiempo real, es una fotografía de tus actividades pendientes en ese momento."),
     ),
 
     // ── CAPÍTULO 5: COTIZACIONES ──
