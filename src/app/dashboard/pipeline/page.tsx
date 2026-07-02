@@ -10,6 +10,7 @@ type Oportunidad = {
   valor: string | null;
   etapa: string;
   creadoEn: string;
+  probabilidad: number | null;
   empresa: { id: string; nombre: string } | null;
   contacto: { id: string; nombre: string } | null;
   extras: Record<string, string> | null;
@@ -69,7 +70,7 @@ export default function PipelinePage() {
   const [filtroAnio, setFiltroAnio] = useState("");
   const [filtroMes, setFiltroMes]   = useState("");
   const [form, setForm] = useState({
-    titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "",
+    titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50",
   });
 
   async function cargar() {
@@ -95,7 +96,7 @@ export default function PipelinePage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
-    setForm({ titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "" });
+    setForm({ titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50" });
     setMostrarForm(false);
     setGuardando(false);
     cargar();
@@ -159,6 +160,7 @@ export default function PipelinePage() {
   const valorGanadas  = ganadas.reduce((acc,o)  => acc + Number(o.valor ?? 0), 0);
   const valorPerdidas = perdidas.reduce((acc,o) => acc + Number(o.valor ?? 0), 0);
   const valorActivas  = activas.reduce((acc,o)  => acc + Number(o.valor ?? 0), 0);
+  const valorPonderado = activas.reduce((acc,o) => acc + Number(o.valor ?? 0) * ((o.probabilidad ?? 50) / 100), 0);
   const tasa = (ganadas.length + perdidas.length) > 0
     ? Math.round((ganadas.length / (ganadas.length + perdidas.length)) * 100) : 0;
 
@@ -169,9 +171,11 @@ export default function PipelinePage() {
         <p className="text-slate-500 text-sm mt-1">Oportunidades de venta por etapa</p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <KpiCard label="En negociación activa" valor={fmtN(valorActivas)} emoji="🔄" color="bg-blue-500"
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
+        <KpiCard label="Pipeline activo" valor={fmtN(valorActivas)} emoji="🔄" color="bg-blue-500"
           sub={`${activas.length} oportunidades`} />
+        <KpiCard label="Pronóstico ponderado" valor={fmtN(valorPonderado)} emoji="📊" color="bg-violet-500"
+          sub="valor × probabilidad" />
         <KpiCard label="Valor ganado" valor={fmtN(valorGanadas)} emoji="💰" color="bg-emerald-500"
           sub={`${ganadas.length} negocios cerrados`} />
         <KpiCard label="Valor perdido" valor={fmtN(valorPerdidas)} emoji="❌" color="bg-red-400"
@@ -271,6 +275,14 @@ export default function PipelinePage() {
               </select>
             </div>
             <div className="col-span-2">
+              <label className="mb-1 block text-xs text-slate-500">
+                Probabilidad de cierre: <span className="font-semibold text-blue-600">{form.probabilidad}%</span>
+              </label>
+              <input type="range" min="0" max="100" step="5" value={form.probabilidad}
+                onChange={e => setForm({...form, probabilidad: e.target.value})}
+                className="w-full accent-blue-600" />
+            </div>
+            <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({...form, notas: e.target.value})}
                 rows={2} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
@@ -363,11 +375,18 @@ export default function PipelinePage() {
                           ? <p className="font-semibold text-emerald-700">{fmt(o.valor)}</p>
                           : <span />
                         }
-                        {badge && (
-                          <span className={`rounded-full px-1.5 py-0.5 text-xs font-semibold ${urgenciaBadgeColor(dias)}`}>
-                            {badge}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1">
+                          {(etapa.key !== "GANADA" && etapa.key !== "PERDIDA") && (
+                            <span className="rounded-full px-1.5 py-0.5 text-xs font-semibold bg-blue-50 text-blue-600">
+                              {o.probabilidad ?? 50}%
+                            </span>
+                          )}
+                          {badge && (
+                            <span className={`rounded-full px-1.5 py-0.5 text-xs font-semibold ${urgenciaBadgeColor(dias)}`}>
+                              {badge}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     );
