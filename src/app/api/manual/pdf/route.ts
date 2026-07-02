@@ -90,7 +90,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.3"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.4"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -185,7 +185,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.3 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · evoluteca-crm.vercel.app`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.4 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · evoluteca-crm.vercel.app`),
         ),
       ),
     ),
@@ -276,6 +276,13 @@ export async function GET() {
       React.createElement(P, null, 'Los contactos son personas dentro de un cliente. Ve a Contactos → "+ Nuevo contacto". Puedes vincular el contacto a una empresa y asignarle cargo, email y teléfono.'),
       React.createElement(P, null, "Si el contacto tiene teléfono, aparecerá un botón verde 💬 WhatsApp que abre la conversación directamente con ese número."),
       React.createElement(Nota, null, "Un contacto puede existir sin empresa (contacto independiente). También puede estar vinculado a múltiples oportunidades."),
+
+      React.createElement(H2, null, "2.6 Notas rápidas"),
+      React.createElement(P, null, "En las fichas de cliente, contacto y oportunidad verás un área de notas internas. Haz clic en el texto (o en el área vacía si no hay notas) para activar la edición. Escribe tu nota y presiona Ctrl+Enter para guardar, o Esc para cancelar."),
+      React.createElement(LI, null, "El botón ✓ Guardar también guarda la nota"),
+      React.createElement(LI, null, "Al guardar aparece un mensaje '✓ Guardado' por 2 segundos"),
+      React.createElement(LI, null, "Las notas son internas — no se muestran al cliente"),
+      React.createElement(Tip, null, "Usa las notas rápidas para registrar contexto importante sobre el cliente o negocio: preferencias, restricciones de presupuesto, fechas clave, contactos adicionales."),
     ),
 
     // ── CAPÍTULO 3: PIPELINE ──
@@ -338,7 +345,22 @@ export async function GET() {
       React.createElement(LI, null, "Cambiar la etapa con un clic"),
       React.createElement(LI, null, "Crear actividades vinculadas a esta oportunidad"),
       React.createElement(LI, null, "Ver y crear cotizaciones formales asociadas"),
-      React.createElement(LI, null, "Registrar notas internas"),
+      React.createElement(LI, null, "Registrar notas internas con edición rápida"),
+
+      React.createElement(H2, null, "3.7 Vista tabla del pipeline"),
+      React.createElement(P, null, "Además del kanban, el pipeline tiene una vista de tabla. Usa el toggle ⊞ Kanban / ☰ Tabla en la barra de filtros para cambiar entre vistas. La vista tabla muestra todas las oportunidades en filas con columnas ordenables:"),
+      React.createElement(LI, null, "Oportunidad, empresa, etapa, valor, probabilidad, fecha de cierre"),
+      React.createElement(LI, null, "Haz clic en el encabezado de cualquier columna para ordenar ascendente/descendente"),
+      React.createElement(LI, null, "Combina el filtro de etapa con el orden para analizar oportunidades específicas"),
+      React.createElement(Tip, null, "Usa la vista tabla cuando necesitas comparar valores o fechas entre múltiples oportunidades. El kanban es mejor para mover etapas visualmente."),
+
+      React.createElement(H2, null, "3.8 Historial de etapas"),
+      React.createElement(P, null, "Cada oportunidad registra automáticamente cada cambio de etapa. En la ficha de la oportunidad, el panel '🔄 Historial de etapas' muestra una línea de tiempo con:"),
+      React.createElement(LI, null, "Etapa anterior → etapa nueva"),
+      React.createElement(LI, null, "Fecha y hora del cambio"),
+      React.createElement(LI, null, "Días que estuvo en la etapa anterior"),
+      React.createElement(LI, null, "Usuario que realizó el cambio"),
+      React.createElement(Tip, null, "El historial de etapas es automático — no requiere ninguna acción del usuario. Se registra cada vez que se cambia la etapa, ya sea desde el kanban o desde la ficha."),
     ),
 
     // ── CAPÍTULO 4: AGENDA ──
@@ -360,11 +382,13 @@ export async function GET() {
       React.createElement(H2, null, "4.3 Marcar como completada"),
       React.createElement(P, null, 'Marca el checkbox junto a la actividad para marcarla como completada. Las actividades completadas se muestran tachadas. Usa el filtro "Solo pendientes" para enfocarte en lo que falta.'),
 
-      React.createElement(H2, null, "4.4 Recordatorios por email"),
-      React.createElement(P, null, "El CRM puede enviarte notificaciones por email de dos formas:"),
-      React.createElement(LI, null, "Automático: cada mañana a las 8am recibes un email con todas tus actividades vencidas agrupadas, con indicador de días de atraso (rojo ≥7d, ámbar ≥2d)"),
-      React.createElement(LI, null, "Manual: en la lista de la Agenda, las actividades vencidas muestran un ícono 🔔. Al tocarlo recibes el recordatorio en tu correo inmediatamente"),
-      React.createElement(Tip, null, "Las notificaciones están activas. Los emails llegan a la dirección registrada en tu perfil — asegúrate de tenerla actualizada en Mi Perfil."),
+      React.createElement(H2, null, "4.4 Notificaciones por email"),
+      React.createElement(P, null, "Cada mañana a las 8am el CRM envía automáticamente hasta 3 tipos de alertas por email:"),
+      React.createElement(LI, null, "Actividades vencidas: tareas o llamadas pendientes con días de atraso (rojo ≥7d, ámbar ≥2d)"),
+      React.createElement(LI, null, "Negocios estancados: oportunidades activas sin ninguna actividad registrada en más de 14 días"),
+      React.createElement(LI, null, "Cierres próximos: negocios con fecha de cierre estimada en los próximos 7 días"),
+      React.createElement(P, null, "Además, en la Agenda las actividades vencidas muestran un ícono 🔔. Al tocarlo recibes el recordatorio inmediatamente sin esperar al día siguiente."),
+      React.createElement(Tip, null, "Solo recibirás el email de cada tipo si tienes situaciones reales en esa categoría. Si no tienes actividades vencidas, ese email no se envía."),
 
       React.createElement(H2, null, "4.5 Vista de calendario"),
       React.createElement(P, null, "La agenda muestra las actividades del mes en formato lista agrupadas por fecha. Usa los filtros de tipo y estado para encontrar rápidamente lo que buscas."),
@@ -397,6 +421,14 @@ export async function GET() {
       React.createElement(H2, null, "5.4 Catálogo de servicios"),
       React.createElement(P, null, 'Ve a 📦 Catálogo para crear servicios reutilizables con nombre, descripción y precio base. Al crear una cotización, aparece el selector "Agregar servicio del catálogo" que carga los datos automáticamente en una nueva línea.'),
       React.createElement(Nota, null, "El precio del catálogo es un precio base. Puedes modificarlo libremente en cada cotización sin afectar el catálogo."),
+
+      React.createElement(H2, null, "5.5 Fecha de validez y alertas de vencimiento"),
+      React.createElement(P, null, "Cada cotización puede tener una fecha de validez. El sistema monitorea automáticamente las cotizaciones en estado BORRADOR o ENVIADA y muestra alertas cuando están próximas a vencer o ya vencidas:"),
+      React.createElement(LI, null, "Badge rojo 'Vencida Xd' — la fecha de validez ya pasó"),
+      React.createElement(LI, null, "Badge rojo 'Vence hoy' — vence el día de hoy"),
+      React.createElement(LI, null, "Badge ámbar 'Vence en Xd' — vence en 7 días o menos"),
+      React.createElement(P, null, "En el dashboard principal aparece un bloque 📄 en el panel de alertas con el número de cotizaciones vencidas o próximas a vencer. Al hacer clic va directamente a la lista de cotizaciones."),
+      React.createElement(Tip, null, "Cuando una cotización es ACEPTADA o RECHAZADA, los badges de vencimiento desaparecen — el estado definitivo ya no requiere seguimiento de validez."),
     ),
 
     // ── CAPÍTULO 6: IMPORTACIÓN ──
@@ -450,6 +482,14 @@ export async function GET() {
 
       React.createElement(H2, null, "7.5 Top clientes"),
       React.createElement(P, null, "Muestra los 5 clientes con mayor valor ganado en el período seleccionado, con barras horizontales proporcionales. Incluye cantidad de negocios ganados y total de oportunidades."),
+
+      React.createElement(H2, null, "7.6 Metas por vendedor"),
+      React.createElement(P, null, "En el menú Equipo → Rendimiento (visible para ADMINISTRADOR y GERENTE) puedes ver el desempeño individual de cada vendedor con metas mensuales:"),
+      React.createElement(LI, null, "Barra azul: valor ganado en el mes en curso"),
+      React.createElement(LI, null, "Barra con progreso de meta: % alcanzado respecto a la meta mensual asignada"),
+      React.createElement(LI, null, "Color de la barra: ámbar < 60%, azul 60-99%, verde ≥ 100%"),
+      React.createElement(P, null, "El ADMINISTRADOR puede editar la meta de cada vendedor directamente en esa pantalla: haz clic en el ícono ✏️ junto al nombre del vendedor, ingresa el valor en COP y guarda."),
+      React.createElement(Tip, null, "Las metas son por mes: asigna la meta de julio y podrás ver el progreso en tiempo real durante ese mes. Al siguiente mes la barra se reinicia."),
     ),
 
     // ── CAPÍTULO 8: DASHBOARD ──
