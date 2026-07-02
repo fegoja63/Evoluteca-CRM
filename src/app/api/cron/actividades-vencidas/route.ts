@@ -88,7 +88,7 @@ export async function GET(req: Request) {
 
     const { error } = await resend.emails.send({
       from: "Evoluteca CRM <onboarding@resend.dev>",
-      to: "familiagomezpadilla@gmail.com",
+      to: "felipegomezjaramilllo@gmail.com",
       subject: `⏰ [${usuario.nombre}] ${vencidas.length} actividad(es) vencida(s) — Evoluteca CRM`,
       html,
     });
