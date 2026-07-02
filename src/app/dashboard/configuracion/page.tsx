@@ -211,8 +211,22 @@ export default function ConfiguracionPage() {
         )}
       </div>
 
+      {/* Exportar datos */}
+      <div className="mt-10 rounded-2xl border border-slate-200 bg-white p-5">
+        <h2 className="text-sm font-semibold text-slate-700 mb-1">Exportar datos</h2>
+        <p className="text-xs text-slate-400 mb-4">
+          Descarga toda la información del CRM en un solo archivo Excel con múltiples hojas (Clientes, Contactos, Pipeline, Actividades, Cotizaciones). Ideal para backup o análisis externo.
+        </p>
+        <a
+          href="/api/exportar/completo"
+          className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
+        >
+          ⬇ Descargar Excel completo
+        </a>
+      </div>
+
       {esAdmin && (
-        <div className="mt-10 rounded-2xl border border-red-200 bg-red-50 p-5">
+        <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5">
           <h2 className="text-sm font-semibold text-red-800 mb-1">Zona de peligro</h2>
           <p className="text-xs text-red-600 mb-4">
             Borra todos los datos del CRM (empresas, contactos, oportunidades, cotizaciones, actividades, funciones y espectadores). Tu usuario y configuración se conservan. Útil para limpiar datos de prueba antes de empezar en producción.
