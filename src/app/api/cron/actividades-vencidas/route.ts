@@ -64,9 +64,12 @@ export async function GET(req: Request) {
 
     const html = `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1e293b">
-        <div style="background:#1e3a8a;padding:24px;border-radius:12px 12px 0 0">
-          <h2 style="color:white;margin:0;font-size:18px">Evoluteca CRM</h2>
-          <p style="color:#93c5fd;margin:4px 0 0;font-size:13px">Actividades vencidas pendientes</p>
+        <div style="background:#1e3a8a;padding:20px 24px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <h2 style="color:white;margin:0;font-size:18px">Evoluteca CRM</h2>
+            <p style="color:#93c5fd;margin:4px 0 0;font-size:13px">Actividades vencidas pendientes</p>
+          </div>
+          <img src="https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" alt="Felipe Gómez Jaramillo" style="height:48px;width:auto;border-radius:8px;object-fit:contain;background:white;padding:4px" />
         </div>
         <div style="background:#fef9f0;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
           <p style="font-size:14px;color:#64748b;margin-bottom:16px">

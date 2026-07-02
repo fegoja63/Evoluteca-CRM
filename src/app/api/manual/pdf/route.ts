@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import {
-  renderToBuffer, Document, Page, Text, View, StyleSheet,
+  renderToBuffer, Document, Page, Text, View, StyleSheet, Image,
 } from "@react-pdf/renderer";
 import React from "react";
 
@@ -30,6 +30,13 @@ const s = StyleSheet.create({
   portadaVer:  { fontSize: 10, color: "#64748b", borderTopWidth: 1, borderTopColor: "#334155", paddingTop: 16 },
   logoBox:     { width: 60, height: 60, backgroundColor: "#2563eb", borderRadius: 12, alignItems: "center", justifyContent: "center", marginBottom: 32 },
   logoTxt:     { fontSize: 32, fontFamily: "Helvetica-Bold", color: C.blanco },
+  logosRow:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 40 },
+  logoEvol:    { height: 40, width: 140, objectFit: "contain" },
+  logoFGJ:     { height: 44, width: 100, objectFit: "contain", borderRadius: 6 },
+  // Header páginas internas
+  pageHeader:  { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 40, paddingTop: 24, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: "#e2e8f0", marginBottom: 4 },
+  pageHeaderLogo: { height: 28, width: 90, objectFit: "contain" },
+  pageHeaderFGJ:  { height: 28, width: 64, objectFit: "contain", borderRadius: 4 },
   // Secciones
   seccion:     { paddingHorizontal: 40, paddingTop: 32 },
   h1:          { fontSize: 22, fontFamily: "Helvetica-Bold", color: C.azulMedio, marginBottom: 4 },
@@ -73,6 +80,13 @@ const s = StyleSheet.create({
   badge:       { borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, marginRight: 4 },
   badgeTxt:    { fontSize: 8, fontFamily: "Helvetica-Bold" },
 });
+
+function PageHeader() {
+  return React.createElement(View, { style: s.pageHeader, fixed: true },
+    React.createElement(Image, { style: s.pageHeaderLogo, src: "https://evoluteca-crm-six.vercel.app/Logo%20Evoluteca.png" }),
+    React.createElement(Image, { style: s.pageHeaderFGJ,  src: "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" }),
+  );
+}
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
@@ -148,8 +162,9 @@ export async function GET() {
     // ── PORTADA ──
     React.createElement(Page, { size: "A4", style: s.page },
       React.createElement(View, { style: s.portada },
-        React.createElement(View, { style: s.logoBox },
-          React.createElement(Text, { style: s.logoTxt }, "E"),
+        React.createElement(View, { style: s.logosRow },
+          React.createElement(Image, { style: s.logoEvol, src: "https://evoluteca-crm-six.vercel.app/Logo%20Evoluteca.png" }),
+          React.createElement(Image, { style: s.logoFGJ,  src: "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" }),
         ),
         React.createElement(Text, { style: s.portadaTit }, "Evoluteca CRM"),
         React.createElement(Text, { style: s.portadaSub }, "Manual de Usuario — Guía completa"),
@@ -177,6 +192,7 @@ export async function GET() {
 
     // ── CAPÍTULO 1: PRIMEROS PASOS ──
     React.createElement(Page, { size: "A4", style: s.page },
+      React.createElement(PageHeader, null),
       React.createElement(Footer, { numero: 2 }),
       React.createElement(H1, null, "1. Primeros pasos"),
       React.createElement(P, null, "Evoluteca CRM es una herramienta diseñada para que pequeñas y medianas empresas gestionen sus clientes, oportunidades de venta y actividades comerciales desde un solo lugar. El dashboard principal muestra un resumen ejecutivo con banner de bienvenida, KPIs en tiempo real, pipeline visual, actividades del día, funciones próximas y accesos rápidos a las acciones más frecuentes."),
@@ -226,6 +242,7 @@ export async function GET() {
 
     // ── CAPÍTULO 2: CLIENTES Y CONTACTOS ──
     React.createElement(Page, { size: "A4", style: s.page },
+      React.createElement(PageHeader, null),
       React.createElement(Footer, { numero: 3 }),
       React.createElement(H1, null, "2. Clientes y contactos"),
 
@@ -263,6 +280,7 @@ export async function GET() {
 
     // ── CAPÍTULO 3: PIPELINE ──
     React.createElement(Page, { size: "A4", style: s.page },
+      React.createElement(PageHeader, null),
       React.createElement(Footer, { numero: 4 }),
       React.createElement(H1, null, "3. Pipeline de ventas"),
       React.createElement(P, null, "El pipeline organiza visualmente las oportunidades de venta por etapa comercial. Cada tarjeta representa una oportunidad con cliente, valor y fecha."),
@@ -325,6 +343,7 @@ export async function GET() {
 
     // ── CAPÍTULO 4: AGENDA ──
     React.createElement(Page, { size: "A4", style: s.page },
+      React.createElement(PageHeader, null),
       React.createElement(Footer, { numero: 5 }),
       React.createElement(H1, null, "4. Agenda y actividades"),
       React.createElement(P, null, "La agenda centraliza todas las actividades comerciales: llamadas, reuniones, tareas y correos. Cada actividad puede vincularse a un cliente, contacto y/o oportunidad."),
@@ -353,6 +372,7 @@ export async function GET() {
 
     // ── CAPÍTULO 5: COTIZACIONES ──
     React.createElement(Page, { size: "A4", style: s.page },
+      React.createElement(PageHeader, null),
       React.createElement(Footer, { numero: 6 }),
       React.createElement(H1, null, "5. Cotizaciones formales"),
       React.createElement(P, null, "Las cotizaciones formales son documentos con desglose detallado de servicios, cantidades, precios unitarios y total. Se generan en PDF listas para enviar al cliente."),
@@ -381,6 +401,7 @@ export async function GET() {
 
     // ── CAPÍTULO 6: IMPORTACIÓN ──
     React.createElement(Page, { size: "A4", style: s.page },
+      React.createElement(PageHeader, null),
       React.createElement(Footer, { numero: 7 }),
       React.createElement(H1, null, "6. Importación de datos desde Excel"),
       React.createElement(P, null, "Si tienes una base de datos en Excel, puedes importarla directamente al CRM. El sistema crea automáticamente empresas, contactos y oportunidades vinculados entre sí."),
@@ -402,6 +423,7 @@ export async function GET() {
 
     // ── CAPÍTULO 7: REPORTES ──
     React.createElement(Page, { size: "A4", style: s.page },
+      React.createElement(PageHeader, null),
       React.createElement(Footer, { numero: 8 }),
       React.createElement(H1, null, "7. Reportes y metas"),
       React.createElement(P, null, "Los reportes muestran el desempeño comercial del equipo: valor ganado, tasa de cierre, oportunidades por etapa, top clientes y actividad mensual."),
@@ -432,6 +454,7 @@ export async function GET() {
 
     // ── CAPÍTULO 8: DASHBOARD ──
     React.createElement(Page, { size: "A4", style: s.page },
+      React.createElement(PageHeader, null),
       React.createElement(Footer, { numero: 9 }),
       React.createElement(H1, null, "9. Dashboard — alertas, salud comercial y productividad"),
       React.createElement(P, null, "El dashboard es la pantalla principal del CRM. Muestra un resumen ejecutivo personalizado con información en tiempo real del estado comercial."),
@@ -459,6 +482,7 @@ export async function GET() {
 
     // ── CAPÍTULO 9: CONFIGURACIÓN ──
     React.createElement(Page, { size: "A4", style: s.page },
+      React.createElement(PageHeader, null),
       React.createElement(Footer, { numero: 10 }),
       React.createElement(H1, null, "10. Configuración, equipo y perfiles"),
 

@@ -7,10 +7,15 @@ export const dynamic = "force-dynamic";
 
 const BASE_URL = process.env.NEXTAUTH_URL ?? "https://evoluteca-crm-six.vercel.app";
 
-function header(titulo: string, subtitulo: string) {
-  return `<div style="background:#1e3a8a;padding:24px;border-radius:12px 12px 0 0">
-    <h2 style="color:white;margin:0;font-size:18px">Evoluteca CRM</h2>
-    <p style="color:#93c5fd;margin:4px 0 0;font-size:13px">${subtitulo}</p>
+const LOGO_FGJ = "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg";
+
+function header(_titulo: string, subtitulo: string) {
+  return `<div style="background:#1e3a8a;padding:20px 24px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <h2 style="color:white;margin:0;font-size:18px">Evoluteca CRM</h2>
+      <p style="color:#93c5fd;margin:4px 0 0;font-size:13px">${subtitulo}</p>
+    </div>
+    <img src="${LOGO_FGJ}" alt="Felipe Gómez Jaramillo" style="height:48px;width:auto;border-radius:8px;object-fit:contain;background:white;padding:4px" />
   </div>`;
 }
 
