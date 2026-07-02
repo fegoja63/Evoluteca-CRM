@@ -46,13 +46,15 @@ model Tenant {
 }
 
 model Usuario {
-  id            String      @id @default(uuid())
-  nombre        String
-  email         String      @unique
-  passwordHash  String
-  rol           RolUsuario  @default(COMERCIAL)
-  activo        Boolean     @default(true)
-  creadoEn      DateTime    @default(now())
+  id                 String      @id @default(uuid())
+  nombre             String
+  email              String      @unique
+  passwordHash       String
+  rol                RolUsuario  @default(COMERCIAL)
+  activo             Boolean     @default(true)
+  creadoEn           DateTime    @default(now())
+  resetToken         String?     @unique
+  resetTokenExpiry   DateTime?
 
   tenantId      String
   tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
