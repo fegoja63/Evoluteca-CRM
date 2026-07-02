@@ -24,13 +24,13 @@ const C = {
 const s = StyleSheet.create({
   page:        { fontFamily: "Helvetica", fontSize: 10, color: C.negro, backgroundColor: C.blanco, paddingBottom: 50 },
   // Portada
-  portada:     { backgroundColor: C.azul, flex: 1, padding: 60, justifyContent: "center" },
+  portada:     { backgroundColor: C.azul, flex: 1, paddingHorizontal: 60, paddingBottom: 60, paddingTop: 0, justifyContent: "flex-start" },
   portadaTit:  { fontSize: 36, fontFamily: "Helvetica-Bold", color: C.blanco, marginBottom: 8 },
   portadaSub:  { fontSize: 16, color: "#93c5fd", marginBottom: 40 },
   portadaVer:  { fontSize: 10, color: "#64748b", borderTopWidth: 1, borderTopColor: "#334155", paddingTop: 16 },
   logoBox:     { width: 60, height: 60, backgroundColor: "#2563eb", borderRadius: 12, alignItems: "center", justifyContent: "center", marginBottom: 32 },
   logoTxt:     { fontSize: 32, fontFamily: "Helvetica-Bold", color: C.blanco },
-  logosRow:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 40, backgroundColor: "#ffffff", borderRadius: 10, paddingHorizontal: 20, paddingVertical: 12 },
+  logosRow:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 80, marginHorizontal: -60, backgroundColor: "#ffffff", paddingHorizontal: 60, paddingVertical: 16 },
   logoEvol:    { height: 40, width: 140, objectFit: "contain" },
   logoFGJ:     { height: 44, width: 100, objectFit: "contain", borderRadius: 6 },
   // Header páginas internas
