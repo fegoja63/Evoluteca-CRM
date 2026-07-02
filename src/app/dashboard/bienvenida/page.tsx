@@ -122,10 +122,6 @@ export default function BienvenidaPage() {
                 className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">
                 <span>⬇</span> Descargar PDF
               </a>
-              <a href="/api/manual/word" target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 transition-colors">
-                <span>⬇</span> Descargar Word
-              </a>
             </div>
           </div>
         </div>
