@@ -14,6 +14,7 @@ import { ExtrasPanel } from "@/components/extras-panel";
 import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 import { TimelineCliente } from "@/components/timeline-cliente";
 import { NotasRapidas } from "@/components/notas-rapidas";
+import { Etiquetas } from "@/components/etiquetas";
 
 type Detalle = {
   id: string;
@@ -24,6 +25,7 @@ type Detalle = {
   sitioWeb: string | null;
   telefono: string | null;
   notas: string | null;
+  etiquetas: string[];
   contactos: { id: string; nombre: string; cargo: string | null; telefono: string | null }[];
   oportunidades: { id: string; titulo: string; etapa: string; valor: string | null }[];
   actividades: { id: string; titulo: string; fecha: string; completada: boolean }[];
@@ -179,6 +181,21 @@ export default function FichaClientePage() {
       )}
 
       <ExtrasPanel extras={empresa.extras} />
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <h2 className="text-sm font-bold text-slate-700 mb-3">Etiquetas</h2>
+        <Etiquetas
+          etiquetas={empresa.etiquetas ?? []}
+          onGuardar={async (etiquetas) => {
+            await fetch(`/api/empresas/${empresa.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ etiquetas }),
+            });
+            cargar();
+          }}
+        />
+      </div>
 
       <NotasRapidas
         valor={empresa.notas}

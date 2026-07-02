@@ -67,6 +67,11 @@ export async function GET() {
 
     const metaMes = Number(metas.find(m => m.userId === u.id)?.meta ?? 0);
 
+    const porEtapa: Record<string, number> = {};
+    for (const o of ops) {
+      porEtapa[o.etapa] = (porEtapa[o.etapa] ?? 0) + 1;
+    }
+
     return {
       id: u.id,
       nombre: u.nombre,
@@ -85,6 +90,7 @@ export async function GET() {
       actsVencidas,
       actsCompletadas,
       metaMes,
+      porEtapa,
     };
   });
 

@@ -13,6 +13,7 @@ type Empresa = {
   telefono: string | null;
   sitioWeb: string | null;
   creadoEn: string;
+  etiquetas: string[];
   _count: { contactos: number };
 };
 
@@ -27,6 +28,7 @@ export default function ClientesPage() {
   const router = useRouter();
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [busqueda, setBusqueda] = useState("");
+  const [filtroEtiqueta, setFiltroEtiqueta] = useState("");
   const [cargando, setCargando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -101,6 +103,12 @@ export default function ClientesPage() {
             </button>
           )}
         </div>
+        {filtroEtiqueta && (
+          <button onClick={() => setFiltroEtiqueta("")}
+            className="flex items-center gap-1.5 rounded-full bg-blue-100 text-blue-700 px-3 py-1 text-xs font-medium hover:bg-blue-200">
+            🏷 {filtroEtiqueta} <span className="font-bold">×</span>
+          </button>
+        )}
         <div className="flex gap-2">
           <a href="/api/exportar/clientes"
             className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1.5">
@@ -198,11 +206,12 @@ export default function ClientesPage() {
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Email</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Teléfono</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Sector</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Etiquetas</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Contactos</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {empresas.map((e) => (
+              {empresas.filter(e => !filtroEtiqueta || (e.etiquetas ?? []).includes(filtroEtiqueta)).map((e) => (
                 <tr key={e.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-1 font-medium text-slate-900">
                     <Link href={`/dashboard/cuentas/${e.id}`} className="hover:text-blue-600 hover:underline">
@@ -212,6 +221,16 @@ export default function ClientesPage() {
                   <td className="px-4 py-1 text-slate-500">{e.email ?? "—"}</td>
                   <td className="px-4 py-1 text-slate-500">{e.telefono ?? "—"}</td>
                   <td className="px-4 py-1 text-slate-500">{e.sector ?? "—"}</td>
+                  <td className="px-4 py-1">
+                    <div className="flex flex-wrap gap-1">
+                      {(e.etiquetas ?? []).map(tag => (
+                        <button key={tag} onClick={() => setFiltroEtiqueta(filtroEtiqueta === tag ? "" : tag)}
+                          className={`rounded-full px-2 py-0.5 text-xs font-medium transition-all ${filtroEtiqueta === tag ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </td>
                   <td className="px-4 py-1 text-slate-500">{e._count.contactos}</td>
                 </tr>
               ))}

@@ -57,6 +57,9 @@ export default function CotizacionDetailPage() {
   const [editNotas, setEditNotas] = useState(false);
   const [notas, setNotas]       = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [duplicando, setDuplicando] = useState(false);
+  const [enviando, setEnviando]   = useState(false);
+  const [enviado, setEnviado]     = useState(false);
 
   async function cargar() {
     setCargando(true);
@@ -95,6 +98,23 @@ export default function CotizacionDetailPage() {
     if (!confirm("¿Eliminar esta cotización? Esta acción no se puede deshacer.")) return;
     await fetch(`/api/cotizaciones/${id}`, { method: "DELETE" });
     router.push("/dashboard/cotizaciones-formales");
+  }
+
+  async function duplicar() {
+    setDuplicando(true);
+    const res = await fetch(`/api/cotizaciones/${id}/duplicar`, { method: "POST" });
+    const data = await res.json();
+    setDuplicando(false);
+    if (data.id) router.push(`/dashboard/cotizaciones-formales/${data.id}`);
+  }
+
+  async function enviarEmail() {
+    setEnviando(true);
+    await fetch(`/api/cotizaciones/${id}/enviar-email`, { method: "POST" });
+    setEnviando(false);
+    setEnviado(true);
+    setTimeout(() => setEnviado(false), 3000);
+    cargar();
   }
 
   if (cargando || !cot) return <p className="text-sm text-slate-400 p-6">Cargando...</p>;
@@ -139,6 +159,14 @@ export default function CotizacionDetailPage() {
               {t.label}
             </button>
           ))}
+          <button onClick={enviarEmail} disabled={enviando || enviado}
+            className="rounded-xl border border-blue-200 px-3 py-2 text-xs font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 transition-colors">
+            {enviado ? "✓ Enviado" : enviando ? "Enviando..." : "✉ Enviar email"}
+          </button>
+          <button onClick={duplicar} disabled={duplicando}
+            className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors">
+            {duplicando ? "Duplicando..." : "⧉ Duplicar"}
+          </button>
           <a href={`/api/cotizaciones/${cot.id}/pdf`} target="_blank" rel="noopener noreferrer"
             className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5">
             ⬇ Descargar PDF

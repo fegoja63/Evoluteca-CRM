@@ -23,6 +23,7 @@ type Vendedor = {
   actsVencidas: number;
   actsCompletadas: number;
   metaMes: number;
+  porEtapa?: Record<string, number>;
 };
 
 const ROL_LABEL: Record<string, string> = {
@@ -288,6 +289,33 @@ export default function RendimientoPage() {
                   ))}
                 </div>
               </div>
+
+              {/* Embudo por etapa */}
+              {detalle.porEtapa && (
+                <div className="mt-4 rounded-xl border border-slate-100 p-4">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Embudo de conversión</p>
+                  {[
+                    { etapa: "PROSPECTO",   label: "Prospecto",   color: "bg-slate-300" },
+                    { etapa: "CALIFICADO",  label: "Calificado",  color: "bg-blue-400" },
+                    { etapa: "PROPUESTA",   label: "Cotización",  color: "bg-violet-400" },
+                    { etapa: "NEGOCIACION", label: "Negociación", color: "bg-amber-400" },
+                    { etapa: "GANADA",      label: "Ganada",      color: "bg-emerald-500" },
+                    { etapa: "PERDIDA",     label: "Perdida",     color: "bg-red-400" },
+                  ].map(({ etapa, label, color }) => {
+                    const n = detalle.porEtapa?.[etapa] ?? 0;
+                    const max = Math.max(...Object.values(detalle.porEtapa ?? {}), 1);
+                    return (
+                      <div key={etapa} className="flex items-center gap-2 mb-1.5">
+                        <span className="text-xs text-slate-500 w-24 shrink-0">{label}</span>
+                        <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div className={`h-2 rounded-full ${color} transition-all duration-500`} style={{ width: `${n > 0 ? Math.max((n / max) * 100, 4) : 0}%` }} />
+                        </div>
+                        <span className="text-xs font-bold text-slate-700 w-6 text-right">{n}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 

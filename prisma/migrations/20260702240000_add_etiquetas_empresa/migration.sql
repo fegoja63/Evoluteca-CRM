@@ -1,0 +1,1 @@
+ALTER TABLE "empresas" ADD COLUMN IF NOT EXISTS "etiquetas" TEXT[] NOT NULL DEFAULT '{}';

@@ -37,7 +37,15 @@ export async function PATCH(
   if (!existente) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
 
   const body = await request.json();
-  const { nombre, email, sector, sitioWeb, telefono, notas } = body;
+  const { nombre, email, sector, sitioWeb, telefono, notas, etiquetas } = body;
+
+  if (etiquetas !== undefined && !nombre) {
+    const empresa = await prisma.empresa.update({
+      where: { id: params.id },
+      data: { etiquetas: Array.isArray(etiquetas) ? etiquetas : [] },
+    });
+    return NextResponse.json(empresa);
+  }
 
   if (!nombre?.trim()) {
     return NextResponse.json({ error: "El nombre es obligatorio" }, { status: 400 });
@@ -52,6 +60,7 @@ export async function PATCH(
       sitioWeb: sitioWeb?.trim() || null,
       telefono: telefono?.trim() || null,
       notas: notas?.trim() || null,
+      ...(etiquetas !== undefined ? { etiquetas } : {}),
     },
   });
 

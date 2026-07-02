@@ -74,6 +74,7 @@ model Empresa {
   sitioWeb    String?
   telefono    String?
   notas       String?
+  etiquetas   String[]
   extras      Json?
   creadoEn    DateTime  @default(now())
   creadoBy    String?
