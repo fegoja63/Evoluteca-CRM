@@ -13,7 +13,11 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git checkout *)",
-      "Bash(git merge sprint13/extras-json --no-ff -m 'merge: sprint13/extras-json → master *)"
+      "Bash(git merge sprint13/extras-json --no-ff -m 'merge: sprint13/extras-json → master *)",
+      "WebFetch(domain:centroculturalhaciendaelcedro.com)",
+      "WebSearch",
+      "Bash(git push *)",
+      "Bash(xargs sed -i -e 's/grid grid-cols-4 gap-4 mb-8/grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8/g' -e 's/grid grid-cols-4 gap-4 mb-6/grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6/g' -e 's/grid grid-cols-4 gap-4\"/grid grid-cols-2 sm:grid-cols-4 gap-4\"/g' -e 's/grid grid-cols-3 gap-4 mb-5/grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5/g' -e 's/grid grid-cols-3 gap-4 mb-6/grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6/g' -e 's/grid grid-cols-3 gap-4\"/grid grid-cols-1 sm:grid-cols-3 gap-4\"/g' -e 's/grid grid-cols-3 gap-6\"/grid grid-cols-1 sm:grid-cols-3 gap-6\"/g' -e 's/grid grid-cols-3 gap-3\"/grid grid-cols-1 sm:grid-cols-3 gap-3\"/g' -e 's/grid grid-cols-5 gap-4 mb-6/grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6/g' -e 's/grid grid-cols-5 gap-3\"/grid grid-cols-2 sm:grid-cols-5 gap-3\"/g' -e 's/grid grid-cols-2 gap-4 mt-4/grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4/g' -e 's/grid grid-cols-2 gap-4 mb-5/grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5/g' -e 's/grid grid-cols-2 gap-5 mb-5/grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5/g' -e 's/grid grid-cols-2 gap-3 mb-4/grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4/g' -e 's/grid grid-cols-2 gap-3 mb-6/grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6/g' -e 's/\"grid grid-cols-2 gap-3\"/\"grid grid-cols-1 sm:grid-cols-2 gap-3\"/g' -e 's/\"grid grid-cols-2 gap-4\"/\"grid grid-cols-1 sm:grid-cols-2 gap-4\"/g')"
     ]
   }
 }

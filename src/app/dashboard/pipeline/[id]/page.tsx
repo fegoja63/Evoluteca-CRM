@@ -203,7 +203,7 @@ export default function OportunidadDetallePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-xs text-slate-400 mb-1">Valor cotizado</p>
                 <p className="text-lg font-bold text-emerald-700">{op.valor ? fmt(Number(op.valor)) : "—"}</p>
@@ -249,7 +249,7 @@ export default function OportunidadDetallePage() {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-5 mb-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
         {/* Cliente */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <h2 className="text-sm font-bold text-slate-900 mb-3">Cliente</h2>

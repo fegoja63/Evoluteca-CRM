@@ -150,7 +150,7 @@ export default function FichaFuncionPage() {
       {/* Header */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-5">
         {editando ? (
-          <form onSubmit={handleGuardar} className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleGuardar} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="text-xs text-slate-500 mb-1 block">Título *</label>
               <input required value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})}

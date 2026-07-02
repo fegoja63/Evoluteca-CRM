@@ -129,7 +129,7 @@ export default function FichaEspectadorPage() {
         </div>
 
         {editando ? (
-          <form onSubmit={handleGuardar} className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleGuardar} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="text-xs text-slate-500 mb-1 block">Nombre *</label>
               <input required value={form.nombre} onChange={e => setForm({...form, nombre: e.target.value})}
@@ -177,7 +177,7 @@ export default function FichaEspectadorPage() {
       </div>
 
       {/* KPIs NPS */}
-      <div className="grid grid-cols-3 gap-4 mb-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <p className="text-xs text-slate-400 mb-1">Funciones asistidas</p>
           <p className="text-2xl font-bold text-slate-900">{esp.npsList.length}</p>

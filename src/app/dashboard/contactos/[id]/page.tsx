@@ -123,7 +123,7 @@ export default function FichaContactoPage() {
 
       {editando ? (
         <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-          <form onSubmit={handleGuardar} className="grid grid-cols-2 gap-3">
+          <form onSubmit={handleGuardar} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-neutral-500">Nombre *</label>
               <input
@@ -201,7 +201,7 @@ export default function FichaContactoPage() {
 
       <ExtrasPanel extras={contacto.extras} />
 
-      <div className="grid grid-cols-2 gap-4 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
         <div className="rounded-xl border border-neutral-200 p-4">
           <h2 className="mb-3 text-sm font-medium text-neutral-900">
             Oportunidades ({contacto.oportunidades.length})

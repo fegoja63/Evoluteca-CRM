@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef } from "react";
 import Link from "next/link";
@@ -6,19 +6,19 @@ import Link from "next/link";
 type Resultado = { creados: number; errores: number; total: number } | null;
 
 const MODULOS_EXPORT = [
-  { key: "empresas", label: "Empresas / Cuentas", emoji: "ðŸ¢" },
-  { key: "contactos", label: "Contactos", emoji: "ðŸ‘¤" },
-  { key: "pipeline", label: "Pipeline", emoji: "â—ˆ" },
-  { key: "agenda", label: "Agenda", emoji: "ðŸ“…" },
-  { key: "cotizaciones", label: "Cotizaciones", emoji: "ðŸ“„" },
-  { key: "espectadores", label: "Audiencia", emoji: "ðŸŽª" },
-  { key: "funciones", label: "Funciones", emoji: "ðŸŽ­" },
+  { key: "empresas", label: "Empresas / Cuentas", emoji: "🏢" },
+  { key: "contactos", label: "Contactos", emoji: "👤" },
+  { key: "pipeline", label: "Pipeline", emoji: "◈" },
+  { key: "agenda", label: "Agenda", emoji: "📅" },
+  { key: "cotizaciones", label: "Cotizaciones", emoji: "📄" },
+  { key: "espectadores", label: "Audiencia", emoji: "🎪" },
+  { key: "funciones", label: "Funciones", emoji: "🎭" },
 ];
 
 const MODULOS_IMPORT = [
-  { key: "empresas", label: "Empresas / Cuentas", emoji: "ðŸ¢" },
-  { key: "contactos", label: "Contactos", emoji: "ðŸ‘¤" },
-  { key: "espectadores", label: "Audiencia", emoji: "ðŸŽª" },
+  { key: "empresas", label: "Empresas / Cuentas", emoji: "🏢" },
+  { key: "contactos", label: "Contactos", emoji: "👤" },
+  { key: "espectadores", label: "Audiencia", emoji: "🎪" },
 ];
 
 export default function DatosPage() {
@@ -52,37 +52,37 @@ export default function DatosPage() {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-slate-900">Datos</h1>
-        <p className="text-slate-500 text-sm mt-1">Importa y exporta informaciÃ³n del CRM en formato Excel</p>
+        <p className="text-slate-500 text-sm mt-1">Importa y exporta información del CRM en formato Excel</p>
       </div>
 
       {/* IMPORTACION COMPLETA */}
       <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold text-emerald-900">ðŸš€ ImportaciÃ³n completa desde un solo Excel</p>
-          <p className="text-xs text-emerald-700 mt-1">Crea Cuentas, Contactos y Pipeline vinculados en una sola operaciÃ³n.</p>
+          <p className="text-sm font-semibold text-emerald-900">🚀 Importación completa desde un solo Excel</p>
+          <p className="text-xs text-emerald-700 mt-1">Crea Cuentas, Contactos y Pipeline vinculados en una sola operación.</p>
         </div>
         <Link href="/dashboard/datos/importar-completo"
           className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 shrink-0 ml-4">
-          Importar todo â†’
+          Importar todo →
         </Link>
       </div>
 
       {/* IMPORTACION AVANZADA */}
       <div className="mb-8 rounded-2xl border border-blue-200 bg-blue-50 p-5 flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold text-blue-900">Â¿Quieres importar un mÃ³dulo especÃ­fico?</p>
+          <p className="text-sm font-semibold text-blue-900">¿Quieres importar un módulo específico?</p>
           <p className="text-xs text-blue-600 mt-1">Sube tu archivo y mapea tus columnas a los campos del CRM.</p>
         </div>
         <Link href="/dashboard/datos/importar"
           className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 shrink-0 ml-4">
-          Importar un mÃ³dulo â†’
+          Importar un módulo →
         </Link>
       </div>
 
       {/* EXPORTAR */}
       <div className="mb-10">
         <h2 className="text-sm font-semibold text-slate-700 mb-1">Exportar a Excel</h2>
-        <p className="text-xs text-slate-400 mb-4">Descarga los datos actuales de cada mÃ³dulo en un archivo .xlsx listo para usar.</p>
+        <p className="text-xs text-slate-400 mb-4">Descarga los datos actuales de cada módulo en un archivo .xlsx listo para usar.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {MODULOS_EXPORT.map((m) => (
             <div key={m.key} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4">
@@ -94,7 +94,7 @@ export default function DatosPage() {
                 onClick={() => descargar(`/api/exportar/${m.key}`, `${m.key}.xlsx`)}
                 className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700"
               >
-                â†“ Exportar
+                ↓ Exportar
               </button>
             </div>
           ))}
@@ -104,7 +104,7 @@ export default function DatosPage() {
       {/* PLANTILLAS */}
       <div className="mb-10">
         <h2 className="text-sm font-semibold text-slate-700 mb-1">Descargar plantillas</h2>
-        <p className="text-xs text-slate-400 mb-4">Descarga una plantilla vacÃ­a con el formato correcto, llÃ©nala con tus datos y luego impÃ³rtala.</p>
+        <p className="text-xs text-slate-400 mb-4">Descarga una plantilla vacía con el formato correcto, llénala con tus datos y luego impórtala.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {MODULOS_IMPORT.map((m) => (
             <div key={m.key} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4">
@@ -119,7 +119,7 @@ export default function DatosPage() {
                 onClick={() => descargar(`/api/plantilla/${m.key}`, `plantilla_${m.key}.xlsx`)}
                 className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
               >
-                â†“ Plantilla
+                ↓ Plantilla
               </button>
             </div>
           ))}
@@ -133,7 +133,7 @@ export default function DatosPage() {
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <div className="mb-5">
-            <label className="block text-xs font-medium text-slate-600 mb-2">1. Selecciona el mÃ³dulo a importar</label>
+            <label className="block text-xs font-medium text-slate-600 mb-2">1. Selecciona el módulo a importar</label>
             <div className="flex flex-wrap gap-2">
               {MODULOS_IMPORT.map((m) => (
                 <button
@@ -168,7 +168,7 @@ export default function DatosPage() {
                 disabled={!!importando}
                 className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
               >
-                {importando ? "Importando..." : "â†‘ Importar ahora"}
+                {importando ? "Importando..." : "↑ Importar ahora"}
               </button>
             </>
           )}
@@ -176,12 +176,12 @@ export default function DatosPage() {
           {resultado && (
             <div className={`mt-5 rounded-2xl p-4 ${resultado.errores === 0 ? "bg-emerald-50 border border-emerald-200" : "bg-amber-50 border border-amber-200"}`}>
               <p className={`text-sm font-semibold ${resultado.errores === 0 ? "text-emerald-700" : "text-amber-700"}`}>
-                {resultado.errores === 0 ? "âœ“ ImportaciÃ³n exitosa" : "âš  ImportaciÃ³n con advertencias"}
+                {resultado.errores === 0 ? "✓ Importación exitosa" : "⚠ Importación con advertencias"}
               </p>
               <p className="text-sm text-slate-600 mt-1">
                 {resultado.creados} registros importados correctamente
-                {resultado.errores > 0 && ` Â· ${resultado.errores} filas con error (nombre vacÃ­o o dato invÃ¡lido)`}
-                {" Â· "}Total procesado: {resultado.total} filas
+                {resultado.errores > 0 && ` · ${resultado.errores} filas con error (nombre vacío o dato inválido)`}
+                {" · "}Total procesado: {resultado.total} filas
               </p>
             </div>
           )}

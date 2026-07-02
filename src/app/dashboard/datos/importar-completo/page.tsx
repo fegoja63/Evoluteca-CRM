@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef } from "react";
 import Link from "next/link";
@@ -24,21 +24,21 @@ type Resultado = {
 };
 
 const CAMPOS = [
-  { key: "empresa",           label: "Empresa / Cliente",      emoji: "ðŸ¢", desc: "Nombre de la empresa o cliente", requerido: true },
-  { key: "contacto",          label: "Contacto / Persona",      emoji: "ðŸ‘¤", desc: "Nombre de la persona de contacto", requerido: true },
-  { key: "tituloOportunidad", label: "Tipo de negocio / evento",emoji: "â—ˆ",  desc: "Tipo de evento o nombre del negocio", requerido: true },
-  { key: "etapaOportunidad",  label: "Estado / Etapa",          emoji: "ðŸ·ï¸", desc: "HECHO, DESCARTADO, EN PROCESOâ€¦", requerido: false },
-  { key: "valorOportunidad",  label: "Valor cotizado",          emoji: "ðŸ’°", desc: "Solo nÃºmeros (sin sÃ­mbolos)", requerido: false },
-  { key: "costoOportunidad",  label: "Costo del evento",        emoji: "ðŸ’¸", desc: "Costo interno", requerido: false },
-  { key: "fechaEvento",       label: "Fecha del evento",        emoji: "ðŸ“…", desc: "Fecha en que ocurre el evento", requerido: false },
-  { key: "fechaCierre",       label: "Fecha de cierre",         emoji: "ðŸ“†", desc: "Fecha de cierre del negocio", requerido: false },
-  { key: "sede",              label: "Sede / Sala",             emoji: "ðŸ“", desc: "Lugar del evento", requerido: false },
-  { key: "origenLead",        label: "Origen del lead",         emoji: "ðŸŽ¯", desc: "CÃ³mo llegÃ³ este cliente", requerido: false },
-  { key: "segmento",          label: "Segmento",                emoji: "ðŸ‘¥", desc: "Tipo de cliente", requerido: false },
-  { key: "emailContacto",     label: "Email del contacto",      emoji: "âœ‰ï¸", desc: "", requerido: false },
-  { key: "telefonoContacto",  label: "TelÃ©fono del contacto",   emoji: "ðŸ“ž", desc: "", requerido: false },
-  { key: "cargoContacto",     label: "Cargo del contacto",      emoji: "ðŸ’¼", desc: "", requerido: false },
-  { key: "recurrente",        label: "Recurrente",              emoji: "ðŸ”", desc: "SI / NO", requerido: false },
+  { key: "empresa",           label: "Empresa / Cliente",      emoji: "🏢", desc: "Nombre de la empresa o cliente", requerido: true },
+  { key: "contacto",          label: "Contacto / Persona",      emoji: "👤", desc: "Nombre de la persona de contacto", requerido: true },
+  { key: "tituloOportunidad", label: "Tipo de negocio / evento",emoji: "◈",  desc: "Tipo de evento o nombre del negocio", requerido: true },
+  { key: "etapaOportunidad",  label: "Estado / Etapa",          emoji: "🏷️", desc: "HECHO, DESCARTADO, EN PROCESO…", requerido: false },
+  { key: "valorOportunidad",  label: "Valor cotizado",          emoji: "💰", desc: "Solo números (sin símbolos)", requerido: false },
+  { key: "costoOportunidad",  label: "Costo del evento",        emoji: "💸", desc: "Costo interno", requerido: false },
+  { key: "fechaEvento",       label: "Fecha del evento",        emoji: "📅", desc: "Fecha en que ocurre el evento", requerido: false },
+  { key: "fechaCierre",       label: "Fecha de cierre",         emoji: "📆", desc: "Fecha de cierre del negocio", requerido: false },
+  { key: "sede",              label: "Sede / Sala",             emoji: "📍", desc: "Lugar del evento", requerido: false },
+  { key: "origenLead",        label: "Origen del lead",         emoji: "🎯", desc: "Cómo llegó este cliente", requerido: false },
+  { key: "segmento",          label: "Segmento",                emoji: "👥", desc: "Tipo de cliente", requerido: false },
+  { key: "emailContacto",     label: "Email del contacto",      emoji: "✉️", desc: "", requerido: false },
+  { key: "telefonoContacto",  label: "Teléfono del contacto",   emoji: "📞", desc: "", requerido: false },
+  { key: "cargoContacto",     label: "Cargo del contacto",      emoji: "💼", desc: "", requerido: false },
+  { key: "recurrente",        label: "Recurrente",              emoji: "🔁", desc: "SI / NO", requerido: false },
 ];
 
 export default function ImportarCompletoPage() {
@@ -68,7 +68,7 @@ export default function ImportarCompletoPage() {
     function esColumnaNumerica(col: string): boolean {
       const vals = data.muestra.map((f) => f[col]).filter(Boolean);
       if (vals.length === 0) return false;
-      const numericos = vals.filter((v) => !isNaN(Number(v.replace(/[.,\s$â‚¬Â£]/g, "")))).length;
+      const numericos = vals.filter((v) => !isNaN(Number(v.replace(/[.,\s$€£]/g, "")))).length;
       return numericos / vals.length >= 0.5;
     }
 
@@ -145,13 +145,13 @@ export default function ImportarCompletoPage() {
   return (
     <div>
       <div className="mb-6 flex items-center gap-3">
-        <Link href="/dashboard/datos" className="text-xs text-slate-500 hover:underline">â† Datos</Link>
+        <Link href="/dashboard/datos" className="text-xs text-slate-500 hover:underline">← Datos</Link>
         <span className="text-slate-300">/</span>
-        <h1 className="text-xl font-semibold text-slate-900">ImportaciÃ³n completa</h1>
+        <h1 className="text-xl font-semibold text-slate-900">Importación completa</h1>
       </div>
 
       <div className="mb-6 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800">
-        <strong>ImportaciÃ³n inteligente:</strong> desde un solo Excel crea automÃ¡ticamente las Empresas, Contactos y Oportunidades del Pipeline â€” todos vinculados entre sÃ­.
+        <strong>Importación inteligente:</strong> desde un solo Excel crea automáticamente las Empresas, Contactos y Oportunidades del Pipeline — todos vinculados entre sí.
       </div>
 
       {/* Pasos */}
@@ -165,21 +165,21 @@ export default function ImportarCompletoPage() {
         ))}
       </div>
 
-      {/* â”€â”€ PASO 1 â”€â”€ */}
+      {/* ── PASO 1 ── */}
       {paso === 1 && (
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
           <h2 className="text-sm font-semibold text-slate-800 mb-1">Sube tu archivo Excel</h2>
-          <p className="text-xs text-slate-400 mb-4">Puede tener cualquier formato de columnas. En el siguiente paso verÃ¡s los datos y asignarÃ¡s cada columna al campo del CRM.</p>
+          <p className="text-xs text-slate-400 mb-4">Puede tener cualquier formato de columnas. En el siguiente paso verás los datos y asignarás cada columna al campo del CRM.</p>
           <input ref={fileRef} type="file" accept=".xlsx,.xls"
             className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 mb-5" />
           <button onClick={handlePrevisualizar} disabled={cargando}
             className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
-            {cargando ? "Leyendo archivo..." : "Continuar â†’"}
+            {cargando ? "Leyendo archivo..." : "Continuar →"}
           </button>
         </div>
       )}
 
-      {/* â”€â”€ PASO 2 â”€â”€ */}
+      {/* ── PASO 2 ── */}
       {paso === 2 && preview && (
         <div className="flex gap-6">
           {/* Panel izquierdo: columnas del Excel */}
@@ -189,7 +189,7 @@ export default function ImportarCompletoPage() {
                 <p className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Columnas de tu Excel</p>
                 <button onClick={() => setPaso(1)} className="text-xs text-slate-400 hover:underline">Cambiar archivo</button>
               </div>
-              <p className="text-xs text-slate-400 mb-3">{preview.totalFilas} filas Â· {preview.columnas.length} columnas. Haz clic en cualquier columna para ver sus datos.</p>
+              <p className="text-xs text-slate-400 mb-3">{preview.totalFilas} filas · {preview.columnas.length} columnas. Haz clic en cualquier columna para ver sus datos.</p>
               <div className="flex flex-col gap-1">
                 {preview.columnas.map(col => {
                   const campo = CAMPOS.find(c => mapeo[c.key] === col);
@@ -203,10 +203,10 @@ export default function ImportarCompletoPage() {
                     >
                       <div className="flex items-center justify-between gap-1">
                         <span className="font-medium truncate">{col}</span>
-                        {mapeada && !activa && <span className="shrink-0 text-emerald-600">âœ“</span>}
+                        {mapeada && !activa && <span className="shrink-0 text-emerald-600">✓</span>}
                       </div>
                       {mapeada && !activa && (
-                        <p className="text-xs text-emerald-600 truncate">â†’ {campo!.emoji} {campo!.label}</p>
+                        <p className="text-xs text-emerald-600 truncate">→ {campo!.emoji} {campo!.label}</p>
                       )}
                       {activa && (
                         <div className="mt-1 space-y-0.5">
@@ -216,7 +216,7 @@ export default function ImportarCompletoPage() {
                         </div>
                       )}
                       {!mapeada && !activa && (
-                        <p className="text-slate-400 truncate">{muestrasDeCol(col)[0] ?? "â€”"}</p>
+                        <p className="text-slate-400 truncate">{muestrasDeCol(col)[0] ?? "—"}</p>
                       )}
                     </button>
                   );
@@ -226,7 +226,7 @@ export default function ImportarCompletoPage() {
               {/* Columnas no mapeadas van como extras */}
               {preview.columnas.filter(c => !columnasMapeadas.has(c)).length > 0 && (
                 <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 p-2">
-                  <p className="text-xs text-slate-500 font-medium mb-1">Sin mapear â†’ se guardan como datos extras:</p>
+                  <p className="text-xs text-slate-500 font-medium mb-1">Sin mapear → se guardan como datos extras:</p>
                   <div className="flex flex-wrap gap-1">
                     {preview.columnas.filter(c => !columnasMapeadas.has(c)).map(c => (
                       <span key={c} className="rounded bg-slate-200 px-1.5 py-0.5 text-xs text-slate-600">{c}</span>
@@ -240,7 +240,7 @@ export default function ImportarCompletoPage() {
           {/* Panel derecho: campos del CRM */}
           <div className="flex-1">
             <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-4">
-              <h2 className="text-sm font-semibold text-slate-800 mb-1">Â¿QuÃ© columna de tu Excel corresponde a cada campo del CRM?</h2>
+              <h2 className="text-sm font-semibold text-slate-800 mb-1">¿Qué columna de tu Excel corresponde a cada campo del CRM?</h2>
               <p className="text-xs text-slate-400 mb-4">Los campos marcados con <span className="text-red-500">*</span> son obligatorios. Haz clic en una columna de la izquierda para ver sus valores.</p>
 
               {/* Campos obligatorios */}
@@ -258,7 +258,7 @@ export default function ImportarCompletoPage() {
                             {campo.emoji} {campo.label} <span className="text-red-500">*</span>
                           </label>
                           <div className="flex items-center gap-2">
-                            {autoDetectado && mapeado && <span className="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded-full">âœ“ Auto</span>}
+                            {autoDetectado && mapeado && <span className="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded-full">✓ Auto</span>}
                           </div>
                         </div>
                         {campo.desc && <p className="text-xs text-slate-500 mb-2">{campo.desc}</p>}
@@ -272,12 +272,12 @@ export default function ImportarCompletoPage() {
                           }}
                           className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white ${!mapeado ? "border-red-300" : "border-emerald-300"}`}
                         >
-                          <option value="">â€” Seleccionar columna â€”</option>
+                          <option value="">— Seleccionar columna —</option>
                           {preview.columnas.map(c => (
                             <option key={c} value={c}>{c}</option>
                           ))}
                         </select>
-                        {!mapeado && <p className="text-xs text-red-600 mt-1">âš  Este campo es obligatorio para importar</p>}
+                        {!mapeado && <p className="text-xs text-red-600 mt-1">⚠ Este campo es obligatorio para importar</p>}
                         {muestras.length > 0 && (
                           <div className="mt-2 flex flex-wrap gap-1">
                             <span className="text-xs text-slate-400">Datos reales:</span>
@@ -312,13 +312,13 @@ export default function ImportarCompletoPage() {
                           }}
                           className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs outline-none focus:border-blue-500 bg-white"
                         >
-                          <option value="">â€” No mapear â€”</option>
+                          <option value="">— No mapear —</option>
                           {preview.columnas.map(c => (
                             <option key={c} value={c}>{c}</option>
                           ))}
                         </select>
                         {muestras.length > 0 && (
-                          <p className="text-xs text-slate-400 mt-1 truncate">Ej: {muestras.slice(0, 2).join(" Â· ")}</p>
+                          <p className="text-xs text-slate-400 mt-1 truncate">Ej: {muestras.slice(0, 2).join(" · ")}</p>
                         )}
                       </div>
                     );
@@ -327,7 +327,7 @@ export default function ImportarCompletoPage() {
               </div>
             </div>
 
-            {/* BotÃ³n importar */}
+            {/* Botón importar */}
             <div className="bg-white rounded-2xl border border-slate-200 p-4">
               {faltanRequeridos.length > 0 ? (
                 <div className="rounded-xl bg-red-50 border border-red-200 p-3 mb-3">
@@ -338,9 +338,9 @@ export default function ImportarCompletoPage() {
                 </div>
               ) : (
                 <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 mb-3">
-                  <p className="text-sm font-semibold text-emerald-700 mb-1">âœ“ Todo listo para importar</p>
+                  <p className="text-sm font-semibold text-emerald-700 mb-1">✓ Todo listo para importar</p>
                   <p className="text-xs text-emerald-600">
-                    Se crearÃ¡n empresas, contactos y oportunidades a partir de <strong>{preview.totalFilas} filas</strong>.
+                    Se crearán empresas, contactos y oportunidades a partir de <strong>{preview.totalFilas} filas</strong>.
                     Las columnas no mapeadas se guardan como datos extras.
                   </p>
                 </div>
@@ -350,18 +350,18 @@ export default function ImportarCompletoPage() {
                 disabled={cargando || faltanRequeridos.length > 0}
                 className="w-full rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {cargando ? "Importando... esto puede tomar unos segundos" : `â†‘ Importar ${preview.totalFilas} filas al CRM`}
+                {cargando ? "Importando... esto puede tomar unos segundos" : `↑ Importar ${preview.totalFilas} filas al CRM`}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* â”€â”€ PASO 3 â”€â”€ */}
+      {/* ── PASO 3 ── */}
       {paso === 3 && resultado && (
         <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 bg-emerald-50">âœ…</div>
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">ImportaciÃ³n completada</h2>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 bg-emerald-50">✅</div>
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">Importación completada</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 max-w-sm mx-auto">
             <div className="rounded-xl bg-blue-50 p-3">
               <p className="text-2xl font-bold text-blue-700">{resultado.empresasCreadas}</p>
@@ -384,11 +384,11 @@ export default function ImportarCompletoPage() {
           )}
           {resultado.debug && (
             <p className="text-xs text-slate-400 mb-4">
-              {resultado.debug.contactosMapeados} contactos Â· {resultado.debug.oportunidadesMapeadas} oportunidades procesadas
+              {resultado.debug.contactosMapeados} contactos · {resultado.debug.oportunidadesMapeadas} oportunidades procesadas
             </p>
           )}
           <div className="flex gap-3 justify-center">
-            <Link href="/dashboard/cuentas" className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Ver Cuentas â†’</Link>
+            <Link href="/dashboard/cuentas" className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Ver Cuentas →</Link>
             <button onClick={() => { setPaso(1); setResultado(null); setPreview(null); setMapeo({}); }}
               className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
               Importar otro archivo

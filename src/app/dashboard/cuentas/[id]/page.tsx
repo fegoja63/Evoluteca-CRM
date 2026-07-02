@@ -123,7 +123,7 @@ export default function FichaClientePage() {
 
       {editando ? (
         <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-          <form onSubmit={handleGuardar} className="grid grid-cols-2 gap-3">
+          <form onSubmit={handleGuardar} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Nombre *</label>
               <input required value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })}
@@ -179,7 +179,7 @@ export default function FichaClientePage() {
 
       <ExtrasPanel extras={empresa.extras} />
 
-      <div className="grid grid-cols-2 gap-4 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
         {/* Contactos */}
         <div className="rounded-2xl border border-slate-200 p-4">
           <h2 className="mb-3 text-sm font-semibold text-slate-800">Contactos ({empresa.contactos.length})</h2>
