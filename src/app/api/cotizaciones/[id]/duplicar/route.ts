@@ -28,7 +28,6 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
       oportunidadId: original.oportunidadId,
       sede:          original.sede,
       notas:         original.notas,
-      creadoBy:      session.user.id,
       items: {
         create: original.items.map(i => ({
           descripcion: i.descripcion,
