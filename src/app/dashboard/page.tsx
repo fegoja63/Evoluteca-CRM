@@ -150,8 +150,8 @@ export default async function DashboardPage() {
   const maxEtapa = Math.max(...ETAPAS_PIPELINE.map(e => oportunidades.filter(o => o.etapa === e.key).length), 1);
 
   const nombre = session?.user?.name?.split(" ")[0] ?? "";
-  const hora = hoy.getHours();
-  const saludo = hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
+  const horaColombia = new Date(hoy.toLocaleString("en-US", { timeZone: "America/Bogota" })).getHours();
+  const saludo = horaColombia < 12 ? "Buenos días" : horaColombia < 19 ? "Buenas tardes" : "Buenas noches";
 
   return (
     <div className="space-y-6">
