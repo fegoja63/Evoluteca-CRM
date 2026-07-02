@@ -141,8 +141,23 @@ export default function CotizacionesPage() {
   const ETAPAS_VIGENTES = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];
   const ETAPAS_EN_CURSO = ETAPAS_VIGENTES;
 
-  function diasDesde(fecha: string) {
-    return Math.floor((Date.now() - new Date(fecha).getTime()) / (1000 * 60 * 60 * 24));
+  const ABREV_MES: Record<string, number> = {
+    ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6,
+    jul: 7, ago: 8, sep: 9, oct: 10, nov: 11, dic: 12,
+  };
+
+  function diasDesdeOportunidad(o: Oportunidad): number {
+    const mes = o.extras?.["MES ELABORACION"]; // ej: "feb-24"
+    if (mes) {
+      const [abrev, anio2] = mes.toLowerCase().split("-");
+      const numMes = ABREV_MES[abrev];
+      const anio = anio2 ? 2000 + Number(anio2) : null;
+      if (numMes && anio) {
+        const fecha = new Date(anio, numMes - 1, 1);
+        return Math.floor((Date.now() - fecha.getTime()) / (1000 * 60 * 60 * 24));
+      }
+    }
+    return Math.floor((Date.now() - new Date(o.creadoEn).getTime()) / (1000 * 60 * 60 * 24));
   }
 
   function bucketEdad(dias: number) {
@@ -157,7 +172,7 @@ export default function CotizacionesPage() {
   const conteoEdad = { "0-30": 0, "30-60": 0, "61-90": 0, "+90": 0 };
   const valorEdad  = { "0-30": 0, "30-60": 0, "61-90": 0, "+90": 0 };
   vigentes.forEach(o => {
-    const b = bucketEdad(diasDesde(o.creadoEn));
+    const b = bucketEdad(diasDesdeOportunidad(o));
     conteoEdad[b]++;
     valorEdad[b] += Number(o.valor ?? 0);
   });
@@ -199,7 +214,7 @@ export default function CotizacionesPage() {
     if (filtroEtapa !== "TODAS" && o.etapa !== filtroEtapa) return false;
     if (filtroEdad !== "TODAS") {
       if (!ETAPAS_VIGENTES.includes(o.etapa)) return false;
-      if (bucketEdad(diasDesde(o.creadoEn)) !== filtroEdad) return false;
+      if (bucketEdad(diasDesdeOportunidad(o)) !== filtroEdad) return false;
     }
     if (busqueda) {
       const q = busqueda.toLowerCase();
