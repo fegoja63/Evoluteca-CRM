@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+
+type Resultado = { tipo: "cliente" | "contacto" | "oportunidad"; id: string; titulo: string; sub: string; href: string };
+
+const TIPO_ICON: Record<string, string> = { cliente: "🏢", contacto: "👤", oportunidad: "◈" };
 
 const navBase = [
   { href: "/dashboard", label: "Dashboard", emoji: "▦" },
@@ -26,7 +30,36 @@ const navOpcionales: Record<string, { href: string; label: string; emoji: string
 
 export function Sidebar({ tenantNombre }: { tenantNombre: string }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [modulos, setModulos] = useState<Record<string, boolean>>({});
+  const [busqueda, setBusqueda] = useState("");
+  const [resultados, setResultados] = useState<Resultado[]>([]);
+  const [buscando, setBuscando] = useState(false);
+  const [mostrarResultados, setMostrarResultados] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setMostrarResultados(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  useEffect(() => {
+    if (busqueda.length < 2) { setResultados([]); setMostrarResultados(false); return; }
+    const timer = setTimeout(async () => {
+      setBuscando(true);
+      const res = await fetch(`/api/buscar?q=${encodeURIComponent(busqueda)}`);
+      const data = await res.json();
+      setResultados(data);
+      setMostrarResultados(true);
+      setBuscando(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [busqueda]);
 
   useEffect(() => {
     fetch("/api/configuracion")
@@ -61,6 +94,41 @@ export function Sidebar({ tenantNombre }: { tenantNombre: string }) {
         >
           felipegomezjaramillo.com
         </a>
+      </div>
+
+      {/* Búsqueda global */}
+      <div className="px-3 py-2 border-b border-blue-900/50 relative" ref={searchRef}>
+        <div className="relative">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-blue-400 text-xs">🔍</span>
+          <input
+            type="text"
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+            onFocus={() => resultados.length > 0 && setMostrarResultados(true)}
+            placeholder="Buscar..."
+            className="w-full rounded-lg bg-blue-900/50 border border-blue-800 pl-7 pr-3 py-1.5 text-xs text-white placeholder-blue-400 outline-none focus:border-blue-500"
+          />
+          {buscando && <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-blue-400 text-xs">...</span>}
+        </div>
+        {mostrarResultados && resultados.length > 0 && (
+          <div className="absolute left-3 right-3 top-full mt-1 z-50 rounded-xl bg-white shadow-xl border border-slate-200 overflow-hidden">
+            {resultados.map(r => (
+              <button key={r.id} onClick={() => { router.push(r.href); setBusqueda(""); setMostrarResultados(false); }}
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-left border-b border-slate-50 last:border-0">
+                <span className="text-sm">{TIPO_ICON[r.tipo]}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-slate-800 truncate">{r.titulo}</p>
+                  <p className="text-xs text-slate-400 truncate">{r.sub}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+        {mostrarResultados && resultados.length === 0 && busqueda.length >= 2 && !buscando && (
+          <div className="absolute left-3 right-3 top-full mt-1 z-50 rounded-xl bg-white shadow-xl border border-slate-200 px-3 py-2">
+            <p className="text-xs text-slate-400">Sin resultados para "{busqueda}"</p>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-0.5">

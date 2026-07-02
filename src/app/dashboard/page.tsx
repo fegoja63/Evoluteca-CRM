@@ -14,11 +14,17 @@ export default async function DashboardPage() {
   const inicioMes  = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
   const inicioAnio = new Date(hoy.getFullYear(), 0, 1);
 
+  const fin7dias = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 7);
+  const hace60dias = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 60);
+
   const [
     empresas, contactos, oportunidades,
     actividadesPendientes, actividadesHoy,
+    actividadesVencidas,
     proximasFunciones,
     ganadas30d,
+    cotizacionesSinMovimiento,
+    actividadesSemana,
   ] = await Promise.all([
     prisma.empresa.count({ where: { tenantId } }),
     prisma.contacto.count({ where: { tenantId } }),
@@ -34,6 +40,12 @@ export default async function DashboardPage() {
         oportunidad: { select: { id: true, titulo: true } },
       },
     }),
+    prisma.actividad.findMany({
+      where: { tenantId, completada: false, fecha: { lt: inicioHoy } },
+      orderBy: { fecha: "asc" },
+      take: 5,
+      include: { empresa: { select: { id: true, nombre: true } }, oportunidad: { select: { id: true, titulo: true } } },
+    }),
     prisma.funcion.findMany({
       where: { tenantId, fecha: { gte: hoy } },
       orderBy: { fecha: "asc" },
@@ -43,6 +55,17 @@ export default async function DashboardPage() {
       where: { tenantId, etapa: "GANADA", creadoEn: { gte: inicioMes } },
       select: { valor: true },
     }).catch(() => []),
+    prisma.oportunidad.findMany({
+      where: { tenantId, etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] }, creadoEn: { lt: hace60dias } },
+      select: { id: true, titulo: true, etapa: true, empresa: { select: { nombre: true } } },
+      take: 5,
+    }),
+    prisma.actividad.findMany({
+      where: { tenantId, completada: false, fecha: { gte: finHoy, lt: fin7dias } },
+      orderBy: { fecha: "asc" },
+      take: 5,
+      include: { empresa: { select: { nombre: true } }, oportunidad: { select: { titulo: true } } },
+    }),
   ]);
 
   const valorPipeline = oportunidades
@@ -126,6 +149,110 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* ── ALERTAS ── */}
+      {(actividadesVencidas.length > 0 || cotizacionesSinMovimiento.length > 0) && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">⚠️</span>
+            <h2 className="text-sm font-bold text-amber-800">Requieren atención</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            {actividadesVencidas.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-amber-700 mb-2">
+                  🔴 {actividadesVencidas.length} actividad{actividadesVencidas.length !== 1 ? "es" : ""} vencida{actividadesVencidas.length !== 1 ? "s" : ""}
+                </p>
+                <div className="flex flex-col gap-1">
+                  {actividadesVencidas.map(a => (
+                    <Link key={a.id} href="/dashboard/agenda"
+                      className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-3 py-1.5 hover:border-amber-300 transition-colors">
+                      <span className="text-xs font-medium text-slate-800 truncate">{a.titulo}</span>
+                      <span className="text-xs text-slate-400 ml-auto shrink-0">
+                        {new Date(a.fecha).toLocaleDateString("es-CO", { day: "2-digit", month: "short" })}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+            {cotizacionesSinMovimiento.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-amber-700 mb-2">
+                  🟡 {cotizacionesSinMovimiento.length} cotización{cotizacionesSinMovimiento.length !== 1 ? "es" : ""} sin respuesta +60 días
+                </p>
+                <div className="flex flex-col gap-1">
+                  {cotizacionesSinMovimiento.map(o => (
+                    <Link key={o.id} href={`/dashboard/pipeline/${o.id}`}
+                      className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-3 py-1.5 hover:border-amber-300 transition-colors">
+                      <span className="text-xs font-medium text-slate-800 truncate">{o.empresa?.nombre ?? o.titulo}</span>
+                      <span className="text-xs text-slate-400 ml-auto shrink-0">{o.etapa.charAt(0) + o.etapa.slice(1).toLowerCase()}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── VISTA DE HOY ── */}
+      {(actividadesHoy.length > 0 || actividadesSemana.length > 0) && (
+        <div className="grid grid-cols-2 gap-4">
+          {actividadesHoy.length > 0 && (
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">📌</span>
+                  <h2 className="text-sm font-bold text-blue-800">Hoy</h2>
+                  <span className="bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">{actividadesHoy.length}</span>
+                </div>
+                <Link href="/dashboard/agenda" className="text-xs text-blue-600 hover:underline">Ver agenda →</Link>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {actividadesHoy.map(a => (
+                  <div key={a.id} className="flex items-center gap-2 rounded-lg bg-white border border-blue-100 px-3 py-1.5">
+                    <span className="text-sm">{TIPO_ICON[a.tipo] ?? "📌"}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-slate-800 truncate">{a.titulo}</p>
+                      <p className="text-xs text-slate-400 truncate">{a.empresa?.nombre ?? a.contacto?.nombre ?? a.oportunidad?.titulo ?? ""}</p>
+                    </div>
+                    <span className="text-xs text-slate-400 font-mono shrink-0">
+                      {new Date(a.fecha).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {actividadesSemana.length > 0 && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">📅</span>
+                  <h2 className="text-sm font-bold text-slate-800">Esta semana</h2>
+                  <span className="bg-slate-200 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-full">{actividadesSemana.length}</span>
+                </div>
+                <Link href="/dashboard/agenda" className="text-xs text-blue-600 hover:underline">Ver agenda →</Link>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {actividadesSemana.map(a => (
+                  <div key={a.id} className="flex items-center gap-2 rounded-lg bg-slate-50 border border-slate-100 px-3 py-1.5">
+                    <span className="text-sm">{TIPO_ICON[a.tipo] ?? "📌"}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-slate-800 truncate">{a.titulo}</p>
+                      <p className="text-xs text-slate-400 truncate">{a.empresa?.nombre ?? a.oportunidad?.titulo ?? ""}</p>
+                    </div>
+                    <span className="text-xs text-slate-400 shrink-0">
+                      {new Date(a.fecha).toLocaleDateString("es-CO", { weekday: "short", day: "2-digit", month: "short" })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── KPI CARDS ── */}
       <div className="grid grid-cols-4 gap-4">
