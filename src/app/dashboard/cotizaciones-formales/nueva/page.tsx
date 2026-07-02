@@ -8,6 +8,8 @@ type Empresa  = { id: string; nombre: string };
 type Contacto = { id: string; nombre: string; email: string | null; empresa: { id: string } | null };
 type Oportunidad = { id: string; titulo: string; empresa: { id: string } | null };
 type Producto = { id: string; nombre: string; precioBase: string; descripcion: string | null };
+type ItemPlantilla = { descripcion: string; cantidad: number; precioUnit: string };
+type Plantilla = { id: string; nombre: string; notas: string | null; items: ItemPlantilla[] };
 
 type Linea = { descripcion: string; cantidad: string; precioUnit: string };
 
@@ -22,6 +24,7 @@ export default function NuevaCotizacionPage() {
   const [contactos, setContactos]     = useState<Contacto[]>([]);
   const [oportunidades, setOportunidades] = useState<Oportunidad[]>([]);
   const [productos, setProductos]     = useState<Producto[]>([]);
+  const [plantillas, setPlantillas]   = useState<Plantilla[]>([]);
   const [cargando, setCargando]       = useState(true);
   const [enviando, setEnviando]       = useState(false);
   const [error, setError]             = useState("");
@@ -44,11 +47,13 @@ export default function NuevaCotizacionPage() {
       fetch("/api/contactos").then(r => r.json()),
       fetch("/api/oportunidades").then(r => r.json()),
       fetch("/api/productos").then(r => r.json()),
-    ]).then(([emp, con, opo, prod]) => {
+      fetch("/api/plantillas-cotizacion").then(r => r.json()),
+    ]).then(([emp, con, opo, prod, plant]) => {
       setEmpresas(Array.isArray(emp) ? emp : []);
       setContactos(Array.isArray(con) ? con : []);
       setOportunidades(Array.isArray(opo) ? opo : []);
       setProductos(Array.isArray(prod) ? prod : []);
+      setPlantillas(Array.isArray(plant) ? plant : []);
       setCargando(false);
     });
   }, []);
@@ -122,12 +127,37 @@ export default function NuevaCotizacionPage() {
 
   return (
     <div className="max-w-3xl">
-      <div className="mb-6 flex items-center gap-3">
-        <Link href="/dashboard/cotizaciones-formales" className="text-slate-400 hover:text-slate-700 text-sm">
-          ← Cotizaciones
-        </Link>
-        <span className="text-slate-300">/</span>
-        <h1 className="text-xl font-semibold text-slate-900">Nueva cotización</h1>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard/cotizaciones-formales" className="text-slate-400 hover:text-slate-700 text-sm">
+            ← Cotizaciones
+          </Link>
+          <span className="text-slate-300">/</span>
+          <h1 className="text-xl font-semibold text-slate-900">Nueva cotización</h1>
+        </div>
+        {plantillas.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400">Cargar plantilla:</span>
+            <select
+              className="rounded-xl border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs text-violet-700 outline-none focus:border-violet-400"
+              onChange={e => {
+                const p = plantillas.find(x => x.id === e.target.value);
+                if (!p) return;
+                setLineas(p.items.map(it => ({
+                  descripcion: it.descripcion,
+                  cantidad: String(it.cantidad),
+                  precioUnit: String(it.precioUnit),
+                })));
+                if (p.notas) setNotas(p.notas);
+                e.target.value = "";
+              }}>
+              <option value="">— Elegir plantilla —</option>
+              {plantillas.map(p => (
+                <option key={p.id} value={p.id}>{p.nombre} ({p.items.length} ítems)</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">

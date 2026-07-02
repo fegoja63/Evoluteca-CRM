@@ -64,6 +64,8 @@ export default function CotizacionDetailPage() {
   const [copiado, setCopiado]     = useState(false);
   const [motivoRechazo, setMotivoRechazo] = useState("");
   const [mostrarMotivoModal, setMostrarMotivoModal] = useState(false);
+  const [guardandoPlantilla, setGuardandoPlantilla] = useState(false);
+  const [plantillaGuardada, setPlantillaGuardada] = useState(false);
 
   async function cargar() {
     setCargando(true);
@@ -136,6 +138,29 @@ export default function CotizacionDetailPage() {
     setTimeout(() => setCopiado(false), 2000);
   }
 
+  async function guardarComoPlantilla() {
+    if (!cot || cot.items.length === 0) return;
+    const nombre = prompt("Nombre para la plantilla:", `Plantilla #${String(cot.numero).padStart(4, "0")}`);
+    if (!nombre?.trim()) return;
+    setGuardandoPlantilla(true);
+    await fetch("/api/plantillas-cotizacion", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nombre: nombre.trim(),
+        notas: cot.notas,
+        items: cot.items.map(it => ({
+          descripcion: it.descripcion,
+          cantidad: it.cantidad,
+          precioUnit: Number(it.precioUnit),
+        })),
+      }),
+    });
+    setGuardandoPlantilla(false);
+    setPlantillaGuardada(true);
+    setTimeout(() => setPlantillaGuardada(false), 3000);
+  }
+
   async function enviarEmail() {
     setEnviando(true);
     await fetch(`/api/cotizaciones/${id}/enviar-email`, { method: "POST" });
@@ -198,6 +223,10 @@ export default function CotizacionDetailPage() {
           <button onClick={duplicar} disabled={duplicando}
             className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors">
             {duplicando ? "Duplicando..." : "⧉ Duplicar"}
+          </button>
+          <button onClick={guardarComoPlantilla} disabled={guardandoPlantilla || plantillaGuardada}
+            className="rounded-xl border border-amber-200 px-3 py-2 text-xs font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-50 transition-colors">
+            {plantillaGuardada ? "✓ Plantilla guardada" : guardandoPlantilla ? "Guardando..." : "★ Guardar plantilla"}
           </button>
           <a href={`/api/cotizaciones/${cot.id}/pdf`} target="_blank" rel="noopener noreferrer"
             className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5">
