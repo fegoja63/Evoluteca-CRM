@@ -33,7 +33,7 @@ export async function GET(_req: Request, { params }: { params: { empresaId: stri
 
   type Item = { id: string; fecha: Date; categoria: string; titulo: string; subtitulo?: string; meta?: Record<string, unknown> };
   const items: Item[] = [
-    ...actividades.map(a => ({ id: `act-${a.id}`, fecha: a.creadoEn, categoria: "ACTIVIDAD", titulo: a.titulo, subtitulo: a.tipo, meta: { completada: a.completada, notas: a.notas } })),
+    ...actividades.map(a => ({ id: `act-${a.id}`, fecha: new Date(a.fecha), categoria: "ACTIVIDAD", titulo: a.titulo, subtitulo: a.tipo, meta: { completada: a.completada, notas: a.notas } })),
     ...oportunidades.map(o => ({ id: `opo-${o.id}`, fecha: o.creadoEn, categoria: "OPORTUNIDAD", titulo: o.titulo, subtitulo: o.etapa, meta: { valor: Number(o.valor ?? 0), oportunidadId: o.id } })),
     ...cotizaciones.map(c => ({ id: `cot-${c.id}`, fecha: c.creadoEn, categoria: "COTIZACION", titulo: `Cotización #${String(c.numero).padStart(4,"0")}`, subtitulo: c.estado, meta: { cotizacionId: c.id } })),
     ...eventos.map(e => ({ id: `evt-${e.id}`, fecha: e.creadoEn, categoria: "EVENTO", titulo: e.titulo, subtitulo: e.tipo, meta: { descripcion: e.descripcion, contacto: e.contacto?.nombre, eventoId: e.id } })),

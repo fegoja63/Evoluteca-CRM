@@ -46,6 +46,7 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
   const [items, setItems]       = useState<Item[]>([]);
   const [cargando, setCargando] = useState(true);
   const [mostrar, setMostrar]   = useState(15);
+  const [filtro, setFiltro]     = useState("TODOS");
 
   const [form, setForm] = useState({ tipo: "NOTA", titulo: "", descripcion: "", contactoId: "" });
   const [guardando, setGuardando] = useState(false);
@@ -82,11 +83,33 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
     cargar();
   }
 
-  const visibles = items.slice(0, mostrar);
+  const FILTROS = [
+    { key: "TODOS", label: "Todo" },
+    { key: "EVENTO", label: "💬 Notas" },
+    { key: "ACTIVIDAD", label: "📅 Actividades" },
+    { key: "OPORTUNIDAD", label: "◈ Oportunidades" },
+    { key: "COTIZACION", label: "📄 Cotizaciones" },
+  ];
+
+  const itemsFiltrados = filtro === "TODOS" ? items : items.filter(i => i.categoria === filtro);
+  const visibles = itemsFiltrados.slice(0, mostrar);
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <h2 className="text-sm font-bold text-slate-900 mb-4">Timeline 360° — Historial del cliente</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-bold text-slate-900">Timeline 360° — Historial del cliente</h2>
+        <span className="text-xs text-slate-400">{itemsFiltrados.length} registros</span>
+      </div>
+      <div className="flex gap-2 mb-4 flex-wrap">
+        {FILTROS.map(f => (
+          <button key={f.key} onClick={() => { setFiltro(f.key); setMostrar(15); }}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              filtro === f.key ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}>
+            {f.label}
+          </button>
+        ))}
+      </div>
 
       {/* Formulario nuevo evento */}
       <form onSubmit={guardarEvento} className="mb-6 rounded-xl border border-slate-100 bg-slate-50 p-4">
@@ -188,10 +211,10 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
             })}
           </div>
 
-          {items.length > mostrar && (
+          {itemsFiltrados.length > mostrar && (
             <button onClick={() => setMostrar(n => n + 15)}
               className="mt-4 ml-10 text-xs text-blue-600 hover:underline">
-              Ver {Math.min(15, items.length - mostrar)} más ({items.length - mostrar} restantes)
+              Ver {Math.min(15, itemsFiltrados.length - mostrar)} más ({itemsFiltrados.length - mostrar} restantes)
             </button>
           )}
         </div>

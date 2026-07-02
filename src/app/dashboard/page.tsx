@@ -14,8 +14,9 @@ export default async function DashboardPage() {
   const inicioMes  = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
   const inicioAnio = new Date(hoy.getFullYear(), 0, 1);
 
-  const fin7dias = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 7);
+  const fin7dias   = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 7);
   const hace60dias = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 60);
+  const hace30dias = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 30);
 
   const [
     empresas, contactos, oportunidades,
@@ -25,6 +26,9 @@ export default async function DashboardPage() {
     ganadas30d,
     cotizacionesSinMovimiento,
     actividadesSemana,
+    actividadesCompletadasHoy,
+    totalActividadesHoy,
+    ultimoContacto,
   ] = await Promise.all([
     prisma.empresa.count({ where: { tenantId } }),
     prisma.contacto.count({ where: { tenantId } }),
@@ -66,6 +70,9 @@ export default async function DashboardPage() {
       take: 5,
       include: { empresa: { select: { nombre: true } }, oportunidad: { select: { titulo: true } } },
     }),
+    prisma.actividad.count({ where: { tenantId, completada: true, fecha: { gte: inicioHoy, lt: finHoy } } }),
+    prisma.actividad.count({ where: { tenantId, fecha: { gte: inicioHoy, lt: finHoy } } }),
+    prisma.actividad.findFirst({ where: { tenantId, completada: true }, orderBy: { fecha: "desc" }, select: { fecha: true } }),
   ]);
 
   const valorPipeline = oportunidades
@@ -82,6 +89,30 @@ export default async function DashboardPage() {
   const perdidas = oportunidades.filter((o) => o.etapa === "PERDIDA").length;
   const totalCerradas = ganadas + perdidas;
   const tasaCierre = totalCerradas > 0 ? Math.round((ganadas / totalCerradas) * 100) : 0;
+
+  // ── Salud comercial ──
+  const diasSinContacto = ultimoContacto
+    ? Math.floor((hoy.getTime() - new Date(ultimoContacto.fecha).getTime()) / 86400000)
+    : 999;
+
+  const puntosContacto    = diasSinContacto <= 7 ? 25 : diasSinContacto <= 15 ? 18 : diasSinContacto <= 30 ? 10 : 0;
+  const puntosConversion  = tasaCierre >= 40 ? 25 : tasaCierre >= 25 ? 18 : tasaCierre >= 10 ? 10 : 5;
+  const puntosActividades = actividadesVencidas.length === 0 ? 25 : actividadesVencidas.length <= 3 ? 15 : actividadesVencidas.length <= 7 ? 8 : 0;
+  const puntosPipeline    = valorPipeline > 0 ? (cotizacionesSinMovimiento.length === 0 ? 25 : cotizacionesSinMovimiento.length <= 3 ? 18 : 10) : 5;
+
+  const saludScore = puntosContacto + puntosConversion + puntosActividades + puntosPipeline;
+  const saludColor = saludScore >= 75 ? "text-emerald-600" : saludScore >= 50 ? "text-amber-600" : "text-red-500";
+  const saludBg    = saludScore >= 75 ? "bg-emerald-500" : saludScore >= 50 ? "bg-amber-500" : "bg-red-500";
+
+  const saludItems = [
+    { ok: diasSinContacto <= 15, texto: diasSinContacto <= 15 ? "Seguimiento reciente" : `Sin actividad hace ${diasSinContacto} días` },
+    { ok: tasaCierre >= 25,      texto: tasaCierre >= 25 ? `Buena tasa de cierre (${tasaCierre}%)` : `Tasa de cierre baja (${tasaCierre}%)` },
+    { ok: actividadesVencidas.length === 0, texto: actividadesVencidas.length === 0 ? "Sin actividades vencidas" : `${actividadesVencidas.length} actividad${actividadesVencidas.length !== 1 ? "es" : ""} vencida${actividadesVencidas.length !== 1 ? "s" : ""}` },
+    { ok: cotizacionesSinMovimiento.length <= 2, texto: cotizacionesSinMovimiento.length <= 2 ? "Pipeline activo" : `${cotizacionesSinMovimiento.length} cotizaciones estancadas` },
+  ];
+
+  // ── Productividad del día ──
+  const progresoDia = totalActividadesHoy > 0 ? Math.round((actividadesCompletadasHoy / totalActividadesHoy) * 100) : 0;
 
   function fmt(valor: number) {
     if (valor >= 1_000_000_000) return `$${(valor / 1_000_000_000).toFixed(1)}B`;
@@ -472,6 +503,84 @@ export default async function DashboardPage() {
                     </Link>
                   );
                 })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── SALUD COMERCIAL + PRODUCTIVIDAD ── */}
+      <div className="grid grid-cols-2 gap-4">
+
+        {/* Salud comercial */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">Salud comercial</h2>
+              <p className="text-xs text-slate-400 mt-0.5">Basado en actividad, seguimiento y conversión</p>
+            </div>
+            <div className="text-right">
+              <p className={`text-3xl font-extrabold ${saludColor}`}>{saludScore}</p>
+              <p className="text-xs text-slate-400">/ 100</p>
+            </div>
+          </div>
+          <div className="w-full h-3 bg-slate-100 rounded-full mb-4 overflow-hidden">
+            <div className={`h-3 rounded-full transition-all duration-700 ${saludBg}`} style={{ width: `${saludScore}%` }} />
+          </div>
+          <div className="flex flex-col gap-2">
+            {saludItems.map((item, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className={`text-sm ${item.ok ? "text-emerald-500" : "text-amber-500"}`}>
+                  {item.ok ? "✔" : "⚠"}
+                </span>
+                <span className={`text-xs ${item.ok ? "text-slate-600" : "text-amber-700"}`}>{item.texto}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Centro de productividad */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">Mi día de hoy</h2>
+              <p className="text-xs text-slate-400 mt-0.5">Progreso de actividades</p>
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-extrabold text-blue-600">{progresoDia}%</p>
+              <p className="text-xs text-slate-400">{actividadesCompletadasHoy}/{totalActividadesHoy} completadas</p>
+            </div>
+          </div>
+          <div className="w-full h-3 bg-slate-100 rounded-full mb-4 overflow-hidden">
+            <div className="h-3 rounded-full bg-blue-500 transition-all duration-700" style={{ width: `${progresoDia}%` }} />
+          </div>
+          <div className="flex flex-col gap-2">
+            {actividadesVencidas.length > 0 && (
+              <div className="flex items-center gap-2 rounded-lg bg-red-50 border border-red-100 px-3 py-2">
+                <span className="text-sm">🔴</span>
+                <span className="text-xs font-medium text-red-700">{actividadesVencidas.length} actividad{actividadesVencidas.length !== 1 ? "es" : ""} vencida{actividadesVencidas.length !== 1 ? "s" : ""} sin completar</span>
+                <Link href="/dashboard/agenda" className="ml-auto text-xs text-red-600 hover:underline shrink-0">Ver →</Link>
+              </div>
+            )}
+            {actividadesHoy.length > 0 && (
+              <div className="flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-100 px-3 py-2">
+                <span className="text-sm">📌</span>
+                <span className="text-xs font-medium text-blue-700">{actividadesHoy.length} pendiente{actividadesHoy.length !== 1 ? "s" : ""} para hoy</span>
+                <Link href="/dashboard/agenda" className="ml-auto text-xs text-blue-600 hover:underline shrink-0">Ver →</Link>
+              </div>
+            )}
+            {cotizacionesSinMovimiento.length > 0 && (
+              <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-100 px-3 py-2">
+                <span className="text-sm">📄</span>
+                <span className="text-xs font-medium text-amber-700">{cotizacionesSinMovimiento.length} cotización{cotizacionesSinMovimiento.length !== 1 ? "es" : ""} sin respuesta +60 días</span>
+                <Link href="/dashboard/cotizaciones" className="ml-auto text-xs text-amber-600 hover:underline shrink-0">Ver →</Link>
+              </div>
+            )}
+            {actividadesVencidas.length === 0 && actividadesHoy.length === 0 && cotizacionesSinMovimiento.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-4 text-center">
+                <span className="text-2xl mb-1">🎉</span>
+                <p className="text-xs font-semibold text-slate-700">¡Todo al día!</p>
+                <p className="text-xs text-slate-400">No tienes pendientes urgentes</p>
               </div>
             )}
           </div>
