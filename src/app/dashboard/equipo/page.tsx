@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 type Usuario = {
   id: string;
@@ -50,7 +51,9 @@ export default function EquipoPage() {
     setExportando(false);
   }
 
-  const esAdmin = session?.user?.rol === "ADMINISTRADOR";
+  const esAdmin  = session?.user?.rol === "ADMINISTRADOR";
+  const esGerente = session?.user?.rol === "GERENTE";
+  const puedeVerRendimiento = esAdmin || esGerente;
 
   async function cargar() {
     setCargando(true);
@@ -136,6 +139,12 @@ export default function EquipoPage() {
           <p className="text-sm text-neutral-500">Usuarios con acceso a este CRM</p>
         </div>
         <div className="flex gap-2">
+          {puedeVerRendimiento && (
+            <Link href="/dashboard/equipo/rendimiento"
+              className="rounded-md border border-violet-200 bg-violet-50 px-4 py-2 text-sm font-medium text-violet-700 hover:bg-violet-100">
+              📊 Rendimiento
+            </Link>
+          )}
           <button onClick={exportarExcel} disabled={exportando}
             className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
             {exportando ? "Exportando..." : "⬇ Excel"}
