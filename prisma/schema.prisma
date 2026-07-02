@@ -138,6 +138,7 @@ model Oportunidad {
   recurrente    Boolean?
   notas         String?
   extras        Json?
+  probabilidad  Int?              @default(50)
   creadoEn      DateTime          @default(now())
   creadoBy      String?
 

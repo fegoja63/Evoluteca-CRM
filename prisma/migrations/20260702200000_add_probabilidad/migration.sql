@@ -1,0 +1,1 @@
+ALTER TABLE "oportunidades" ADD COLUMN IF NOT EXISTS "probabilidad" INTEGER DEFAULT 50;
