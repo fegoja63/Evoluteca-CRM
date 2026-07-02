@@ -19,11 +19,166 @@ type Contacto = { id: string; nombre: string };
 type Oportunidad = { id: string; titulo: string };
 
 const TIPOS = [
-  { key: "TAREA", label: "Tarea" },
-  { key: "LLAMADA", label: "Llamada" },
-  { key: "REUNION", label: "Reunión" },
-  { key: "EMAIL", label: "Email" },
+  { key: "TAREA",   label: "Tarea",   dot: "bg-slate-400" },
+  { key: "LLAMADA", label: "Llamada", dot: "bg-blue-500" },
+  { key: "REUNION", label: "Reunión", dot: "bg-violet-500" },
+  { key: "EMAIL",   label: "Email",   dot: "bg-emerald-500" },
 ];
+
+const DIAS_SEMANA = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+const MESES_NOMBRE = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+function CalendarioActividades({
+  actividades, mes, setMes, diaSeleccionado, setDiaSeleccionado, onToggle, onEliminar, formatoFecha,
+}: {
+  actividades: Actividad[];
+  mes: { anio: number; mes: number };
+  setMes: (m: { anio: number; mes: number }) => void;
+  diaSeleccionado: string | null;
+  setDiaSeleccionado: (d: string | null) => void;
+  onToggle: (id: string, completada: boolean) => void;
+  onEliminar: (id: string) => void;
+  formatoFecha: (f: string) => string;
+}) {
+  const hoy = new Date();
+  const primerDia = new Date(mes.anio, mes.mes, 1);
+  const ultimoDia = new Date(mes.anio, mes.mes + 1, 0);
+
+  // lunes=0 ... domingo=6
+  const offsetInicio = (primerDia.getDay() + 6) % 7;
+  const totalCeldas = Math.ceil((offsetInicio + ultimoDia.getDate()) / 7) * 7;
+
+  function keyDia(d: Date) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
+
+  // Agrupar actividades por día
+  const porDia: Record<string, Actividad[]> = {};
+  for (const a of actividades) {
+    const k = keyDia(new Date(a.fecha));
+    if (!porDia[k]) porDia[k] = [];
+    porDia[k].push(a);
+  }
+
+  const actsDia = diaSeleccionado ? (porDia[diaSeleccionado] ?? []) : [];
+
+  function navMes(delta: number) {
+    const d = new Date(mes.anio, mes.mes + delta, 1);
+    setMes({ anio: d.getFullYear(), mes: d.getMonth() });
+    setDiaSeleccionado(null);
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        {/* Navegación mes */}
+        <div className="flex items-center justify-between mb-4">
+          <button onClick={() => navMes(-1)}
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">← Ant.</button>
+          <h2 className="text-sm font-bold text-slate-900">{MESES_NOMBRE[mes.mes]} {mes.anio}</h2>
+          <button onClick={() => navMes(1)}
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">Sig. →</button>
+        </div>
+
+        {/* Cabecera días */}
+        <div className="grid grid-cols-7 mb-1">
+          {DIAS_SEMANA.map(d => (
+            <div key={d} className="text-center text-xs font-semibold text-slate-400 py-1">{d}</div>
+          ))}
+        </div>
+
+        {/* Celdas */}
+        <div className="grid grid-cols-7 gap-1">
+          {Array.from({ length: totalCeldas }).map((_, i) => {
+            const numDia = i - offsetInicio + 1;
+            if (numDia < 1 || numDia > ultimoDia.getDate()) {
+              return <div key={i} />;
+            }
+            const fecha = new Date(mes.anio, mes.mes, numDia);
+            const k = keyDia(fecha);
+            const acts = porDia[k] ?? [];
+            const esHoy = keyDia(hoy) === k;
+            const esSeleccionado = diaSeleccionado === k;
+            const tieneVencidas = acts.some(a => !a.completada && new Date(a.fecha) < hoy);
+
+            return (
+              <button key={i} onClick={() => setDiaSeleccionado(esSeleccionado ? null : k)}
+                className={`rounded-xl p-1.5 min-h-[56px] flex flex-col items-center transition-all border ${
+                  esSeleccionado ? "border-blue-400 bg-blue-50" :
+                  esHoy ? "border-blue-200 bg-blue-50" :
+                  acts.length > 0 ? "border-slate-200 hover:border-blue-200 hover:bg-slate-50" :
+                  "border-transparent hover:bg-slate-50"
+                }`}>
+                <span className={`text-xs font-semibold mb-1 w-6 h-6 flex items-center justify-center rounded-full ${
+                  esHoy ? "bg-blue-600 text-white" : "text-slate-700"
+                }`}>{numDia}</span>
+                {/* Puntos de actividades (max 3) */}
+                {acts.length > 0 && (
+                  <div className="flex flex-wrap gap-0.5 justify-center">
+                    {acts.slice(0, 3).map(a => {
+                      const dot = TIPOS.find(t => t.key === a.tipo)?.dot ?? "bg-slate-400";
+                      return (
+                        <span key={a.id}
+                          className={`w-1.5 h-1.5 rounded-full ${a.completada ? "bg-slate-200" : tieneVencidas && !a.completada ? "bg-red-400" : dot}`} />
+                      );
+                    })}
+                    {acts.length > 3 && <span className="text-xs text-slate-400 leading-none">+{acts.length-3}</span>}
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Leyenda */}
+        <div className="flex gap-4 mt-3 pt-3 border-t border-slate-100 flex-wrap">
+          {TIPOS.map(t => (
+            <span key={t.key} className="flex items-center gap-1 text-xs text-slate-500">
+              <span className={`w-2 h-2 rounded-full ${t.dot}`} />{t.label}
+            </span>
+          ))}
+          <span className="flex items-center gap-1 text-xs text-slate-500">
+            <span className="w-2 h-2 rounded-full bg-red-400" />Vencida
+          </span>
+        </div>
+      </div>
+
+      {/* Panel del día seleccionado */}
+      {diaSeleccionado && (
+        <div className="bg-white rounded-2xl border border-blue-200 p-5">
+          <h3 className="text-sm font-bold text-slate-900 mb-3">
+            {new Date(diaSeleccionado + "T12:00:00").toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" })}
+            <span className="ml-2 text-xs text-slate-400 font-normal">{actsDia.length} actividad{actsDia.length !== 1 ? "es" : ""}</span>
+          </h3>
+          {actsDia.length === 0 ? (
+            <p className="text-xs text-slate-400">Sin actividades este día.</p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {actsDia.sort((a,b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime()).map(a => (
+                <div key={a.id} className="flex items-center gap-3 rounded-xl border border-neutral-200 p-3 text-sm">
+                  <input type="checkbox" checked={a.completada}
+                    onChange={e => onToggle(a.id, e.target.checked)} className="h-4 w-4" />
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${TIPOS.find(t=>t.key===a.tipo)?.dot ?? "bg-slate-400"}`} />
+                  <div className="flex-1 min-w-0">
+                    <p className={a.completada ? "text-slate-400 line-through text-xs" : "font-medium text-slate-900 text-xs"}>
+                      {a.titulo}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {formatoFecha(a.fecha)}
+                      {a.empresa && ` · ${a.empresa.nombre}`}
+                    </p>
+                  </div>
+                  <button onClick={() => onEliminar(a.id)}
+                    className="text-slate-200 hover:text-red-500 text-base leading-none shrink-0">×</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AgendaPage() {
   const [actividades, setActividades] = useState<Actividad[]>([]);
@@ -35,6 +190,11 @@ export default function AgendaPage() {
   const [guardando, setGuardando] = useState(false);
   const [exportando, setExportando] = useState(false);
   const [filtro, setFiltro] = useState<"pendientes" | "todas">("pendientes");
+  const [vista, setVista] = useState<"lista" | "calendario">("lista");
+  const [mesCalendario, setMesCalendario] = useState(() => {
+    const h = new Date(); return { anio: h.getFullYear(), mes: h.getMonth() };
+  });
+  const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null);
   const [notificando, setNotificando] = useState<string | null>(null);
   const [notifOk, setNotifOk] = useState<string | null>(null);
 
@@ -152,39 +312,41 @@ export default function AgendaPage() {
       </div>
 
       <div className="flex items-center justify-between mb-4">
-        <div></div>
+        {/* Toggle vista */}
+        <div className="flex rounded-xl border border-slate-200 overflow-hidden text-sm">
+          <button onClick={() => setVista("lista")}
+            className={`px-4 py-2 font-medium transition-colors ${vista === "lista" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}>
+            ☰ Lista
+          </button>
+          <button onClick={() => setVista("calendario")}
+            className={`px-4 py-2 font-medium transition-colors ${vista === "calendario" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}>
+            📅 Calendario
+          </button>
+        </div>
         <div className="flex gap-2">
           <button onClick={exportarExcel} disabled={exportando}
             className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
             {exportando ? "Exportando..." : "⬇ Excel"}
           </button>
-          <button
-            onClick={() => setMostrarForm(true)}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
+          <button onClick={() => setMostrarForm(true)}
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
             + Nueva actividad
           </button>
         </div>
       </div>
 
-      <div className="mb-4 flex gap-2">
-        <button
-          onClick={() => setFiltro("pendientes")}
-          className={`rounded-md px-3 py-1.5 text-xs font-medium ${
-            filtro === "pendientes" ? "bg-blue-50 text-blue-700" : "text-neutral-500 hover:bg-neutral-100"
-          }`}
-        >
-          Pendientes
-        </button>
-        <button
-          onClick={() => setFiltro("todas")}
-          className={`rounded-md px-3 py-1.5 text-xs font-medium ${
-            filtro === "todas" ? "bg-blue-50 text-blue-700" : "text-neutral-500 hover:bg-neutral-100"
-          }`}
-        >
-          Todas
-        </button>
-      </div>
+      {vista === "lista" && (
+        <div className="mb-4 flex gap-2">
+          <button onClick={() => setFiltro("pendientes")}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "pendientes" ? "bg-blue-50 text-blue-700" : "text-neutral-500 hover:bg-neutral-100"}`}>
+            Pendientes
+          </button>
+          <button onClick={() => setFiltro("todas")}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "todas" ? "bg-blue-50 text-blue-700" : "text-neutral-500 hover:bg-neutral-100"}`}>
+            Todas
+          </button>
+        </div>
+      )}
 
       {mostrarForm && (
         <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
@@ -291,6 +453,17 @@ export default function AgendaPage() {
 
       {cargando ? (
         <p className="text-sm text-neutral-400">Cargando...</p>
+      ) : vista === "calendario" ? (
+        <CalendarioActividades
+          actividades={actividades}
+          mes={mesCalendario}
+          setMes={setMesCalendario}
+          diaSeleccionado={diaSeleccionado}
+          setDiaSeleccionado={setDiaSeleccionado}
+          onToggle={toggleCompletada}
+          onEliminar={eliminarActividad}
+          formatoFecha={formatoFecha}
+        />
       ) : visibles.length === 0 ? (
         <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
           <p className="text-sm text-neutral-500">
@@ -300,16 +473,10 @@ export default function AgendaPage() {
       ) : (
         <div className="flex flex-col gap-2">
           {visibles.map((a) => (
-            <div
-              key={a.id}
-              className="flex items-center gap-3 rounded-xl border border-neutral-200 p-3 text-sm hover:bg-neutral-50"
-            >
-              <input
-                type="checkbox"
-                checked={a.completada}
-                onChange={(e) => toggleCompletada(a.id, e.target.checked)}
-                className="h-4 w-4"
-              />
+            <div key={a.id}
+              className="flex items-center gap-3 rounded-xl border border-neutral-200 p-3 text-sm hover:bg-neutral-50">
+              <input type="checkbox" checked={a.completada}
+                onChange={(e) => toggleCompletada(a.id, e.target.checked)} className="h-4 w-4" />
               <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
                 {TIPOS.find((t) => t.key === a.tipo)?.label}
               </span>
@@ -325,22 +492,13 @@ export default function AgendaPage() {
                 </p>
               </div>
               {!a.completada && new Date(a.fecha) < new Date() && (
-                <button
-                  onClick={() => enviarRecordatorio(a)}
-                  disabled={notificando === a.id}
-                  className="text-amber-400 hover:text-amber-600 disabled:opacity-50"
-                  title="Enviarme recordatorio por email"
-                >
+                <button onClick={() => enviarRecordatorio(a)} disabled={notificando === a.id}
+                  className="text-amber-400 hover:text-amber-600 disabled:opacity-50" title="Enviarme recordatorio">
                   {notifOk === a.id ? "✅" : notificando === a.id ? "..." : "🔔"}
                 </button>
               )}
-              <button
-                onClick={() => eliminarActividad(a.id)}
-                className="text-neutral-300 hover:text-red-600"
-                title="Eliminar"
-              >
-                ×
-              </button>
+              <button onClick={() => eliminarActividad(a.id)}
+                className="text-neutral-300 hover:text-red-600" title="Eliminar">×</button>
             </div>
           ))}
         </div>
