@@ -167,9 +167,8 @@ export async function GET(req: Request) {
     for (const mail of emails) {
       const { error } = await resend.emails.send({
         from: "Evoluteca CRM <onboarding@resend.dev>",
-        replyTo: "familiagomezpadilla@gmail.com",
-        to: u.email,
-        subject: mail.subject,
+        to: "familiagomezpadilla@gmail.com",
+        subject: `[${u.nombre}] ${mail.subject}`,
         html: mail.html,
       });
       if (error) errores.push(`${u.email} (${mail.subject}): ${error.message}`);
