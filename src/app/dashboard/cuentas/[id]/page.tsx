@@ -48,6 +48,8 @@ export default function FichaClientePage() {
   const [editando, setEditando] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [form, setForm] = useState({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "" });
+  const [quickTipo, setQuickTipo] = useState<string | undefined>(undefined);
+  const [quickKey, setQuickKey] = useState(0);
 
   async function cargar() {
     setCargando(true);
@@ -223,7 +225,23 @@ export default function FichaClientePage() {
 
         {/* Actividades */}
         <div className="rounded-2xl border border-slate-200 p-4">
-          <h2 className="mb-3 text-sm font-semibold text-slate-800">Actividades ({empresa.actividades.length})</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-slate-800">Actividades ({empresa.actividades.length})</h2>
+            <div className="flex gap-1">
+              {[
+                { tipo: "LLAMADA", icon: "📞", label: "Llamada" },
+                { tipo: "EMAIL",   icon: "✉️",  label: "Email" },
+                { tipo: "REUNION", icon: "🤝", label: "Reunión" },
+              ].map(q => (
+                <button key={q.tipo}
+                  onClick={() => { setQuickTipo(q.tipo); setQuickKey(k => k + 1); }}
+                  title={`Registrar ${q.label}`}
+                  className="rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                  {q.icon}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="flex flex-col gap-1 text-sm mb-3">
             {empresa.actividades.length === 0 ? (
               <p className="text-xs text-slate-400">Sin actividades.</p>
@@ -237,7 +255,8 @@ export default function FichaClientePage() {
               ))
             )}
           </div>
-          <NuevaActividadInline empresaId={empresa.id} onGuardado={cargar} />
+          <NuevaActividadInline key={quickKey} empresaId={empresa.id} onGuardado={() => { setQuickTipo(undefined); cargar(); }}
+            tipoInicial={quickTipo} autoAbrir={!!quickTipo} />
         </div>
 
         {/* Cotizaciones */}

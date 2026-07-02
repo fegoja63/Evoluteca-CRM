@@ -9,10 +9,33 @@ type Oportunidad = {
   titulo: string;
   valor: string | null;
   etapa: string;
+  creadoEn: string;
   empresa: { id: string; nombre: string } | null;
   contacto: { id: string; nombre: string } | null;
   extras: Record<string, string> | null;
 };
+
+function diasDesde(fecha: string): number {
+  return Math.floor((Date.now() - new Date(fecha).getTime()) / 86_400_000);
+}
+
+function urgenciaBorde(dias: number, etapa: string): string {
+  if (etapa === "GANADA" || etapa === "PERDIDA") return "";
+  if (dias < 15) return "border-l-4 border-l-emerald-400";
+  if (dias < 30) return "border-l-4 border-l-amber-400";
+  return "border-l-4 border-l-red-400";
+}
+
+function urgenciaBadge(dias: number, etapa: string): string | null {
+  if (etapa === "GANADA" || etapa === "PERDIDA") return null;
+  return `${dias}d`;
+}
+
+function urgenciaBadgeColor(dias: number): string {
+  if (dias < 15) return "text-emerald-600 bg-emerald-50";
+  if (dias < 30) return "text-amber-600 bg-amber-50";
+  return "text-red-600 bg-red-50";
+}
 
 type Empresa = { id: string; nombre: string };
 type Contacto = { id: string; nombre: string };
@@ -301,7 +324,10 @@ export default function PipelinePage() {
                       {isOver ? "Soltar aquí" : "Sin registros"}
                     </div>
                   )}
-                  {items.map(o => (
+                  {items.map(o => {
+                    const dias = diasDesde(o.creadoEn);
+                    const badge = urgenciaBadge(dias, etapa.key);
+                    return (
                     <div key={o.id}
                       draggable
                       onDragStart={e => {
@@ -310,7 +336,7 @@ export default function PipelinePage() {
                         setDraggingId(o.id);
                       }}
                       onDragEnd={() => { setDraggingId(null); setDragOverEtapa(null); }}
-                      className={`rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-sm cursor-grab active:cursor-grabbing transition-opacity select-none ${
+                      className={`rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-sm cursor-grab active:cursor-grabbing transition-opacity select-none ${urgenciaBorde(dias, etapa.key)} ${
                         draggingId === o.id ? "opacity-40" : "hover:shadow-md"
                       }`}
                     >
@@ -332,11 +358,20 @@ export default function PipelinePage() {
                           {o.extras["AÑO"]}{o.extras["MES ELABORACION"] ? ` · ${o.extras["MES ELABORACION"]}` : ""}
                         </p>
                       )}
-                      {o.valor && (
-                        <p className="mt-1.5 font-semibold text-emerald-700">{fmt(o.valor)}</p>
-                      )}
+                      <div className="flex items-center justify-between mt-1.5">
+                        {o.valor
+                          ? <p className="font-semibold text-emerald-700">{fmt(o.valor)}</p>
+                          : <span />
+                        }
+                        {badge && (
+                          <span className={`rounded-full px-1.5 py-0.5 text-xs font-semibold ${urgenciaBadgeColor(dias)}`}>
+                            {badge}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  ))}
+                    );
+                  })}
                   {/* Drop zone visible al final de columnas con items */}
                   {items.length > 0 && isOver && (
                     <div className="rounded-lg border-2 border-dashed border-blue-300 py-3 text-center text-xs text-blue-400">

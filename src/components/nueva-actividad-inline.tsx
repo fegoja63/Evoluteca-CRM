@@ -7,6 +7,8 @@ type Props = {
   contactoId?: string;
   oportunidadId?: string;
   onGuardado?: () => void;
+  tipoInicial?: string;
+  autoAbrir?: boolean;
 };
 
 const TIPOS = [
@@ -23,11 +25,11 @@ function fechaLocalDefault() {
   return d.toISOString().slice(0, 16);
 }
 
-export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onGuardado }: Props) {
-  const [abierto, setAbierto] = useState(false);
+export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onGuardado, tipoInicial, autoAbrir }: Props) {
+  const [abierto, setAbierto] = useState(autoAbrir ?? false);
   const [guardando, setGuardando] = useState(false);
   const [form, setForm] = useState({
-    tipo: "TAREA",
+    tipo: tipoInicial ?? "TAREA",
     titulo: "",
     fecha: fechaLocalDefault(),
     notas: "",
@@ -46,7 +48,7 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
         oportunidadId: oportunidadId ?? null,
       }),
     });
-    setForm({ tipo: "TAREA", titulo: "", fecha: fechaLocalDefault(), notas: "" });
+    setForm({ tipo: tipoInicial ?? "TAREA", titulo: "", fecha: fechaLocalDefault(), notas: "" });
     setAbierto(false);
     setGuardando(false);
     onGuardado?.();
