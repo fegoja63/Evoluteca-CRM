@@ -50,7 +50,7 @@ export async function GET(request: Request) {
     prisma.contacto.count({ where: { tenantId } }),
     prisma.oportunidad.findMany({
       where: { tenantId },
-      select: { etapa: true, valor: true, fechaEvento: true, creadoEn: true, extras: true, empresa: { select: { nombre: true } } },
+      select: { etapa: true, valor: true, probabilidad: true, fechaEvento: true, creadoEn: true, extras: true, empresa: { select: { nombre: true } } },
     }),
     prisma.actividad.count({ where: { tenantId, completada: false } }),
   ]);
@@ -85,6 +85,30 @@ export async function GET(request: Request) {
   const etapasActivas = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];
   const valorActivo    = etapasActivas.reduce((acc, e) => acc + (valorPorEtapa[e] ?? 0), 0);
   const cantidadActiva = etapasActivas.reduce((acc, e) => acc + (oportunidadesPorEtapa[e] ?? 0), 0);
+
+  // Forecast ponderado: valor × probabilidad para oportunidades activas
+  const valorPonderado = oportunidades
+    .filter(o => etapasActivas.includes(o.etapa))
+    .reduce((acc, o) => acc + Number(o.valor ?? 0) * ((o.probabilidad ?? 50) / 100), 0);
+
+  // Desglose de forecast por etapa
+  type ForecastEtapa = { cantidad: number; valorBruto: number; valorPonderado: number; probPromedio: number };
+  const forecastPorEtapa: Record<string, ForecastEtapa> = {};
+  for (const o of oportunidades) {
+    if (!etapasActivas.includes(o.etapa)) continue;
+    const fe = forecastPorEtapa[o.etapa] ?? { cantidad: 0, valorBruto: 0, valorPonderado: 0, probPromedio: 0 };
+    fe.cantidad++;
+    fe.valorBruto   += Number(o.valor ?? 0);
+    fe.valorPonderado += Number(o.valor ?? 0) * ((o.probabilidad ?? 50) / 100);
+    fe.probPromedio  += o.probabilidad ?? 50;
+    forecastPorEtapa[o.etapa] = fe;
+  }
+  // Calcular promedio real de probabilidad por etapa
+  for (const e of etapasActivas) {
+    if (forecastPorEtapa[e]) {
+      forecastPorEtapa[e].probPromedio = Math.round(forecastPorEtapa[e].probPromedio / forecastPorEtapa[e].cantidad);
+    }
+  }
 
   // ── Por año (comparativa) ──
   type ResAnio = { ganadas: number; perdidas: number; activas: number; valorGanado: number; valorPerdido: number; valorActivo: number; total: number };
@@ -148,6 +172,8 @@ export async function GET(request: Request) {
     porMes,
     anioParaMes,
     topClientes,
+    valorPonderado,
+    forecastPorEtapa,
     filtro: { anio: anioFiltro, mes: mesFiltro },
   });
 }

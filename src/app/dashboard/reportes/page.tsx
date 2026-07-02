@@ -8,6 +8,8 @@ type Meta    = { id: string; anio: number; mes: number | null; valorObjetivo: st
 
 type TopCliente = { nombre: string; valorGanado: number; ganadas: number; total: number };
 
+type ForecastEtapa = { cantidad: number; valorBruto: number; valorPonderado: number; probPromedio: number };
+
 type Reporte = {
   totalEmpresas: number;
   totalContactos: number;
@@ -27,6 +29,8 @@ type Reporte = {
   porMes: Record<number, ResMes>;
   anioParaMes: number;
   topClientes: TopCliente[];
+  valorPonderado: number;
+  forecastPorEtapa: Record<string, ForecastEtapa>;
   filtro: { anio: number | null; mes: number | null };
 };
 
@@ -456,6 +460,72 @@ export default function ReportesPage() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* ── PANEL DE FORECASTING ── */}
+      {r.cantidadActiva > 0 && (
+        <div className="mt-6 bg-white rounded-2xl border border-slate-200 p-6">
+          <div className="flex items-start justify-between mb-5">
+            <div>
+              <h2 className="text-base font-bold text-slate-900">Pronóstico de ingresos</h2>
+              <p className="text-xs text-slate-400 mt-0.5">Valor ponderado por probabilidad de cierre</p>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-bold text-violet-600">{fmtK(r.valorPonderado)}</p>
+              <p className="text-xs text-slate-400 mt-0.5">pronóstico esperado</p>
+            </div>
+          </div>
+
+          {/* Barra comparativa bruto vs ponderado */}
+          <div className="mb-5">
+            <div className="flex justify-between text-xs text-slate-500 mb-1">
+              <span>Pipeline bruto</span>
+              <span className="font-semibold text-slate-700">{fmtK(r.valorActivo)}</span>
+            </div>
+            <div className="h-3 bg-slate-100 rounded-full overflow-hidden mb-2">
+              <div className="h-3 rounded-full bg-blue-400" style={{ width: "100%" }} />
+            </div>
+            <div className="flex justify-between text-xs text-slate-500 mb-1">
+              <span>Pronóstico ponderado</span>
+              <span className="font-semibold text-violet-600">{fmtK(r.valorPonderado)}</span>
+            </div>
+            <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-3 rounded-full bg-violet-500"
+                style={{ width: `${r.valorActivo > 0 ? Math.round((r.valorPonderado / r.valorActivo) * 100) : 0}%` }} />
+            </div>
+            <p className="text-xs text-slate-400 mt-1.5">
+              Confianza promedio: {r.valorActivo > 0 ? Math.round((r.valorPonderado / r.valorActivo) * 100) : 0}% del pipeline se espera cerrar
+            </p>
+          </div>
+
+          {/* Desglose por etapa */}
+          <div className="border-t border-slate-100 pt-4">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Desglose por etapa</p>
+            <div className="flex flex-col gap-2">
+              {["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"].map(etapaKey => {
+                const fe = r.forecastPorEtapa[etapaKey];
+                if (!fe) return null;
+                const etapa = ETAPAS.find(e => e.key === etapaKey)!;
+                const pct = fe.valorBruto > 0 ? Math.round((fe.valorPonderado / fe.valorBruto) * 100) : 0;
+                return (
+                  <div key={etapaKey} className="flex items-center gap-4">
+                    <div className="w-24 shrink-0">
+                      <p className="text-xs font-medium text-slate-700">{etapa.label}</p>
+                      <p className="text-xs text-slate-400">{fe.cantidad} ops · {fe.probPromedio}% prom.</p>
+                    </div>
+                    <div className="flex-1 relative h-6 bg-slate-50 rounded-xl overflow-hidden">
+                      <div className="h-full rounded-xl" style={{ width: `${pct}%`, backgroundColor: etapa.colorBar, opacity: 0.6 }} />
+                    </div>
+                    <div className="w-28 text-right shrink-0">
+                      <p className="text-xs font-bold text-slate-700">{fmtK(fe.valorPonderado)}</p>
+                      <p className="text-xs text-slate-400">de {fmtK(fe.valorBruto)}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
