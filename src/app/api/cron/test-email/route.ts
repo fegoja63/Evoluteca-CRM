@@ -41,11 +41,11 @@ export async function GET() {
 
   const { error } = await resend.emails.send({
     from: "Evoluteca CRM <onboarding@resend.dev>",
-    to: "felipegomezjaramilllo@gmail.com",
+    to: "felipegomezjaramillo@gmail.com",
     subject: "✅ Prueba de email — Evoluteca CRM",
     html,
   });
 
   if (error) return NextResponse.json({ ok: false, error: error.message });
-  return NextResponse.json({ ok: true, mensaje: "Email enviado a felipegomezjaramilllo@gmail.com" });
+  return NextResponse.json({ ok: true, mensaje: "Email enviado a felipegomezjaramillo@gmail.com" });
 }

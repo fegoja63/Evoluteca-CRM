@@ -84,7 +84,7 @@ export async function POST(req: Request) {
 
   const { error } = await resend.emails.send({
     from: "Evoluteca CRM <onboarding@resend.dev>",
-    replyTo: "felipegomezjaramilllo@gmail.com",
+    replyTo: "felipegomezjaramillo@gmail.com",
     to: destinatario ?? session.user.email ?? "",
     subject,
     html,
