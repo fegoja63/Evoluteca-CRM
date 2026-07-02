@@ -12,6 +12,7 @@ type Oportunidad = {
   fechaEvento: string | null;
   sede: string | null;
   segmento: string | null;
+  creadoEn: string;
   extras: Record<string, string> | null;
   empresa: { id: string; nombre: string } | null;
   contacto: { id: string; nombre: string; email: string | null } | null;
@@ -73,6 +74,7 @@ export default function CotizacionesPage() {
   const [guardando, setGuardando] = useState(false);
   const [exportando, setExportando] = useState(false);
   const [filtroEtapa, setFiltroEtapa] = useState("TODAS");
+  const [filtroEdad, setFiltroEdad] = useState("TODAS");
   const [form, setForm] = useState(FORM_VACIO);
 
   async function cargar() {
@@ -136,7 +138,38 @@ export default function CotizacionesPage() {
     return new Date(f).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
   }
 
-  const ETAPAS_EN_CURSO = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];
+  const ETAPAS_VIGENTES = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];
+  const ETAPAS_EN_CURSO = ETAPAS_VIGENTES;
+
+  function diasDesde(fecha: string) {
+    return Math.floor((Date.now() - new Date(fecha).getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  function bucketEdad(dias: number) {
+    if (dias < 30) return "0-30";
+    if (dias <= 60) return "30-60";
+    if (dias <= 90) return "61-90";
+    return "+90";
+  }
+
+  const vigentes = cotizaciones.filter(o => ETAPAS_VIGENTES.includes(o.etapa));
+
+  const conteoEdad = { "0-30": 0, "30-60": 0, "61-90": 0, "+90": 0 };
+  const valorEdad  = { "0-30": 0, "30-60": 0, "61-90": 0, "+90": 0 };
+  vigentes.forEach(o => {
+    const b = bucketEdad(diasDesde(o.creadoEn));
+    conteoEdad[b]++;
+    valorEdad[b] += Number(o.valor ?? 0);
+  });
+
+  const BUCKETS = [
+    { key: "0-30",  label: "< 30 días",   color: "bg-emerald-500", colorBar: "#10b981", colorPill: "bg-emerald-50 text-emerald-700", colorPillActive: "bg-emerald-600 text-white" },
+    { key: "30-60", label: "30 – 60 días", color: "bg-amber-400",   colorBar: "#f59e0b", colorPill: "bg-amber-50 text-amber-700",   colorPillActive: "bg-amber-500 text-white"   },
+    { key: "61-90", label: "61 – 90 días", color: "bg-orange-500",  colorBar: "#f97316", colorPill: "bg-orange-50 text-orange-700", colorPillActive: "bg-orange-500 text-white"  },
+    { key: "+90",   label: "+ 90 días",    color: "bg-red-500",     colorBar: "#ef4444", colorPill: "bg-red-50 text-red-700",       colorPillActive: "bg-red-600 text-white"     },
+  ];
+
+  const maxConteo = Math.max(...BUCKETS.map(b => conteoEdad[b.key as keyof typeof conteoEdad]), 1);
 
   const conteoEtapas = ETAPAS_ACTIVAS.reduce((acc, e) => {
     acc[e] = cotizaciones.filter(o => o.etapa === e).length;
@@ -164,6 +197,10 @@ export default function CotizacionesPage() {
 
   const listado = cotizaciones.filter(o => {
     if (filtroEtapa !== "TODAS" && o.etapa !== filtroEtapa) return false;
+    if (filtroEdad !== "TODAS") {
+      if (!ETAPAS_VIGENTES.includes(o.etapa)) return false;
+      if (bucketEdad(diasDesde(o.creadoEn)) !== filtroEdad) return false;
+    }
     if (busqueda) {
       const q = busqueda.toLowerCase();
       const campos = [
@@ -202,6 +239,80 @@ export default function CotizacionesPage() {
         <KpiCard label="Calificado" valor={conteoEtapas.CALIFICADO} emoji="✅" color="bg-blue-400" />
         <KpiCard label="Cotización" valor={conteoEtapas.PROPUESTA} emoji="📄" color="bg-violet-500" />
         <KpiCard label="Negociación" valor={conteoEtapas.NEGOCIACION} emoji="🤝" color="bg-amber-500" />
+      </div>
+
+      {/* ── Antigüedad de cotizaciones vigentes ── */}
+      <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-800">Antigüedad de cotizaciones vigentes</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Solo incluye cotizaciones activas (excluye ganadas y perdidas)</p>
+          </div>
+          {filtroEdad !== "TODAS" && (
+            <button onClick={() => setFiltroEdad("TODAS")} className="text-xs text-blue-600 hover:underline">
+              × Limpiar filtro
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-4 gap-4">
+          {BUCKETS.map(b => {
+            const n = conteoEdad[b.key as keyof typeof conteoEdad];
+            const v = valorEdad[b.key as keyof typeof valorEdad];
+            const pct = Math.round((n / maxConteo) * 100);
+            const activo = filtroEdad === b.key;
+            return (
+              <button
+                key={b.key}
+                onClick={() => setFiltroEdad(activo ? "TODAS" : b.key)}
+                className={`text-left rounded-xl p-4 border-2 transition-all ${
+                  activo ? "border-blue-500 bg-blue-50" : "border-slate-100 hover:border-slate-300"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-slate-500">{b.label}</span>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${activo ? "bg-blue-600 text-white" : b.colorPill}`}>
+                    {n}
+                  </span>
+                </div>
+                {/* Barra */}
+                <div className="w-full h-2 bg-slate-100 rounded-full mb-2">
+                  <div
+                    className={`h-2 rounded-full transition-all ${b.color}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <p className="text-xs text-slate-400">{fmt(v)}</p>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Gráfica de barras SVG */}
+        {vigentes.length > 0 && (
+          <div className="mt-5">
+            <svg viewBox="0 0 480 120" className="w-full" style={{ height: 120 }}>
+              {BUCKETS.map((b, i) => {
+                const n = conteoEdad[b.key as keyof typeof conteoEdad];
+                const barH = maxConteo > 0 ? Math.round((n / maxConteo) * 80) : 0;
+                const x = 20 + i * 115;
+                const y = 95 - barH;
+                return (
+                  <g key={b.key}>
+                    <rect x={x} y={y} width={80} height={barH} rx={6} fill={b.colorBar}
+                      opacity={filtroEdad === "TODAS" || filtroEdad === b.key ? 1 : 0.3} />
+                    <text x={x + 40} y={y - 5} textAnchor="middle" fontSize={11} fontWeight="bold" fill="#334155">
+                      {n > 0 ? n : ""}
+                    </text>
+                    <text x={x + 40} y={110} textAnchor="middle" fontSize={10} fill="#94a3b8">
+                      {b.label}
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+        )}
       </div>
 
       {/* Formulario nueva cotización */}
