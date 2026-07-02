@@ -33,6 +33,10 @@ export default function EquipoPage() {
   const [reseteando, setReseteando] = useState(false);
   const [resetOk, setResetOk] = useState(false);
 
+  const [reasignando, setReasignando] = useState(false);
+  const [reasignarId, setReasignarId] = useState("");
+  const [reasignarResultado, setReasignarResultado] = useState<{ empresas: number; oportunidades: number; actividades: number } | null>(null);
+
   async function exportarExcel() {
     setExportando(true);
     const res = await fetch("/api/exportar/equipo");
@@ -99,6 +103,20 @@ export default function EquipoPage() {
     setReseteando(false);
     setResetOk(true);
     setTimeout(() => { setResetId(null); setResetPass(""); setResetOk(false); }, 2000);
+  }
+
+  async function reasignarRegistros() {
+    if (!reasignarId) return;
+    setReasignando(true);
+    setReasignarResultado(null);
+    const res = await fetch("/api/usuarios/reasignar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usuarioId: reasignarId, soloSinDueno: true }),
+    });
+    const data = await res.json();
+    setReasignando(false);
+    setReasignarResultado(data);
   }
 
   async function toggleActivo(id: string, activo: boolean) {
@@ -282,6 +300,40 @@ export default function EquipoPage() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Panel reasignar registros importados */}
+      {esAdmin && (
+        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+          <h2 className="text-sm font-semibold text-amber-900 mb-1">Asignar registros sin dueño</h2>
+          <p className="text-xs text-amber-700 mb-4">
+            Los registros importados desde Excel no tienen vendedor asignado. Selecciona un vendedor y haz clic en Asignar para que pueda verlos con su perfil COMERCIAL.
+          </p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <select
+              value={reasignarId}
+              onChange={e => { setReasignarId(e.target.value); setReasignarResultado(null); }}
+              className="rounded-xl border border-amber-300 bg-white px-3 py-2 text-sm outline-none focus:border-amber-500"
+            >
+              <option value="">Seleccionar vendedor...</option>
+              {usuarios.filter(u => u.activo).map(u => (
+                <option key={u.id} value={u.id}>{u.nombre} — {ROLES.find(r => r.key === u.rol)?.label}</option>
+              ))}
+            </select>
+            <button
+              onClick={reasignarRegistros}
+              disabled={!reasignarId || reasignando}
+              className="rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
+            >
+              {reasignando ? "Asignando..." : "Asignar registros sin dueño"}
+            </button>
+          </div>
+          {reasignarResultado && (
+            <div className="mt-3 rounded-xl bg-white border border-amber-200 px-4 py-3 text-sm text-amber-900">
+              ✅ Asignados: <strong>{reasignarResultado.empresas}</strong> clientes · <strong>{reasignarResultado.oportunidades}</strong> oportunidades · <strong>{reasignarResultado.actividades}</strong> actividades
+            </div>
+          )}
         </div>
       )}
 
