@@ -87,8 +87,8 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
   const { error } = await resend.emails.send({
-    from: "Evoluteca CRM <onboarding@resend.dev>",
-    to: "felipegomezjaramillo@gmail.com",
+    from: "Evoluteca CRM <noreply@evoluteca.com>",
+    to: cot.contacto?.email ?? session.user.email ?? "felipegomezjaramillo@gmail.com",
     subject: `📄 Cotización ${numero} — ${cliente}`,
     html,
   });

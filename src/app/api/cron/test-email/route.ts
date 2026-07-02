@@ -40,7 +40,7 @@ export async function GET() {
     </div>`;
 
   const { error } = await resend.emails.send({
-    from: "Evoluteca CRM <onboarding@resend.dev>",
+    from: "Evoluteca CRM <noreply@evoluteca.com>",
     to: "felipegomezjaramillo@gmail.com",
     subject: "✅ Prueba de email — Evoluteca CRM",
     html,

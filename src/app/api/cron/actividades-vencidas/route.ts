@@ -87,8 +87,8 @@ export async function GET(req: Request) {
       </div>`;
 
     const { error } = await resend.emails.send({
-      from: "Evoluteca CRM <onboarding@resend.dev>",
-      to: "felipegomezjaramillo@gmail.com",
+      from: "Evoluteca CRM <noreply@evoluteca.com>",
+      to: usuario.email,
       subject: `⏰ [${usuario.nombre}] ${vencidas.length} actividad(es) vencida(s) — Evoluteca CRM`,
       html,
     });
