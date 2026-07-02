@@ -156,7 +156,14 @@ export function Sidebar({ tenantNombre }: { tenantNombre: string }) {
         })}
       </div>
 
-      <div className="px-3 py-4 border-t border-blue-900/50">
+      <div className="px-3 py-4 border-t border-blue-900/50 flex flex-col gap-0.5">
+        <Link href="/dashboard/perfil"
+          className={cn("flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+            pathname === "/dashboard/perfil" ? "bg-blue-600 text-white font-medium" : "text-blue-200 hover:bg-blue-900 hover:text-white"
+          )}>
+          <span className="text-base leading-none">👤</span>
+          Mi perfil
+        </Link>
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-blue-200 hover:bg-blue-900 hover:text-white transition-colors"
