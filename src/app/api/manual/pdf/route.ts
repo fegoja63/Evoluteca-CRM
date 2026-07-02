@@ -76,7 +76,7 @@ const s = StyleSheet.create({
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.0"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.3"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -170,7 +170,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.2 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · evoluteca-crm.vercel.app`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.3 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · evoluteca-crm.vercel.app`),
         ),
       ),
     ),
@@ -194,6 +194,8 @@ export async function GET() {
 
       React.createElement(H2, null, "1.3 Navegación general"),
       React.createElement(P, null, "El menú lateral izquierdo contiene todos los módulos del CRM. El módulo activo se resalta en azul. Puedes navegar entre módulos en cualquier momento sin perder tu trabajo."),
+      React.createElement(P, null, "En dispositivos móviles el menú lateral se oculta. Toca el ícono ☰ en la barra superior para abrirlo como panel deslizante. Toca fuera del panel o la × para cerrarlo."),
+      React.createElement(Tip, null, "El CRM está optimizado para móvil. Puedes gestionar clientes, pipeline y agenda desde tu teléfono sin perder funcionalidad."),
 
       React.createElement(View, { style: { paddingHorizontal: 40 } },
         React.createElement(View, { style: s.tabla },
@@ -339,9 +341,13 @@ export async function GET() {
       React.createElement(H2, null, "4.3 Marcar como completada"),
       React.createElement(P, null, 'Marca el checkbox junto a la actividad para marcarla como completada. Las actividades completadas se muestran tachadas. Usa el filtro "Solo pendientes" para enfocarte en lo que falta.'),
 
-      React.createElement(Nota, null, "Las actividades vencidas (fecha pasada y sin completar) se resaltan en el dashboard como alertas. El CRM puede enviar recordatorios por email si configuras la clave RESEND_API_KEY."),
+      React.createElement(H2, null, "4.4 Recordatorios por email"),
+      React.createElement(P, null, "El CRM puede enviarte notificaciones por email de dos formas:"),
+      React.createElement(LI, null, "Automático: cada mañana a las 8am recibes un email con todas tus actividades vencidas agrupadas, con indicador de días de atraso (rojo ≥7d, ámbar ≥2d)"),
+      React.createElement(LI, null, "Manual: en la lista de la Agenda, las actividades vencidas muestran un ícono 🔔. Al tocarlo recibes el recordatorio en tu correo inmediatamente"),
+      React.createElement(Nota, null, "Las notificaciones requieren que el administrador técnico configure la variable RESEND_API_KEY. Si no ves el 🔔 o no recibes emails, contacta a tu administrador."),
 
-      React.createElement(H2, null, "4.4 Vista de calendario"),
+      React.createElement(H2, null, "4.5 Vista de calendario"),
       React.createElement(P, null, "La agenda muestra las actividades del mes en formato lista agrupadas por fecha. Usa los filtros de tipo y estado para encontrar rápidamente lo que buscas."),
     ),
 
@@ -458,6 +464,8 @@ export async function GET() {
 
       React.createElement(H2, null, "10.1 Configuración general"),
       React.createElement(P, null, 'Ve a ⚙️ Configuración. Desde allí puedes cambiar el nombre de tu empresa (aparece en el sidebar y en los PDFs de cotizaciones).'),
+      React.createElement(P, null, "También puedes configurar el logo de tu empresa: pega la URL pública de tu imagen (PNG o JPG). El logo aparecerá automáticamente en el encabezado de todas tus cotizaciones en PDF en lugar del ícono genérico."),
+      React.createElement(Tip, null, "La URL del logo debe ser pública (sin login requerido para verla). Sube tu logo a un hosting de imágenes o usa una URL directa de tu sitio web."),
 
       React.createElement(H2, null, "10.2 Módulos opcionales"),
       React.createElement(P, null, "Algunos módulos están desactivados por defecto ya que son específicos para ciertos tipos de negocio:"),
@@ -490,6 +498,15 @@ export async function GET() {
       React.createElement(LI, null, "Crear nuevos usuarios con nombre, correo y contraseña inicial"),
       React.createElement(LI, null, "Ver el rol y estado de cada miembro"),
       React.createElement(LI, null, "Restablecer la contraseña de cualquier usuario"),
+      React.createElement(LI, null, "Asignar registros importados sin dueño a un vendedor (ver 10.3.1)"),
+
+      React.createElement(H3, null, "10.3.1 Asignar registros importados a un vendedor"),
+      React.createElement(P, null, "Cuando importas datos desde Excel, los registros no tienen un vendedor asignado. Un usuario con rol COMERCIAL no podrá verlos hasta que le sean asignados."),
+      React.createElement(P, null, "El Administrador ve al final de la página Equipo un panel ámbar 'Asignar registros sin dueño'. Pasos:"),
+      React.createElement(Paso, { n: 1, titulo: "Seleccionar vendedor", desc: "En el selector desplegable elige el usuario al que quieres asignar los registros importados." }),
+      React.createElement(Paso, { n: 2, titulo: "Hacer clic en Asignar", desc: "El sistema actualiza todos los clientes, oportunidades y actividades sin dueño y los asigna al vendedor elegido." }),
+      React.createElement(Paso, { n: 3, titulo: "Confirmar resultado", desc: "Aparece un resumen: '✅ Asignados: X clientes · Y oportunidades · Z actividades'." }),
+      React.createElement(Nota, null, "Solo se reasignan registros sin dueño (importados). Los registros ya asignados a otro vendedor NO se modifican."),
 
       React.createElement(H2, null, "10.4 Mi perfil"),
       React.createElement(P, null, 'Cada usuario puede actualizar su propia información en 👤 Mi perfil (al final del menú lateral):'),
@@ -508,7 +525,7 @@ export async function GET() {
       React.createElement(P, null, "Las notificaciones requieren configurar una clave RESEND_API_KEY en las variables de entorno. Contacta al administrador técnico de tu cuenta para activarlas."),
 
       React.createElement(H2, null, "¿El PDF de cotización incluye el logo de mi empresa?"),
-      React.createElement(P, null, "Actualmente el PDF usa el nombre de tu empresa y el logo genérico de Evoluteca. En versiones futuras se podrá subir un logo personalizado."),
+      React.createElement(P, null, "Sí. Ve a ⚙️ Configuración → sección 'Logo de la empresa' y pega la URL pública de tu logo. A partir de ese momento, todos los PDFs de cotización mostrarán tu logo en el encabezado."),
 
       React.createElement(H2, null, "¿Puedo exportar los datos del CRM?"),
       React.createElement(P, null, 'Sí. Todas las páginas de listado tienen un botón "⬇ Excel" en la esquina superior. Puedes exportar: Clientes, Contactos, Cotizaciones activas, Cotizaciones formales, Agenda, Equipo, Catálogo de servicios, Funciones y Audiencia.'),
