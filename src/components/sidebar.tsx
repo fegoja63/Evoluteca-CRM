@@ -109,6 +109,12 @@ export function Sidebar({ tenantNombre }: { tenantNombre: string }) {
             className="w-full rounded-lg bg-blue-900/50 border border-blue-800 pl-7 pr-3 py-1.5 text-xs text-white placeholder-blue-400 outline-none focus:border-blue-500"
           />
           {buscando && <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-blue-400 text-xs">...</span>}
+          {!buscando && busqueda && (
+            <button onClick={() => { setBusqueda(""); setResultados([]); setMostrarResultados(false); }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-400 hover:text-white text-base leading-none">
+              ×
+            </button>
+          )}
         </div>
         {mostrarResultados && resultados.length > 0 && (
           <div className="absolute left-3 right-3 top-full mt-1 z-50 rounded-xl bg-white shadow-xl border border-slate-200 overflow-hidden">
