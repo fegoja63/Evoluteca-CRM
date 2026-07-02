@@ -6,13 +6,14 @@ import { Resend } from "resend";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  try {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const { tipo, destinatario, datos } = await req.json();
 
   if (!process.env.RESEND_API_KEY) {
-    return NextResponse.json({ error: "Email no configurado. Agrega RESEND_API_KEY en variables de entorno." }, { status: 503 });
+    return NextResponse.json({ error: "RESEND_API_KEY no configurada" }, { status: 503 });
   }
   const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -94,4 +95,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message, detail: error }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("notificaciones/enviar crash:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
