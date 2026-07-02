@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
+import { NotasRapidas } from "@/components/notas-rapidas";
 
 type Oportunidad = {
   id: string;
@@ -267,15 +268,21 @@ export default function OportunidadDetallePage() {
               </div>
             </div>
 
-            {op.notas && (
-              <div className="mt-4 rounded-xl bg-amber-50 border border-amber-100 px-4 py-3">
-                <p className="text-xs font-semibold text-amber-700 mb-1">Notas</p>
-                <p className="text-sm text-slate-700">{op.notas}</p>
-              </div>
-            )}
           </>
         )}
       </div>
+
+      <NotasRapidas
+        valor={op?.notas ?? null}
+        onGuardar={async (notas) => {
+          await fetch(`/api/oportunidades/${op!.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ notas: notas || null }),
+          });
+          cargar();
+        }}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
         {/* Cliente */}

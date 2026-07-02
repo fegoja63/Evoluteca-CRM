@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ExtrasPanel } from "@/components/extras-panel";
 import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
+import { NotasRapidas } from "@/components/notas-rapidas";
 
 type Empresa = { id: string; nombre: string };
 
@@ -200,6 +201,18 @@ export default function FichaContactoPage() {
       )}
 
       <ExtrasPanel extras={contacto.extras} />
+
+      <NotasRapidas
+        valor={contacto.notas}
+        onGuardar={async (notas) => {
+          await fetch(`/api/contactos/${contacto.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ notas }),
+          });
+          cargar();
+        }}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
         <div className="rounded-xl border border-neutral-200 p-4">

@@ -13,6 +13,7 @@ import Link from "next/link";
 import { ExtrasPanel } from "@/components/extras-panel";
 import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 import { TimelineCliente } from "@/components/timeline-cliente";
+import { NotasRapidas } from "@/components/notas-rapidas";
 
 type Detalle = {
   id: string;
@@ -178,6 +179,18 @@ export default function FichaClientePage() {
       )}
 
       <ExtrasPanel extras={empresa.extras} />
+
+      <NotasRapidas
+        valor={empresa.notas}
+        onGuardar={async (notas) => {
+          await fetch(`/api/empresas/${empresa.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ notas }),
+          });
+          cargar();
+        }}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
         {/* Contactos */}
