@@ -203,6 +203,9 @@ export default async function DashboardPage() {
               {session?.user?.tenantNombre} · {session?.user?.rol ? session.user.rol.charAt(0) + session.user.rol.slice(1).toLowerCase() : ""}
             </p>
           </div>
+          <div className="hidden md:flex absolute left-1/2 -translate-x-1/2">
+            <img src="/Logo FGJ.jpg" alt="Felipe Gómez Jaramillo" className="h-14 w-auto object-contain rounded-xl opacity-95" />
+          </div>
           <div className="hidden md:flex items-center gap-6 text-right">
             <div>
               <p className="text-2xl font-bold">{fmt(valorGanadoMes)}</p>
@@ -213,8 +216,6 @@ export default async function DashboardPage() {
               <p className="text-2xl font-bold">{tasaCierre}%</p>
               <p className="text-blue-200 text-xs mt-0.5">Tasa de cierre</p>
             </div>
-            <div className="w-px bg-white/20 self-stretch" />
-            <img src="/Logo FGJ.jpg" alt="Felipe Gómez Jaramillo" className="h-10 w-auto object-contain rounded-lg opacity-90" />
           </div>
         </div>
       </div>

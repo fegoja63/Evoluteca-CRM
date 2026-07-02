@@ -83,6 +83,7 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
       <div className="px-5 py-6 border-b border-blue-900/50 relative">
         <div className="flex items-center gap-2 mb-1">
           <img src="/Logo Evoluteca.png" alt="Evoluteca" className="h-8 w-auto object-contain" />
+          <span className="text-white font-bold text-lg tracking-wide leading-none">CRM</span>
         </div>
         {onClose && (
           <button onClick={onClose} className="absolute top-4 right-4 text-blue-300 hover:text-white text-xl leading-none">×</button>
