@@ -455,25 +455,25 @@ export default async function DashboardPage() {
         <div className="flex flex-col gap-4">
 
           {/* Resumen financiero del año */}
-          <div className="bg-gradient-to-br from-blue-700 to-indigo-800 rounded-2xl p-5 text-white shadow-sm">
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 shadow-sm">
             <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-3">Resumen {hoy.getFullYear()}</p>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-blue-200">Ganado en el año</span>
-                <span className="text-sm font-bold text-emerald-300">{fmt(valorGanadoAnio)}</span>
+                <span className="text-xs text-slate-500">Ganado en el año</span>
+                <span className="text-sm font-bold text-emerald-600">{fmt(valorGanadoAnio)}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-blue-200">Pipeline activo</span>
-                <span className="text-sm font-bold text-blue-200">{fmt(valorPipeline)}</span>
+                <span className="text-xs text-slate-500">Pipeline activo</span>
+                <span className="text-sm font-bold text-slate-700">{fmt(valorPipeline)}</span>
               </div>
-              <div className="h-px bg-blue-600" />
+              <div className="h-px bg-slate-200" />
               <div className="flex items-center justify-between">
-                <span className="text-xs text-blue-200">Tasa de cierre</span>
-                <span className="text-sm font-bold text-white">{tasaCierre}%</span>
+                <span className="text-xs text-slate-500">Tasa de cierre</span>
+                <span className="text-sm font-bold text-slate-900">{tasaCierre}%</span>
               </div>
             </div>
             <Link href="/dashboard/reportes"
-              className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-medium text-white py-2 transition-colors border border-white/20">
+              className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-medium text-white py-2 transition-colors">
               Ver reportes completos →
             </Link>
           </div>
