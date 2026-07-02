@@ -22,7 +22,8 @@
       "Bash(git commit -m 'fix: cambiar remitente de emails a crm@felipegomezjaramillo.com *)",
       "Bash(git commit -m 'fix: usar onboarding@resend.dev como remitente hasta verificar dominio *)",
       "Bash(git commit *)",
-      "PowerShell(New-Item -ItemType Directory -Path \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\evoluteca-crm-sprint1 V2\\\\public\")"
+      "PowerShell(New-Item -ItemType Directory -Path \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\evoluteca-crm-sprint1 V2\\\\public\")",
+      "PowerShell(cd \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\evoluteca-crm-sprint1 V2\"; $env:DATABASE_URL = \\(Get-Content .env | Select-String \"^DIRECT_URL=\" | ForEach-Object { $_ -replace \"^DIRECT_URL=\",\"\" }\\); npx prisma db execute --file prisma/migrations/20260702250000_add_cotizacion_token_motivo/migration.sql --schema prisma/schema.prisma 2>&1)"
     ]
   }
 }

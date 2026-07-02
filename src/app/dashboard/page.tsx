@@ -104,6 +104,15 @@ export default async function DashboardPage() {
     .filter(o => o.actividades.length === 0 || new Date(o.actividades[0].fecha) < hace14dias)
     .slice(0, 5);
 
+  // ── Cotizaciones ENVIADAS sin respuesta en +3 días ──
+  const hace3dias = new Date(hoy.getTime() - 3 * 86_400_000);
+  const cotizacionesSinRespuesta = await prisma.cotizacion.findMany({
+    where: { tenantId, estado: "ENVIADA", creadoEn: { lt: hace3dias } },
+    select: { id: true, numero: true, creadoEn: true, empresa: { select: { nombre: true } } },
+    orderBy: { creadoEn: "asc" },
+    take: 5,
+  });
+
   // ── Cotizaciones formales con validez vencida o próxima a vencer (≤7 días) ──
   const cotizacionesVencidas = await prisma.cotizacion.findMany({
     where: {
@@ -233,7 +242,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── ALERTAS ── */}
-      {(actividadesVencidas.length > 0 || cotizacionesSinMovimiento.length > 0 || negociosEstancados.length > 0 || cierranEstaSemana.length > 0 || cotizacionesVencidas.length > 0) && (
+      {(actividadesVencidas.length > 0 || cotizacionesSinMovimiento.length > 0 || negociosEstancados.length > 0 || cierranEstaSemana.length > 0 || cotizacionesVencidas.length > 0 || cotizacionesSinRespuesta.length > 0) && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg">⚠️</span>
@@ -289,6 +298,27 @@ export default async function DashboardPage() {
                       </span>
                     </Link>
                   ))}
+                </div>
+              </div>
+            )}
+            {cotizacionesSinRespuesta.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-amber-700 mb-2">
+                  ✉️ {cotizacionesSinRespuesta.length} cotización{cotizacionesSinRespuesta.length !== 1 ? "es" : ""} enviada{cotizacionesSinRespuesta.length !== 1 ? "s" : ""} sin respuesta +3 días
+                </p>
+                <div className="flex flex-col gap-1">
+                  {cotizacionesSinRespuesta.map(c => {
+                    const dias = Math.floor((hoy.getTime() - new Date(c.creadoEn).getTime()) / 86_400_000);
+                    return (
+                      <Link key={c.id} href={`/dashboard/cotizaciones-formales/${c.id}`}
+                        className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-3 py-1.5 hover:border-amber-300 transition-colors">
+                        <span className="text-xs font-medium text-slate-800 truncate">
+                          #{String(c.numero).padStart(4,"0")} {c.empresa?.nombre ?? ""}
+                        </span>
+                        <span className="text-xs ml-auto shrink-0 font-semibold text-amber-600">{dias}d sin respuesta</span>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             )}

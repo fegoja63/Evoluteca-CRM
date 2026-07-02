@@ -30,7 +30,7 @@ const s = StyleSheet.create({
   portadaVer:  { fontSize: 10, color: "#64748b", borderTopWidth: 1, borderTopColor: "#334155", paddingTop: 16 },
   logoBox:     { width: 60, height: 60, backgroundColor: "#2563eb", borderRadius: 12, alignItems: "center", justifyContent: "center", marginBottom: 32 },
   logoTxt:     { fontSize: 32, fontFamily: "Helvetica-Bold", color: C.blanco },
-  logosRow:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 40 },
+  logosRow:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 40, backgroundColor: "#ffffff", borderRadius: 10, paddingHorizontal: 20, paddingVertical: 12 },
   logoEvol:    { height: 40, width: 140, objectFit: "contain" },
   logoFGJ:     { height: 44, width: 100, objectFit: "contain", borderRadius: 6 },
   // Header páginas internas

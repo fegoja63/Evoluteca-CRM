@@ -24,7 +24,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { estado, notas, empresaId } = body;
+  const { estado, notas, empresaId, motivoRechazo } = body;
 
   await prisma.cotizacion.updateMany({
     where: { id: params.id, tenantId: session.user.tenantId },
@@ -32,6 +32,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       ...(estado !== undefined && { estado }),
       ...(notas !== undefined && { notas: notas || null }),
       ...(empresaId !== undefined && { empresaId: empresaId || null }),
+      ...(motivoRechazo !== undefined && { motivoRechazo: motivoRechazo || null }),
     },
   });
 

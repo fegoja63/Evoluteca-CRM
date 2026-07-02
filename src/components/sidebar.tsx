@@ -6,9 +6,9 @@ import { signOut } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 
-type Resultado = { tipo: "cliente" | "contacto" | "oportunidad"; id: string; titulo: string; sub: string; href: string };
+type Resultado = { tipo: "cliente" | "contacto" | "oportunidad" | "cotizacion" | "actividad"; id: string; titulo: string; sub: string; href: string };
 
-const TIPO_ICON: Record<string, string> = { cliente: "🏢", contacto: "👤", oportunidad: "◈" };
+const TIPO_ICON: Record<string, string> = { cliente: "🏢", contacto: "👤", oportunidad: "◈", cotizacion: "📋", actividad: "📅" };
 
 const navBase = [
   { href: "/dashboard", label: "Dashboard", emoji: "▦" },

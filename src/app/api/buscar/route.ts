@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const tenantId = session.user.tenantId;
   const ownerFiltro = filtroOwner(session.user.rol, session.user.id);
 
-  const [empresas, contactos, oportunidades] = await Promise.all([
+  const [empresas, contactos, oportunidades, cotizaciones, actividades] = await Promise.all([
     prisma.empresa.findMany({
       where: { tenantId, ...ownerFiltro, nombre: { contains: q, mode: "insensitive" } },
       select: { id: true, nombre: true, sector: true },
@@ -49,12 +49,38 @@ export async function GET(req: NextRequest) {
       select: { id: true, titulo: true, etapa: true, extras: true, empresa: { select: { nombre: true } } },
       take: 8,
     }),
+    prisma.cotizacion.findMany({
+      where: {
+        tenantId,
+        OR: [
+          { empresa: { nombre: { contains: q, mode: "insensitive" } } },
+          { sede:    { contains: q, mode: "insensitive" } },
+          { notas:   { contains: q, mode: "insensitive" } },
+        ],
+      },
+      select: { id: true, numero: true, estado: true, empresa: { select: { nombre: true } } },
+      take: 4,
+    }),
+    prisma.actividad.findMany({
+      where: {
+        tenantId,
+        ...ownerFiltro,
+        OR: [
+          { titulo: { contains: q, mode: "insensitive" } },
+          { notas:  { contains: q, mode: "insensitive" } },
+        ],
+      },
+      select: { id: true, titulo: true, tipo: true, fecha: true, empresa: { select: { nombre: true } } },
+      take: 4,
+    }),
   ]);
 
   const ETAPA_LABEL: Record<string, string> = {
     PROSPECTO: "Prospecto", CALIFICADO: "Calificado", PROPUESTA: "Cotización",
     NEGOCIACION: "Negociación", GANADA: "Ganada", PERDIDA: "Perdida",
   };
+
+  const ESTADO_COT: Record<string, string> = { BORRADOR: "Borrador", ENVIADA: "Enviada", ACEPTADA: "Aceptada", RECHAZADA: "Rechazada" };
 
   const resultados = [
     ...empresas.map(e => ({
@@ -83,6 +109,20 @@ export async function GET(req: NextRequest) {
         href: `/dashboard/pipeline/${o.id}`,
       };
     }),
+    ...cotizaciones.map(c => ({
+      tipo: "cotizacion" as const,
+      id: c.id,
+      titulo: `Cotización #${String(c.numero).padStart(4,"0")}`,
+      sub: [ESTADO_COT[c.estado], c.empresa?.nombre].filter(Boolean).join(" · "),
+      href: `/dashboard/cotizaciones-formales/${c.id}`,
+    })),
+    ...actividades.map(a => ({
+      tipo: "actividad" as const,
+      id: a.id,
+      titulo: a.titulo,
+      sub: [a.tipo, a.empresa?.nombre].filter(Boolean).join(" · "),
+      href: `/dashboard/agenda`,
+    })),
   ];
 
   return NextResponse.json(resultados);

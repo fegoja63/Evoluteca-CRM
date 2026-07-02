@@ -60,6 +60,10 @@ export default function CotizacionDetailPage() {
   const [duplicando, setDuplicando] = useState(false);
   const [enviando, setEnviando]   = useState(false);
   const [enviado, setEnviado]     = useState(false);
+  const [linkPublico, setLinkPublico] = useState("");
+  const [copiado, setCopiado]     = useState(false);
+  const [motivoRechazo, setMotivoRechazo] = useState("");
+  const [mostrarMotivoModal, setMostrarMotivoModal] = useState(false);
 
   async function cargar() {
     setCargando(true);
@@ -74,11 +78,23 @@ export default function CotizacionDetailPage() {
   useEffect(() => { cargar(); }, [id]);
 
   async function cambiarEstado(estado: string) {
+    if (estado === "RECHAZADA") { setMostrarMotivoModal(true); return; }
     await fetch(`/api/cotizaciones/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ estado }),
     });
+    cargar();
+  }
+
+  async function confirmarRechazo() {
+    await fetch(`/api/cotizaciones/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ estado: "RECHAZADA", motivoRechazo }),
+    });
+    setMostrarMotivoModal(false);
+    setMotivoRechazo("");
     cargar();
   }
 
@@ -106,6 +122,18 @@ export default function CotizacionDetailPage() {
     const data = await res.json();
     setDuplicando(false);
     if (data.id) router.push(`/dashboard/cotizaciones-formales/${data.id}`);
+  }
+
+  async function generarLink() {
+    const res = await fetch(`/api/cotizaciones/${id}/token`, { method: "POST" });
+    const data = await res.json();
+    setLinkPublico(data.url);
+  }
+
+  async function copiarLink() {
+    await navigator.clipboard.writeText(linkPublico);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
   }
 
   async function enviarEmail() {
@@ -159,6 +187,10 @@ export default function CotizacionDetailPage() {
               {t.label}
             </button>
           ))}
+          <button onClick={generarLink}
+            className="rounded-xl border border-violet-200 px-3 py-2 text-xs font-medium text-violet-600 hover:bg-violet-50 transition-colors">
+            🔗 Link cliente
+          </button>
           <button onClick={enviarEmail} disabled={enviando || enviado}
             className="rounded-xl border border-blue-200 px-3 py-2 text-xs font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 transition-colors">
             {enviado ? "✓ Enviado" : enviando ? "Enviando..." : "✉ Enviar email"}
@@ -276,6 +308,55 @@ export default function CotizacionDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Panel link público */}
+      {linkPublico && (
+        <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50 p-4 flex items-center gap-3">
+          <span className="text-violet-500 text-lg">🔗</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-violet-700 mb-1">Link para el cliente</p>
+            <p className="text-xs text-violet-600 truncate font-mono">{linkPublico}</p>
+          </div>
+          <button onClick={copiarLink}
+            className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${copiado ? "bg-emerald-100 text-emerald-700" : "bg-violet-200 text-violet-700 hover:bg-violet-300"}`}>
+            {copiado ? "✓ Copiado" : "Copiar"}
+          </button>
+        </div>
+      )}
+
+      {/* Modal motivo rechazo */}
+      {mostrarMotivoModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+            <h3 className="font-bold text-slate-900 mb-1">Motivo de rechazo</h3>
+            <p className="text-xs text-slate-500 mb-4">Registrar el motivo ayuda a analizar patrones.</p>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {["Precio muy alto","Eligió a la competencia","El evento fue cancelado","Sin presupuesto","Fuera de fechas","Otro"].map(m => (
+                <button key={m} onClick={() => setMotivoRechazo(m)}
+                  className={`rounded-xl border px-3 py-2 text-xs text-left transition-all ${motivoRechazo === m ? "bg-red-50 border-red-400 text-red-700 font-semibold" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                  {m}
+                </button>
+              ))}
+            </div>
+            {motivoRechazo === "Otro" && (
+              <input value={motivoRechazo === "Otro" ? "" : motivoRechazo}
+                onChange={e => setMotivoRechazo(e.target.value)}
+                placeholder="Describe el motivo..."
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-red-400 mb-4" />
+            )}
+            <div className="flex gap-2">
+              <button onClick={confirmarRechazo} disabled={!motivoRechazo}
+                className="flex-1 rounded-xl bg-red-600 text-white py-2 text-sm font-semibold hover:bg-red-700 disabled:opacity-50">
+                Confirmar rechazo
+              </button>
+              <button onClick={() => setMostrarMotivoModal(false)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -224,6 +224,8 @@ model Cotizacion {
   fechaEvento     DateTime?
   sede            String?
   fechaValidez    DateTime?
+  tokenPublico    String?           @unique
+  motivoRechazo   String?
   creadoEn        DateTime          @default(now())
 
   tenantId    String
