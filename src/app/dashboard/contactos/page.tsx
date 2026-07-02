@@ -24,12 +24,22 @@ export default function ContactosPage() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [form, setForm] = useState({ nombre: "", email: "", telefono: "", cargo: "", notas: "", empresaId: "" });
+  const [todosContactos, setTodosContactos] = useState<Contacto[]>([]);
+
+  const duplicados = todosContactos.filter(c => {
+    const nombreMatch = form.nombre.trim().length >= 3 &&
+      c.nombre.toLowerCase().includes(form.nombre.trim().toLowerCase());
+    const emailMatch = form.email.trim() && c.email &&
+      c.email.toLowerCase() === form.email.trim().toLowerCase();
+    return nombreMatch || emailMatch;
+  });
 
   async function cargar(q = "") {
     setCargando(true);
     const res = await fetch(`/api/contactos?q=${encodeURIComponent(q)}`);
     const data = await res.json();
     setContactos(data);
+    if (!q) setTodosContactos(data);
     setCargando(false);
   }
 
@@ -166,13 +176,29 @@ export default function ContactosPage() {
                 className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
               />
             </div>
+            {duplicados.length > 0 && (
+              <div className="col-span-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                <p className="font-semibold mb-1">⚠️ Posible duplicado detectado:</p>
+                <ul className="space-y-0.5">
+                  {duplicados.map(d => (
+                    <li key={d.id}>
+                      <Link href={`/dashboard/contactos/${d.id}`} className="font-medium hover:underline text-amber-900">
+                        {d.nombre}
+                      </Link>
+                      {d.empresa && <span className="text-amber-700"> · {d.empresa.nombre}</span>}
+                      {d.email && <span className="text-amber-700"> · {d.email}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="col-span-2 flex gap-2">
               <button
                 type="submit"
                 disabled={guardando}
                 className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
               >
-                {guardando ? "Guardando..." : "Guardar"}
+                {guardando ? "Guardando..." : "Guardar de todas formas"}
               </button>
               <button
                 type="button"

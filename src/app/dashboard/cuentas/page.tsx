@@ -31,11 +31,23 @@ export default function ClientesPage() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [form, setForm] = useState({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "" });
+  const [todasEmpresas, setTodasEmpresas] = useState<Empresa[]>([]);
+
+  // Duplicados: busca por nombre similar o email exacto
+  const duplicados = todasEmpresas.filter(e => {
+    const nombreMatch = form.nombre.trim().length >= 3 &&
+      e.nombre.toLowerCase().includes(form.nombre.trim().toLowerCase());
+    const emailMatch = form.email.trim() && e.email &&
+      e.email.toLowerCase() === form.email.trim().toLowerCase();
+    return nombreMatch || emailMatch;
+  });
 
   async function cargar(q = "") {
     setCargando(true);
     const res = await fetch(`/api/empresas?q=${encodeURIComponent(q)}`);
-    setEmpresas(await res.json());
+    const data = await res.json();
+    setEmpresas(data);
+    if (!q) setTodasEmpresas(data);
     setCargando(false);
   }
 
@@ -140,10 +152,25 @@ export default function ClientesPage() {
               <textarea value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })} rows={2}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
+            {duplicados.length > 0 && (
+              <div className="col-span-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                <p className="font-semibold mb-1">⚠️ Posible duplicado detectado:</p>
+                <ul className="space-y-0.5">
+                  {duplicados.map(d => (
+                    <li key={d.id}>
+                      <Link href={`/dashboard/cuentas/${d.id}`} className="font-medium hover:underline text-amber-900">
+                        {d.nombre}
+                      </Link>
+                      {d.email && <span className="text-amber-700"> · {d.email}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="col-span-2 flex gap-2">
               <button type="submit" disabled={guardando}
                 className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
-                {guardando ? "Guardando..." : "Guardar"}
+                {guardando ? "Guardando..." : "Guardar de todas formas"}
               </button>
               <button type="button" onClick={() => setMostrarForm(false)}
                 className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
