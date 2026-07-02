@@ -141,19 +141,11 @@ export default function CotizacionesPage() {
   const ETAPAS_VIGENTES = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];
   const ETAPAS_EN_CURSO = ETAPAS_VIGENTES;
 
-  const ABREV_MES: Record<string, number> = {
-    ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6,
-    jul: 7, ago: 8, sep: 9, oct: 10, nov: 11, dic: 12,
-  };
-
   function diasDesdeOportunidad(o: Oportunidad): number {
-    const mes = o.extras?.["MES ELABORACION"]; // ej: "feb-24"
+    const mes = o.extras?.["MES"]; // ISO date: "2024-02-01T00:00:00.000Z"
     if (mes) {
-      const [abrev, anio2] = mes.toLowerCase().split("-");
-      const numMes = ABREV_MES[abrev];
-      const anio = anio2 ? 2000 + Number(anio2) : null;
-      if (numMes && anio) {
-        const fecha = new Date(anio, numMes - 1, 1);
+      const fecha = new Date(mes);
+      if (!isNaN(fecha.getTime())) {
         return Math.floor((Date.now() - fecha.getTime()) / (1000 * 60 * 60 * 24));
       }
     }
