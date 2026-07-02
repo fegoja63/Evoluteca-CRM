@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import crypto from "crypto";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
 
 export async function POST(req: NextRequest) {
   const { email } = await req.json();
@@ -12,12 +18,10 @@ export async function POST(req: NextRequest) {
   const usuario = await prisma.usuario.findUnique({ where: { email: email.toLowerCase() } });
 
   // Always return success to avoid email enumeration
-  if (!usuario) {
-    return NextResponse.json({ ok: true });
-  }
+  if (!usuario) return NextResponse.json({ ok: true });
 
   const token = crypto.randomBytes(32).toString("hex");
-  const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+  const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
 
   await prisma.usuario.update({
     where: { id: usuario.id },
@@ -26,8 +30,8 @@ export async function POST(req: NextRequest) {
 
   const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`;
 
-  await resend.emails.send({
-    from: "Evoluteca CRM <noreply@evoluteca.co>",
+  await transporter.sendMail({
+    from: `"Evoluteca CRM" <${process.env.GMAIL_USER}>`,
     to: email,
     subject: "Recupera tu contraseña — Evoluteca CRM",
     html: `
