@@ -19,6 +19,7 @@ export default async function DashboardPage() {
   const fin7dias   = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 7);
   const hace60dias = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 60);
   const hace30dias = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 30);
+  const hace14dias = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 14);
 
   const [
     empresas, contactos, oportunidades,
@@ -77,6 +78,19 @@ export default async function DashboardPage() {
     prisma.actividad.findFirst({ where: { tenantId, completada: true, ...ownerFiltro }, orderBy: { fecha: "desc" }, select: { fecha: true } }),
   ]);
 
+  // ── Negocios estancados: activos sin actividad en 14+ días ──
+  const opActivasConActividad = await prisma.oportunidad.findMany({
+    where: { tenantId, etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] }, ...ownerFiltro },
+    select: {
+      id: true, titulo: true, etapa: true,
+      empresa: { select: { nombre: true } },
+      actividades: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
+    },
+  });
+  const negociosEstancados = opActivasConActividad
+    .filter(o => o.actividades.length === 0 || new Date(o.actividades[0].fecha) < hace14dias)
+    .slice(0, 5);
+
   const valorPipeline = oportunidades
     .filter((o) => !["PERDIDA", "GANADA"].includes(o.etapa))
     .reduce((acc, o) => acc + Number(o.valor ?? 0), 0);
@@ -116,7 +130,8 @@ export default async function DashboardPage() {
     { ok: diasSinContacto !== null && diasSinContacto <= 15, texto: textoContacto },
     { ok: tasaCierre >= 25,      texto: tasaCierre >= 25 ? `Buena tasa de cierre (${tasaCierre}%)` : `Tasa de cierre baja (${tasaCierre}%)` },
     { ok: actividadesVencidas.length === 0, texto: actividadesVencidas.length === 0 ? "Sin actividades vencidas" : `${actividadesVencidas.length} actividad${actividadesVencidas.length !== 1 ? "es" : ""} vencida${actividadesVencidas.length !== 1 ? "s" : ""}` },
-    { ok: cotizacionesSinMovimiento.length <= 2, texto: cotizacionesSinMovimiento.length <= 2 ? "Pipeline activo" : `${cotizacionesSinMovimiento.length} cotizaciones estancadas` },
+    { ok: cotizacionesSinMovimiento.length <= 2, texto: cotizacionesSinMovimiento.length <= 2 ? "Pipeline activo" : `${cotizacionesSinMovimiento.length} cotizaciones sin respuesta` },
+    { ok: negociosEstancados.length === 0, texto: negociosEstancados.length === 0 ? "Sin negocios estancados" : `${negociosEstancados.length} negocio${negociosEstancados.length !== 1 ? "s" : ""} sin actividad +14 días` },
   ];
 
   // ── Productividad del día ──
@@ -190,13 +205,13 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── ALERTAS ── */}
-      {(actividadesVencidas.length > 0 || cotizacionesSinMovimiento.length > 0) && (
+      {(actividadesVencidas.length > 0 || cotizacionesSinMovimiento.length > 0 || negociosEstancados.length > 0) && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg">⚠️</span>
             <h2 className="text-sm font-bold text-amber-800">Requieren atención</h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {actividadesVencidas.length > 0 && (
               <div>
                 <p className="text-xs font-semibold text-amber-700 mb-2">
@@ -228,6 +243,29 @@ export default async function DashboardPage() {
                       <span className="text-xs text-slate-400 ml-auto shrink-0">{o.etapa.charAt(0) + o.etapa.slice(1).toLowerCase()}</span>
                     </Link>
                   ))}
+                </div>
+              </div>
+            )}
+            {negociosEstancados.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-amber-700 mb-2">
+                  🧊 {negociosEstancados.length} negocio{negociosEstancados.length !== 1 ? "s" : ""} estancado{negociosEstancados.length !== 1 ? "s" : ""} +14 días sin actividad
+                </p>
+                <div className="flex flex-col gap-1">
+                  {negociosEstancados.map(o => {
+                    const diasSin = o.actividades.length === 0
+                      ? null
+                      : Math.floor((hoy.getTime() - new Date(o.actividades[0].fecha).getTime()) / 86400000);
+                    return (
+                      <Link key={o.id} href={`/dashboard/pipeline/${o.id}`}
+                        className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-3 py-1.5 hover:border-amber-300 transition-colors">
+                        <span className="text-xs font-medium text-slate-800 truncate">{o.empresa?.nombre ?? o.titulo}</span>
+                        <span className="text-xs text-slate-400 ml-auto shrink-0">
+                          {diasSin === null ? "sin actividad" : `${diasSin}d sin actividad`}
+                        </span>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             )}
