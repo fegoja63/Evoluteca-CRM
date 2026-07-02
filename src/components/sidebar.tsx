@@ -81,19 +81,19 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
   return (
     <nav className="flex h-screen w-56 flex-col bg-blue-950 text-white">
       <div className="px-5 py-6 border-b border-blue-900/50 relative">
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-center justify-center gap-2 mb-1">
           <img src="/Logo Evoluteca.png" alt="Evoluteca" className="h-8 w-auto object-contain" />
           <span className="text-white font-bold text-lg tracking-wide leading-none">CRM</span>
         </div>
         {onClose && (
           <button onClick={onClose} className="absolute top-4 right-4 text-blue-300 hover:text-white text-xl leading-none">×</button>
         )}
-        <div className="text-xs text-blue-300 mt-1 pl-9">{tenantNombre}</div>
+        <div className="text-xs text-blue-300 mt-1 text-center">{tenantNombre}</div>
         <a
           href="https://www.felipegomezjaramillo.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs text-blue-500 hover:text-blue-300 transition-colors pl-9 block mt-0.5"
+          className="text-xs text-blue-500 hover:text-blue-300 transition-colors text-center block mt-0.5"
         >
           felipegomezjaramillo.com
         </a>
