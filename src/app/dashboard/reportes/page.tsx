@@ -504,27 +504,31 @@ export default function ReportesPage() {
           <div className="border-t border-slate-100 pt-4">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Desglose por etapa</p>
             <div className="flex flex-col gap-2">
-              {["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"].map(etapaKey => {
-                const fe = r.forecastPorEtapa[etapaKey];
-                if (!fe) return null;
-                const etapa = ETAPAS.find(e => e.key === etapaKey)!;
-                const pct = fe.valorBruto > 0 ? Math.round((fe.valorPonderado / fe.valorBruto) * 100) : 0;
-                return (
-                  <div key={etapaKey} className="flex items-center gap-4">
-                    <div className="w-24 shrink-0">
-                      <p className="text-xs font-medium text-slate-700">{etapa.label}</p>
-                      <p className="text-xs text-slate-400">{fe.cantidad} ops · {fe.probPromedio}% prom.</p>
+              {(() => {
+                const etapasDesglose = ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"];
+                const maxBruto = Math.max(...etapasDesglose.map(k => r.forecastPorEtapa[k]?.valorBruto ?? 0), 1);
+                return etapasDesglose.map(etapaKey => {
+                  const fe = r.forecastPorEtapa[etapaKey];
+                  if (!fe) return null;
+                  const etapa = ETAPAS.find(e => e.key === etapaKey)!;
+                  const pct = Math.round((fe.valorBruto / maxBruto) * 100);
+                  return (
+                    <div key={etapaKey} className="flex items-center gap-4">
+                      <div className="w-24 shrink-0">
+                        <p className="text-xs font-medium text-slate-700">{etapa.label}</p>
+                        <p className="text-xs text-slate-400">{fe.cantidad} ops · {fe.probPromedio}% prom.</p>
+                      </div>
+                      <div className="flex-1 relative h-6 bg-slate-50 rounded-xl overflow-hidden">
+                        <div className="h-full rounded-xl" style={{ width: `${Math.max(pct, fe.cantidad > 0 ? 3 : 0)}%`, backgroundColor: etapa.colorBar, opacity: 0.75 }} />
+                      </div>
+                      <div className="w-28 text-right shrink-0">
+                        <p className="text-xs font-bold text-slate-700">{fmtK(fe.valorPonderado)}</p>
+                        <p className="text-xs text-slate-400">de {fmtK(fe.valorBruto)}</p>
+                      </div>
                     </div>
-                    <div className="flex-1 relative h-6 bg-slate-50 rounded-xl overflow-hidden">
-                      <div className="h-full rounded-xl" style={{ width: `${pct}%`, backgroundColor: etapa.colorBar, opacity: 0.6 }} />
-                    </div>
-                    <div className="w-28 text-right shrink-0">
-                      <p className="text-xs font-bold text-slate-700">{fmtK(fe.valorPonderado)}</p>
-                      <p className="text-xs text-slate-400">de {fmtK(fe.valorBruto)}</p>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                });
+              })()}
             </div>
           </div>
         </div>
