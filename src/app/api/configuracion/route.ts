@@ -8,10 +8,10 @@ export async function GET() {
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: session.user.tenantId },
-    select: { modulos: true, nombre: true, logoUrl: true },
+    select: { modulos: true, nombre: true, logoUrl: true, emailsActivos: true },
   });
 
-  return NextResponse.json({ modulos: tenant?.modulos ?? {}, tenantNombre: tenant?.nombre ?? "", logoUrl: tenant?.logoUrl ?? "" });
+  return NextResponse.json({ modulos: tenant?.modulos ?? {}, tenantNombre: tenant?.nombre ?? "", logoUrl: tenant?.logoUrl ?? "", emailsActivos: tenant?.emailsActivos ?? true });
 }
 
 export async function PATCH(request: Request) {
@@ -23,11 +23,12 @@ export async function PATCH(request: Request) {
   const data: Record<string, unknown> = {};
   if (body.modulos !== undefined) data.modulos = body.modulos;
   if (body.logoUrl !== undefined) data.logoUrl = body.logoUrl;
+  if (body.emailsActivos !== undefined) data.emailsActivos = body.emailsActivos;
 
   const tenant = await prisma.tenant.update({
     where: { id: session.user.tenantId },
     data,
   });
 
-  return NextResponse.json({ modulos: tenant.modulos, logoUrl: tenant.logoUrl ?? "" });
+  return NextResponse.json({ modulos: tenant.modulos, logoUrl: tenant.logoUrl ?? "", emailsActivos: tenant.emailsActivos });
 }

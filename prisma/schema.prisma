@@ -28,8 +28,9 @@ model Tenant {
   plan      String   @default("arranque") // arranque | empresa | corporativo
   activo    Boolean  @default(true)
   creadoEn  DateTime @default(now())
-  modulos   Json     @default("{}")
-  logoUrl   String?
+  modulos        Json     @default("{}")
+  logoUrl        String?
+  emailsActivos  Boolean  @default(true)
 
   usuarios        Usuario[]
   empresas        Empresa[]

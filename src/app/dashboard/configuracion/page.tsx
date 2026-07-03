@@ -28,6 +28,8 @@ export default function ConfiguracionPage() {
   const [modulos, setModulos] = useState<Modulos>({});
   const [logoUrl, setLogoUrl] = useState("");
   const [logoInput, setLogoInput] = useState("");
+  const [emailsActivos, setEmailsActivos] = useState(true);
+  const [guardandoEmails, setGuardandoEmails] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [guardado, setGuardado] = useState(false);
@@ -53,6 +55,7 @@ export default function ConfiguracionPage() {
         setModulos((data.modulos as Modulos) ?? {});
         setLogoUrl(data.logoUrl ?? "");
         setLogoInput(data.logoUrl ?? "");
+        setEmailsActivos(data.emailsActivos ?? true);
         setCargando(false);
       });
   }, []);
@@ -68,6 +71,18 @@ export default function ConfiguracionPage() {
     setGuardandoLogo(false);
     setLogoOk(true);
     setTimeout(() => setLogoOk(false), 2500);
+  }
+
+  async function toggleEmails(valor: boolean) {
+    if (!esAdmin) return;
+    setGuardandoEmails(true);
+    setEmailsActivos(valor);
+    await fetch("/api/configuracion", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ emailsActivos: valor }),
+    });
+    setGuardandoEmails(false);
   }
 
   async function toggleModulo(key: string, valor: boolean) {
@@ -211,8 +226,38 @@ export default function ConfiguracionPage() {
         )}
       </div>
 
-      {/* Exportar datos */}
+      {/* Notificaciones por email */}
       <div className="mt-10 rounded-2xl border border-slate-200 bg-white p-5">
+        <h2 className="text-sm font-semibold text-slate-700 mb-1">Notificaciones automáticas por email</h2>
+        <p className="text-xs text-slate-400 mb-4">
+          Cuando está activo, el CRM envía correos diarios a cada vendedor con sus actividades vencidas, negocios estancados y cierres próximos.
+          Desactívalo si prefieres que nadie reciba estos recordatorios.
+        </p>
+        <div className="flex items-center gap-4">
+          <button
+            disabled={!esAdmin || guardandoEmails}
+            onClick={() => toggleEmails(!emailsActivos)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              emailsActivos ? "bg-blue-600" : "bg-slate-200"
+            } ${!esAdmin ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                emailsActivos ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
+          <span className="text-sm text-slate-700">
+            {guardandoEmails ? "Guardando..." : emailsActivos ? "Emails activados" : "Emails desactivados"}
+          </span>
+          {!emailsActivos && (
+            <span className="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-lg">Los vendedores no recibirán recordatorios</span>
+          )}
+        </div>
+      </div>
+
+      {/* Exportar datos */}
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
         <h2 className="text-sm font-semibold text-slate-700 mb-1">Exportar datos</h2>
         <p className="text-xs text-slate-400 mb-4">
           Descarga toda la información del CRM en un solo archivo Excel con múltiples hojas (Clientes, Contactos, Pipeline, Actividades, Cotizaciones). Ideal para backup o análisis externo.

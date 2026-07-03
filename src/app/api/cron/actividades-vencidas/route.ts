@@ -26,7 +26,16 @@ export async function GET(req: Request) {
   let enviados = 0;
   const errores: string[] = [];
 
+  // Cache de emailsActivos por tenant para no consultar DB en cada iteración
+  const tenantCache: Record<string, boolean> = {};
+
   for (const usuario of usuarios) {
+    if (tenantCache[usuario.tenantId] === undefined) {
+      const t = await prisma.tenant.findUnique({ where: { id: usuario.tenantId }, select: { emailsActivos: true } });
+      tenantCache[usuario.tenantId] = t?.emailsActivos ?? true;
+    }
+    if (!tenantCache[usuario.tenantId]) continue;
+
     const ownerWhere = usuario.rol === "COMERCIAL" ? { creadoBy: usuario.id } : {};
 
     const vencidas = await prisma.actividad.findMany({

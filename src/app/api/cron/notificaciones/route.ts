@@ -53,7 +53,16 @@ export async function GET(req: Request) {
   let enviados = 0;
   const errores: string[] = [];
 
+  // Cache de emailsActivos por tenant
+  const tenantCache: Record<string, boolean> = {};
+
   for (const u of usuarios) {
+    if (tenantCache[u.tenantId] === undefined) {
+      const t = await prisma.tenant.findUnique({ where: { id: u.tenantId }, select: { emailsActivos: true } });
+      tenantCache[u.tenantId] = t?.emailsActivos ?? true;
+    }
+    if (!tenantCache[u.tenantId]) continue;
+
     const ownerWhere = u.rol === "COMERCIAL" ? { creadoBy: u.id } : {};
     const emails: { subject: string; html: string }[] = [];
 
