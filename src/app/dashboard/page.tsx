@@ -206,18 +206,16 @@ export default async function DashboardPage() {
         <div className="pointer-events-none absolute bottom-0 right-40 w-36 h-36 rounded-full bg-white/5" />
 
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          {/* Saludo */}
-          <div>
-            <p className="text-blue-300 text-xs font-medium mb-1">
-              {hoy.toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
-            </p>
-            <h1 className="text-2xl font-bold tracking-tight">{saludo}, {nombre} 👋</h1>
-            <p className="text-blue-300 mt-0.5 text-xs">{session?.user?.tenantNombre} · {session?.user?.rol ? session.user.rol.charAt(0)+session.user.rol.slice(1).toLowerCase() : ""}</p>
-          </div>
-
-          {/* Logo centrado */}
-          <div className="hidden md:flex absolute left-1/2 -translate-x-1/2">
-            <img src="/Logo FGJ.jpg" alt="" className="h-14 w-auto object-contain rounded-xl opacity-90" />
+          {/* Saludo + logo */}
+          <div className="flex items-center gap-4">
+            <img src="/Logo FGJ.jpg" alt="" className="hidden md:block h-12 w-auto object-contain rounded-xl opacity-90 shrink-0" />
+            <div>
+              <p className="text-blue-300 text-xs font-medium mb-1">
+                {hoy.toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
+              </p>
+              <h1 className="text-2xl font-bold tracking-tight">{saludo}, {nombre} 👋</h1>
+              <p className="text-blue-300 mt-0.5 text-xs">{session?.user?.tenantNombre} · {session?.user?.rol ? session.user.rol.charAt(0)+session.user.rol.slice(1).toLowerCase() : ""}</p>
+            </div>
           </div>
 
           {/* Mega-KPIs del mes */}
