@@ -131,8 +131,8 @@ export default function ClientesPage() {
             ))}
             {filtroEtiqueta && (
               <button onClick={() => setFiltroEtiqueta("")}
-                className="rounded-full px-3 py-1 text-xs font-medium text-slate-400 hover:text-slate-600">
-                × limpiar
+                className="rounded-full border border-slate-300 px-3 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors">
+                × Limpiar filtro
               </button>
             )}
           </div>
