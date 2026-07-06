@@ -139,22 +139,27 @@ export default function PipelinePage() {
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
   }
 
-  // ── Años y meses disponibles desde creadoEn ──
+  // ── Años y meses disponibles desde fechaCierre ──
+  const opConFecha = oportunidades.filter(o => !!o.fechaCierre);
+
   const aniosDisponibles = Array.from(new Set(
-    oportunidades.map(o => String(new Date(o.creadoEn).getFullYear()))
+    opConFecha.map(o => String(new Date(o.fechaCierre!).getFullYear()))
   )).sort((a, b) => Number(b) - Number(a));
 
   const mesesDisponibles = Array.from(new Set(
-    oportunidades
-      .filter(o => !filtroAnio || String(new Date(o.creadoEn).getFullYear()) === filtroAnio)
-      .map(o => String(new Date(o.creadoEn).getMonth() + 1))
+    opConFecha
+      .filter(o => !filtroAnio || String(new Date(o.fechaCierre!).getFullYear()) === filtroAnio)
+      .map(o => String(new Date(o.fechaCierre!).getMonth() + 1))
   )).sort((a, b) => Number(a) - Number(b));
 
   // ── Filtrado ──
   const filtradas = oportunidades.filter(o => {
-    const fecha = new Date(o.creadoEn);
-    if (filtroAnio  && String(fecha.getFullYear()) !== filtroAnio) return false;
-    if (filtroMes   && String(fecha.getMonth() + 1) !== filtroMes) return false;
+    if (filtroAnio || filtroMes) {
+      if (!o.fechaCierre) return false;
+      const fecha = new Date(o.fechaCierre);
+      if (filtroAnio && String(fecha.getFullYear()) !== filtroAnio) return false;
+      if (filtroMes  && String(fecha.getMonth() + 1) !== filtroMes) return false;
+    }
     if (filtroEtapa && o.etapa !== filtroEtapa) return false;
     if (busqueda) {
       const q = busqueda.toLowerCase();
@@ -238,7 +243,7 @@ export default function PipelinePage() {
 
         {/* Año */}
         <div className="flex items-center gap-1.5">
-          <label className="text-xs font-medium text-slate-500">Año:</label>
+          <label className="text-xs font-medium text-slate-500">Cierre año:</label>
           <select value={filtroAnio} onChange={e => { setFiltroAnio(e.target.value); setFiltroMes(""); }}
             className="rounded-lg border border-slate-200 bg-white text-slate-900 text-sm px-2 py-2 outline-none cursor-pointer">
             <option value="">Todos</option>
@@ -248,7 +253,7 @@ export default function PipelinePage() {
 
         {/* Mes */}
         <div className="flex items-center gap-1.5">
-          <label className="text-xs font-medium text-slate-500">Mes:</label>
+          <label className="text-xs font-medium text-slate-500">Cierre mes:</label>
           <select value={filtroMes} onChange={e => setFiltroMes(e.target.value)}
             disabled={!filtroAnio}
             className="rounded-lg border border-slate-200 bg-white text-slate-900 text-sm px-2 py-2 outline-none cursor-pointer disabled:opacity-40">
