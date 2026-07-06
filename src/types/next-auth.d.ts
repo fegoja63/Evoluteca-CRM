@@ -5,6 +5,7 @@ declare module "next-auth" {
     rol?: string;
     tenantId?: string;
     tenantNombre?: string;
+    aceptoTerminosEn?: string | null;
   }
 
   interface Session {
