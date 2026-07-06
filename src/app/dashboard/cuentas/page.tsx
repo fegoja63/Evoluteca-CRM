@@ -87,7 +87,7 @@ export default function ClientesPage() {
         <KpiCard label="Contactos vinculados" valor={empresas.reduce((acc, e) => acc + e._count.contactos, 0)} emoji="🔗" color="bg-emerald-500" />
       </div>
 
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <div className="relative">
           <input
             type="text"
@@ -103,12 +103,6 @@ export default function ClientesPage() {
             </button>
           )}
         </div>
-        {filtroEtiqueta && (
-          <button onClick={() => setFiltroEtiqueta("")}
-            className="flex items-center gap-1.5 rounded-full bg-blue-100 text-blue-700 px-3 py-1 text-xs font-medium hover:bg-blue-200">
-            🏷 {filtroEtiqueta} <span className="font-bold">×</span>
-          </button>
-        )}
         <div className="flex gap-2">
           <a href="/api/exportar/clientes"
             className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1.5">
@@ -122,6 +116,28 @@ export default function ClientesPage() {
           </button>
         </div>
       </div>
+
+      {/* Filtros de etiqueta */}
+      {(() => {
+        const todasEtiquetas = Array.from(new Set(empresas.flatMap(e => e.etiquetas ?? [])));
+        if (todasEtiquetas.length === 0) return null;
+        return (
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {todasEtiquetas.map(tag => (
+              <button key={tag} onClick={() => setFiltroEtiqueta(filtroEtiqueta === tag ? "" : tag)}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${filtroEtiqueta === tag ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
+                {tag}
+              </button>
+            ))}
+            {filtroEtiqueta && (
+              <button onClick={() => setFiltroEtiqueta("")}
+                className="rounded-full px-3 py-1 text-xs font-medium text-slate-400 hover:text-slate-600">
+                × limpiar
+              </button>
+            )}
+          </div>
+        );
+      })()}
 
       {mostrarForm && (
         <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
@@ -204,9 +220,8 @@ export default function ClientesPage() {
               <tr>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Nombre</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Email</th>
-                <th className="px-4 py-1 font-semibold uppercase tracking-wide w-36">Teléfono</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Teléfono</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Sector</th>
-                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Etiquetas</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Contactos</th>
               </tr>
             </thead>
@@ -221,16 +236,6 @@ export default function ClientesPage() {
                   <td className="px-4 py-1 text-slate-500">{e.email ?? "—"}</td>
                   <td className="px-4 py-1 text-slate-500 whitespace-nowrap">{e.telefono ?? "—"}</td>
                   <td className="px-4 py-1 text-slate-500">{e.sector ?? "—"}</td>
-                  <td className="px-4 py-1">
-                    <div className="flex flex-wrap gap-1">
-                      {(e.etiquetas ?? []).map(tag => (
-                        <button key={tag} onClick={() => setFiltroEtiqueta(filtroEtiqueta === tag ? "" : tag)}
-                          className={`rounded-full px-2 py-0.5 text-xs font-medium transition-all ${filtroEtiqueta === tag ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
-                          {tag}
-                        </button>
-                      ))}
-                    </div>
-                  </td>
                   <td className="px-4 py-1 text-slate-500">{e._count.contactos}</td>
                 </tr>
               ))}
