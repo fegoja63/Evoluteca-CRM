@@ -204,7 +204,7 @@ export default function ClientesPage() {
               <tr>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Nombre</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Email</th>
-                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Teléfono</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide w-36">Teléfono</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Sector</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Etiquetas</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Contactos</th>
