@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const usuario = session.user.nombre ?? session.user.email ?? "Usuario";
+  const usuario = session.user.name ?? session.user.email ?? "Usuario";
   const tenant  = session.user.tenantNombre ?? session.user.tenantId ?? "";
 
   const TIPOS: Record<string, string> = {
