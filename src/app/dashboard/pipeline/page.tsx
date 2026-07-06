@@ -139,22 +139,22 @@ export default function PipelinePage() {
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
   }
 
-  // ── Años y meses disponibles desde extras ──
+  // ── Años y meses disponibles desde creadoEn ──
   const aniosDisponibles = Array.from(new Set(
-    oportunidades.map(o => o.extras?.["AÑO"]).filter((v): v is string => !!v)
-  )).sort();
+    oportunidades.map(o => String(new Date(o.creadoEn).getFullYear()))
+  )).sort((a, b) => Number(b) - Number(a));
 
   const mesesDisponibles = Array.from(new Set(
     oportunidades
-      .filter(o => !filtroAnio || o.extras?.["AÑO"] === filtroAnio)
-      .map(o => o.extras?.["MES ELABORACION"])
-      .filter((v): v is string => !!v)
-  )).sort((a, b) => (MESES_LABEL[a.toUpperCase()] ?? 13) - (MESES_LABEL[b.toUpperCase()] ?? 13));
+      .filter(o => !filtroAnio || String(new Date(o.creadoEn).getFullYear()) === filtroAnio)
+      .map(o => String(new Date(o.creadoEn).getMonth() + 1))
+  )).sort((a, b) => Number(a) - Number(b));
 
   // ── Filtrado ──
   const filtradas = oportunidades.filter(o => {
-    if (filtroAnio  && o.extras?.["AÑO"] !== filtroAnio) return false;
-    if (filtroMes   && o.extras?.["MES ELABORACION"]?.toUpperCase() !== filtroMes.toUpperCase()) return false;
+    const fecha = new Date(o.creadoEn);
+    if (filtroAnio  && String(fecha.getFullYear()) !== filtroAnio) return false;
+    if (filtroMes   && String(fecha.getMonth() + 1) !== filtroMes) return false;
     if (filtroEtapa && o.etapa !== filtroEtapa) return false;
     if (busqueda) {
       const q = busqueda.toLowerCase();
@@ -253,7 +253,7 @@ export default function PipelinePage() {
             disabled={!filtroAnio}
             className="rounded-lg border border-slate-200 bg-white text-slate-900 text-sm px-2 py-2 outline-none cursor-pointer disabled:opacity-40">
             <option value="">Todos</option>
-            {mesesDisponibles.map(m => <option key={m} value={m}>{m}</option>)}
+            {mesesDisponibles.map(m => <option key={m} value={m}>{MESES_NOMBRE[Number(m) - 1]}</option>)}
           </select>
         </div>
 
