@@ -12,7 +12,7 @@ export function KpiCard({ label, valor, sub, color = "bg-blue-500", iconBg = "bg
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between min-h-[110px] relative overflow-hidden">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-3xl font-bold text-slate-900 leading-tight">{valor}</p>
+          <p className={`font-bold text-slate-900 leading-tight ${String(valor).length > 10 ? "text-lg" : String(valor).length > 7 ? "text-2xl" : "text-3xl"}`}>{valor}</p>
           <p className="text-sm text-slate-500 mt-1">{label}</p>
           {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
         </div>
