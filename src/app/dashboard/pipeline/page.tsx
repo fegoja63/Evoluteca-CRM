@@ -148,9 +148,7 @@ export default function PipelinePage() {
   )).sort((a, b) => Number(b) - Number(a));
 
   const mesesDisponibles = Array.from(new Set(
-    opConFecha
-      .filter(o => !filtroAnio || o.fechaCierre!.substring(0, 4) === filtroAnio)
-      .map(o => String(Number(o.fechaCierre!.substring(5, 7))))
+    opConFecha.map(o => String(Number(o.fechaCierre!.substring(5, 7))))
   )).sort((a, b) => Number(a) - Number(b));
 
   // ── Filtrado ──
@@ -252,8 +250,7 @@ export default function PipelinePage() {
         <div className="flex items-center gap-1.5">
           <label className="text-xs font-medium text-slate-500">Cierre mes:</label>
           <select value={filtroMes} onChange={e => setFiltroMes(e.target.value)}
-            disabled={!filtroAnio}
-            className="rounded-lg border border-slate-200 bg-white text-slate-900 text-sm px-2 py-2 outline-none cursor-pointer disabled:opacity-40">
+            className="rounded-lg border border-slate-200 bg-white text-slate-900 text-sm px-2 py-2 outline-none cursor-pointer">
             <option value="">Todos</option>
             {mesesDisponibles.map(m => <option key={m} value={m}>{MESES_NOMBRE[Number(m) - 1]}</option>)}
           </select>
