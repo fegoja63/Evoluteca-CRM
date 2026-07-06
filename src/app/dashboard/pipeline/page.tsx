@@ -139,26 +139,32 @@ export default function PipelinePage() {
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
   }
 
-  // ── Años y meses disponibles desde fechaCierre ──
+  // ── Parsear fecha sin timezone (evita desfase UTC-5) ──
+  function fechaParts(iso: string): { anio: string; mes: string } {
+    const parte = iso.split("T")[0]; // "2026-07-15"
+    const [a, m] = parte.split("-");
+    return { anio: a, mes: String(Number(m)) }; // "7" sin cero inicial
+  }
+
   const opConFecha = oportunidades.filter(o => !!o.fechaCierre);
 
   const aniosDisponibles = Array.from(new Set(
-    opConFecha.map(o => String(new Date(o.fechaCierre!).getFullYear()))
+    opConFecha.map(o => fechaParts(o.fechaCierre!).anio)
   )).sort((a, b) => Number(b) - Number(a));
 
   const mesesDisponibles = Array.from(new Set(
     opConFecha
-      .filter(o => !filtroAnio || String(new Date(o.fechaCierre!).getFullYear()) === filtroAnio)
-      .map(o => String(new Date(o.fechaCierre!).getMonth() + 1))
+      .filter(o => !filtroAnio || fechaParts(o.fechaCierre!).anio === filtroAnio)
+      .map(o => fechaParts(o.fechaCierre!).mes)
   )).sort((a, b) => Number(a) - Number(b));
 
   // ── Filtrado ──
   const filtradas = oportunidades.filter(o => {
     if (filtroAnio || filtroMes) {
       if (!o.fechaCierre) return false;
-      const fecha = new Date(o.fechaCierre);
-      if (filtroAnio && String(fecha.getFullYear()) !== filtroAnio) return false;
-      if (filtroMes  && String(fecha.getMonth() + 1) !== filtroMes) return false;
+      const { anio, mes } = fechaParts(o.fechaCierre);
+      if (filtroAnio && anio !== filtroAnio) return false;
+      if (filtroMes  && mes !== filtroMes)  return false;
     }
     if (filtroEtapa && o.etapa !== filtroEtapa) return false;
     if (busqueda) {
