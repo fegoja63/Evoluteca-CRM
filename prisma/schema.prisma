@@ -59,6 +59,8 @@ model Usuario {
   creadoEn           DateTime    @default(now())
   resetToken         String?     @unique
   resetTokenExpiry   DateTime?
+  aceptoTerminosEn   DateTime?
+  versionTerminos    String?
 
   tenantId      String
   tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)

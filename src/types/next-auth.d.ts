@@ -13,6 +13,7 @@ declare module "next-auth" {
       rol: string;
       tenantId: string;
       tenantNombre: string;
+      aceptoTerminosEn?: string | null;
     } & DefaultSession["user"];
   }
 }
@@ -22,5 +23,6 @@ declare module "next-auth/jwt" {
     rol?: string;
     tenantId?: string;
     tenantNombre?: string;
+    aceptoTerminosEn?: string | null;
   }
 }

@@ -42,6 +42,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           rol: usuario.rol,
           tenantId: usuario.tenantId,
           tenantNombre: usuario.tenant.nombre,
+          aceptoTerminosEn: usuario.aceptoTerminosEn?.toISOString() ?? null,
         };
       },
     }),
@@ -52,6 +53,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.rol = user.rol;
         token.tenantId = user.tenantId;
         token.tenantNombre = user.tenantNombre;
+        token.aceptoTerminosEn = (user as any).aceptoTerminosEn ?? null;
       }
       return token;
     },
@@ -61,6 +63,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.rol = token.rol as string;
         session.user.tenantId = token.tenantId as string;
         session.user.tenantNombre = token.tenantNombre as string;
+        session.user.aceptoTerminosEn = token.aceptoTerminosEn ?? null;
       }
       return session;
     },
