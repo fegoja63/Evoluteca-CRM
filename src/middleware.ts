@@ -12,9 +12,12 @@ export default auth((req) => {
   }
 
   // Si está logueado, está en el dashboard y NO ha aceptado los términos → redirigir a términos
+  // El tenant demo está exento (es para demostración, no firma contrato)
   if (isDashboard && isLoggedIn && !isTerminos) {
-    const aceptoTerminos = (req.auth as any)?.user?.aceptoTerminosEn;
-    if (!aceptoTerminos) {
+    const user = (req.auth as any)?.user;
+    const esDemo = user?.tenantNombre?.toLowerCase().includes("demo") ||
+                   user?.tenantId === process.env.DEMO_TENANT_ID;
+    if (!esDemo && !user?.aceptoTerminosEn) {
       return NextResponse.redirect(new URL("/dashboard/terminos", req.url));
     }
   }
