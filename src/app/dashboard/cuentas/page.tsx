@@ -219,7 +219,7 @@ export default function ClientesPage() {
                     </Link>
                   </td>
                   <td className="px-4 py-1 text-slate-500">{e.email ?? "—"}</td>
-                  <td className="px-4 py-1 text-slate-500">{e.telefono ?? "—"}</td>
+                  <td className="px-4 py-1 text-slate-500 whitespace-nowrap">{e.telefono ?? "—"}</td>
                   <td className="px-4 py-1 text-slate-500">{e.sector ?? "—"}</td>
                   <td className="px-4 py-1">
                     <div className="flex flex-wrap gap-1">
