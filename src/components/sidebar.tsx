@@ -180,6 +180,9 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
           <span className="text-base leading-none">↩</span>
           Cerrar sesión
         </button>
+        <div className="mt-3 flex items-center justify-center">
+          <img src="/Logo FGJ.jpg" alt="Felipe Gómez Jaramillo" className="h-10 w-auto object-contain rounded-lg opacity-80" />
+        </div>
       </div>
     </nav>
   );
