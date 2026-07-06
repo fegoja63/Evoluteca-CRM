@@ -183,6 +183,11 @@ export default function CotizacionesPage() {
     return acc;
   }, {} as Record<string, number>);
 
+  const valorEtapas = ETAPAS_ACTIVAS.reduce((acc, e) => {
+    acc[e] = cotizaciones.filter(o => o.etapa === e).reduce((s, o) => s + Number(o.valor ?? 0), 0);
+    return acc;
+  }, {} as Record<string, number>);
+
   const activas = cotizaciones.filter(o => ETAPAS_EN_CURSO.includes(o.etapa));
   const valorTotal = activas.reduce((acc, o) => acc + Number(o.valor ?? 0), 0);
 
@@ -242,10 +247,14 @@ export default function CotizacionesPage() {
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
         <KpiCard label="En negociación" valor={activas.length} emoji="🔄" color="bg-blue-500"
           sub={fmt(valorTotal) + " potencial"} />
-        <KpiCard label="Prospecto" valor={conteoEtapas.PROSPECTO} emoji="🎯" color="bg-slate-500" />
-        <KpiCard label="Calificado" valor={conteoEtapas.CALIFICADO} emoji="✅" color="bg-blue-400" />
-        <KpiCard label="Cotización" valor={conteoEtapas.PROPUESTA} emoji="📄" color="bg-violet-500" />
-        <KpiCard label="Negociación" valor={conteoEtapas.NEGOCIACION} emoji="🤝" color="bg-amber-500" />
+        <KpiCard label="Prospecto" valor={conteoEtapas.PROSPECTO} emoji="🎯" color="bg-slate-500"
+          sub={valorEtapas.PROSPECTO > 0 ? fmt(valorEtapas.PROSPECTO) : undefined} />
+        <KpiCard label="Calificado" valor={conteoEtapas.CALIFICADO} emoji="✅" color="bg-blue-400"
+          sub={valorEtapas.CALIFICADO > 0 ? fmt(valorEtapas.CALIFICADO) : undefined} />
+        <KpiCard label="Cotización" valor={conteoEtapas.PROPUESTA} emoji="📄" color="bg-violet-500"
+          sub={valorEtapas.PROPUESTA > 0 ? fmt(valorEtapas.PROPUESTA) : undefined} />
+        <KpiCard label="Negociación" valor={conteoEtapas.NEGOCIACION} emoji="🤝" color="bg-amber-500"
+          sub={valorEtapas.NEGOCIACION > 0 ? fmt(valorEtapas.NEGOCIACION) : undefined} />
       </div>
 
       {/* ── Antigüedad de cotizaciones vigentes ── */}
