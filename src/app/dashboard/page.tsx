@@ -73,7 +73,7 @@ export default async function DashboardPage() {
     prisma.actividad.count({ where: { tenantId, completada: true, fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro } }),
     prisma.actividad.count({ where: { tenantId, fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro } }),
     prisma.oportunidad.findMany({
-      where: { tenantId, etapa: "GANADA", creadoEn: { gte: inicioMes }, ...ownerFiltro },
+      where: { tenantId, etapa: "GANADA", fechaCierre: { gte: inicioMes }, ...ownerFiltro },
       select: { valor: true, creadoBy: true },
     }),
     prisma.oportunidad.findMany({
@@ -107,8 +107,8 @@ export default async function DashboardPage() {
       select: { id: true, titulo: true, valor: true, etapa: true, probabilidad: true, empresa: { select: { nombre: true } }, fechaCierre: true },
     }),
     prisma.oportunidad.findMany({
-      where: { tenantId, etapa: "GANADA", creadoEn: { gte: inicioMes }, ...ownerFiltro },
-      orderBy: { creadoEn: "desc" },
+      where: { tenantId, etapa: "GANADA", fechaCierre: { gte: inicioMes }, ...ownerFiltro },
+      orderBy: { fechaCierre: "desc" },
       take: 5,
       select: { id: true, titulo: true, valor: true, creadoBy: true, empresa: { select: { nombre: true } } },
     }),
