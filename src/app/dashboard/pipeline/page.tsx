@@ -139,33 +139,24 @@ export default function PipelinePage() {
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
   }
 
-  // ── Parsear fecha sin timezone (evita desfase UTC-5) ──
-  function fechaParts(iso: string): { anio: string; mes: string } {
-    const parte = iso.split("T")[0]; // "2026-07-15"
-    const [a, m] = parte.split("-");
-    return { anio: a, mes: String(Number(m)) }; // "7" sin cero inicial
-  }
-
+  // ── Años y meses desde fechaCierre ──
+  // iso viene como "2026-07-10T05:00:00.000Z" — tomamos los primeros 7 chars "2026-07"
   const opConFecha = oportunidades.filter(o => !!o.fechaCierre);
 
   const aniosDisponibles = Array.from(new Set(
-    opConFecha.map(o => fechaParts(o.fechaCierre!).anio)
+    opConFecha.map(o => o.fechaCierre!.substring(0, 4))
   )).sort((a, b) => Number(b) - Number(a));
 
   const mesesDisponibles = Array.from(new Set(
     opConFecha
-      .filter(o => !filtroAnio || fechaParts(o.fechaCierre!).anio === filtroAnio)
-      .map(o => fechaParts(o.fechaCierre!).mes)
+      .filter(o => !filtroAnio || o.fechaCierre!.substring(0, 4) === filtroAnio)
+      .map(o => String(Number(o.fechaCierre!.substring(5, 7))))
   )).sort((a, b) => Number(a) - Number(b));
 
   // ── Filtrado ──
   const filtradas = oportunidades.filter(o => {
-    if (filtroAnio || filtroMes) {
-      if (!o.fechaCierre) return false;
-      const { anio, mes } = fechaParts(o.fechaCierre);
-      if (filtroAnio && anio !== filtroAnio) return false;
-      if (filtroMes  && mes !== filtroMes)  return false;
-    }
+    if (filtroAnio && (!o.fechaCierre || o.fechaCierre.substring(0, 4) !== filtroAnio)) return false;
+    if (filtroMes  && (!o.fechaCierre || String(Number(o.fechaCierre.substring(5, 7))) !== filtroMes)) return false;
     if (filtroEtapa && o.etapa !== filtroEtapa) return false;
     if (busqueda) {
       const q = busqueda.toLowerCase();
