@@ -143,6 +143,73 @@ export default function ReportesPage() {
     );
   }
 
+  // ── Cumplimiento de meta anual (valor ganado vs meta configurada, por año) ──
+  function GraficaMetaAnual() {
+    if (!r) return null;
+    const valores = aniosOrden.map(a => r!.porAnio[a]?.valorGanado ?? 0);
+    const metaAnual = (a: number) => metas.find(m => m.anio === a && m.mes === null);
+    const metaVals = aniosOrden.map(a => { const m = metaAnual(a); return m ? Number(m.valorObjetivo) : null; });
+    const hayMetas = metaVals.some(v => v !== null);
+    const maxVal = Math.max(...valores, ...metaVals.filter((v): v is number => v !== null), 1);
+    const W = 580, H = 150, pad = 24;
+    const slot = (W - pad) / aniosOrden.length;
+    const barW = Math.min(60, slot - 16);
+
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-sm font-bold text-slate-900">Cumplimiento de meta anual</p>
+            <p className="text-xs text-slate-400 mt-0.5">Valor ganado vs. meta configurada por año</p>
+          </div>
+          <div className="flex items-center gap-4 text-xs text-slate-500">
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-blue-500 inline-block" /> Ganado</span>
+            <span className="flex items-center gap-1"><span className="w-8 border-t-2 border-dashed border-amber-400 inline-block" /> Meta anual</span>
+          </div>
+        </div>
+        {!hayMetas ? (
+          <p className="text-sm text-slate-400 text-center py-8">
+            Configura una meta anual (deja el mes en blanco) desde &quot;🎯 Configurar metas&quot; arriba para ver el cumplimiento por año.
+          </p>
+        ) : (
+          <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+            {aniosOrden.map((a, i) => {
+              const v = valores[i];
+              const metaV = metaVals[i];
+              const barH = Math.max(v > 0 ? 4 : 0, (v / maxVal) * (H - 45));
+              const x = pad + i * slot + (slot - barW) / 2;
+              const y = H - 30 - barH;
+              const metaY = metaV !== null ? H - 30 - Math.max(4, (metaV / maxVal) * (H - 45)) : null;
+              const pct = metaV ? Math.round((v / metaV) * 100) : null;
+              const pctY = Math.min(y, metaY ?? y) - (v > 0 ? 12 : 4);
+              return (
+                <g key={a}>
+                  <rect x={x} y={y} width={barW} height={barH} rx={3} fill="#3b82f6" opacity={0.85} />
+                  {metaY !== null && (
+                    <line x1={x - 4} y1={metaY} x2={x + barW + 4} y2={metaY} stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="3,2" />
+                  )}
+                  {pct !== null && (
+                    <text x={x + barW / 2} y={pctY} textAnchor="middle" fontSize={9} fontWeight="700"
+                      fill={pct >= 100 ? "#059669" : pct >= 60 ? "#d97706" : "#dc2626"}>
+                      {pct}%
+                    </text>
+                  )}
+                  {v > 0 && (
+                    <text x={x + barW / 2} y={y - 4} textAnchor="middle" fontSize={8} fill="#1d4ed8" fontWeight="700">
+                      {fmtK(v)}
+                    </text>
+                  )}
+                  <text x={x + barW / 2} y={H - 8} textAnchor="middle" fontSize={9} fill="#94a3b8">{a}</text>
+                </g>
+              );
+            })}
+            <line x1={pad} y1={H - 30} x2={W} y2={H - 30} stroke="#e2e8f0" strokeWidth={1} />
+          </svg>
+        )}
+      </div>
+    );
+  }
+
   // ── Gráfica mensual (siempre visible, año más reciente por defecto) ──
   function GraficaMensual() {
     if (!r) return null;
@@ -186,6 +253,8 @@ export default function ReportesPage() {
               const metaI = metaMes(i);
               const metaV = metaI ? Number(metaI.valorObjetivo) : (metaMensual ? Number(metaMensual.valorObjetivo) : null);
               const metaY = metaV ? H - 30 - Math.max(4, (metaV / maxVal) * (H - 45)) : null;
+              const pct = metaV ? Math.round((v / metaV) * 100) : null;
+              const pctY = Math.min(y, metaY ?? y) - (v > 0 ? 12 : 4);
               return (
                 <g key={i}>
                   {/* barra ganado */}
@@ -195,6 +264,12 @@ export default function ReportesPage() {
                   {/* línea de meta */}
                   {metaY !== null && (
                     <line x1={x - 2} y1={metaY} x2={x + barW + 2} y2={metaY} stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="3,2" />
+                  )}
+                  {pct !== null && (
+                    <text x={x + barW / 2} y={pctY} textAnchor="middle" fontSize={7} fontWeight="700"
+                      fill={pct >= 100 ? "#059669" : pct >= 60 ? "#d97706" : "#dc2626"}>
+                      {pct}%
+                    </text>
                   )}
                   {v > 0 && (
                     <text x={x + barW / 2} y={y - 3} textAnchor="middle" fontSize={7.5} fill="#059669" fontWeight="700">
@@ -604,6 +679,9 @@ export default function ReportesPage() {
             <h2 className="text-base font-bold text-slate-900">Comparativa por año</h2>
             <p className="text-xs text-slate-400 mt-0.5">Todos los años · {aniosOrden.join(", ")}</p>
           </div>
+
+          <GraficaMetaAnual />
+
           <div className="grid grid-cols-2 gap-x-10 gap-y-6">
             <GraficaAnios metrica={v => v.ganadas}     titulo="Negocios ganados"  color="#10b981" />
             <GraficaAnios metrica={v => v.valorGanado} titulo="Valor ganado (COP)" color="#3b82f6" />
