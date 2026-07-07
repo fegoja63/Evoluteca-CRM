@@ -18,11 +18,24 @@ export async function POST(req: Request) {
   const { anio, mes, valorObjetivo } = await req.json();
   if (!anio || !valorObjetivo) return NextResponse.json({ error: "Año y valor requeridos" }, { status: 400 });
   const mesNum = mes ? Number(mes) : null;
-  const meta = await prisma.metaVenta.upsert({
-    where: { tenantId_anio_mes: { tenantId: session.user.tenantId, anio: Number(anio), mes: mesNum as number } },
-    update: { valorObjetivo: Number(valorObjetivo) },
-    create: { anio: Number(anio), mes: mesNum, valorObjetivo: Number(valorObjetivo), tenantId: session.user.tenantId },
-  });
+
+  // Prisma no permite usar el índice único compuesto tenantId_anio_mes cuando
+  // mes es null (las metas anuales), así que para ese caso hacemos find + create/update a mano.
+  let meta;
+  if (mesNum === null) {
+    const existente = await prisma.metaVenta.findFirst({
+      where: { tenantId: session.user.tenantId, anio: Number(anio), mes: null },
+    });
+    meta = existente
+      ? await prisma.metaVenta.update({ where: { id: existente.id }, data: { valorObjetivo: Number(valorObjetivo) } })
+      : await prisma.metaVenta.create({ data: { anio: Number(anio), mes: null, valorObjetivo: Number(valorObjetivo), tenantId: session.user.tenantId } });
+  } else {
+    meta = await prisma.metaVenta.upsert({
+      where: { tenantId_anio_mes: { tenantId: session.user.tenantId, anio: Number(anio), mes: mesNum } },
+      update: { valorObjetivo: Number(valorObjetivo) },
+      create: { anio: Number(anio), mes: mesNum, valorObjetivo: Number(valorObjetivo), tenantId: session.user.tenantId },
+    });
+  }
   return NextResponse.json(meta);
 }
 

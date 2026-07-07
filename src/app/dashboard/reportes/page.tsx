@@ -156,7 +156,7 @@ export default function ReportesPage() {
     const barW = Math.min(60, slot - 16);
 
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 mt-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-sm font-bold text-slate-900">Cumplimiento de meta anual</p>
@@ -646,16 +646,18 @@ export default function ReportesPage() {
             <div className="flex flex-col gap-2">
               {metas.map(m => {
                 const realAnual = m.mes === null
-                  ? Object.values(r?.porMes ?? {}).reduce((acc, mes) => acc + (mes.valorGanado ?? 0), 0)
+                  ? (r?.porAnio?.[m.anio]?.valorGanado ?? 0)
                   : r?.anioParaMes === m.anio ? (r?.porMes[m.mes!]?.valorGanado ?? 0) : 0;
-                const pct = Math.min(100, Math.round((realAnual / Number(m.valorObjetivo)) * 100));
+                const pct = Math.round((realAnual / Number(m.valorObjetivo)) * 100);
+                const pctBarra = Math.min(100, pct);
+                const colorBarra = pct >= 100 ? "bg-emerald-500" : pct >= 60 ? "bg-amber-400" : "bg-red-400";
                 return (
                   <div key={m.id} className="flex items-center gap-4">
                     <div className="w-32 shrink-0">
                       <p className="text-xs font-medium text-slate-700">{m.mes ? `${MESES[m.mes - 1]} ${m.anio}` : `Año ${m.anio}`}</p>
                     </div>
                     <div className="flex-1 relative h-5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-5 rounded-full bg-amber-400 transition-all" style={{ width: `${pct}%` }} />
+                      <div className={`h-5 rounded-full transition-all ${colorBarra}`} style={{ width: `${pctBarra}%` }} />
                       <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-700">{pct}%</span>
                     </div>
                     <div className="w-36 text-right text-xs shrink-0">
@@ -672,6 +674,9 @@ export default function ReportesPage() {
         </div>
       )}
 
+      {/* ── CUMPLIMIENTO DE META ANUAL ── */}
+      {aniosOrden.length > 0 && <GraficaMetaAnual />}
+
       {/* ── COMPARATIVA POR AÑO ── */}
       {aniosOrden.length > 1 && (
         <div className="mt-6 bg-white rounded-2xl border border-slate-200 p-6">
@@ -679,8 +684,6 @@ export default function ReportesPage() {
             <h2 className="text-base font-bold text-slate-900">Comparativa por año</h2>
             <p className="text-xs text-slate-400 mt-0.5">Todos los años · {aniosOrden.join(", ")}</p>
           </div>
-
-          <GraficaMetaAnual />
 
           <div className="grid grid-cols-2 gap-x-10 gap-y-6">
             <GraficaAnios metrica={v => v.ganadas}     titulo="Negocios ganados"  color="#10b981" />
