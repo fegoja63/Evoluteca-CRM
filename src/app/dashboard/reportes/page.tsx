@@ -613,35 +613,37 @@ export default function ReportesPage() {
       <GraficaMensual />
 
       {/* ── PANEL METAS ── */}
-      {editMeta && (
+      {(editMeta || metas.length > 0) && (
         <div className="mt-4 bg-white rounded-2xl border border-amber-200 p-5">
           <h2 className="text-sm font-bold text-slate-900 mb-4">🎯 Metas de ventas</h2>
-          <div className="flex gap-3 items-end mb-5">
-            <div>
-              <p className="text-xs text-slate-500 mb-1">Año</p>
-              <input type="number" value={metaForm.anio} onChange={e => setMetaForm(f => ({ ...f, anio: Number(e.target.value) }))}
-                className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm w-24 outline-none focus:border-amber-400" />
+          {editMeta && (
+            <div className="flex gap-3 items-end mb-5">
+              <div>
+                <p className="text-xs text-slate-500 mb-1">Año</p>
+                <input type="number" value={metaForm.anio} onChange={e => setMetaForm(f => ({ ...f, anio: Number(e.target.value) }))}
+                  className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm w-24 outline-none focus:border-amber-400" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 mb-1">Mes (vacío = meta anual)</p>
+                <select value={metaForm.mes} onChange={e => setMetaForm(f => ({ ...f, mes: e.target.value }))}
+                  className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm bg-white outline-none focus:border-amber-400">
+                  <option value="">— Anual —</option>
+                  {MESES.map((m, i) => <option key={i+1} value={String(i+1)}>{m}</option>)}
+                </select>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 mb-1">Valor objetivo (COP)</p>
+                <input type="number" min={0} step={1000000} value={metaForm.valorObjetivo}
+                  onChange={e => setMetaForm(f => ({ ...f, valorObjetivo: e.target.value }))}
+                  placeholder="Ej: 50000000"
+                  className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm w-44 outline-none focus:border-amber-400" />
+              </div>
+              <button onClick={guardarMeta} disabled={!metaForm.valorObjetivo}
+                className="rounded-xl bg-amber-500 px-4 py-1.5 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50">
+                Guardar meta
+              </button>
             </div>
-            <div>
-              <p className="text-xs text-slate-500 mb-1">Mes (vacío = meta anual)</p>
-              <select value={metaForm.mes} onChange={e => setMetaForm(f => ({ ...f, mes: e.target.value }))}
-                className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm bg-white outline-none focus:border-amber-400">
-                <option value="">— Anual —</option>
-                {MESES.map((m, i) => <option key={i+1} value={String(i+1)}>{m}</option>)}
-              </select>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 mb-1">Valor objetivo (COP)</p>
-              <input type="number" min={0} step={1000000} value={metaForm.valorObjetivo}
-                onChange={e => setMetaForm(f => ({ ...f, valorObjetivo: e.target.value }))}
-                placeholder="Ej: 50000000"
-                className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm w-44 outline-none focus:border-amber-400" />
-            </div>
-            <button onClick={guardarMeta} disabled={!metaForm.valorObjetivo}
-              className="rounded-xl bg-amber-500 px-4 py-1.5 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50">
-              Guardar meta
-            </button>
-          </div>
+          )}
           {metas.length > 0 && (
             <div className="flex flex-col gap-2">
               {metas.map(m => {
