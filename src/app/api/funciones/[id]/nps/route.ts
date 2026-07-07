@@ -9,6 +9,11 @@ export async function GET(
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
+  const funcion = await prisma.funcion.findFirst({
+    where: { id: params.id, tenantId: session.user.tenantId },
+  });
+  if (!funcion) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
+
   const nps = await prisma.npsRespuesta.findMany({
     where: { funcionId: params.id },
     orderBy: { creadoEn: "desc" },

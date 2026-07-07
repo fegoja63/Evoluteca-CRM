@@ -43,7 +43,9 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-  await prisma.itemCotizacion.deleteMany({ where: { cotizacionId: params.id } });
+  // ItemCotizacion.cotizacion tiene onDelete: Cascade, así que borrar la
+  // cotización (ya filtrada por tenantId) se lleva sus ítems automáticamente
+  // — no hace falta (ni conviene) borrar los ítems por separado sin ese filtro.
   await prisma.cotizacion.deleteMany({
     where: { id: params.id, tenantId: session.user.tenantId },
   });

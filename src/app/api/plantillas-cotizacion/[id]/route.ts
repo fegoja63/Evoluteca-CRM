@@ -30,6 +30,11 @@ export async function PATCH(
   const { nombre } = await req.json();
   if (!nombre?.trim()) return NextResponse.json({ error: "Nombre requerido" }, { status: 400 });
 
+  const existente = await prisma.plantillaCotizacion.findFirst({
+    where: { id: params.id, tenantId: session.user.tenantId },
+  });
+  if (!existente) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
+
   const plantilla = await prisma.plantillaCotizacion.update({
     where: { id: params.id },
     data: { nombre: nombre.trim() },
