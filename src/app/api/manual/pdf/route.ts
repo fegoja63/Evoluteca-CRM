@@ -66,6 +66,17 @@ const s = StyleSheet.create({
   tablaHCell:  { fontSize: 8, fontFamily: "Helvetica-Bold", color: C.gris, textTransform: "uppercase" },
   tablaRow:    { flexDirection: "row", paddingVertical: 6, paddingHorizontal: 10, borderTopWidth: 1, borderTopColor: C.grisClaro },
   tablaCell:   { fontSize: 9, color: C.negro },
+  // Matriz de roles (checkmarks)
+  matriz:         { borderWidth: 1, borderColor: C.grisBorde, borderRadius: 6, overflow: "hidden", marginVertical: 8 },
+  matrizHead:     { flexDirection: "row", backgroundColor: C.grisClaro, paddingVertical: 9, paddingHorizontal: 10, alignItems: "center", borderBottomWidth: 1, borderBottomColor: C.grisBorde },
+  matrizHCellFunc:{ flex: 3, fontSize: 8, fontFamily: "Helvetica-Bold", color: C.gris, textTransform: "uppercase" },
+  matrizHCellRol: { flex: 1, fontSize: 8, fontFamily: "Helvetica-Bold", textAlign: "center", textTransform: "uppercase" },
+  matrizRow:      { flexDirection: "row", paddingVertical: 8, paddingHorizontal: 10, borderTopWidth: 1, borderTopColor: C.grisClaro, alignItems: "center" },
+  matrizFuncCell: { flex: 3, fontSize: 9, color: C.negro, lineHeight: 1.4, paddingRight: 8 },
+  matrizRolCell:  { flex: 1, alignItems: "center", justifyContent: "center" },
+  matrizCheck:    { width: 16, height: 16, borderRadius: 8, backgroundColor: C.verdeClarito, alignItems: "center", justifyContent: "center" },
+  matrizCheckTxt: { fontSize: 9, fontFamily: "Helvetica-Bold", color: C.verde },
+  matrizDash:     { fontSize: 11, fontFamily: "Helvetica-Bold", color: "#cbd5e1" },
   // Footer
   footer:      { position: "absolute", bottom: 20, left: 40, right: 40, flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: C.grisBorde, paddingTop: 6 },
   footerTxt:   { fontSize: 7, color: C.gris },
@@ -92,7 +103,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.5"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.7"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -156,6 +167,32 @@ function Paso({ n, titulo, desc }: { n: number; titulo: string; desc: string }) 
 function Sep() {
   return React.createElement(View, { style: s.sep });
 }
+function RolCheck({ activo }: { activo: boolean }) {
+  return React.createElement(View, { style: s.matrizRolCell },
+    activo
+      ? React.createElement(View, { style: s.matrizCheck }, React.createElement(Text, { style: s.matrizCheckTxt }, "✓"))
+      : React.createElement(Text, { style: s.matrizDash }, "–"),
+  );
+}
+function MatrizRoles({ filas }: { filas: [string, boolean, boolean, boolean][] }) {
+  const roles: [string, string][] = [["Comercial", C.gris], ["Gerente", C.azulMedio], ["Administrador", C.azul]];
+  return React.createElement(View, { style: { paddingHorizontal: 40 } },
+    React.createElement(View, { style: s.matriz, wrap: false },
+      React.createElement(View, { style: s.matrizHead },
+        React.createElement(Text, { style: s.matrizHCellFunc }, "Funcionalidad"),
+        ...roles.map(([nombre, color]) => React.createElement(Text, { key: nombre, style: [s.matrizHCellRol, { color }] }, nombre)),
+      ),
+      ...filas.map(([funcionalidad, comercial, gerente, administrador], i) =>
+        React.createElement(View, { key: funcionalidad, style: [s.matrizRow, i % 2 === 1 ? { backgroundColor: C.grisClaro } : {}] },
+          React.createElement(Text, { style: s.matrizFuncCell }, funcionalidad),
+          React.createElement(RolCheck, { activo: comercial }),
+          React.createElement(RolCheck, { activo: gerente }),
+          React.createElement(RolCheck, { activo: administrador }),
+        ),
+      ),
+    ),
+  );
+}
 
 export async function GET() {
   const doc = React.createElement(Document,
@@ -190,7 +227,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.6 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.7 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -599,26 +636,18 @@ export async function GET() {
       React.createElement(P, null, "Activa o desactiva estos módulos según tu tipo de negocio desde la sección Configuración → Módulos."),
 
       React.createElement(H2, null, "10.3 Gestión del equipo y roles"),
-      React.createElement(P, null, 'Ve a 👥 Equipo para ver los usuarios de tu organización. El Administrador puede crear nuevos miembros y asignarles uno de tres roles:'),
-      React.createElement(View, { style: { paddingHorizontal: 40 } },
-        React.createElement(View, { style: s.tabla },
-          React.createElement(View, { style: s.tablaHead },
-            React.createElement(Text, { style: [s.tablaHCell, { flex: 1 }] }, "Rol"),
-            React.createElement(Text, { style: [s.tablaHCell, { flex: 2 }] }, "Qué ve"),
-            React.createElement(Text, { style: [s.tablaHCell, { flex: 2 }] }, "Qué puede hacer"),
-          ),
-          ...[
-            ["ADMINISTRADOR", "Todos los datos del tenant", "Acceso completo: crear, editar, eliminar, gestionar usuarios"],
-            ["GERENTE",       "Todos los datos del tenant", "Crear y editar todo, ver reportes completos, no elimina"],
-            ["COMERCIAL",     "Solo sus propios registros", "Crea clientes y oportunidades que son exclusivamente suyos"],
-          ].map(([rol, ve, puede], i) => React.createElement(View, { key: rol, style: [s.tablaRow, i % 2 === 1 ? { backgroundColor: C.grisClaro } : {}] },
-            React.createElement(Text, { style: [s.tablaCell, { flex: 1, fontFamily: "Helvetica-Bold" }] }, rol),
-            React.createElement(Text, { style: [s.tablaCell, { flex: 2 }] }, ve),
-            React.createElement(Text, { style: [s.tablaCell, { flex: 2 }] }, puede),
-          )),
-        ),
-      ),
-      React.createElement(Nota, null, "Un COMERCIAL solo ve los clientes, oportunidades y actividades que él mismo creó. El ADMINISTRADOR y GERENTE ven todo el equipo."),
+      React.createElement(P, null, 'Ve a 👥 Equipo para ver los usuarios de tu organización. El Administrador puede crear nuevos miembros y asignarles uno de tres roles. Esto es lo que puede hacer cada uno:'),
+      React.createElement(MatrizRoles, { filas: [
+        ["Ver y gestionar sus propios clientes, oportunidades y actividades", true, true, true],
+        ["Ver clientes, oportunidades y actividades de todo el equipo",        false, true, true],
+        ["Ver reportes y forecast consolidado del equipo",                    false, true, true],
+        ["Eliminar clientes u oportunidades",                                 false, true, true],
+        ["Editar metas de vendedores",                                       false, true, true],
+        ["Configurar el CRM (logo, módulos opcionales, emails automáticos)",  false, false, true],
+        ["Invitar y editar usuarios del equipo",                             false, false, true],
+        ["Reasignar registros importados sin dueño",                        false, false, true],
+        ["Limpiar datos de prueba (zona de peligro)",                       false, false, true],
+      ] }),
       React.createElement(P, null, "Desde el panel de Equipo el Administrador puede:"),
       React.createElement(LI, null, "Crear nuevos usuarios con nombre, correo y contraseña inicial"),
       React.createElement(LI, null, "Ver el rol y estado de cada miembro"),
