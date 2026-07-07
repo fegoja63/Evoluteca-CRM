@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
 type ResAnio = { ganadas: number; perdidas: number; activas: number; valorGanado: number; valorPerdido: number; valorActivo: number; total: number };
 type ResMes  = { ganadas: number; perdidas: number; valorGanado: number; total: number };
@@ -48,6 +49,8 @@ const MESES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov"
 const COLORES_ANIO = ["#3b82f6","#10b981","#f59e0b","#8b5cf6","#ef4444","#06b6d4"];
 
 export default function ReportesPage() {
+  const { data: session } = useSession();
+  const esAdmin = session?.user?.rol === "ADMINISTRADOR";
   const [r, setR] = useState<Reporte | null>(null);
   const [anio, setAnio] = useState<string>("");
   const [mes, setMes] = useState<string>("");
@@ -272,10 +275,12 @@ export default function ReportesPage() {
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-500 inline-block" /> Ganado</span>
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-300 inline-block" /> Perdidos</span>
             <span className="flex items-center gap-1"><span className="w-8 border-t-2 border-dashed border-amber-400 inline-block" /> Meta</span>
-            <button onClick={() => setEditMeta(v => !v)}
-              className="ml-2 text-xs text-amber-600 border border-amber-200 rounded-lg px-2 py-0.5 hover:bg-amber-50">
-              {editMeta ? "× Cerrar metas" : "🎯 Configurar metas"}
-            </button>
+            {esAdmin && (
+              <button onClick={() => setEditMeta(v => !v)}
+                className="ml-2 text-xs text-amber-600 border border-amber-200 rounded-lg px-2 py-0.5 hover:bg-amber-50">
+                {editMeta ? "× Cerrar metas" : "🎯 Configurar metas"}
+              </button>
+            )}
           </div>
         </div>
         {!hayDatos ? (
@@ -713,7 +718,7 @@ export default function ReportesPage() {
                       <span className="font-bold text-slate-800">{fmtK(realAnual)}</span>
                       <span className="text-slate-400"> / {fmtK(Number(m.valorObjetivo))}</span>
                     </div>
-                    {m.calculada ? (
+                    {m.calculada || !esAdmin ? (
                       <span className="w-3.5" />
                     ) : (
                       <button onClick={() => eliminarMeta(m.anio, m.mes)}

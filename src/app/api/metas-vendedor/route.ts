@@ -26,8 +26,8 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   const { rol, tenantId } = session.user;
-  if (rol !== "ADMINISTRADOR" && rol !== "GERENTE") {
-    return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
+  if (rol !== "ADMINISTRADOR") {
+    return NextResponse.json({ error: "Solo el administrador puede definir la meta de un vendedor" }, { status: 403 });
   }
 
   const { userId, anio, mes, meta } = await req.json();

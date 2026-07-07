@@ -40,6 +40,9 @@ export async function GET() {
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (session.user.rol !== "ADMINISTRADOR") {
+    return NextResponse.json({ error: "Solo el administrador puede definir la meta de ventas" }, { status: 403 });
+  }
   const { anio, mes, valorObjetivo } = await req.json();
   if (!anio || !valorObjetivo) return NextResponse.json({ error: "Año y valor requeridos" }, { status: 400 });
   const mesNum = mes ? Number(mes) : null;
@@ -67,6 +70,9 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (session.user.rol !== "ADMINISTRADOR") {
+    return NextResponse.json({ error: "Solo el administrador puede modificar la meta de ventas" }, { status: 403 });
+  }
   const { anio, mes } = await req.json();
   await prisma.metaVenta.deleteMany({
     where: { tenantId: session.user.tenantId, anio: Number(anio), mes: mes ? Number(mes) : null },
