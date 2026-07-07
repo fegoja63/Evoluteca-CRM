@@ -144,6 +144,8 @@ export default function ReportesPage() {
   }
 
   // ── Cumplimiento de meta anual (valor ganado vs meta configurada, por año) ──
+  // Barras pareadas (Ganado / Meta) en vez de barra + línea: con años donde la meta
+  // es mucho más alta que lo ganado, la línea+etiqueta flotante se salía del gráfico.
   function GraficaMetaAnual() {
     if (!r) return null;
     const valores = aniosOrden.map(a => r!.porAnio[a]?.valorGanado ?? 0);
@@ -151,9 +153,12 @@ export default function ReportesPage() {
     const metaVals = aniosOrden.map(a => { const m = metaAnual(a); return m ? Number(m.valorObjetivo) : null; });
     const hayMetas = metaVals.some(v => v !== null);
     const maxVal = Math.max(...valores, ...metaVals.filter((v): v is number => v !== null), 1);
-    const W = 580, H = 150, pad = 24;
+    const W = 580, H = 150, pad = 24, topPad = 26, baseY = H - 30;
+    const drawH = baseY - topPad;
     const slot = (W - pad) / aniosOrden.length;
-    const barW = Math.min(60, slot - 16);
+    const barW = Math.min(22, (slot - 20) / 2);
+    const gap = 3;
+    const groupW = barW * 2 + gap;
 
     return (
       <div className="bg-white rounded-2xl border border-slate-200 p-6 mt-6">
@@ -164,7 +169,7 @@ export default function ReportesPage() {
           </div>
           <div className="flex items-center gap-4 text-xs text-slate-500">
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-blue-500 inline-block" /> Ganado</span>
-            <span className="flex items-center gap-1"><span className="w-8 border-t-2 border-dashed border-amber-400 inline-block" /> Meta anual</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-slate-400 inline-block" /> Meta anual</span>
           </div>
         </div>
         {!hayMetas ? (
@@ -176,34 +181,42 @@ export default function ReportesPage() {
             {aniosOrden.map((a, i) => {
               const v = valores[i];
               const metaV = metaVals[i];
-              const barH = Math.max(v > 0 ? 4 : 0, (v / maxVal) * (H - 45));
-              const x = pad + i * slot + (slot - barW) / 2;
-              const y = H - 30 - barH;
-              const metaY = metaV !== null ? H - 30 - Math.max(4, (metaV / maxVal) * (H - 45)) : null;
+              const barHGanado = Math.max(v > 0 ? 4 : 0, (v / maxVal) * drawH);
+              const barHMeta = metaV !== null ? Math.max(4, (metaV / maxVal) * drawH) : 0;
+              const xGroup = pad + i * slot + (slot - groupW) / 2;
+              const xMeta = xGroup + barW + gap;
+              const yGanado = baseY - barHGanado;
+              const yMeta = baseY - barHMeta;
               const pct = metaV ? Math.round((v / metaV) * 100) : null;
-              const pctY = Math.min(y, metaY ?? y) - (v > 0 ? 12 : 4);
+              const topOfGroup = Math.min(yGanado, metaV !== null ? yMeta : yGanado);
+              const pctY = Math.max(8, topOfGroup - 16);
               return (
                 <g key={a}>
-                  <rect x={x} y={y} width={barW} height={barH} rx={3} fill="#3b82f6" opacity={0.85} />
-                  {metaY !== null && (
-                    <line x1={x - 4} y1={metaY} x2={x + barW + 4} y2={metaY} stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="3,2" />
+                  <rect x={xGroup} y={yGanado} width={barW} height={barHGanado} rx={3} fill="#3b82f6" opacity={0.9} />
+                  {metaV !== null && (
+                    <rect x={xMeta} y={yMeta} width={barW} height={barHMeta} rx={3} fill="#94a3b8" opacity={0.9} />
                   )}
                   {pct !== null && (
-                    <text x={x + barW / 2} y={pctY} textAnchor="middle" fontSize={9} fontWeight="700"
+                    <text x={xGroup + groupW / 2} y={pctY} textAnchor="middle" fontSize={9} fontWeight="700"
                       fill={pct >= 100 ? "#059669" : pct >= 60 ? "#d97706" : "#dc2626"}>
                       {pct}%
                     </text>
                   )}
                   {v > 0 && (
-                    <text x={x + barW / 2} y={y - 4} textAnchor="middle" fontSize={8} fill="#1d4ed8" fontWeight="700">
+                    <text x={xGroup + barW / 2} y={yGanado - 4} textAnchor="middle" fontSize={7} fill="#1d4ed8" fontWeight="700">
                       {fmtK(v)}
                     </text>
                   )}
-                  <text x={x + barW / 2} y={H - 8} textAnchor="middle" fontSize={9} fill="#94a3b8">{a}</text>
+                  {metaV !== null && (
+                    <text x={xMeta + barW / 2} y={yMeta - 4} textAnchor="middle" fontSize={7} fill="#64748b" fontWeight="600">
+                      {fmtK(metaV)}
+                    </text>
+                  )}
+                  <text x={xGroup + groupW / 2} y={H - 8} textAnchor="middle" fontSize={9} fill="#94a3b8">{a}</text>
                 </g>
               );
             })}
-            <line x1={pad} y1={H - 30} x2={W} y2={H - 30} stroke="#e2e8f0" strokeWidth={1} />
+            <line x1={pad} y1={baseY} x2={W} y2={baseY} stroke="#e2e8f0" strokeWidth={1} />
           </svg>
         )}
       </div>
