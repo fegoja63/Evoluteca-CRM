@@ -5,6 +5,7 @@ import {
   WidthType, ShadingType, NumberFormat, Header, Footer,
   PageNumber, UnderlineType,
 } from "docx";
+import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -121,6 +122,9 @@ function makeTable(headers: string[], rows: string[][]): Table {
 }
 
 export async function GET() {
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
   const doc = new Document({
     title: "Manual de Usuario — Evoluteca CRM",
     description: "Guía completa de uso del CRM",

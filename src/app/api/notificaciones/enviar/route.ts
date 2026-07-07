@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-  const { tipo, destinatario, datos } = await req.json();
+  const { tipo, datos } = await req.json();
 
   if (!process.env.RESEND_API_KEY) {
     return NextResponse.json({ error: "RESEND_API_KEY no configurada" }, { status: 503 });
@@ -82,10 +82,16 @@ export async function POST(req: Request) {
       </div>`;
   }
 
+  if (!session.user.email) return NextResponse.json({ error: "Tu usuario no tiene email" }, { status: 400 });
+
+  // Siempre se envía al correo del propio usuario autenticado -- ningún
+  // llamador legítimo de este endpoint pasaba un destinatario distinto, y
+  // permitir uno arbitrario hubiera dejado enviar correo con el remitente
+  // corporativo a cualquier dirección.
   const { error } = await resend.emails.send({
     from: "Evoluteca CRM <noreply@evoluteca.com>",
     replyTo: "felipegomezjaramillo@gmail.com",
-    to: destinatario ?? session.user.email ?? "",
+    to: session.user.email,
     subject,
     html,
   });

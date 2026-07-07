@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
+import { filtroOwner } from "@/lib/permisos";
 
 export const dynamic = "force-dynamic";
 
@@ -23,15 +24,19 @@ export async function GET(request: Request) {
   const anioFiltro = searchParams.get("anio") ? Number(searchParams.get("anio")) : null;
   const mesFiltro  = searchParams.get("mes")  ? Number(searchParams.get("mes"))  : null;
 
+  // Igual que el resto del CRM (Dashboard, Pipeline, Agenda): un COMERCIAL solo
+  // ve sus propios registros, no los de todo el equipo.
+  const ownerFiltro = filtroOwner(session.user.rol, session.user.id);
+
   // ── Traer todas las oportunidades con extras ──
   const [totalEmpresas, totalContactos, todasOps, actividadesPendientes] = await Promise.all([
-    prisma.empresa.count({ where: { tenantId } }),
+    prisma.empresa.count({ where: { tenantId, ...ownerFiltro } }),
     prisma.contacto.count({ where: { tenantId } }),
     prisma.oportunidad.findMany({
-      where: { tenantId },
+      where: { tenantId, ...ownerFiltro },
       select: { etapa: true, valor: true, probabilidad: true, fechaCierre: true, fechaEvento: true, creadoEn: true, extras: true, empresa: { select: { nombre: true } } },
     }),
-    prisma.actividad.count({ where: { tenantId, completada: false } }),
+    prisma.actividad.count({ where: { tenantId, completada: false, ...ownerFiltro } }),
   ]);
 
   // ── Años disponibles (desde extras.AÑO) ──

@@ -3,6 +3,7 @@ import {
   renderToBuffer, Document, Page, Text, View, StyleSheet, Image,
 } from "@react-pdf/renderer";
 import React from "react";
+import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -201,6 +202,9 @@ function MatrizRoles({ filas }: { filas: [string, boolean, boolean, boolean][] }
 }
 
 export async function GET() {
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
   const doc = React.createElement(Document,
     { title: "Manual de Usuario — Evoluteca CRM", author: "Evoluteca", subject: "Guía de uso del CRM" },
 
