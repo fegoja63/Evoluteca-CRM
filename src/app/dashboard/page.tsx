@@ -36,6 +36,7 @@ export default async function DashboardPage() {
     cotizacionesVencidas,
     metaMes,
     metaAnio,
+    metasMensualesAnio,
     usuarios,
     topOportunidades,
     ultimasGanadas,
@@ -96,6 +97,10 @@ export default async function DashboardPage() {
     prisma.metaVenta.findFirst({
       where: { tenantId, anio: hoy.getFullYear(), mes: null },
     }),
+    prisma.metaVenta.findMany({
+      where: { tenantId, anio: hoy.getFullYear(), mes: { not: null } },
+      select: { valorObjetivo: true },
+    }),
     prisma.usuario.findMany({
       where: { tenantId, rol: "COMERCIAL" },
       select: { id: true, nombre: true },
@@ -148,8 +153,12 @@ export default async function DashboardPage() {
   const metaColorBg = metaPct >= 100 ? "bg-emerald-500" : metaPct >= 60 ? "bg-amber-500" : "bg-red-500";
   const metaColorText = metaPct >= 100 ? "text-emerald-600" : metaPct >= 60 ? "text-amber-600" : "text-red-500";
 
-  // Meta del año
-  const metaAnioValor = metaAnio ? Number(metaAnio.valorObjetivo) : 0;
+  // Meta del año: si no hay una meta anual manual, se calcula sumando las metas
+  // mensuales configuradas para el año en curso (ver src/app/api/metas/route.ts
+  // para la misma lógica aplicada en Reportes).
+  const metaAnioValor = metaAnio
+    ? Number(metaAnio.valorObjetivo)
+    : metasMensualesAnio.reduce((a, m) => a + Number(m.valorObjetivo), 0);
   const metaAnioPct   = metaAnioValor > 0 ? Math.min(Math.round((valorGanadoAnio / metaAnioValor) * 100), 100) : 0;
   const metaAnioColor = metaAnioPct >= 100 ? "#10b981" : metaAnioPct >= 60 ? "#f59e0b" : "#ef4444";
   const metaAnioColorText = metaAnioPct >= 100 ? "text-emerald-600" : metaAnioPct >= 60 ? "text-amber-600" : "text-red-500";

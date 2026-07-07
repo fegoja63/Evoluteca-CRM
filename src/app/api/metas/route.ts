@@ -9,7 +9,32 @@ export async function GET() {
     where: { tenantId: session.user.tenantId },
     orderBy: [{ anio: "desc" }, { mes: "asc" }],
   });
-  return NextResponse.json(metas);
+
+  // Si un año no tiene meta anual manual (mes: null), se calcula sumando las
+  // metas mensuales que sí estén configuradas para ese año. El usuario elige
+  // el modo simplemente definiendo (o no) una meta anual manual: si la define,
+  // esa tiene prioridad; si no, se calcula sola a partir de las mensuales.
+  const aniosConManual = new Set(metas.filter(m => m.mes === null).map(m => m.anio));
+  const mensualesPorAnio = new Map<number, typeof metas>();
+  for (const m of metas) {
+    if (m.mes === null) continue;
+    if (!mensualesPorAnio.has(m.anio)) mensualesPorAnio.set(m.anio, []);
+    mensualesPorAnio.get(m.anio)!.push(m);
+  }
+
+  const calculadas = Array.from(mensualesPorAnio.entries())
+    .filter(([anio]) => !aniosConManual.has(anio))
+    .map(([anio, mensuales]) => ({
+      id: `calc-${anio}`,
+      anio,
+      mes: null,
+      valorObjetivo: mensuales.reduce((acc, m) => acc + Number(m.valorObjetivo), 0).toString(),
+      calculada: true,
+      mesesConfigurados: mensuales.length,
+    }));
+
+  const resultado = [...metas, ...calculadas].sort((a, b) => b.anio - a.anio || (a.mes ?? 0) - (b.mes ?? 0));
+  return NextResponse.json(resultado);
 }
 
 export async function POST(req: Request) {

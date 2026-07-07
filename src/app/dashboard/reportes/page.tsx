@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 type ResAnio = { ganadas: number; perdidas: number; activas: number; valorGanado: number; valorPerdido: number; valorActivo: number; total: number };
 type ResMes  = { ganadas: number; perdidas: number; valorGanado: number; total: number };
-type Meta    = { id: string; anio: number; mes: number | null; valorObjetivo: string };
+type Meta    = { id: string; anio: number; mes: number | null; valorObjetivo: string; calculada?: boolean; mesesConfigurados?: number };
 
 type TopCliente = { nombre: string; valorGanado: number; ganadas: number; total: number };
 
@@ -251,10 +251,12 @@ export default function ReportesPage() {
     const vals    = MESES.map((_, i) => r!.porMes[i + 1]?.valorGanado ?? 0);
     const perdidos = MESES.map((_, i) => r!.porMes[i + 1]?.perdidas   ?? 0);
     const ganados  = MESES.map((_, i) => r!.porMes[i + 1]?.ganadas    ?? 0);
-    // Meta mensual para el año del gráfico
-    const metaMensual = metas.find(m => m.anio === r!.anioParaMes && m.mes === null);
+    // Meta mensual para el año del gráfico — solo se compara cada mes contra SU
+    // propia meta mensual, nunca contra la meta anual (compararía un mes contra
+    // el objetivo del año completo, mostrando siempre porcentajes cercanos a 0%).
     const metaMes = (i: number) => metas.find(m => m.anio === r!.anioParaMes && m.mes === i + 1);
-    const maxVal  = Math.max(...vals, metaMensual ? Number(metaMensual.valorObjetivo) : 0, 1);
+    const metasDelAnio = MESES.map((_, i) => metaMes(i)).filter((m): m is Meta => !!m);
+    const maxVal  = Math.max(...vals, ...metasDelAnio.map(m => Number(m.valorObjetivo)), 1);
     const W = 580, H = 150, barW = 26, pad = 24;
     const slot = (W - pad) / 12;
     const hayDatos = vals.some(v => v > 0);
@@ -286,7 +288,7 @@ export default function ReportesPage() {
               const x     = pad + i * slot + (slot - barW) / 2;
               const y     = H - 30 - barH;
               const metaI = metaMes(i);
-              const metaV = metaI ? Number(metaI.valorObjetivo) : (metaMensual ? Number(metaMensual.valorObjetivo) : null);
+              const metaV = metaI ? Number(metaI.valorObjetivo) : null;
               const metaY = metaV ? H - 30 - Math.max(4, (metaV / maxVal) * (H - 45)) : null;
               const pct = metaV ? Math.round((v / metaV) * 100) : null;
               const pctY = Math.min(y, metaY ?? y) - (v > 0 ? 12 : 4);
@@ -652,6 +654,7 @@ export default function ReportesPage() {
         <div className="mt-4 bg-white rounded-2xl border border-amber-200 p-5">
           <h2 className="text-sm font-bold text-slate-900 mb-4">🎯 Metas de ventas</h2>
           {editMeta && (
+            <>
             <div className="flex gap-3 items-end mb-5">
               <div>
                 <p className="text-xs text-slate-500 mb-1">Año</p>
@@ -678,6 +681,12 @@ export default function ReportesPage() {
                 Guardar meta
               </button>
             </div>
+            {metaForm.mes === "" && (
+              <p className="text-xs text-slate-400 -mt-3 mb-5">
+                Si no defines una meta anual manual, se calcula sola sumando las metas mensuales que sí tengas configuradas para ese año.
+              </p>
+            )}
+            </>
           )}
           {metas.length > 0 && (
             <div className="flex flex-col gap-2">
@@ -690,8 +699,11 @@ export default function ReportesPage() {
                 const colorBarra = pct >= 100 ? "bg-emerald-500" : pct >= 60 ? "bg-amber-400" : "bg-red-400";
                 return (
                   <div key={m.id} className="flex items-center gap-4">
-                    <div className="w-32 shrink-0">
+                    <div className="w-40 shrink-0">
                       <p className="text-xs font-medium text-slate-700">{m.mes ? `${MESES[m.mes - 1]} ${m.anio}` : `Año ${m.anio}`}</p>
+                      {m.calculada && (
+                        <p className="text-[10px] text-slate-400">calculada · {m.mesesConfigurados}/12 meses</p>
+                      )}
                     </div>
                     <div className="flex-1 relative h-5 bg-slate-100 rounded-full overflow-hidden">
                       <div className={`h-5 rounded-full transition-all ${colorBarra}`} style={{ width: `${pctBarra}%` }} />
@@ -701,8 +713,12 @@ export default function ReportesPage() {
                       <span className="font-bold text-slate-800">{fmtK(realAnual)}</span>
                       <span className="text-slate-400"> / {fmtK(Number(m.valorObjetivo))}</span>
                     </div>
-                    <button onClick={() => eliminarMeta(m.anio, m.mes)}
-                      className="text-slate-300 hover:text-red-400 text-sm">×</button>
+                    {m.calculada ? (
+                      <span className="w-3.5" />
+                    ) : (
+                      <button onClick={() => eliminarMeta(m.anio, m.mes)}
+                        className="text-slate-300 hover:text-red-400 text-sm">×</button>
+                    )}
                   </div>
                 );
               })}
