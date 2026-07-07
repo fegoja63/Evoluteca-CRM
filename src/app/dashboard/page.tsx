@@ -30,7 +30,6 @@ export default async function DashboardPage() {
     actividadesSemana,
     actividadesCompletadasHoy,
     totalActividadesHoy,
-    ganadas30d,
     cotizacionesSinMovimiento,
     cotizacionesSinRespuesta,
     cotizacionesVencidas,
@@ -46,7 +45,7 @@ export default async function DashboardPage() {
     prisma.contacto.count({ where: { tenantId } }),
     prisma.oportunidad.findMany({
       where: { tenantId, ...ownerFiltro },
-      select: { etapa: true, valor: true, creadoEn: true, fechaCierre: true, creadoBy: true },
+      select: { etapa: true, valor: true, creadoEn: true, fechaCierre: true, fechaEvento: true, extras: true, creadoBy: true },
     }),
     prisma.actividad.count({ where: { tenantId, completada: false, ...ownerFiltro } }),
     prisma.actividad.findMany({
@@ -73,10 +72,6 @@ export default async function DashboardPage() {
     }),
     prisma.actividad.count({ where: { tenantId, completada: true, fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro } }),
     prisma.actividad.count({ where: { tenantId, fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro } }),
-    prisma.oportunidad.findMany({
-      where: { tenantId, etapa: "GANADA", fechaCierre: { gte: inicioMes }, ...ownerFiltro },
-      select: { valor: true, creadoBy: true },
-    }),
     prisma.oportunidad.findMany({
       where: { tenantId, etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] }, creadoEn: { lt: hace60dias }, ...ownerFiltro },
       select: { id: true, titulo: true, etapa: true, empresa: { select: { nombre: true } } },
@@ -133,10 +128,24 @@ export default async function DashboardPage() {
     .slice(0, 5);
 
   // ── Métricas principales ──────────────────────────────────────────────────
+  // Fecha efectiva de cierre: prioriza extras.MES (fecha real preservada de negocios importados
+  // desde Excel, que casi nunca traen fechaCierre diligenciada), luego fechaCierre, luego fechaEvento,
+  // y por último la fecha de creación en el CRM como último recurso.
+  const fechaEfectiva = (o: { fechaCierre: Date | null; fechaEvento: Date | null; creadoEn: Date; extras: unknown }) => {
+    const ext = o.extras as Record<string, string> | null;
+    if (ext?.["MES"]) {
+      const d = new Date(ext["MES"]);
+      if (!isNaN(d.getTime())) return d;
+    }
+    return new Date(o.fechaCierre ?? o.fechaEvento ?? o.creadoEn);
+  };
+
   const opActivas = oportunidades.filter(o => !["PERDIDA","GANADA"].includes(o.etapa));
-  const valorPipeline   = opActivas.reduce((a, o) => a + Number(o.valor ?? 0), 0);
-  const valorGanadoMes  = ganadas30d.reduce((a, o) => a + Number(o.valor ?? 0), 0);
-  const valorGanadoAnio = oportunidades.filter(o => o.etapa === "GANADA" && o.fechaCierre && new Date(o.fechaCierre) >= inicioAnio).reduce((a, o) => a + Number(o.valor ?? 0), 0);
+  const valorPipeline = opActivas.reduce((a, o) => a + Number(o.valor ?? 0), 0);
+  const ganadasMes  = oportunidades.filter(o => o.etapa === "GANADA" && fechaEfectiva(o) >= inicioMes);
+  const ganadasAnio = oportunidades.filter(o => o.etapa === "GANADA" && fechaEfectiva(o) >= inicioAnio);
+  const valorGanadoMes  = ganadasMes.reduce((a, o) => a + Number(o.valor ?? 0), 0);
+  const valorGanadoAnio = ganadasAnio.reduce((a, o) => a + Number(o.valor ?? 0), 0);
   const ganadas         = oportunidades.filter(o => o.etapa === "GANADA").length;
   const perdidas        = oportunidades.filter(o => o.etapa === "PERDIDA").length;
   const totalCerradas   = ganadas + perdidas;
@@ -160,7 +169,7 @@ export default async function DashboardPage() {
   const rankingVendedores = usuarios.map(u => {
     const misOps = oportunidades.filter(o => o.creadoBy === u.id);
     const pipeline = misOps.filter(o => !["GANADA","PERDIDA"].includes(o.etapa)).reduce((a, o) => a + Number(o.valor ?? 0), 0);
-    const ganadoMes = ganadas30d.filter(o => o.creadoBy === u.id).reduce((a, o) => a + Number(o.valor ?? 0), 0);
+    const ganadoMes = ganadasMes.filter(o => o.creadoBy === u.id).reduce((a, o) => a + Number(o.valor ?? 0), 0);
     const cerradas  = misOps.filter(o => ["GANADA","PERDIDA"].includes(o.etapa)).length;
     const ganadasU  = misOps.filter(o => o.etapa === "GANADA").length;
     const tasa      = cerradas > 0 ? Math.round((ganadasU / cerradas) * 100) : 0;
