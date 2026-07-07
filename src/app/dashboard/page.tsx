@@ -35,6 +35,7 @@ export default async function DashboardPage() {
     cotizacionesSinRespuesta,
     cotizacionesVencidas,
     metaMes,
+    metaAnio,
     usuarios,
     topOportunidades,
     ultimasGanadas,
@@ -45,7 +46,7 @@ export default async function DashboardPage() {
     prisma.contacto.count({ where: { tenantId } }),
     prisma.oportunidad.findMany({
       where: { tenantId, ...ownerFiltro },
-      select: { etapa: true, valor: true, creadoEn: true, creadoBy: true },
+      select: { etapa: true, valor: true, creadoEn: true, fechaCierre: true, creadoBy: true },
     }),
     prisma.actividad.count({ where: { tenantId, completada: false, ...ownerFiltro } }),
     prisma.actividad.findMany({
@@ -96,6 +97,9 @@ export default async function DashboardPage() {
     prisma.metaVenta.findFirst({
       where: { tenantId, anio: hoy.getFullYear(), mes: hoy.getMonth() + 1 },
     }),
+    prisma.metaVenta.findFirst({
+      where: { tenantId, anio: hoy.getFullYear(), mes: null },
+    }),
     prisma.usuario.findMany({
       where: { tenantId, rol: "COMERCIAL" },
       select: { id: true, nombre: true },
@@ -132,7 +136,7 @@ export default async function DashboardPage() {
   const opActivas = oportunidades.filter(o => !["PERDIDA","GANADA"].includes(o.etapa));
   const valorPipeline   = opActivas.reduce((a, o) => a + Number(o.valor ?? 0), 0);
   const valorGanadoMes  = ganadas30d.reduce((a, o) => a + Number(o.valor ?? 0), 0);
-  const valorGanadoAnio = oportunidades.filter(o => o.etapa === "GANADA" && new Date(o.creadoEn) >= inicioAnio).reduce((a, o) => a + Number(o.valor ?? 0), 0);
+  const valorGanadoAnio = oportunidades.filter(o => o.etapa === "GANADA" && o.fechaCierre && new Date(o.fechaCierre) >= inicioAnio).reduce((a, o) => a + Number(o.valor ?? 0), 0);
   const ganadas         = oportunidades.filter(o => o.etapa === "GANADA").length;
   const perdidas        = oportunidades.filter(o => o.etapa === "PERDIDA").length;
   const totalCerradas   = ganadas + perdidas;
@@ -145,6 +149,12 @@ export default async function DashboardPage() {
   const metaColor   = metaPct >= 100 ? "#10b981" : metaPct >= 60 ? "#f59e0b" : "#ef4444";
   const metaColorBg = metaPct >= 100 ? "bg-emerald-500" : metaPct >= 60 ? "bg-amber-500" : "bg-red-500";
   const metaColorText = metaPct >= 100 ? "text-emerald-600" : metaPct >= 60 ? "text-amber-600" : "text-red-500";
+
+  // Meta del año
+  const metaAnioValor = metaAnio ? Number(metaAnio.valorObjetivo) : 0;
+  const metaAnioPct   = metaAnioValor > 0 ? Math.min(Math.round((valorGanadoAnio / metaAnioValor) * 100), 100) : 0;
+  const metaAnioColor = metaAnioPct >= 100 ? "#10b981" : metaAnioPct >= 60 ? "#f59e0b" : "#ef4444";
+  const metaAnioColorText = metaAnioPct >= 100 ? "text-emerald-600" : metaAnioPct >= 60 ? "text-amber-600" : "text-red-500";
 
   // Ranking vendedores
   const rankingVendedores = usuarios.map(u => {
@@ -229,6 +239,22 @@ export default async function DashboardPage() {
                     <span className="absolute inset-0 flex items-center justify-center text-sm font-extrabold text-white">{metaPct}%</span>
                   </div>
                   <p className="text-blue-300 text-xs mt-1">Meta del mes</p>
+                </div>
+                <div className="w-px bg-white/20 self-stretch" />
+              </>
+            )}
+            {metaAnioValor > 0 && (
+              <>
+                <div className="text-center">
+                  <div className="relative w-16 h-16">
+                    <svg viewBox="0 0 100 100" className="w-16 h-16 -rotate-90">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="12" />
+                      <circle cx="50" cy="50" r="40" fill="none" stroke={metaAnioColor} strokeWidth="12"
+                        strokeDasharray={`${gaugeDash(metaAnioPct)} ${gaugeCircum}`} strokeLinecap="round" />
+                    </svg>
+                    <span className="absolute inset-0 flex items-center justify-center text-sm font-extrabold text-white">{metaAnioPct}%</span>
+                  </div>
+                  <p className="text-blue-300 text-xs mt-1">Meta del año</p>
                 </div>
                 <div className="w-px bg-white/20 self-stretch" />
               </>
@@ -558,6 +584,12 @@ export default async function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-slate-500">Meta del mes</span>
                   <span className={`text-sm font-bold ${metaColorText}`}>{metaPct}% ({fmt(valorGanadoMes)} / {fmt(metaValor)})</span>
+                </div>
+              )}
+              {metaAnioValor > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500">Meta del año</span>
+                  <span className={`text-sm font-bold ${metaAnioColorText}`}>{metaAnioPct}% ({fmt(valorGanadoAnio)} / {fmt(metaAnioValor)})</span>
                 </div>
               )}
             </div>
