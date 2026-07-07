@@ -1,38 +1,17 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { fechaEfectiva } from "@/lib/fecha-efectiva";
 
 export const dynamic = "force-dynamic";
 
-// Lee el año desde extras.AÑO, con fallback a fechaEvento o creadoEn
-function getAnio(o: { extras: unknown; fechaEvento: Date | null; creadoEn: Date }): number | null {
-  const ext = o.extras as Record<string, string> | null;
-  if (ext?.["AÑO"]) {
-    const n = Number(String(ext["AÑO"]).trim());
-    if (!isNaN(n) && n > 2000 && n < 2100) return n;
-  }
-  const fecha = o.fechaEvento ?? o.creadoEn;
-  return new Date(fecha).getFullYear();
+// Mismo criterio de fecha que usa el Dashboard (ver src/lib/fecha-efectiva.ts) para
+// que ambas pantallas calculen el mismo año/mes para el mismo negocio.
+function getAnio(o: Parameters<typeof fechaEfectiva>[0]): number {
+  return fechaEfectiva(o).getFullYear();
 }
-
-// Lee el mes desde extras — prueba varias claves posibles
-function getMes(o: { extras: unknown; fechaEvento: Date | null; creadoEn: Date }): number | null {
-  const ext = o.extras as Record<string, string> | null;
-  const rawMes = ext?.["MES ELABORACION"] ?? ext?.["ELABORACIÓN"] ?? ext?.["ELABORACION"] ?? null;
-  if (rawMes) {
-    const raw = String(rawMes).trim().toUpperCase();
-    const MESES: Record<string, number> = {
-      ENERO: 1, FEBRERO: 2, MARZO: 3, ABRIL: 4, MAYO: 5, JUNIO: 6,
-      JULIO: 7, AGOSTO: 8, SEPTIEMBRE: 9, OCTUBRE: 10, NOVIEMBRE: 11, DICIEMBRE: 12,
-      ENE: 1, FEB: 2, MAR: 3, ABR: 4, MAY: 5, JUN: 6,
-      JUL: 7, AGO: 8, SEP: 9, OCT: 10, NOV: 11, DIC: 12,
-    };
-    if (MESES[raw]) return MESES[raw];
-    const n = Number(raw);
-    if (!isNaN(n) && n >= 1 && n <= 12) return n;
-  }
-  const fecha = o.fechaEvento ?? o.creadoEn;
-  return new Date(fecha).getMonth() + 1;
+function getMes(o: Parameters<typeof fechaEfectiva>[0]): number {
+  return fechaEfectiva(o).getMonth() + 1;
 }
 
 export async function GET(request: Request) {
@@ -50,7 +29,7 @@ export async function GET(request: Request) {
     prisma.contacto.count({ where: { tenantId } }),
     prisma.oportunidad.findMany({
       where: { tenantId },
-      select: { etapa: true, valor: true, probabilidad: true, fechaEvento: true, creadoEn: true, extras: true, empresa: { select: { nombre: true } } },
+      select: { etapa: true, valor: true, probabilidad: true, fechaCierre: true, fechaEvento: true, creadoEn: true, extras: true, empresa: { select: { nombre: true } } },
     }),
     prisma.actividad.count({ where: { tenantId, completada: false } }),
   ]);

@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
+import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -128,18 +129,6 @@ export default async function DashboardPage() {
     .slice(0, 5);
 
   // ── Métricas principales ──────────────────────────────────────────────────
-  // Fecha efectiva de cierre: prioriza extras.MES (fecha real preservada de negocios importados
-  // desde Excel, que casi nunca traen fechaCierre diligenciada), luego fechaCierre, luego fechaEvento,
-  // y por último la fecha de creación en el CRM como último recurso.
-  const fechaEfectiva = (o: { fechaCierre: Date | null; fechaEvento: Date | null; creadoEn: Date; extras: unknown }) => {
-    const ext = o.extras as Record<string, string> | null;
-    if (ext?.["MES"]) {
-      const d = new Date(ext["MES"]);
-      if (!isNaN(d.getTime())) return d;
-    }
-    return new Date(o.fechaCierre ?? o.fechaEvento ?? o.creadoEn);
-  };
-
   const opActivas = oportunidades.filter(o => !["PERDIDA","GANADA"].includes(o.etapa));
   const valorPipeline = opActivas.reduce((a, o) => a + Number(o.valor ?? 0), 0);
   const ganadasMes  = oportunidades.filter(o => o.etapa === "GANADA" && fechaEfectiva(o) >= inicioMes);

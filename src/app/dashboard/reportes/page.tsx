@@ -110,35 +110,57 @@ export default function ReportesPage() {
   const aniosOrden = [...r.aniosDisponibles].sort();
 
   // ── Gráfica comparativa por año ──
-  function GraficaAnios({ metrica, titulo, color }: { metrica: (v: ResAnio) => number; titulo: string; color: string }) {
+  function GraficaAnios({ metrica, titulo, color, subirEsBueno = true }: { metrica: (v: ResAnio) => number; titulo: string; color: string; subirEsBueno?: boolean }) {
     const datos = r!.porAnio;
     const valores = aniosOrden.map(a => metrica(datos[a] ?? { ganadas:0,perdidas:0,activas:0,valorGanado:0,valorPerdido:0,valorActivo:0,total:0 }));
     const maxVal = Math.max(...valores, 1);
     const W = 400, H = 140, barW = Math.min(40, (W - 40) / aniosOrden.length - 8), pad = 30;
     const slot = (W - pad) / aniosOrden.length;
+    const anioActual = new Date().getFullYear();
+
+    // Variación vs. el año anterior (los dos últimos años con datos)
+    const ultimo = valores[valores.length - 1];
+    const penultimo = valores.length > 1 ? valores[valores.length - 2] : null;
+    const delta = penultimo && penultimo > 0 ? Math.round(((ultimo - penultimo) / penultimo) * 100) : null;
+    const deltaEsBueno = delta !== null ? (delta >= 0) === subirEsBueno : null;
 
     return (
       <div>
-        <p className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">{titulo}</p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">{titulo}</p>
+          {delta !== null && (
+            <span className={`text-xs font-bold rounded-full px-2 py-0.5 ${deltaEsBueno ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
+              {delta >= 0 ? "▲" : "▼"} {Math.abs(delta)}%
+            </span>
+          )}
+        </div>
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
           {valores.map((v, i) => {
+            const esParcial = Number(aniosOrden[i]) === anioActual;
             const barH = Math.max(2, (v / maxVal) * (H - 40));
             const x = pad + i * slot + (slot - barW) / 2;
             const y = H - 28 - barH;
             return (
               <g key={aniosOrden[i]}>
-                <rect x={x} y={y} width={barW} height={barH} rx={4} fill={color} opacity={anio === String(aniosOrden[i]) ? 1 : 0.55} />
-                <text x={x + barW / 2} y={y - 4} textAnchor="middle" fontSize={9} fill="#64748b">
+                <rect x={x} y={y} width={barW} height={barH} rx={4} fill={color}
+                  opacity={anio === String(aniosOrden[i]) ? 1 : 0.55}
+                  strokeDasharray={esParcial ? "4,3" : undefined}
+                  stroke={esParcial ? color : "none"} strokeWidth={esParcial ? 1.5 : 0}
+                  fillOpacity={esParcial ? 0.35 : undefined} />
+                <text x={x + barW / 2} y={y - 4} textAnchor="middle" fontSize={10} fontWeight="700" fill="#334155">
                   {v > 999 ? fmtK(v) : v}
                 </text>
                 <text x={x + barW / 2} y={H - 10} textAnchor="middle" fontSize={9} fill="#94a3b8">
-                  {aniosOrden[i]}
+                  {aniosOrden[i]}{esParcial ? " *" : ""}
                 </text>
               </g>
             );
           })}
           <line x1={pad} y1={H - 28} x2={W} y2={H - 28} stroke="#e2e8f0" strokeWidth={1} />
         </svg>
+        {aniosOrden.some(a => Number(a) === anioActual) && (
+          <p className="text-[10px] text-slate-400 mt-1">* {anioActual} en curso — año incompleto, no comparable 1:1 con años cerrados</p>
+        )}
       </div>
     );
   }
@@ -703,7 +725,7 @@ export default function ReportesPage() {
           <div className="grid grid-cols-2 gap-x-10 gap-y-6">
             <GraficaAnios metrica={v => v.ganadas}     titulo="Negocios ganados"  color="#10b981" />
             <GraficaAnios metrica={v => v.valorGanado} titulo="Valor ganado (COP)" color="#3b82f6" />
-            <GraficaAnios metrica={v => v.perdidas}    titulo="Negocios perdidos" color="#f87171" />
+            <GraficaAnios metrica={v => v.perdidas}    titulo="Negocios perdidos" color="#f87171" subirEsBueno={false} />
             <GraficaAnios metrica={v => v.total}       titulo="Total oportunidades" color="#8b5cf6" />
           </div>
 
