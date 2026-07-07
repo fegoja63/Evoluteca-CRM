@@ -13,6 +13,10 @@ export async function DELETE() {
     prisma.npsRespuesta.deleteMany({ where: { funcion: { tenantId } } }),
     prisma.itemCotizacion.deleteMany({ where: { cotizacion: { tenantId } } }),
     prisma.cotizacion.deleteMany({ where: { tenantId } }),
+    // EventoTimeline con empresaId ya se borra en cascada al borrar la empresa,
+    // pero uno vinculado solo a un contacto (o a ninguno) no — se borra aparte
+    // para no dejar registros huérfanos del tenant tras "limpiar datos".
+    prisma.eventoTimeline.deleteMany({ where: { tenantId } }),
     prisma.actividad.deleteMany({ where: { tenantId } }),
     prisma.oportunidad.deleteMany({ where: { tenantId } }),
     prisma.espectador.deleteMany({ where: { tenantId } }),

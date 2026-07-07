@@ -12,16 +12,12 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   });
   if (!original) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
 
-  const ultimo = await prisma.cotizacion.findFirst({
-    where: { tenantId: session.user.tenantId },
-    orderBy: { numero: "desc" },
-    select: { numero: true },
-  });
-
+  // numero usa el autoincrement de Postgres (mismo default del schema que ya usa
+  // la creación normal) — no se calcula a mano "último + 1", que bajo dos
+  // duplicaciones simultáneas podía generar el mismo número dos veces.
   const nueva = await prisma.cotizacion.create({
     data: {
       tenantId:      original.tenantId,
-      numero:        (ultimo?.numero ?? 0) + 1,
       estado:        "BORRADOR",
       empresaId:     original.empresaId,
       contactoId:    original.contactoId,

@@ -42,6 +42,13 @@ export async function PATCH(
     return NextResponse.json({ error: "No encontrada" }, { status: 404 });
   }
 
+  if (valor !== undefined && valor !== null && valor !== "" && isNaN(Number(valor))) {
+    return NextResponse.json({ error: "Valor inválido" }, { status: 400 });
+  }
+  if (probabilidad !== undefined && (probabilidad === "" || isNaN(Number(probabilidad)))) {
+    return NextResponse.json({ error: "Probabilidad inválida" }, { status: 400 });
+  }
+
   const data: Record<string, unknown> = {};
   if (titulo !== undefined) data.titulo = titulo.trim();
   if (valor !== undefined) data.valor = valor ? Number(valor) : null;
@@ -52,23 +59,24 @@ export async function PATCH(
   if (probabilidad !== undefined) data.probabilidad = Number(probabilidad);
   if (fechaCierre !== undefined) data.fechaCierre = fechaCierre ? new Date(fechaCierre) : null;
 
-  const actualizada = await prisma.oportunidad.update({
-    where: { id: params.id },
-    data,
-  });
+  const cambioDeEtapa = etapa !== undefined && etapa !== oportunidad.etapa;
 
-  // Registrar cambio de etapa si cambió
-  if (etapa !== undefined && etapa !== oportunidad.etapa) {
-    await prisma.cambioEtapa.create({
-      data: {
-        oportunidadId: params.id,
-        etapaAnterior: oportunidad.etapa,
-        etapaNueva: etapa,
-        creadoBy: session.user.id ?? null,
-        creadoByNombre: session.user.name ?? null,
-      },
-    });
-  }
+  // Actualizar la oportunidad y registrar el cambio de etapa (si aplica) de forma
+  // atomica: si el registro de auditoria falla, el cambio de etapa tampoco queda.
+  const [actualizada] = await prisma.$transaction([
+    prisma.oportunidad.update({ where: { id: params.id }, data }),
+    ...(cambioDeEtapa ? [
+      prisma.cambioEtapa.create({
+        data: {
+          oportunidadId: params.id,
+          etapaAnterior: oportunidad.etapa,
+          etapaNueva: etapa,
+          creadoBy: session.user.id ?? null,
+          creadoByNombre: session.user.name ?? null,
+        },
+      }),
+    ] : []),
+  ]);
 
   return NextResponse.json(actualizada);
 }

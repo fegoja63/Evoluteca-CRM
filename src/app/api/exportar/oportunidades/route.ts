@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { filtroOwner } from "@/lib/permisos";
 import ExcelJS from "exceljs";
 
 export async function GET() {
@@ -11,6 +12,7 @@ export async function GET() {
     where: {
       tenantId: session.user.tenantId,
       etapa: { notIn: ["GANADA", "PERDIDA"] },
+      ...filtroOwner(session.user.rol, session.user.id),
     },
     orderBy: [{ etapa: "asc" }, { fechaEvento: "asc" }],
     include: {

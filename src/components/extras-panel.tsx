@@ -4,7 +4,10 @@ type ExtrasPanelProps = {
 
 function formatearValor(val: string): string {
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val)) {
-    return new Date(val).toLocaleDateString("es-CO", { month: "short", year: "numeric" });
+    // Estas fechas (ej. extras.MES) vienen como medianoche UTC del día 1 del
+    // mes importado desde Excel — leerlas en hora local las corre un mes atrás
+    // en timezones detrás de UTC (Colombia es UTC-5). Se fuerza timeZone: "UTC".
+    return new Date(val).toLocaleDateString("es-CO", { month: "short", year: "numeric", timeZone: "UTC" });
   }
   return val;
 }

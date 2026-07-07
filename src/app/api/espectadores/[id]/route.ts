@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { puedeEliminar } from "@/lib/permisos";
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const session = await auth();
@@ -53,6 +54,9 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     where: { id: params.id, tenantId: session.user.tenantId },
   });
   if (!existente) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+  if (!puedeEliminar(session.user.rol)) {
+    return NextResponse.json({ error: "No tienes permiso para eliminar" }, { status: 403 });
+  }
 
   await prisma.espectador.delete({ where: { id: params.id } });
   return NextResponse.json({ ok: true });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { filtroOwner } from "@/lib/permisos";
 import ExcelJS from "exceljs";
 
 export async function GET() {
@@ -53,8 +54,9 @@ export async function GET() {
   }
 
   // Traer oportunidades con todo relacionado
+  const ownerFiltro = filtroOwner(session.user.rol, session.user.id);
   const oportunidades = await prisma.oportunidad.findMany({
-    where: { tenantId },
+    where: { tenantId, ...ownerFiltro },
     orderBy: { creadoEn: "asc" },
     include: {
       empresa: true,
@@ -66,7 +68,7 @@ export async function GET() {
   const empresasConOportunidad = new Set(oportunidades.map(o => o.empresaId).filter(Boolean) as string[]);
   const idsConOportunidad = Array.from(empresasConOportunidad);
   const empresasSinOportunidad = await prisma.empresa.findMany({
-    where: { tenantId, id: { notIn: idsConOportunidad } },
+    where: { tenantId, id: { notIn: idsConOportunidad }, ...ownerFiltro },
     orderBy: { nombre: "asc" },
     include: {
       contactos: { orderBy: { nombre: "asc" } },

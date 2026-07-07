@@ -80,14 +80,29 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
   const total = cot.items.reduce((acc, i) => acc + i.cantidad * Number(i.precioUnit), 0);
 
+  // Si el logo configurado no carga (URL rota, host caído, no es una imagen),
+  // @react-pdf/renderer puede lanzar una excepción no controlada dentro de
+  // renderToBuffer y tumbar la ruta con un 500. Se valida antes de intentar
+  // usarlo y, si falla, se cae al placeholder en vez de romper el PDF.
+  let logoUrl: string | null = null;
+  if (cot.tenant.logoUrl) {
+    try {
+      const check = await fetch(cot.tenant.logoUrl, { method: "GET", signal: AbortSignal.timeout(4000) });
+      const contentType = check.headers.get("content-type") ?? "";
+      if (check.ok && contentType.startsWith("image/")) logoUrl = cot.tenant.logoUrl;
+    } catch {
+      // logo inválido o inalcanzable — se usa el placeholder
+    }
+  }
+
   const doc = React.createElement(Document, { title: `Cotización #${String(cot.numero).padStart(4, "0")}` },
     React.createElement(Page, { size: "A4", style: styles.page },
 
       // Header
       React.createElement(View, { style: styles.header },
         React.createElement(View, { style: { flexDirection: "row", alignItems: "center", gap: 10 } },
-          cot.tenant.logoUrl
-            ? React.createElement(Image, { src: cot.tenant.logoUrl, style: { width: 44, height: 44, objectFit: "contain" } })
+          logoUrl
+            ? React.createElement(Image, { src: logoUrl, style: { width: 44, height: 44, objectFit: "contain" } })
             : React.createElement(View, { style: styles.logoBox },
                 React.createElement(Text, { style: styles.logoText }, "E")
               ),
@@ -146,7 +161,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
           ),
           ...cot.items.map((item, i) => {
             const sub = item.cantidad * Number(item.precioUnit);
-            return React.createElement(View, { key: item.id, style: [styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}] },
+            return React.createElement(View, { key: item.id, wrap: false, style: [styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}] },
               React.createElement(Text, { style: [styles.cellTx, styles.colDesc] }, item.descripcion),
               React.createElement(Text, { style: [styles.cellTx, styles.colNum] }, String(item.cantidad)),
               React.createElement(Text, { style: [styles.cellTx, styles.colNum] }, fmt(Number(item.precioUnit))),
@@ -154,7 +169,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
             );
           })
         ),
-        React.createElement(View, { style: styles.totalBox },
+        React.createElement(View, { style: styles.totalBox, wrap: false },
           React.createElement(View, { style: styles.totalInner },
             React.createElement(Text, { style: styles.totalLabel }, "TOTAL"),
             React.createElement(Text, { style: styles.totalValue }, fmt(total)),
@@ -163,7 +178,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       ),
 
       // Notas
-      cot.notas ? React.createElement(View, { style: styles.notesBox },
+      cot.notas ? React.createElement(View, { style: styles.notesBox, wrap: false },
         React.createElement(Text, { style: styles.notesLabel }, "OBSERVACIONES"),
         React.createElement(Text, { style: styles.notesTx }, cot.notas),
       ) : null,

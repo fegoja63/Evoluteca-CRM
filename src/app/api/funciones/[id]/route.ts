@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { puedeEliminar } from "@/lib/permisos";
+
+function numeroValido(v: unknown): v is number | string {
+  return v !== null && v !== undefined && v !== "" && !isNaN(Number(v));
+}
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const session = await auth();
@@ -36,10 +41,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     data: {
       titulo: titulo?.trim() || existente.titulo,
       fecha: fecha ? new Date(fecha) : existente.fecha,
-      sillasTotales: sillasTotales != null ? Number(sillasTotales) : existente.sillasTotales,
-      sillasVendidas: sillasVendidas != null ? Number(sillasVendidas) : existente.sillasVendidas,
+      sillasTotales: numeroValido(sillasTotales) ? Number(sillasTotales) : existente.sillasTotales,
+      sillasVendidas: numeroValido(sillasVendidas) ? Number(sillasVendidas) : existente.sillasVendidas,
       canal: canal || existente.canal,
-      ingresoEstimado: ingresoEstimado != null ? Number(ingresoEstimado) : existente.ingresoEstimado,
+      ingresoEstimado: numeroValido(ingresoEstimado) ? Number(ingresoEstimado) : existente.ingresoEstimado,
       notas: notas?.trim() || null,
     },
   });
@@ -55,6 +60,9 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     where: { id: params.id, tenantId: session.user.tenantId },
   });
   if (!existente) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
+  if (!puedeEliminar(session.user.rol)) {
+    return NextResponse.json({ error: "No tienes permiso para eliminar" }, { status: 403 });
+  }
 
   await prisma.funcion.delete({ where: { id: params.id } });
   return NextResponse.json({ ok: true });

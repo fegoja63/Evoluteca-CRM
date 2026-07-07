@@ -42,6 +42,7 @@ export default async function DashboardPage() {
     ultimasGanadas,
     cierranEstaSemana,
     opActivasConActividad,
+    ultimoContacto,
   ] = await Promise.all([
     prisma.empresa.count({ where: { tenantId, ...ownerFiltro } }),
     prisma.contacto.count({ where: { tenantId } }),
@@ -127,6 +128,7 @@ export default async function DashboardPage() {
       where: { tenantId, etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] }, ...ownerFiltro },
       select: { id: true, titulo: true, etapa: true, empresa: { select: { nombre: true } }, creadoBy: true, actividades: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } } },
     }),
+    prisma.actividad.findFirst({ where: { tenantId, completada: true, ...ownerFiltro }, orderBy: { fecha: "desc" }, select: { fecha: true } }),
   ]);
 
   const negociosEstancados = opActivasConActividad
@@ -179,7 +181,6 @@ export default async function DashboardPage() {
   }).sort((a, b) => b.ganadoMes - a.ganadoMes);
 
   // Salud comercial
-  const ultimoContacto = await prisma.actividad.findFirst({ where: { tenantId, completada: true, ...ownerFiltro }, orderBy: { fecha: "desc" }, select: { fecha: true } });
   const diasSinContacto = ultimoContacto ? Math.floor((hoy.getTime() - new Date(ultimoContacto.fecha).getTime()) / 86400000) : null;
   const puntosContacto    = diasSinContacto === null ? 15 : diasSinContacto <= 7 ? 25 : diasSinContacto <= 15 ? 18 : diasSinContacto <= 30 ? 10 : 0;
   const puntosConversion  = tasaCierre >= 40 ? 25 : tasaCierre >= 25 ? 18 : tasaCierre >= 10 ? 10 : 5;

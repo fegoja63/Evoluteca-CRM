@@ -11,6 +11,10 @@ export async function POST(req: NextRequest) {
   if (!usuarioId) return NextResponse.json({ error: "usuarioId requerido" }, { status: 400 });
 
   const tenantId = session.user.tenantId;
+
+  const destino = await prisma.usuario.findFirst({ where: { id: usuarioId, tenantId } });
+  if (!destino) return NextResponse.json({ error: "Usuario destino no encontrado en tu organización" }, { status: 400 });
+
   const where = soloSinDueno
     ? { tenantId, creadoBy: null }
     : { tenantId };

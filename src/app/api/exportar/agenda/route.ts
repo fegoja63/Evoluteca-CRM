@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { filtroOwner } from "@/lib/permisos";
 import ExcelJS from "exceljs";
 
 export async function GET() {
@@ -8,7 +9,7 @@ export async function GET() {
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const actividades = await prisma.actividad.findMany({
-    where: { tenantId: session.user.tenantId },
+    where: { tenantId: session.user.tenantId, ...filtroOwner(session.user.rol, session.user.id) },
     orderBy: { fecha: "asc" },
     include: {
       empresa:     { select: { nombre: true } },

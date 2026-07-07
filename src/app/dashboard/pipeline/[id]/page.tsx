@@ -132,8 +132,10 @@ export default function OportunidadDetallePage() {
   const etapaInfo = ETAPAS.find(e => e.key === op.etapa)!;
   function formatearValorExtra(k: string, v: string): string {
     if (k === "MES" && v.includes("T00:00")) {
+      // Medianoche UTC del día 1 del mes importado — se fuerza timeZone: "UTC"
+      // para no correr un mes atrás en timezones detrás de UTC (Colombia UTC-5).
       const d = new Date(v);
-      return d.toLocaleDateString("es-CO", { month: "short", year: "numeric" });
+      return d.toLocaleDateString("es-CO", { month: "short", year: "numeric", timeZone: "UTC" });
     }
     return v;
   }

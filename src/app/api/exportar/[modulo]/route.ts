@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { filtroOwner } from "@/lib/permisos";
 import ExcelJS from "exceljs";
 
 export async function GET(
@@ -11,6 +12,7 @@ export async function GET(
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const tenantId = session.user.tenantId;
+  const ownerFiltro = filtroOwner(session.user.rol, session.user.id);
   const wb = new ExcelJS.Workbook();
   wb.creator = "Evoluteca CRM";
 
@@ -74,7 +76,7 @@ export async function GET(
     }
     case "pipeline": {
       const datos = await prisma.oportunidad.findMany({
-        where: { tenantId },
+        where: { tenantId, ...ownerFiltro },
         orderBy: { creadoEn: "desc" },
         include: {
           empresa: { select: { nombre: true } },
@@ -101,7 +103,7 @@ export async function GET(
     }
     case "agenda": {
       const datos = await prisma.actividad.findMany({
-        where: { tenantId },
+        where: { tenantId, ...ownerFiltro },
         orderBy: { fecha: "asc" },
         include: {
           empresa: { select: { nombre: true } },
