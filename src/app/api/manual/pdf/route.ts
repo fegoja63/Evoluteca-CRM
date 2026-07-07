@@ -103,7 +103,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.8"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.9"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -233,7 +233,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.8 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.9 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -246,12 +246,14 @@ export async function GET() {
       React.createElement(H1, null, "1. Primeros pasos"),
       React.createElement(P, null, "Evoluteca CRM es una herramienta diseñada para que pequeñas y medianas empresas gestionen sus clientes, oportunidades de venta y actividades comerciales desde un solo lugar. El dashboard principal muestra un resumen ejecutivo con banner de bienvenida, KPIs en tiempo real, pipeline visual, actividades del día, funciones próximas y accesos rápidos a las acciones más frecuentes."),
 
-      React.createElement(H2, null, "1.1 Crear tu cuenta"),
-      React.createElement(Paso, { n: 1, titulo: "Registro", desc: 'Ve a crm.evoluteca.com y haz clic en "Crear cuenta". Ingresa el nombre de tu empresa, tu nombre, correo y contraseña.' }),
-      React.createElement(Paso, { n: 2, titulo: "Guía de inicio", desc: "Al ingresar por primera vez, busca la Guía de inicio en el menú lateral. Te llevará paso a paso a importar datos, crear tu primer cliente o explorar el pipeline." }),
-      React.createElement(Paso, { n: 3, titulo: "Configuración inicial", desc: "Ve a Configuración para personalizar el nombre de tu empresa y activar módulos opcionales como Funciones y Audiencia." }),
+      React.createElement(H2, null, "1.1 Acceso inicial"),
+      React.createElement(Paso, { n: 1, titulo: "Recibir tus credenciales", desc: "Tu asesor Evoluteca activa la cuenta de tu empresa y te envía tu correo y una contraseña temporal para ingresar a crm.evoluteca.com." }),
+      React.createElement(Paso, { n: 2, titulo: "Primer ingreso", desc: "Ve a crm.evoluteca.com e inicia sesión con las credenciales que recibiste. Te recomendamos cambiar tu contraseña desde Mi perfil apenas entres." }),
+      React.createElement(Paso, { n: 3, titulo: "Guía de inicio", desc: "Busca la Guía de inicio en el menú lateral. Te llevará paso a paso a importar datos, crear tu primer cliente o explorar el pipeline." }),
+      React.createElement(Paso, { n: 4, titulo: "Configuración inicial", desc: "Si eres Administrador, ve a Configuración para personalizar el nombre de tu empresa y activar módulos opcionales como Funciones y Audiencia." }),
 
       React.createElement(Tip, null, "Puedes volver a la Guía de inicio en cualquier momento desde el menú lateral haciendo clic en Guía de inicio."),
+      React.createElement(Nota, null, "El registro de cuentas nuevas no es autoservicio: solo tu asesor Evoluteca puede activar una empresa nueva en la plataforma."),
 
       React.createElement(H2, null, "1.2 Olvidé mi contraseña"),
       React.createElement(P, null, 'En la pantalla de inicio de sesión encontrarás el enlace "¿Olvidaste tu contraseña?". Al hacer clic, ingresa tu correo y recibirás un email con un enlace para restablecerla. El enlace es válido por 1 hora.'),
