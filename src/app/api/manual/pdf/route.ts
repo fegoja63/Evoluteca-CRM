@@ -103,7 +103,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.7"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.8"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -132,14 +132,20 @@ function P({ children }: { children: string }) {
 function Tip({ children }: { children: string }) {
   return React.createElement(View, { style: { paddingHorizontal: 40 } },
     React.createElement(View, { style: s.tip },
-      React.createElement(Text, { style: s.tipTxt }, `💡 ${children}`),
+      React.createElement(Text, { style: s.tipTxt },
+        React.createElement(Text, { style: { fontFamily: "Helvetica-Bold" } }, "Tip: "),
+        children,
+      ),
     ),
   );
 }
 function Nota({ children }: { children: string }) {
   return React.createElement(View, { style: { paddingHorizontal: 40 } },
     React.createElement(View, { style: s.nota },
-      React.createElement(Text, { style: s.notaTxt }, `⚠️  ${children}`),
+      React.createElement(Text, { style: s.notaTxt },
+        React.createElement(Text, { style: { fontFamily: "Helvetica-Bold" } }, "Importante: "),
+        children,
+      ),
     ),
   );
 }
@@ -170,7 +176,7 @@ function Sep() {
 function RolCheck({ activo }: { activo: boolean }) {
   return React.createElement(View, { style: s.matrizRolCell },
     activo
-      ? React.createElement(View, { style: s.matrizCheck }, React.createElement(Text, { style: s.matrizCheckTxt }, "✓"))
+      ? React.createElement(View, { style: s.matrizCheck }, React.createElement(Text, { style: [s.matrizCheckTxt, { fontSize: 7 }] }, "SI"))
       : React.createElement(Text, { style: s.matrizDash }, "–"),
   );
 }
@@ -227,7 +233,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.7 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.8 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -241,11 +247,11 @@ export async function GET() {
       React.createElement(P, null, "Evoluteca CRM es una herramienta diseñada para que pequeñas y medianas empresas gestionen sus clientes, oportunidades de venta y actividades comerciales desde un solo lugar. El dashboard principal muestra un resumen ejecutivo con banner de bienvenida, KPIs en tiempo real, pipeline visual, actividades del día, funciones próximas y accesos rápidos a las acciones más frecuentes."),
 
       React.createElement(H2, null, "1.1 Crear tu cuenta"),
-      React.createElement(Paso, { n: 1, titulo: "Registro", desc: 'Ve a evoluteca-crm.vercel.app y haz clic en "Crear cuenta". Ingresa el nombre de tu empresa, tu nombre, correo y contraseña.' }),
-      React.createElement(Paso, { n: 2, titulo: "Guía de inicio", desc: 'Al ingresar por primera vez verás la Guía de inicio. Te llevará paso a paso a importar datos, crear tu primer cliente o explorar el pipeline.' }),
-      React.createElement(Paso, { n: 3, titulo: "Configuración inicial", desc: 'Ve a Configuración (ícono ⚙️) para personalizar el nombre de tu empresa y activar módulos opcionales como Funciones y Audiencia.' }),
+      React.createElement(Paso, { n: 1, titulo: "Registro", desc: 'Ve a crm.evoluteca.com y haz clic en "Crear cuenta". Ingresa el nombre de tu empresa, tu nombre, correo y contraseña.' }),
+      React.createElement(Paso, { n: 2, titulo: "Guía de inicio", desc: "Al ingresar por primera vez, busca la Guía de inicio en el menú lateral. Te llevará paso a paso a importar datos, crear tu primer cliente o explorar el pipeline." }),
+      React.createElement(Paso, { n: 3, titulo: "Configuración inicial", desc: "Ve a Configuración para personalizar el nombre de tu empresa y activar módulos opcionales como Funciones y Audiencia." }),
 
-      React.createElement(Tip, null, "Puedes volver a la Guía de inicio en cualquier momento desde el menú lateral haciendo clic en 🚀 Guía de inicio."),
+      React.createElement(Tip, null, "Puedes volver a la Guía de inicio en cualquier momento desde el menú lateral haciendo clic en Guía de inicio."),
 
       React.createElement(H2, null, "1.2 Olvidé mi contraseña"),
       React.createElement(P, null, 'En la pantalla de inicio de sesión encontrarás el enlace "¿Olvidaste tu contraseña?". Al hacer clic, ingresa tu correo y recibirás un email con un enlace para restablecerla. El enlace es válido por 1 hora.'),
@@ -253,7 +259,7 @@ export async function GET() {
 
       React.createElement(H2, null, "1.3 Navegación general"),
       React.createElement(P, null, "El menú lateral izquierdo contiene todos los módulos del CRM. El módulo activo se resalta en azul. Puedes navegar entre módulos en cualquier momento sin perder tu trabajo."),
-      React.createElement(P, null, "En dispositivos móviles el menú lateral se oculta. Toca el ícono ☰ en la barra superior para abrirlo como panel deslizante. Toca fuera del panel o la × para cerrarlo."),
+      React.createElement(P, null, "En dispositivos móviles el menú lateral se oculta. Toca el ícono de menú (tres líneas) en la barra superior para abrirlo como panel deslizante. Toca fuera del panel o la × para cerrarlo."),
       React.createElement(Tip, null, "El CRM está optimizado para móvil. Puedes gestionar clientes, pipeline y agenda desde tu teléfono sin perder funcionalidad."),
 
       React.createElement(H2, null, "1.4 Uso desde el celular"),
@@ -270,18 +276,18 @@ export async function GET() {
             React.createElement(Text, { style: [s.tablaHCell, { flex: 3 }] }, "Para qué sirve"),
           ),
           ...[
-            ["▦  Dashboard",        "Resumen ejecutivo: alertas, actividades del día, salud comercial y productividad"],
-            ["🏢 Clientes",          "Empresas y cuentas que gestionas. Cada cliente tiene su ficha 360°"],
-            ["👤 Contactos",         "Personas dentro de cada cliente. Vinculados a empresa, oportunidades y actividades"],
-            ["◈  Pipeline",          "Oportunidades de venta con indicadores de urgencia por color y drag & drop"],
-            ["📅 Agenda",            "Actividades: llamadas, reuniones, tareas y correos con fechas"],
-            ["📄 Cotizaciones",       "Vista de oportunidades activas con filtros por etapa y antigüedad"],
-            ["📋 Nueva cotización",   "Documentos formales con desglose de servicios, precios y total"],
-            ["📦 Catálogo",           "Servicios o productos reutilizables para crear cotizaciones más rápido"],
-            ["📊 Reportes",           "KPIs de ventas, embudo de conversión, top clientes y metas"],
-            ["📥 Datos",              "Importar bases de datos desde Excel, exportar cotizaciones"],
-            ["⚙️  Configuración",     "Nombre del tenant, módulos opcionales, configuraciones del sistema"],
-            ["👤 Mi perfil",          "Actualiza tu nombre, correo y contraseña personal"],
+            ["Dashboard",        "Resumen ejecutivo: alertas, actividades del día, salud comercial y productividad"],
+            ["Clientes",          "Empresas y cuentas que gestionas. Cada cliente tiene su ficha 360°"],
+            ["Contactos",         "Personas dentro de cada cliente. Vinculados a empresa, oportunidades y actividades"],
+            ["Pipeline",          "Oportunidades de venta con indicadores de urgencia por color y drag & drop"],
+            ["Agenda",            "Actividades: llamadas, reuniones, tareas y correos con fechas"],
+            ["Cotizaciones",       "Vista de oportunidades activas con filtros por etapa y antigüedad"],
+            ["Nueva cotización",   "Documentos formales con desglose de servicios, precios y total"],
+            ["Catálogo",           "Servicios o productos reutilizables para crear cotizaciones más rápido"],
+            ["Reportes",           "KPIs de ventas, embudo de conversión, top clientes y metas"],
+            ["Datos",              "Importar bases de datos desde Excel, exportar cotizaciones"],
+            ["Configuración",     "Nombre del tenant, módulos opcionales, configuraciones del sistema"],
+            ["Mi perfil",          "Actualiza tu nombre, correo y contraseña personal"],
           ].map(([mod, desc], i) => React.createElement(View, { key: mod, style: [s.tablaRow, i % 2 === 1 ? { backgroundColor: C.grisClaro } : {}] },
             React.createElement(Text, { style: [s.tablaCell, { flex: 1, fontFamily: "Helvetica-Bold" }] }, mod),
             React.createElement(Text, { style: [s.tablaCell, { flex: 3 }] }, desc),
@@ -297,7 +303,7 @@ export async function GET() {
       React.createElement(H1, null, "2. Clientes y contactos"),
 
       React.createElement(H2, null, "2.1 Crear un cliente"),
-      React.createElement(P, null, 'Ve a Clientes → botón "+ Nuevo cliente". Ingresa el nombre de la empresa (obligatorio) y opcionalmente email, teléfono, sector, sitio web y notas.'),
+      React.createElement(P, null, 'Ve a Clientes, botón "+ Nuevo cliente". Ingresa el nombre de la empresa (obligatorio) y opcionalmente email, teléfono, sector, sitio web y notas.'),
       React.createElement(Tip, null, "El sector ayuda a filtrar y segmentar clientes en reportes. Elige el más cercano a la actividad del cliente."),
 
       React.createElement(H2, null, "2.2 Ficha 360° del cliente"),
@@ -310,8 +316,8 @@ export async function GET() {
       React.createElement(LI, null, "Timeline 360°: historial cronológico de todas las interacciones"),
 
       React.createElement(H2, null, "2.3 Acciones rápidas desde la ficha"),
-      React.createElement(P, null, "En la sección de Actividades dentro de la ficha del cliente encontrarás tres botones de acción rápida: 📞 Llamada, ✉️ Email y 🤝 Reunión. Al hacer clic en cualquiera de ellos, el formulario de actividad se abre de inmediato con ese tipo pre-seleccionado, sin necesidad de ir a la Agenda."),
-      React.createElement(Tip, null, "Registra una llamada en segundos: abre la ficha del cliente → clic en 📞 → escribe el resumen → Guardar. Mucho más rápido que ir a la Agenda y seleccionar el cliente manualmente."),
+      React.createElement(P, null, "En la sección de Actividades dentro de la ficha del cliente encontrarás tres botones de acción rápida: Llamada, Email y Reunión. Al hacer clic en cualquiera de ellos, el formulario de actividad se abre de inmediato con ese tipo pre-seleccionado, sin necesidad de ir a la Agenda."),
+      React.createElement(Tip, null, "Registra una llamada en segundos: abre la ficha del cliente, clic en el botón Llamada, escribe el resumen y Guardar. Mucho más rápido que ir a la Agenda y seleccionar el cliente manualmente."),
 
       React.createElement(H2, null, "2.4 Timeline 360°"),
       React.createElement(P, null, "El timeline unifica en orden cronológico: actividades, oportunidades, cotizaciones y eventos manuales. Puedes registrar:"),
@@ -323,12 +329,12 @@ export async function GET() {
       React.createElement(Tip, null, "Para eliminar un evento del timeline, pasa el cursor sobre él y haz clic en la × que aparece a la derecha."),
 
       React.createElement(H2, null, "2.5 Contactos"),
-      React.createElement(P, null, 'Los contactos son personas dentro de un cliente. Ve a Contactos → "+ Nuevo contacto". Puedes vincular el contacto a una empresa y asignarle cargo, email y teléfono.'),
-      React.createElement(P, null, "Si el contacto tiene teléfono, aparecerá un botón verde 💬 WhatsApp que abre la conversación directamente con ese número."),
+      React.createElement(P, null, 'Los contactos son personas dentro de un cliente. Ve a Contactos, "+ Nuevo contacto". Puedes vincular el contacto a una empresa y asignarle cargo, email y teléfono.'),
+      React.createElement(P, null, "Si el contacto tiene teléfono, aparecerá un botón verde WhatsApp que abre la conversación directamente con ese número."),
       React.createElement(Nota, null, "Un contacto puede existir sin empresa (contacto independiente). También puede estar vinculado a múltiples oportunidades."),
 
       React.createElement(H2, null, "2.6 WhatsApp con plantillas"),
-      React.createElement(P, null, "En las fichas de contacto y cliente, el botón 💬 WhatsApp abre un panel con plantillas de mensaje pre-llenadas. Elige la plantilla, edita el texto si quieres, y haz clic en 'Abrir WhatsApp' para enviar directamente desde tu app."),
+      React.createElement(P, null, "En las fichas de contacto y cliente, el botón WhatsApp abre un panel con plantillas de mensaje pre-llenadas. Elige la plantilla, edita el texto si quieres, y haz clic en 'Abrir WhatsApp' para enviar directamente desde tu app."),
       React.createElement(LI, null, "Saludo inicial — presentación general para primer contacto"),
       React.createElement(LI, null, "Seguimiento cotización — recordatorio amable sobre una propuesta enviada"),
       React.createElement(LI, null, "Confirmar reunión — verificación de fecha y hora de una reunión"),
@@ -339,8 +345,8 @@ export async function GET() {
 
       React.createElement(H2, null, "2.7 Notas rápidas"),
       React.createElement(P, null, "En las fichas de cliente, contacto y oportunidad verás un área de notas internas. Haz clic en el texto (o en el área vacía si no hay notas) para activar la edición. Escribe tu nota y presiona Ctrl+Enter para guardar, o Esc para cancelar."),
-      React.createElement(LI, null, "El botón ✓ Guardar también guarda la nota"),
-      React.createElement(LI, null, "Al guardar aparece un mensaje '✓ Guardado' por 2 segundos"),
+      React.createElement(LI, null, "El botón Guardar también guarda la nota"),
+      React.createElement(LI, null, "Al guardar aparece un mensaje 'Guardado' por 2 segundos"),
       React.createElement(LI, null, "Las notas son internas — no se muestran al cliente"),
       React.createElement(Tip, null, "Usa las notas rápidas para registrar contexto importante sobre el cliente o negocio: preferencias, restricciones de presupuesto, fechas clave, contactos adicionales."),
     ),
@@ -408,15 +414,15 @@ export async function GET() {
       React.createElement(LI, null, "Registrar notas internas con edición rápida"),
 
       React.createElement(H2, null, "3.7 Vista tabla del pipeline"),
-      React.createElement(P, null, "Además del kanban, el pipeline tiene una vista de tabla. Usa el toggle ⊞ Kanban / ☰ Tabla en la barra de filtros para cambiar entre vistas. La vista tabla muestra todas las oportunidades en filas con columnas ordenables:"),
+      React.createElement(P, null, "Además del kanban, el pipeline tiene una vista de tabla. Usa el toggle Kanban / Tabla en la barra de filtros para cambiar entre vistas. La vista tabla muestra todas las oportunidades en filas con columnas ordenables:"),
       React.createElement(LI, null, "Oportunidad, empresa, etapa, valor, probabilidad, fecha de cierre"),
       React.createElement(LI, null, "Haz clic en el encabezado de cualquier columna para ordenar ascendente/descendente"),
       React.createElement(LI, null, "Combina el filtro de etapa con el orden para analizar oportunidades específicas"),
       React.createElement(Tip, null, "Usa la vista tabla cuando necesitas comparar valores o fechas entre múltiples oportunidades. El kanban es mejor para mover etapas visualmente."),
 
       React.createElement(H2, null, "3.8 Historial de etapas"),
-      React.createElement(P, null, "Cada oportunidad registra automáticamente cada cambio de etapa. En la ficha de la oportunidad, el panel '🔄 Historial de etapas' muestra una línea de tiempo con:"),
-      React.createElement(LI, null, "Etapa anterior → etapa nueva"),
+      React.createElement(P, null, "Cada oportunidad registra automáticamente cada cambio de etapa. En la ficha de la oportunidad, el panel 'Historial de etapas' muestra una línea de tiempo con:"),
+      React.createElement(LI, null, "Etapa anterior a etapa nueva"),
       React.createElement(LI, null, "Fecha y hora del cambio"),
       React.createElement(LI, null, "Días que estuvo en la etapa anterior"),
       React.createElement(LI, null, "Usuario que realizó el cambio"),
@@ -444,20 +450,20 @@ export async function GET() {
 
       React.createElement(H2, null, "4.4 Notificaciones por email"),
       React.createElement(P, null, "Cada mañana a las 8am el CRM envía automáticamente hasta 3 tipos de alertas por email:"),
-      React.createElement(LI, null, "Actividades vencidas: tareas o llamadas pendientes con días de atraso (rojo ≥7d, ámbar ≥2d)"),
+      React.createElement(LI, null, "Actividades vencidas: tareas o llamadas pendientes con días de atraso (rojo 7d o más, ámbar 2d o más)"),
       React.createElement(LI, null, "Negocios estancados: oportunidades activas sin ninguna actividad registrada en más de 14 días"),
       React.createElement(LI, null, "Cierres próximos: negocios con fecha de cierre estimada en los próximos 7 días"),
-      React.createElement(P, null, "Además, en la Agenda las actividades vencidas muestran un ícono 🔔. Al tocarlo recibes el recordatorio inmediatamente sin esperar al día siguiente."),
+      React.createElement(P, null, "Además, en la Agenda las actividades vencidas muestran un ícono de campana. Al tocarlo recibes el recordatorio inmediatamente sin esperar al día siguiente."),
       React.createElement(Tip, null, "Solo recibirás el email de cada tipo si tienes situaciones reales en esa categoría. Si no tienes actividades vencidas, ese email no se envía."),
 
       React.createElement(H2, null, "4.5 Vista de calendario"),
       React.createElement(P, null, "La agenda muestra las actividades del mes en formato lista agrupadas por fecha. Usa los filtros de tipo y estado para encontrar rápidamente lo que buscas."),
 
       React.createElement(H2, null, "4.6 Exportar al calendario (iCal)"),
-      React.createElement(P, null, "Haz clic en el botón 📅 iCal en la parte superior de la Agenda para descargar todas tus actividades pendientes como archivo .ics. Este archivo es compatible con:"),
-      React.createElement(LI, null, "Google Calendar — importar desde Configuración → Importar"),
-      React.createElement(LI, null, "Apple Calendar (iPhone / Mac) — abre directamente al descargar"),
-      React.createElement(LI, null, "Microsoft Outlook — Archivo → Abrir e importar"),
+      React.createElement(P, null, "Haz clic en el botón iCal en la parte superior de la Agenda para descargar todas tus actividades pendientes como archivo .ics. Este archivo es compatible con:"),
+      React.createElement(LI, null, "Google Calendar, importar desde Configuración > Importar"),
+      React.createElement(LI, null, "Apple Calendar (iPhone / Mac), abre directamente al descargar"),
+      React.createElement(LI, null, "Microsoft Outlook, Archivo > Abrir e importar"),
       React.createElement(P, null, "Cada actividad se exporta con título, tipo, fecha y hora, nombre del cliente y oportunidad vinculada. La duración por defecto es 1 hora."),
       React.createElement(Tip, null, "Descarga el .ics cada vez que quieras sincronizar — no es una sincronización automática en tiempo real, es una fotografía de tus actividades pendientes en ese momento."),
     ),
@@ -470,7 +476,7 @@ export async function GET() {
       React.createElement(P, null, "Las cotizaciones formales son documentos con desglose detallado de servicios, cantidades, precios unitarios y total. Se generan en PDF listas para enviar al cliente."),
 
       React.createElement(H2, null, "5.1 Crear una cotización"),
-      React.createElement(Paso, { n: 1, titulo: "Ir a Nueva cotización", desc: 'En el menú lateral haz clic en "📋 Nueva cotización" o usa el botón "+ Nueva cotización" desde la pestaña Cotizaciones.' }),
+      React.createElement(Paso, { n: 1, titulo: "Ir a Nueva cotización", desc: 'En el menú lateral haz clic en "Nueva cotización" o usa el botón "+ Nueva cotización" desde la pestaña Cotizaciones.' }),
       React.createElement(Paso, { n: 2, titulo: "Seleccionar cliente", desc: "Elige la empresa, el contacto y (opcionalmente) la oportunidad vinculada. Al seleccionar empresa, los contactos y oportunidades se filtran automáticamente." }),
       React.createElement(Paso, { n: 3, titulo: "Detalles del evento", desc: "Ingresa la sede o lugar, la fecha del evento y la fecha de validez de la cotización." }),
       React.createElement(Paso, { n: 4, titulo: "Agregar ítems", desc: 'Escribe cada servicio en la tabla de líneas: descripción, cantidad y precio unitario. Usa el selector "Agregar servicio del catálogo" para cargar ítems predefinidos automáticamente.' }),
@@ -483,11 +489,11 @@ export async function GET() {
       React.createElement(LI, null, "RECHAZADA — Cliente no aceptó. Puede reabrirse como borrador"),
 
       React.createElement(H2, null, "5.3 Descargar PDF"),
-      React.createElement(P, null, 'Desde el detalle de cualquier cotización, haz clic en el botón "⬇ Descargar PDF". El PDF incluye logo, datos del cliente y contacto, tabla de ítems, total y notas.'),
+      React.createElement(P, null, 'Desde el detalle de cualquier cotización, haz clic en el botón "Descargar PDF". El PDF incluye el logo de tu empresa (si lo configuraste en Configuración), datos del cliente y contacto, tabla de ítems, total y notas.'),
       React.createElement(Tip, null, "El PDF se genera automáticamente con el estado actual de la cotización. Si haces cambios, descarga de nuevo para obtener la versión actualizada."),
 
       React.createElement(H2, null, "5.4 Catálogo de servicios"),
-      React.createElement(P, null, 'Ve a 📦 Catálogo para crear servicios reutilizables con nombre, descripción y precio base. Al crear una cotización, aparece el selector "Agregar servicio del catálogo" que carga los datos automáticamente en una nueva línea.'),
+      React.createElement(P, null, 'Ve a Catálogo para crear servicios reutilizables con nombre, descripción y precio base. Al crear una cotización, aparece el selector "Agregar servicio del catálogo" que carga los datos automáticamente en una nueva línea.'),
       React.createElement(Nota, null, "El precio del catálogo es un precio base. Puedes modificarlo libremente en cada cotización sin afectar el catálogo."),
 
       React.createElement(H2, null, "5.5 Fecha de validez y alertas de vencimiento"),
@@ -495,7 +501,7 @@ export async function GET() {
       React.createElement(LI, null, "Badge rojo 'Vencida Xd' — la fecha de validez ya pasó"),
       React.createElement(LI, null, "Badge rojo 'Vence hoy' — vence el día de hoy"),
       React.createElement(LI, null, "Badge ámbar 'Vence en Xd' — vence en 7 días o menos"),
-      React.createElement(P, null, "En el dashboard principal aparece un bloque 📄 en el panel de alertas con el número de cotizaciones vencidas o próximas a vencer. Al hacer clic va directamente a la lista de cotizaciones."),
+      React.createElement(P, null, "En el dashboard principal aparece un bloque en el panel de alertas con el número de cotizaciones vencidas o próximas a vencer. Al hacer clic va directamente a la lista de cotizaciones."),
       React.createElement(Tip, null, "Cuando una cotización es ACEPTADA o RECHAZADA, los badges de vencimiento desaparecen — el estado definitivo ya no requiere seguimiento de validez."),
     ),
 
@@ -514,11 +520,11 @@ export async function GET() {
       React.createElement(Nota, null, "Las columnas con valores inconsistentes (mezcla de texto y números) se importan como texto. Puedes limpiarlas después."),
 
       React.createElement(H2, null, "6.2 Proceso de importación"),
-      React.createElement(Paso, { n: 1, titulo: "Subir archivo", desc: 'Ve a 📥 Datos → Importar. Arrastra el archivo Excel o haz clic para seleccionarlo. Solo se aceptan archivos .xlsx.' }),
+      React.createElement(Paso, { n: 1, titulo: "Subir archivo", desc: "Ve a Datos > Importar. Arrastra el archivo Excel o haz clic para seleccionarlo. Solo se aceptan archivos .xlsx." }),
       React.createElement(Paso, { n: 2, titulo: "Mapear columnas", desc: "El sistema muestra todas las columnas del Excel con una muestra real de los datos. Para cada campo del CRM (empresa, contacto, oportunidad), selecciona qué columna del Excel corresponde." }),
       React.createElement(Paso, { n: 3, titulo: "Verificar y confirmar", desc: "Revisa la previsualización. Los campos obligatorios (empresa, contacto, oportunidad) deben estar mapeados antes de poder importar. Haz clic en Importar." }),
       React.createElement(Paso, { n: 4, titulo: "Resultado", desc: "El sistema muestra cuántos clientes, contactos y oportunidades se crearon. Si una empresa ya existe, no se duplica — se vinculan los nuevos contactos a la existente." }),
-      React.createElement(Tip, null, "Si la importación no salió como esperabas, puedes usar la sección Datos → Limpiar para eliminar los registros importados y volver a intentar."),
+      React.createElement(Tip, null, "Si la importación no salió como esperabas, puedes usar la sección Datos > Limpiar para eliminar los registros importados y volver a intentar."),
     ),
 
     // ── CAPÍTULO 7: REPORTES ──
@@ -540,23 +546,29 @@ export async function GET() {
 
       React.createElement(H2, null, "7.3 Gráfica mensual"),
       React.createElement(P, null, "La gráfica de barras muestra el valor ganado por mes del año seleccionado (o el más reciente). Las barras verdes indican valor ganado; los indicadores rojos pequeños muestran negocios perdidos en ese mes."),
-      React.createElement(P, null, "Si hay una meta configurada, aparece una línea punteada amarilla indicando el objetivo."),
+      React.createElement(P, null, "Si hay una meta configurada para ese mes (o una meta anual), aparece una línea punteada amarilla indicando el objetivo, junto con el porcentaje de cumplimiento sobre cada barra. El porcentaje se colorea en verde (100% o más), ámbar (entre 60% y 99%) o rojo (menos de 60%), y puede superar el 100% si ya cumpliste la meta."),
 
       React.createElement(H2, null, "7.4 Metas de ventas"),
-      React.createElement(P, null, 'Haz clic en "🎯 Configurar metas" dentro de la gráfica mensual. Puedes definir:'),
-      React.createElement(LI, null, "Meta anual: un valor objetivo para todo el año (línea en todos los meses)"),
-      React.createElement(LI, null, "Meta mensual: un valor objetivo específico para un mes determinado"),
-      React.createElement(P, null, "Debajo del formulario verás el progreso de cada meta con barra de porcentaje alcanzado."),
+      React.createElement(P, null, 'Haz clic en "Configurar metas" dentro de la gráfica mensual para crear una meta nueva. Puedes definir:'),
+      React.createElement(LI, null, "Meta anual: deja el campo Mes en blanco. Aplica a todo el año."),
+      React.createElement(LI, null, "Meta mensual: elige el mes específico al que aplica la meta."),
+      React.createElement(P, null, "En cuanto tengas al menos una meta guardada, la lista de metas con su barra de progreso y porcentaje se muestra siempre debajo de la gráfica — no hace falta dejar abierto el formulario de \"Configurar metas\" para verla."),
 
       React.createElement(H2, null, "7.5 Top clientes"),
       React.createElement(P, null, "Muestra los 5 clientes con mayor valor ganado en el período seleccionado, con barras horizontales proporcionales. Incluye cantidad de negocios ganados y total de oportunidades."),
 
-      React.createElement(H2, null, "7.6 Metas por vendedor"),
-      React.createElement(P, null, "En el menú Equipo → Rendimiento (visible para ADMINISTRADOR y GERENTE) puedes ver el desempeño individual de cada vendedor con metas mensuales:"),
+      React.createElement(H2, null, "7.6 Comparativa por año"),
+      React.createElement(P, null, "Cuando tienes datos de más de un año, esta sección compara negocios ganados, valor ganado, negocios perdidos y total de oportunidades año contra año. Cada mini-gráfica incluye:"),
+      React.createElement(LI, null, "Un badge de variación (subiendo o bajando, con el porcentaje) comparando el último año contra el anterior"),
+      React.createElement(LI, null, "El año en curso marcado con borde punteado y una nota indicando que es un año incompleto, para no compararlo 1 a 1 con años ya cerrados"),
+      React.createElement(P, null, 'Además, si configuraste una meta anual, aparece la gráfica "Cumplimiento de meta anual": una barra azul (valor ganado) junto a una barra gris (meta) por cada año, con el porcentaje de cumplimiento arriba de cada par.'),
+
+      React.createElement(H2, null, "7.7 Metas por vendedor"),
+      React.createElement(P, null, "En el menú Equipo > Rendimiento (visible para ADMINISTRADOR y GERENTE) puedes ver el desempeño individual de cada vendedor con metas mensuales:"),
       React.createElement(LI, null, "Barra azul: valor ganado en el mes en curso"),
       React.createElement(LI, null, "Barra con progreso de meta: % alcanzado respecto a la meta mensual asignada"),
-      React.createElement(LI, null, "Color de la barra: ámbar < 60%, azul 60-99%, verde ≥ 100%"),
-      React.createElement(P, null, "El ADMINISTRADOR puede editar la meta de cada vendedor directamente en esa pantalla: haz clic en el ícono ✏️ junto al nombre del vendedor, ingresa el valor en COP y guarda."),
+      React.createElement(LI, null, "Color de la barra: ámbar menos de 60%, azul entre 60% y 99%, verde 100% o más"),
+      React.createElement(P, null, "El ADMINISTRADOR puede editar la meta de cada vendedor directamente en esa pantalla: haz clic en el ícono de lápiz junto al nombre del vendedor, ingresa el valor en COP y guarda."),
       React.createElement(Tip, null, "Las metas son por mes: asigna la meta de julio y podrás ver el progreso en tiempo real durante ese mes. Al siguiente mes la barra se reinicia."),
     ),
 
@@ -567,13 +579,13 @@ export async function GET() {
       React.createElement(H1, null, "9. Dashboard — Tablero gerencial One Page"),
       React.createElement(P, null, "El Dashboard es la pantalla principal del CRM. Funciona como un tablero de control gerencial que concentra en una sola página el estado completo de la operación comercial: meta del mes, KPIs clave, ranking de vendedores, oportunidades calientes y alertas de salud comercial."),
 
-      React.createElement(H2, null, "9.1 Meta del mes — Gauge circular"),
-      React.createElement(P, null, "El medidor circular (gauge) en la parte superior muestra el porcentaje de la meta de ventas mensual alcanzada. Se calcula sobre los negocios cerrados como GANADOS en el mes actual versus la meta configurada en COP."),
-      React.createElement(LI, null, "Rojo: menos del 50% de la meta alcanzada"),
-      React.createElement(LI, null, "Ámbar: entre 50% y 79%"),
-      React.createElement(LI, null, "Verde: 80% o más — meta casi o completamente alcanzada"),
-      React.createElement(P, null, "El gauge también muestra el valor ganado acumulado y el valor de la meta. Si no hay meta configurada para el mes, el marcador muestra 0%."),
-      React.createElement(Tip, null, "Configura la meta mensual desde el módulo Reportes → ícono 🎯 Configurar metas. Sin meta configurada el gauge no tiene referencia."),
+      React.createElement(H2, null, "9.1 Meta del mes y meta del año — Gauges circulares"),
+      React.createElement(P, null, "En la parte superior del Dashboard hay dos medidores circulares (gauges): Meta del mes y Meta del año. Cada uno muestra el porcentaje alcanzado de su meta respectiva, calculado sobre los negocios cerrados como GANADOS versus el valor objetivo configurado en COP. Solo aparecen si tienes una meta configurada de ese tipo (mensual o anual) para el período correspondiente."),
+      React.createElement(LI, null, "Rojo: menos del 60% de la meta alcanzada"),
+      React.createElement(LI, null, "Ámbar: entre 60% y 99%"),
+      React.createElement(LI, null, "Verde: 100% o más — meta alcanzada o superada"),
+      React.createElement(P, null, "Debajo de cada gauge, en la tarjeta 'Resumen del año', también puedes ver el valor exacto ganado y la meta en pesos."),
+      React.createElement(Tip, null, "Configura la meta mensual o anual desde el módulo Reportes, botón Configurar metas. Deja el campo Mes en blanco para que sea una meta anual. Sin meta configurada, el gauge correspondiente no aparece."),
 
       React.createElement(H2, null, "9.2 KPIs principales"),
       React.createElement(View, { style: { paddingHorizontal: 40 } },
@@ -617,7 +629,7 @@ export async function GET() {
       React.createElement(H1, null, "10. Configuración, equipo y perfiles"),
 
       React.createElement(H2, null, "10.1 Configuración general"),
-      React.createElement(P, null, 'Ve a ⚙️ Configuración. Desde allí puedes cambiar el nombre de tu empresa (aparece en el sidebar y en los PDFs de cotizaciones).'),
+      React.createElement(P, null, 'Ve a Configuración. Desde allí puedes cambiar el nombre de tu empresa (aparece en el sidebar y en los PDFs de cotizaciones).'),
       React.createElement(P, null, "También puedes configurar el logo de tu empresa: pega la URL pública de tu imagen (PNG o JPG). El logo aparecerá automáticamente en el encabezado de todas tus cotizaciones en PDF en lugar del ícono genérico."),
       React.createElement(Tip, null, "La URL del logo debe ser pública (sin login requerido para verla). Sube tu logo a un hosting de imágenes o usa una URL directa de tu sitio web."),
 
@@ -631,12 +643,12 @@ export async function GET() {
 
       React.createElement(H2, null, "10.2 Módulos opcionales"),
       React.createElement(P, null, "Algunos módulos están desactivados por defecto ya que son específicos para ciertos tipos de negocio:"),
-      React.createElement(LI, null, "🎭 Funciones: para empresas de teatro o espectáculos. Gestiona funciones con aforo, boletería y NPS de asistentes"),
-      React.createElement(LI, null, "🎪 Audiencia: gestión de espectadores con segmentación por tipo (individual, grupo, empresa, colegio)"),
-      React.createElement(P, null, "Activa o desactiva estos módulos según tu tipo de negocio desde la sección Configuración → Módulos."),
+      React.createElement(LI, null, "Funciones: para empresas de teatro o espectáculos. Gestiona funciones con aforo, boletería y NPS de asistentes"),
+      React.createElement(LI, null, "Audiencia: gestión de espectadores con segmentación por tipo (individual, grupo, empresa, colegio)"),
+      React.createElement(P, null, "Activa o desactiva estos módulos según tu tipo de negocio desde la sección Configuración > Módulos."),
 
       React.createElement(H2, null, "10.3 Gestión del equipo y roles"),
-      React.createElement(P, null, 'Ve a 👥 Equipo para ver los usuarios de tu organización. El Administrador puede crear nuevos miembros y asignarles uno de tres roles. Esto es lo que puede hacer cada uno:'),
+      React.createElement(P, null, 'Ve a Equipo para ver los usuarios de tu organización. El Administrador puede crear nuevos miembros y asignarles uno de tres roles. Esto es lo que puede hacer cada uno:'),
       React.createElement(MatrizRoles, { filas: [
         ["Ver y gestionar sus propios clientes, oportunidades y actividades", true, true, true],
         ["Ver clientes, oportunidades y actividades de todo el equipo",        false, true, true],
@@ -659,11 +671,11 @@ export async function GET() {
       React.createElement(P, null, "El Administrador ve al final de la página Equipo un panel ámbar 'Asignar registros sin dueño'. Pasos:"),
       React.createElement(Paso, { n: 1, titulo: "Seleccionar vendedor", desc: "En el selector desplegable elige el usuario al que quieres asignar los registros importados." }),
       React.createElement(Paso, { n: 2, titulo: "Hacer clic en Asignar", desc: "El sistema actualiza todos los clientes, oportunidades y actividades sin dueño y los asigna al vendedor elegido." }),
-      React.createElement(Paso, { n: 3, titulo: "Confirmar resultado", desc: "Aparece un resumen: '✅ Asignados: X clientes · Y oportunidades · Z actividades'." }),
+      React.createElement(Paso, { n: 3, titulo: "Confirmar resultado", desc: "Aparece un resumen: 'Asignados: X clientes, Y oportunidades, Z actividades'." }),
       React.createElement(Nota, null, "Solo se reasignan registros sin dueño (importados). Los registros ya asignados a otro vendedor NO se modifican."),
 
       React.createElement(H2, null, "10.4 Mi perfil"),
-      React.createElement(P, null, 'Cada usuario puede actualizar su propia información en 👤 Mi perfil (al final del menú lateral):'),
+      React.createElement(P, null, 'Cada usuario puede actualizar su propia información en Mi perfil (al final del menú lateral):'),
       React.createElement(LI, null, "Cambiar nombre y correo electrónico"),
       React.createElement(LI, null, "Cambiar contraseña (requiere ingresar la contraseña actual como verificación)"),
       React.createElement(Nota, null, "Cada usuario pertenece exclusivamente a su organización. Los datos de diferentes organizaciones están completamente aislados entre sí."),
@@ -676,24 +688,24 @@ export async function GET() {
       React.createElement(P, null, "Sí, pero creará duplicados. Si el cliente ya existe con el mismo nombre, el sistema lo reutiliza, pero si el nombre varía (mayúsculas, espacios extra) creará uno nuevo. Limpia los datos antes de importar."),
 
       React.createElement(H2, null, "¿Cómo activo o desactivo las notificaciones por email?"),
-      React.createElement(P, null, "Las notificaciones están activas por defecto. Si deseas desactivarlas, el Administrador puede ir a ⚙️ Configuración y apagar el toggle 'Notificaciones automáticas por email'. Al desactivarlo, ningún miembro del equipo recibirá los correos automáticos diarios. Para reactivarlos simplemente vuelve a encender el toggle."),
+      React.createElement(P, null, "Las notificaciones están activas por defecto. Si deseas desactivarlas, el Administrador puede ir a Configuración y apagar el toggle 'Notificaciones automáticas por email'. Al desactivarlo, ningún miembro del equipo recibirá los correos automáticos diarios. Para reactivarlos simplemente vuelve a encender el toggle."),
 
       React.createElement(H2, null, "¿El PDF de cotización incluye el logo de mi empresa?"),
-      React.createElement(P, null, "Sí. Ve a ⚙️ Configuración → sección 'Logo de la empresa' y pega la URL pública de tu logo. A partir de ese momento, todos los PDFs de cotización mostrarán tu logo en el encabezado."),
+      React.createElement(P, null, "Sí. Ve a Configuración, sección 'Logo de la empresa' y pega la URL pública de tu logo. A partir de ese momento, todos los PDFs de cotización mostrarán tu logo en el encabezado."),
 
       React.createElement(H2, null, "¿Puedo exportar los datos del CRM?"),
-      React.createElement(P, null, 'Sí. Todas las páginas de listado tienen un botón "⬇ Excel" en la esquina superior. Puedes exportar: Clientes, Contactos, Cotizaciones activas, Cotizaciones formales, Agenda, Equipo, Catálogo de servicios, Funciones y Audiencia.'),
+      React.createElement(P, null, 'Sí. Todas las páginas de listado tienen un botón "Excel" en la esquina superior. Puedes exportar: Clientes, Contactos, Cotizaciones activas, Cotizaciones formales, Agenda, Equipo, Catálogo de servicios, Funciones y Audiencia.'),
 
       React.createElement(H2, null, "¿Qué pasa si cierro el navegador mientras creo una cotización?"),
       React.createElement(P, null, "Los datos se guardan solo al hacer clic en el botón de guardar. Si cierras antes, se perderán los datos no guardados. Guarda frecuentemente como borrador."),
 
       React.createElement(Sep, null),
 
-      React.createElement(View, { style: { paddingHorizontal: 40, paddingTop: 20 } },
+      React.createElement(View, { style: { paddingHorizontal: 40, paddingTop: 20 }, wrap: false },
         React.createElement(View, { style: { backgroundColor: C.azul, borderRadius: 10, padding: 20 } },
           React.createElement(Text, { style: { fontSize: 13, fontFamily: "Helvetica-Bold", color: C.blanco, marginBottom: 6 } }, "¿Necesitas ayuda adicional?"),
           React.createElement(Text, { style: { fontSize: 10, color: "#93c5fd", lineHeight: 1.6 } },
-            "Este CRM fue desarrollado por Felipe Gómez Jaramillo.\nSitio web: felipegomezjaramillo.com\nPlataforma: evoluteca-crm.vercel.app\n\nPara soporte técnico o nuevas funcionalidades, contacta directamente al desarrollador."
+            "Este CRM fue desarrollado por el Equipo Evoluteca.com y felipegomezjaramillo.com.\nPlataforma: crm.evoluteca.com\n\nPara soporte técnico o nuevas funcionalidades, contacta directamente al equipo."
           ),
         ),
       ),
