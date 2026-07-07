@@ -11,16 +11,7 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // Si está logueado, está en el dashboard y NO ha aceptado los términos → redirigir a términos
-  // El tenant demo está exento (es para demostración, no firma contrato)
-  if (isDashboard && isLoggedIn && !isTerminos) {
-    const user = (req.auth as any)?.user;
-    const esDemo = user?.tenantNombre?.toLowerCase().includes("demo") ||
-                   user?.tenantId === process.env.DEMO_TENANT_ID;
-    if (!esDemo && !user?.aceptoTerminosEn) {
-      return NextResponse.redirect(new URL("/dashboard/terminos", req.url));
-    }
-  }
+  // La verificación de términos se hace en el layout del dashboard (consulta DB directa)
 });
 
 export const config = {

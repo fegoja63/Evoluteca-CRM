@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 const VERSION = "1.0";
 
 export default function TerminosPage() {
-  const router = useRouter();
   const [acepto, setAcepto]       = useState(false);
   const [enviando, setEnviando]   = useState(false);
 
@@ -14,8 +12,8 @@ export default function TerminosPage() {
     if (!acepto) return;
     setEnviando(true);
     await fetch("/api/terminos", { method: "POST" });
-    router.push("/dashboard");
-    router.refresh();
+    // Recarga completa para que el layout del servidor consulte la DB actualizada
+    window.location.href = "/dashboard";
   }
 
   return (

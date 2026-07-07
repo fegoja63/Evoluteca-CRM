@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { Sidebar } from "@/components/sidebar";
 import { MobileNav } from "@/components/mobile-nav";
 import { Fab } from "@/components/fab";
@@ -13,6 +14,18 @@ export default async function DashboardLayout({
 
   if (!session?.user) {
     redirect("/login");
+  }
+
+  // Verificar aceptación de términos directamente en DB (el JWT puede estar desactualizado)
+  const esDemo = session.user.tenantNombre?.toLowerCase().includes("demo");
+  if (!esDemo) {
+    const usuario = await prisma.usuario.findUnique({
+      where: { id: session.user.id },
+      select: { aceptoTerminosEn: true },
+    });
+    if (!usuario?.aceptoTerminosEn) {
+      redirect("/dashboard/terminos");
+    }
   }
 
   return (
