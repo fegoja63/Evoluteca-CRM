@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 type Modulos = {
   funciones?: boolean;
   audiencia?: boolean;
+  expedientes?: boolean;
 };
 
 const MODULOS_DISPONIBLES = [
@@ -20,6 +21,12 @@ const MODULOS_DISPONIBLES = [
     titulo: "Módulo Audiencia (B2C)",
     descripcion: "Gestiona tu público: espectadores individuales, grupos, colegios y empresas. Incluye captura de NPS post-función para medir satisfacción y retención.",
     emoji: "👥",
+  },
+  {
+    key: "expedientes",
+    titulo: "Módulo Expedientes (jurídico)",
+    descripcion: "Gestiona casos jurídicos: radicado, juzgado, contraparte, plazos procesales con alertas, bitácora de actuaciones y registro de horas por abogado. Ideal para despachos de abogados.",
+    emoji: "⚖️",
   },
 ];
 

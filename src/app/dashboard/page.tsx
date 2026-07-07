@@ -43,6 +43,7 @@ export default async function DashboardPage() {
     cierranEstaSemana,
     opActivasConActividad,
     ultimoContacto,
+    terminosProximos,
   ] = await Promise.all([
     prisma.empresa.count({ where: { tenantId, ...ownerFiltro } }),
     prisma.contacto.count({ where: { tenantId } }),
@@ -129,7 +130,16 @@ export default async function DashboardPage() {
       select: { id: true, titulo: true, etapa: true, empresa: { select: { nombre: true } }, creadoBy: true, actividades: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } } },
     }),
     prisma.actividad.findFirst({ where: { tenantId, completada: true, ...ownerFiltro }, orderBy: { fecha: "desc" }, select: { fecha: true } }),
+    prisma.terminoExpediente.findMany({
+      where: { tenantId, estado: "PENDIENTE", fechaLimite: { lte: fin7dias }, ...ownerFiltro },
+      select: { id: true, descripcion: true, fechaLimite: true, expediente: { select: { id: true, numeroRadicado: true } } },
+      orderBy: { fechaLimite: "asc" },
+      take: 10,
+    }),
   ]);
+
+  const terminosVencidos = terminosProximos.filter(t => new Date(t.fechaLimite) < hoy);
+  const terminosPorVencer = terminosProximos.filter(t => new Date(t.fechaLimite) >= hoy);
 
   const negociosEstancados = opActivasConActividad
     .filter(o => o.actividades.length === 0 || new Date(o.actividades[0].fecha) < hace14dias)
@@ -190,7 +200,7 @@ export default async function DashboardPage() {
   const saludBg    = saludScore >= 75 ? "bg-emerald-500" : saludScore >= 50 ? "bg-amber-500" : "bg-red-500";
   const saludColor = saludScore >= 75 ? "text-emerald-600" : saludScore >= 50 ? "text-amber-600" : "text-red-500";
 
-  const hayAlertas = actividadesVencidas.length > 0 || cotizacionesSinMovimiento.length > 0 || negociosEstancados.length > 0 || cierranEstaSemana.length > 0 || cotizacionesVencidas.length > 0 || cotizacionesSinRespuesta.length > 0;
+  const hayAlertas = actividadesVencidas.length > 0 || cotizacionesSinMovimiento.length > 0 || negociosEstancados.length > 0 || cierranEstaSemana.length > 0 || cotizacionesVencidas.length > 0 || cotizacionesSinRespuesta.length > 0 || terminosProximos.length > 0;
 
   // Helpers
   function fmt(v: number) {
@@ -465,6 +475,28 @@ export default async function DashboardPage() {
             <p className="text-xs text-emerald-700 text-center py-6">Sin alertas activas. El equipo está al día.</p>
           ) : (
             <div className="flex flex-col gap-3">
+              {terminosVencidos.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold text-red-700 mb-1.5">⚖️ {terminosVencidos.length} plazo{terminosVencidos.length!==1?"s":""} procesal{terminosVencidos.length!==1?"es":""} vencido{terminosVencidos.length!==1?"s":""}</p>
+                  {terminosVencidos.slice(0,3).map(t => (
+                    <Link key={t.id} href={`/dashboard/expedientes/${t.expediente.id}`} className="flex items-center gap-2 rounded-lg bg-white border border-red-100 px-2.5 py-1.5 mb-1 hover:border-red-300 transition-colors">
+                      <span className="text-xs font-medium text-slate-800 truncate flex-1">{t.descripcion} · {t.expediente.numeroRadicado}</span>
+                      <span className="text-xs text-red-500 shrink-0">{new Date(t.fechaLimite).toLocaleDateString("es-CO",{day:"2-digit",month:"short",timeZone:"UTC"})}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {terminosPorVencer.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold text-amber-700 mb-1.5">⚖️ {terminosPorVencer.length} plazo{terminosPorVencer.length!==1?"s":""} procesal{terminosPorVencer.length!==1?"es":""} próximo{terminosPorVencer.length!==1?"s":""} (7 días)</p>
+                  {terminosPorVencer.slice(0,3).map(t => (
+                    <Link key={t.id} href={`/dashboard/expedientes/${t.expediente.id}`} className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-2.5 py-1.5 mb-1 hover:border-amber-300 transition-colors">
+                      <span className="text-xs font-medium text-slate-800 truncate flex-1">{t.descripcion} · {t.expediente.numeroRadicado}</span>
+                      <span className="text-xs text-amber-600 font-semibold shrink-0">{new Date(t.fechaLimite).toLocaleDateString("es-CO",{day:"2-digit",month:"short",timeZone:"UTC"})}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
               {actividadesVencidas.length > 0 && (
                 <div>
                   <p className="text-xs font-bold text-red-700 mb-1.5">🔴 {actividadesVencidas.length} actividad{actividadesVencidas.length!==1?"es":""} vencida{actividadesVencidas.length!==1?"s":""}</p>

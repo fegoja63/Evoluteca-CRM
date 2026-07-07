@@ -172,6 +172,42 @@ export async function GET(req: Request) {
       });
     }
 
+    // ── 4. Plazos procesales vencidos o próximos (≤7 días) ───────────────────
+    const terminosProximos = await prisma.terminoExpediente.findMany({
+      where: {
+        tenantId: u.tenantId,
+        estado: "PENDIENTE",
+        fechaLimite: { lte: en7dias },
+        ...ownerWhere,
+      },
+      orderBy: { fechaLimite: "asc" },
+      include: { expediente: { select: { numeroRadicado: true } } },
+    });
+
+    if (terminosProximos.length > 0) {
+      const filas = terminosProximos.map(t => {
+        const dias = Math.ceil((new Date(t.fechaLimite).getTime() - ahora.getTime()) / 86_400_000);
+        const vencido = dias < 0;
+        const color = vencido ? "#dc2626" : dias <= 2 ? "#dc2626" : "#d97706";
+        const etiqueta = vencido ? `${Math.abs(dias)}d de atraso` : dias === 0 ? "Hoy" : dias === 1 ? "Mañana" : `en ${dias} días`;
+        return `<div style="background:white;border:1px solid #e2e8f0;border-left:4px solid ${color};border-radius:8px;padding:12px;margin-bottom:8px">
+          <p style="margin:0 0 4px;font-weight:600;font-size:13px;color:#1e293b">${t.descripcion}</p>
+          <p style="margin:0;font-size:12px;color:#94a3b8">Radicado ${t.expediente.numeroRadicado} · <span style="color:${color};font-weight:600">${etiqueta}</span></p>
+        </div>`;
+      }).join("");
+
+      emails.push({
+        subject: `⚖️ ${terminosProximos.length} plazo(s) procesal(es) — Evoluteca CRM`,
+        html: wrapper(`${header("", "Plazos procesales vencidos o próximos")}
+          <div style="background:#fef2f2;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
+            <p style="font-size:14px;color:#64748b;margin-bottom:16px">Hola <strong>${u.nombre}</strong>, estos plazos procesales requieren atención:</p>
+            ${filas}
+            ${btn(`${BASE_URL}/dashboard/expedientes`, "Ver Expedientes")}
+            ${footer()}
+          </div>`),
+      });
+    }
+
     // ── Enviar emails ─────────────────────────────────────────────────────────
     for (const mail of emails) {
       const { error } = await resend.emails.send({

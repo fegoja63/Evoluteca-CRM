@@ -10,3 +10,9 @@ export function esComercial(rol: string | undefined) {
 export function filtroOwner(rol: string | undefined, userId: string) {
   return esComercial(rol) ? { creadoBy: userId } : {};
 }
+
+/** Verifica si un módulo opcional (Tenant.modulos) está activo. */
+export function moduloActivo(modulos: unknown, key: string): boolean {
+  if (!modulos || typeof modulos !== "object") return false;
+  return (modulos as Record<string, unknown>)[key] === true;
+}
