@@ -71,7 +71,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
         </table>
 
         ${cot.notas ? `<div style="margin-top:16px;background:#f8fafc;border-radius:8px;padding:12px;font-size:12px;color:#64748b"><strong>Notas:</strong> ${cot.notas}</div>` : ""}
-        ${cot.fechaValidez ? `<p style="margin-top:12px;font-size:12px;color:#94a3b8">Cotización válida hasta: <strong>${new Date(cot.fechaValidez).toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric" })}</strong></p>` : ""}
+        ${cot.fechaValidez ? `<p style="margin-top:12px;font-size:12px;color:#94a3b8">Cotización válida hasta: <strong>${new Date(cot.fechaValidez).toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric", timeZone: "UTC" })}</strong></p>` : ""}
 
         <div style="margin-top:24px;text-align:center">
           <a href="${pdfUrl}" style="display:inline-block;background:#2563eb;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">

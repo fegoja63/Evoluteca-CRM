@@ -52,6 +52,15 @@ function fmtFecha(d: Date | null) {
   if (!d) return "—";
   return new Date(d).toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric" });
 }
+// Para fechas de CALENDARIO (fechaEvento, fechaValidez): se guardan como medianoche
+// UTC del día elegido en un <input type="date">. Formatearlas en hora local las
+// corre un día atrás en timezones detrás de UTC (Colombia es UTC-5). fmtFecha()
+// sigue usándose tal cual para "Emitida" (creadoEn), que sí es un instante real
+// donde la hora local es la correcta.
+function fmtFechaCalendario(d: Date | null) {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric", timeZone: "UTC" });
+}
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
@@ -115,12 +124,12 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
           React.createElement(View, { style: styles.infoBox },
             React.createElement(Text, { style: styles.infoLabel }, "Evento / Sede"),
             React.createElement(Text, { style: styles.infoValue }, cot.sede ?? "—"),
-            React.createElement(Text, { style: { fontSize: 8, color: "#64748b", marginTop: 2 } }, `Fecha: ${fmtFecha(cot.fechaEvento)}`),
+            React.createElement(Text, { style: { fontSize: 8, color: "#64748b", marginTop: 2 } }, `Fecha: ${fmtFechaCalendario(cot.fechaEvento)}`),
           ),
           React.createElement(View, { style: styles.infoBox },
             React.createElement(Text, { style: styles.infoLabel }, "Fechas"),
             React.createElement(Text, { style: { fontSize: 8, color: "#64748b" } }, `Emitida: ${fmtFecha(cot.creadoEn)}`),
-            React.createElement(Text, { style: { fontSize: 8, color: "#64748b", marginTop: 2 } }, `Válida hasta: ${fmtFecha(cot.fechaValidez)}`),
+            React.createElement(Text, { style: { fontSize: 8, color: "#64748b", marginTop: 2 } }, `Válida hasta: ${fmtFechaCalendario(cot.fechaValidez)}`),
           ),
         )
       ),

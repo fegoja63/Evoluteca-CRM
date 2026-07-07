@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EtapaOportunidad } from "@prisma/client";
+import { fechaEfectiva } from "@/lib/fecha-efectiva";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,7 @@ export async function GET() {
     }),
     prisma.oportunidad.findMany({
       where: { tenantId, creadoBy: { not: null } },
-      select: { id: true, etapa: true, valor: true, probabilidad: true, creadoBy: true, creadoEn: true },
+      select: { id: true, etapa: true, valor: true, probabilidad: true, creadoBy: true, creadoEn: true, fechaCierre: true, fechaEvento: true, extras: true },
     }),
     prisma.actividad.findMany({
       where: { tenantId, creadoBy: { not: null } },
@@ -56,8 +57,10 @@ export async function GET() {
     const valorPipeline = activas.reduce((acc, o) => acc + Number(o.valor ?? 0), 0);
     const valorPonderado = activas.reduce((acc, o) => acc + Number(o.valor ?? 0) * ((o.probabilidad ?? 50) / 100), 0);
 
-    // Ganadas este mes
-    const ganadasMes = ganadas.filter(o => new Date(o.creadoEn) >= inicioMes);
+    // Ganadas este mes — usa la misma fecha efectiva que Dashboard/Reportes
+    // (extras.MES -> fechaCierre -> fechaEvento -> creadoEn), no creadoEn a secas,
+    // para que este ranking no diverja de lo que muestran esas otras pantallas.
+    const ganadasMes = ganadas.filter(o => fechaEfectiva(o) >= inicioMes);
     const valorMes   = ganadasMes.reduce((acc, o) => acc + Number(o.valor ?? 0), 0);
 
     // Actividades

@@ -146,9 +146,12 @@ export default async function DashboardPage() {
   const tasaCierre      = totalCerradas > 0 ? Math.round((ganadas / totalCerradas) * 100) : 0;
   const progresoDia     = totalActividadesHoy > 0 ? Math.round((actividadesCompletadasHoy / totalActividadesHoy) * 100) : 0;
 
-  // Meta del mes
+  // Meta del mes — metaPct es el % real (puede superar 100, se muestra en texto);
+  // metaPctGauge se limita a 100 solo para el trazo del aro circular (no puede
+  // dibujar más de una vuelta completa).
   const metaValor   = metaMes ? Number(metaMes.valorObjetivo) : 0;
-  const metaPct     = metaValor > 0 ? Math.min(Math.round((valorGanadoMes / metaValor) * 100), 100) : 0;
+  const metaPct     = metaValor > 0 ? Math.round((valorGanadoMes / metaValor) * 100) : 0;
+  const metaPctGauge = Math.min(metaPct, 100);
   const metaColor   = metaPct >= 100 ? "#10b981" : metaPct >= 60 ? "#f59e0b" : "#ef4444";
   const metaColorBg = metaPct >= 100 ? "bg-emerald-500" : metaPct >= 60 ? "bg-amber-500" : "bg-red-500";
   const metaColorText = metaPct >= 100 ? "text-emerald-600" : metaPct >= 60 ? "text-amber-600" : "text-red-500";
@@ -159,7 +162,8 @@ export default async function DashboardPage() {
   const metaAnioValor = metaAnio
     ? Number(metaAnio.valorObjetivo)
     : metasMensualesAnio.reduce((a, m) => a + Number(m.valorObjetivo), 0);
-  const metaAnioPct   = metaAnioValor > 0 ? Math.min(Math.round((valorGanadoAnio / metaAnioValor) * 100), 100) : 0;
+  const metaAnioPct   = metaAnioValor > 0 ? Math.round((valorGanadoAnio / metaAnioValor) * 100) : 0;
+  const metaAnioPctGauge = Math.min(metaAnioPct, 100);
   const metaAnioColor = metaAnioPct >= 100 ? "#10b981" : metaAnioPct >= 60 ? "#f59e0b" : "#ef4444";
   const metaAnioColorText = metaAnioPct >= 100 ? "text-emerald-600" : metaAnioPct >= 60 ? "text-amber-600" : "text-red-500";
 
@@ -241,7 +245,7 @@ export default async function DashboardPage() {
                     <svg viewBox="0 0 100 100" className="w-16 h-16 -rotate-90">
                       <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="12" />
                       <circle cx="50" cy="50" r="40" fill="none" stroke={metaColor} strokeWidth="12"
-                        strokeDasharray={`${gaugeDash(metaPct)} ${gaugeCircum}`} strokeLinecap="round" />
+                        strokeDasharray={`${gaugeDash(metaPctGauge)} ${gaugeCircum}`} strokeLinecap="round" />
                     </svg>
                     <span className="absolute inset-0 flex items-center justify-center text-sm font-extrabold text-white">{metaPct}%</span>
                   </div>
@@ -257,7 +261,7 @@ export default async function DashboardPage() {
                     <svg viewBox="0 0 100 100" className="w-16 h-16 -rotate-90">
                       <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="12" />
                       <circle cx="50" cy="50" r="40" fill="none" stroke={metaAnioColor} strokeWidth="12"
-                        strokeDasharray={`${gaugeDash(metaAnioPct)} ${gaugeCircum}`} strokeLinecap="round" />
+                        strokeDasharray={`${gaugeDash(metaAnioPctGauge)} ${gaugeCircum}`} strokeLinecap="round" />
                     </svg>
                     <span className="absolute inset-0 flex items-center justify-center text-sm font-extrabold text-white">{metaAnioPct}%</span>
                   </div>

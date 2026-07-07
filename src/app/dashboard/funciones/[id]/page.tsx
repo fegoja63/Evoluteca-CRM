@@ -66,7 +66,8 @@ export default function FichaFuncionPage() {
       setFn(data);
       setForm({
         titulo: data.titulo,
-        fecha: data.fecha.slice(0, 10),
+        // datetime-local (no solo la fecha) para no perder la hora real del show al guardar
+        fecha: new Date(data.fecha).toISOString().slice(0, 16),
         sillasTotales: String(data.sillasTotales),
         sillasVendidas: String(data.sillasVendidas),
         canal: data.canal,
@@ -157,8 +158,8 @@ export default function FichaFuncionPage() {
                 className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Fecha</label>
-              <input type="date" value={form.fecha} onChange={e => setForm({...form, fecha: e.target.value})}
+              <label className="text-xs text-slate-500 mb-1 block">Fecha y hora</label>
+              <input type="datetime-local" value={form.fecha} onChange={e => setForm({...form, fecha: e.target.value})}
                 className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
             <div>

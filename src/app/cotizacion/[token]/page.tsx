@@ -33,7 +33,11 @@ function fmt(v: number) {
 }
 function fmtFecha(s: string | null) {
   if (!s) return "—";
-  return new Date(s).toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric" });
+  // fechaEvento/fechaValidez son fechas de calendario (sin hora), guardadas como
+  // medianoche UTC del día elegido. Formatear en hora local las corre un día
+  // atrás en timezones detrás de UTC (Colombia es UTC-5) — se fuerza UTC para
+  // mostrar siempre el día exacto que se guardó.
+  return new Date(s).toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric", timeZone: "UTC" });
 }
 
 export default function CotizacionPublicaPage() {

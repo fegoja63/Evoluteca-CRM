@@ -125,7 +125,8 @@ export default function RendimientoPage() {
             <div className="flex flex-col gap-3">
               {vendedores.map((v, i) => {
                 const pctGanado = v.valorGanado > 0 ? Math.round((v.valorGanado / maxValor) * 100) : 0;
-                const pctMeta   = v.metaMes > 0 ? Math.min(Math.round((v.valorMes / v.metaMes) * 100), 100) : null;
+                const pctMeta   = v.metaMes > 0 ? Math.round((v.valorMes / v.metaMes) * 100) : null;
+                const pctMetaBarra = pctMeta !== null ? Math.min(pctMeta, 100) : 0;
                 const isSelected = seleccionado === v.id;
                 const editando   = editandoMeta === v.id;
 
@@ -172,7 +173,7 @@ export default function RendimientoPage() {
                         <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden relative">
                           <div
                             className={`h-2 rounded-full transition-all duration-500 ${(pctMeta ?? 0) >= 100 ? "bg-emerald-500" : (pctMeta ?? 0) >= 60 ? "bg-blue-500" : "bg-amber-400"}`}
-                            style={{ width: `${pctMeta ?? 0}%` }}
+                            style={{ width: `${pctMetaBarra}%` }}
                           />
                         </div>
                         <span className={`text-xs font-bold w-16 text-right ${(pctMeta ?? 0) >= 100 ? "text-emerald-600" : (pctMeta ?? 0) >= 60 ? "text-blue-600" : "text-amber-600"}`}>{pctMeta}%</span>
@@ -242,17 +243,18 @@ export default function RendimientoPage() {
                   </div>
                   <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
                     {(() => {
-                      const pct = Math.min(Math.round((detalle.valorMes / detalle.metaMes) * 100), 100);
+                      const pct = Math.round((detalle.valorMes / detalle.metaMes) * 100);
+                      const pctBarra = Math.min(pct, 100);
                       return (
                         <div
                           className={`h-3 rounded-full transition-all duration-700 ${pct >= 100 ? "bg-emerald-500" : pct >= 60 ? "bg-blue-500" : "bg-amber-400"}`}
-                          style={{ width: `${pct}%` }}
+                          style={{ width: `${pctBarra}%` }}
                         />
                       );
                     })()}
                   </div>
                   <p className="text-xs text-slate-400 mt-1">
-                    {Math.min(Math.round((detalle.valorMes / detalle.metaMes) * 100), 100)}% completado
+                    {Math.round((detalle.valorMes / detalle.metaMes) * 100)}% completado
                     {detalle.valorMes < detalle.metaMes && ` · faltan ${fmt(detalle.metaMes - detalle.valorMes)}`}
                   </p>
                 </div>
@@ -339,7 +341,7 @@ export default function RendimientoPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {vendedores.map(v => {
-                    const pctMeta = v.metaMes > 0 ? Math.min(Math.round((v.valorMes / v.metaMes) * 100), 100) : null;
+                    const pctMeta = v.metaMes > 0 ? Math.round((v.valorMes / v.metaMes) * 100) : null;
                     return (
                       <tr key={v.id}
                         onClick={() => setSeleccionado(seleccionado === v.id ? null : v.id)}
