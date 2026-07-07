@@ -83,7 +83,25 @@
       "Bash(vercel alias *)",
       "Bash(vercel promote *)",
       "Bash(vercel --prod --yes)",
-      "Bash(curl -s -o /dev/null -w \"HTTP_STATUS:%{http_code}\\\\n\" https://crm.evoluteca.com/login)"
+      "Bash(curl -s -o /dev/null -w \"HTTP_STATUS:%{http_code}\\\\n\" https://crm.evoluteca.com/login)",
+      "PowerShell(cd \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\Info FGJ\\\\evoluteca-crm-sprint1 V2\"; $line = \\(Get-Content .env | Select-String \"^DIRECT_URL=\"\\).Line; $url = $line -replace '^DIRECT_URL=', '' -replace '^\"', '' -replace '\"$', ''; $env:DATABASE_URL = $url; node scripts\\\\add_test_2025_tmp.js)",
+      "PowerShell(cd \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\Info FGJ\\\\evoluteca-crm-sprint1 V2\"; $line = \\(Get-Content .env | Select-String \"^DIRECT_URL=\"\\).Line; $url = $line -replace '^DIRECT_URL=', '' -replace '^\"', '' -replace '\"$', ''; $env:DATABASE_URL = $url; node scripts\\\\fix_test_2025_tmp.js)",
+      "PowerShell(cd \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\Info FGJ\\\\evoluteca-crm-sprint1 V2\"; $line = \\(Get-Content .env | Select-String \"^DIRECT_URL=\"\\).Line; $url = $line -replace '^DIRECT_URL=', '' -replace '^\"', '' -replace '\"$', ''; $env:DATABASE_URL = $url; node scripts\\\\del_test_2025_tmp.js)",
+      "PowerShell(cd \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\Info FGJ\\\\evoluteca-crm-sprint1 V2\"; $line = \\(Get-Content .env | Select-String \"^DIRECT_URL=\"\\).Line; $url = $line -replace '^DIRECT_URL=', '' -replace '^\"', '' -replace '\"$', ''; $env:DATABASE_URL = $url; node scripts\\\\verify_consistencia_tmp.js)",
+      "Bash(mkdir -p \"/c/Users/felip/AppData/Local/Temp/claude/manual_v18\")",
+      "Bash(curl -s -o \"/c/Users/felip/AppData/Local/Temp/claude/manual_v18/manual.pdf\" http://localhost:3000/api/manual/pdf -w \"HTTP_STATUS:%{http_code} SIZE:%{size_download}\\\\n\")",
+      "Bash(node \"/c/Users/felip/AppData/Local/Temp/claude/manual_v18/check.js\")",
+      "Bash(node -e \"const m = require\\('C:/Users/felip/AppData/Local/Temp/claude/node_modules/pdf-parse'\\); console.log\\(Object.keys\\(m\\)\\); console.log\\(typeof m.default, typeof m.PDFParse, typeof m.pdf\\);\")",
+      "Bash(node -e \"const { PDFParse } = require\\('C:/Users/felip/AppData/Local/Temp/claude/node_modules/pdf-parse'\\); console.log\\(Object.getOwnPropertyNames\\(PDFParse.prototype\\)\\);\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP_STATUS:%{http_code}\\\\n\" https://crm.evoluteca.com/api/manual/pdf)",
+      "PowerShell(cd \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\Info FGJ\\\\evoluteca-crm-sprint1 V2\"; $line = \\(Get-Content .env | Select-String \"^DIRECT_URL=\"\\).Line; $url = $line -replace '^DIRECT_URL=', '' -replace '^\"', '' -replace '\"$', ''; $env:DATABASE_URL = $url; node scripts\\\\audit_metas_tmp.js)",
+      "Bash(node -e \"console.log\\('TZ offset \\(min\\):', new Date\\(\\).getTimezoneOffset\\(\\)\\); console.log\\(process.env.TZ\\); const d = new Date\\('2026-02-01T00:00:00.000Z'\\); console.log\\('UTC:', d.toISOString\\(\\)\\); console.log\\('getMonth\\(\\) local:', d.getMonth\\(\\), '\\(0=enero\\)'\\); console.log\\('local string:', d.toString\\(\\)\\);\")",
+      "PowerShell(cd \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\Info FGJ\\\\evoluteca-crm-sprint1 V2\"; $line = \\(Get-Content .env | Select-String \"^DIRECT_URL=\"\\).Line; $url = $line -replace '^DIRECT_URL=', '' -replace '^\"', '' -replace '\"$', ''; $env:DATABASE_URL = $url; node scripts\\\\check_demo_metas2_tmp.js)",
+      "Bash(mkdir -p \"/c/Users/felip/AppData/Local/Temp/claude/manual_v19\")",
+      "Bash(curl -s -o \"/c/Users/felip/AppData/Local/Temp/claude/manual_v19/manual.pdf\" http://localhost:3000/api/manual/pdf -w \"HTTP_STATUS:%{http_code} SIZE:%{size_download}\\\\n\")",
+      "Bash(node \"/c/Users/felip/AppData/Local/Temp/claude/manual_v19/check.js\")",
+      "Bash(node -e \"console.log\\('TZ offset \\(min\\):', new Date\\(\\).getTimezoneOffset\\(\\)\\); console.log\\('process.env.TZ:', process.env.TZ\\); const d = new Date\\('2026-07-10'\\); console.log\\('UTC:', d.toISOString\\(\\)\\); console.log\\('getMonth local:', d.getMonth\\(\\), d.getDate\\(\\)\\);\")",
+      "PowerShell(cd \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\Info FGJ\\\\evoluteca-crm-sprint1 V2\"; $line = \\(Get-Content .env | Select-String \"^DIRECT_URL=\"\\).Line; $url = $line -replace '^DIRECT_URL=', '' -replace '^\"', '' -replace '\"$', ''; $env:DATABASE_URL = $url; node scripts\\\\check_terminos_cols_tmp.js)"
     ]
   }
 }
