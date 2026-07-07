@@ -69,7 +69,21 @@
       "Bash(node \"/c/Users/felip/AppData/Local/Temp/claude/manual_check/check3.js\")",
       "PowerShell(cd \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\Info FGJ\\\\evoluteca-crm-sprint1 V2\"; $line = \\(Get-Content .env | Select-String \"^DIRECT_URL=\"\\).Line; $url = $line -replace '^DIRECT_URL=', '' -replace '^\"', '' -replace '\"$', ''; $env:DATABASE_URL = $url; node scripts\\\\check_demo_tmp.js)",
       "Bash(rm \"/c/Users/felip/OneDrive/Desktop/Info FGJ/evoluteca-crm-sprint1 V2/scripts/check_demo_tmp.js\")",
-      "PowerShell(cd \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\Info FGJ\\\\evoluteca-crm-sprint1 V2\"; $line = \\(Get-Content .env | Select-String \"^DIRECT_URL=\"\\).Line; $url = $line -replace '^DIRECT_URL=', '' -replace '^\"', '' -replace '\"$', ''; $env:DATABASE_URL = $url; node scripts\\\\check_demo_user_tmp.js)"
+      "PowerShell(cd \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\Info FGJ\\\\evoluteca-crm-sprint1 V2\"; $line = \\(Get-Content .env | Select-String \"^DIRECT_URL=\"\\).Line; $url = $line -replace '^DIRECT_URL=', '' -replace '^\"', '' -replace '\"$', ''; $env:DATABASE_URL = $url; node scripts\\\\check_demo_user_tmp.js)",
+      "PowerShell(cd \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\Info FGJ\\\\evoluteca-crm-sprint1 V2\"; $line = \\(Get-Content .env | Select-String \"^DIRECT_URL=\"\\).Line; $url = $line -replace '^DIRECT_URL=', '' -replace '^\"', '' -replace '\"$', ''; $env:DATABASE_URL = $url; node scripts\\\\check_metas_tmp.js)",
+      "PowerShell(cd \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\Info FGJ\\\\evoluteca-crm-sprint1 V2\"; $line = \\(Get-Content .env | Select-String \"^DIRECT_URL=\"\\).Line; $url = $line -replace '^DIRECT_URL=', '' -replace '^\"', '' -replace '\"$', ''; $env:DATABASE_URL = $url; node scripts\\\\check_prueba_user_tmp.js)",
+      "PowerShell(cd \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\Info FGJ\\\\evoluteca-crm-sprint1 V2\"; $line = \\(Get-Content .env | Select-String \"^DIRECT_URL=\"\\).Line; $url = $line -replace '^DIRECT_URL=', '' -replace '^\"', '' -replace '\"$', ''; $env:DATABASE_URL = $url; node scripts\\\\check_fechaevento_tmp.js)",
+      "PowerShell(cd \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\Info FGJ\\\\evoluteca-crm-sprint1 V2\"; $line = \\(Get-Content .env | Select-String \"^DIRECT_URL=\"\\).Line; $url = $line -replace '^DIRECT_URL=', '' -replace '^\"', '' -replace '\"$', ''; $env:DATABASE_URL = $url; node scripts\\\\check_extras_mes_tmp.js)",
+      "PowerShell(cd \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\Info FGJ\\\\evoluteca-crm-sprint1 V2\"; $line = \\(Get-Content .env | Select-String \"^DIRECT_URL=\"\\).Line; $url = $line -replace '^DIRECT_URL=', '' -replace '^\"', '' -replace '\"$', ''; $env:DATABASE_URL = $url; node scripts\\\\verify_dashboard_calc_tmp.js)",
+      "Bash(vercel ls *)",
+      "Bash(vercel inspect *)",
+      "Bash(vercel project *)",
+      "Bash(curl -sI https://crm.evoluteca.com/)",
+      "Bash(gh api *)",
+      "Bash(vercel alias *)",
+      "Bash(vercel promote *)",
+      "Bash(vercel --prod --yes)",
+      "Bash(curl -s -o /dev/null -w \"HTTP_STATUS:%{http_code}\\\\n\" https://crm.evoluteca.com/login)"
     ]
   }
 }
