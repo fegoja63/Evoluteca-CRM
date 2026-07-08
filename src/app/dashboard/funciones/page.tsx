@@ -110,6 +110,13 @@ export default function FuncionesPage() {
     return f.sillasTotales > 0 ? Math.round((f.sillasVendidas / f.sillasTotales) * 100) : 0;
   }
 
+  // Alerta visual: función a <=5 días con ocupación <60% (mismo umbral del
+  // plan de 90 días — "campaña de urgencia" antes de que sea tarde).
+  function necesitaUrgencia(f: Funcion) {
+    const dias = (new Date(f.fecha).getTime() - Date.now()) / 86_400_000;
+    return dias >= 0 && dias <= 5 && ocupacion(f) < 60;
+  }
+
   const promOcupacion = funciones.length
     ? Math.round(funciones.reduce((acc, f) => acc + ocupacion(f), 0) / funciones.length) : 0;
   const totalIngreso = funciones.reduce((acc, f) => acc + Number(f.ingresoEstimado ?? 0), 0);
@@ -274,6 +281,11 @@ export default function FuncionesPage() {
                 <tr key={f.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-1 font-medium text-slate-900">
                     <a href={`/dashboard/funciones/${f.id}`} className="hover:text-blue-600 hover:underline">{f.titulo}</a>
+                    {necesitaUrgencia(f) && (
+                      <span title="Ocupación baja a menos de 5 días" className="ml-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                        ⚠ urgente
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-1 text-slate-500 whitespace-nowrap">
                     {new Date(f.fecha).toLocaleString("es-CO", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}

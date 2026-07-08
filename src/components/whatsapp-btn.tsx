@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 
-const PLANTILLAS = [
+const PLANTILLAS_DEFAULT = [
   { label: "Saludo inicial",       msg: (nombre: string) => `Hola ${nombre}, espero que estés muy bien. Me comunico desde Evoluteca para hacer seguimiento a tu solicitud. ¿Tienes un momento para hablar?` },
   { label: "Seguimiento cotización", msg: (nombre: string) => `Hola ${nombre}, quería hacer seguimiento a la cotización que te enviamos. ¿Tuviste oportunidad de revisarla? Con gusto resuelvo cualquier duda.` },
   { label: "Confirmar reunión",    msg: (nombre: string) => `Hola ${nombre}, te escribo para confirmar nuestra reunión. Por favor avísame si necesitas cambiar la hora o fecha.` },
@@ -14,9 +14,12 @@ const PLANTILLAS = [
 interface Props {
   telefono: string;
   nombre: string;
+  plantillas?: { label: string; msg: (nombre: string) => string }[];
+  onSend?: () => void;
 }
 
-export function WhatsAppBtn({ telefono, nombre }: Props) {
+export function WhatsAppBtn({ telefono, nombre, plantillas, onSend }: Props) {
+  const PLANTILLAS = plantillas ?? PLANTILLAS_DEFAULT;
   const [abierto, setAbierto] = useState(false);
   const [plantilla, setPlantilla] = useState(0);
   const [mensaje, setMensaje] = useState("");
@@ -69,7 +72,7 @@ export function WhatsAppBtn({ telefono, nombre }: Props) {
           placeholder="Escribe tu mensaje..."
         />
         <a href={url} target="_blank" rel="noopener noreferrer"
-          onClick={() => setAbierto(false)}
+          onClick={() => { setAbierto(false); onSend?.(); }}
           className="mt-2 w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 text-white py-2.5 text-sm font-semibold hover:bg-emerald-700 transition-colors">
           💬 Abrir WhatsApp
         </a>

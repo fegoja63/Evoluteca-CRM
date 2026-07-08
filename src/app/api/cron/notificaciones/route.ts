@@ -45,6 +45,7 @@ export async function GET(req: Request) {
   const ahora = new Date();
   const hace14 = new Date(ahora.getTime() - 14 * 86_400_000);
   const en7dias = new Date(ahora.getTime() + 7 * 86_400_000);
+  const en5dias = new Date(ahora.getTime() + 5 * 86_400_000);
 
   const usuarios = await prisma.usuario.findMany({
     where: { activo: true },
@@ -204,6 +205,38 @@ export async function GET(req: Request) {
             <p style="font-size:14px;color:#64748b;margin-bottom:16px">Hola <strong>${u.nombre}</strong>, estos plazos procesales requieren atención:</p>
             ${filas}
             ${btn(`${BASE_URL}/dashboard/expedientes`, "Ver Expedientes")}
+            ${footer()}
+          </div>`),
+      });
+    }
+
+    // ── 5. Funciones próximas con ocupación baja (≤5 días, <60%) ─────────────
+    // Funcion no tiene creadoBy (es un recurso compartido del teatro, no de un
+    // vendedor), así que no se filtra por ownerWhere: todos los usuarios del
+    // tenant ven la misma alerta.
+    const funcionesBajaOcupacion = await prisma.funcion.findMany({
+      where: { tenantId: u.tenantId, fecha: { gte: ahora, lte: en5dias } },
+      select: { id: true, titulo: true, fecha: true, sillasTotales: true, sillasVendidas: true },
+      orderBy: { fecha: "asc" },
+    }).then(fs => fs.filter(f => f.sillasTotales > 0 && (f.sillasVendidas / f.sillasTotales) < 0.6));
+
+    if (funcionesBajaOcupacion.length > 0) {
+      const filas = funcionesBajaOcupacion.map(f => {
+        const ocupacion = Math.round((f.sillasVendidas / f.sillasTotales) * 100);
+        const dias = Math.ceil((new Date(f.fecha).getTime() - ahora.getTime()) / 86_400_000);
+        return `<div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #d97706;border-radius:8px;padding:12px;margin-bottom:8px">
+          <p style="margin:0 0 4px;font-weight:600;font-size:13px;color:#1e293b">${f.titulo}</p>
+          <p style="margin:0;font-size:12px;color:#94a3b8">${f.sillasVendidas}/${f.sillasTotales} sillas (${ocupacion}%) · <span style="color:#d97706;font-weight:600">${dias === 0 ? "Hoy" : dias === 1 ? "Mañana" : `en ${dias} días`}</span></p>
+        </div>`;
+      }).join("");
+
+      emails.push({
+        subject: `🎭 ${funcionesBajaOcupacion.length} función(es) con ocupación baja — Evoluteca CRM`,
+        html: wrapper(`${header("", "Ocupación por debajo del 60% a menos de 5 días")}
+          <div style="background:#fffbeb;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
+            <p style="font-size:14px;color:#64748b;margin-bottom:16px">Hola <strong>${u.nombre}</strong>, estas funciones necesitan una campaña de urgencia:</p>
+            ${filas}
+            ${btn(`${BASE_URL}/dashboard/funciones`, "Ver Funciones")}
             ${footer()}
           </div>`),
       });

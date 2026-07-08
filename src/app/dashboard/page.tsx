@@ -20,6 +20,7 @@ export default async function DashboardPage() {
   const inicioAnio  = new Date(hoy.getFullYear(), 0, 1);
   const finAnio     = new Date(hoy.getFullYear() + 1, 0, 1);
   const fin7dias    = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 7);
+  const fin5dias    = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 5);
   const hace60dias  = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 60);
   const hace14dias  = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 14);
   const hace3dias   = new Date(hoy.getTime() - 3 * 86_400_000);
@@ -47,6 +48,7 @@ export default async function DashboardPage() {
     opActivasConActividad,
     ultimoContacto,
     terminosProximos,
+    funcionesProximas,
   ] = await Promise.all([
     prisma.empresa.count({ where: { tenantId, ...ownerFiltro } }),
     prisma.contacto.count({ where: { tenantId } }),
@@ -139,7 +141,18 @@ export default async function DashboardPage() {
       orderBy: { fechaLimite: "asc" },
       take: 10,
     }),
+    prisma.funcion.findMany({
+      where: { tenantId, fecha: { gte: hoy, lte: fin5dias } },
+      select: { id: true, titulo: true, fecha: true, sillasTotales: true, sillasVendidas: true },
+      orderBy: { fecha: "asc" },
+    }),
   ]);
+
+  // Funciones a <=5 días con ocupación por debajo del umbral del plan de Belarte
+  // (Fase 3: "si <60% con 5 días de anticipación -> campaña de urgencia").
+  const funcionesBajaOcupacion = funcionesProximas.filter(f =>
+    f.sillasTotales > 0 && (f.sillasVendidas / f.sillasTotales) < 0.6
+  );
 
   const terminosVencidos = terminosProximos.filter(t => plazoVencido(t.fechaLimite));
   const terminosPorVencer = terminosProximos.filter(t => !plazoVencido(t.fechaLimite));
@@ -203,7 +216,7 @@ export default async function DashboardPage() {
   const saludBg    = saludScore >= 75 ? "bg-emerald-500" : saludScore >= 50 ? "bg-amber-500" : "bg-red-500";
   const saludColor = saludScore >= 75 ? "text-emerald-600" : saludScore >= 50 ? "text-amber-600" : "text-red-500";
 
-  const hayAlertas = actividadesVencidas.length > 0 || cotizacionesSinMovimiento.length > 0 || negociosEstancados.length > 0 || cierranEstaSemana.length > 0 || cotizacionesVencidas.length > 0 || cotizacionesSinRespuesta.length > 0 || terminosProximos.length > 0;
+  const hayAlertas = actividadesVencidas.length > 0 || cotizacionesSinMovimiento.length > 0 || negociosEstancados.length > 0 || cierranEstaSemana.length > 0 || cotizacionesVencidas.length > 0 || cotizacionesSinRespuesta.length > 0 || terminosProximos.length > 0 || funcionesBajaOcupacion.length > 0;
 
   // Helpers
   function fmt(v: number) {
@@ -498,6 +511,20 @@ export default async function DashboardPage() {
                       <span className="text-xs text-amber-600 font-semibold shrink-0">{new Date(t.fechaLimite).toLocaleDateString("es-CO",{day:"2-digit",month:"short",timeZone:"UTC"})}</span>
                     </Link>
                   ))}
+                </div>
+              )}
+              {funcionesBajaOcupacion.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold text-amber-700 mb-1.5">🎭 {funcionesBajaOcupacion.length} función{funcionesBajaOcupacion.length!==1?"es":""} con ocupación baja (5 días)</p>
+                  {funcionesBajaOcupacion.slice(0,3).map(f => {
+                    const ocupacion = Math.round((f.sillasVendidas / f.sillasTotales) * 100);
+                    return (
+                      <Link key={f.id} href={`/dashboard/funciones/${f.id}`} className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-2.5 py-1.5 mb-1 hover:border-amber-300 transition-colors">
+                        <span className="text-xs font-medium text-slate-800 truncate flex-1">{f.titulo}</span>
+                        <span className="text-xs text-amber-600 font-semibold shrink-0">{ocupacion}% · {new Date(f.fecha).toLocaleDateString("es-CO",{day:"2-digit",month:"short"})}</span>
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
               {actividadesVencidas.length > 0 && (

@@ -12,15 +12,23 @@ type NpsRespuesta = {
   funcion: { id: string; titulo: string; fecha: string } | null;
 };
 
+type Asistencia = {
+  id: string;
+  creadoEn: string;
+  funcion: { id: string; titulo: string; fecha: string } | null;
+};
+
 type Espectador = {
   id: string;
   nombre: string;
   email: string | null;
   telefono: string | null;
   segmento: string;
+  nivelMembresia: string | null;
   notas: string | null;
   creadoEn: string;
   npsList: NpsRespuesta[];
+  asistencias: Asistencia[];
 };
 
 const SEGMENTOS: Record<string, string> = {
@@ -35,6 +43,25 @@ const SEG_COLOR: Record<string, string> = {
   GRUPO: "bg-violet-50 text-violet-700",
   EMPRESA: "bg-emerald-50 text-emerald-700",
   COLEGIO: "bg-amber-50 text-amber-700",
+};
+
+const MEMBRESIAS = [
+  { key: "", label: "— Sin membresía —" },
+  { key: "ESPECTADOR", label: "Espectador (10% desc.)" },
+  { key: "FANATICO",   label: "Fanático (20% + ensayo)" },
+  { key: "MECENAS",    label: "Mecenas (naming)" },
+];
+
+const MEMBRESIA_LABEL: Record<string, string> = {
+  ESPECTADOR: "Espectador",
+  FANATICO: "Fanático",
+  MECENAS: "Mecenas",
+};
+
+const MEMBRESIA_COLOR: Record<string, string> = {
+  ESPECTADOR: "bg-slate-100 text-slate-600",
+  FANATICO: "bg-blue-100 text-blue-700",
+  MECENAS: "bg-amber-100 text-amber-800",
 };
 
 function npsCategoria(p: number) {
@@ -52,7 +79,7 @@ export default function FichaEspectadorPage() {
   const [cargando, setCargando] = useState(true);
   const [editando, setEditando] = useState(false);
   const [guardando, setGuardando] = useState(false);
-  const [form, setForm] = useState({ nombre: "", email: "", telefono: "", segmento: "INDIVIDUAL", notas: "" });
+  const [form, setForm] = useState({ nombre: "", email: "", telefono: "", segmento: "INDIVIDUAL", nivelMembresia: "", notas: "" });
 
   async function cargar() {
     setCargando(true);
@@ -60,7 +87,7 @@ export default function FichaEspectadorPage() {
     if (res.ok) {
       const data = await res.json();
       setEsp(data);
-      setForm({ nombre: data.nombre, email: data.email ?? "", telefono: data.telefono ?? "", segmento: data.segmento, notas: data.notas ?? "" });
+      setForm({ nombre: data.nombre, email: data.email ?? "", telefono: data.telefono ?? "", segmento: data.segmento, nivelMembresia: data.nivelMembresia ?? "", notas: data.notas ?? "" });
     }
     setCargando(false);
   }
@@ -114,6 +141,11 @@ export default function FichaEspectadorPage() {
             <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold mb-2 ${SEG_COLOR[esp.segmento] ?? "bg-slate-100 text-slate-600"}`}>
               {SEGMENTOS[esp.segmento] ?? esp.segmento}
             </span>
+            {esp.nivelMembresia && (
+              <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold mb-2 ml-1.5 ${MEMBRESIA_COLOR[esp.nivelMembresia]}`}>
+                Club Belarte · {MEMBRESIA_LABEL[esp.nivelMembresia]}
+              </span>
+            )}
             <h1 className="text-xl font-bold text-slate-900">{esp.nombre}</h1>
           </div>
           <div className="flex gap-2 shrink-0">
@@ -152,6 +184,13 @@ export default function FichaEspectadorPage() {
                 {Object.entries(SEGMENTOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </div>
+            <div>
+              <label className="text-xs text-slate-500 mb-1 block">Club Belarte</label>
+              <select value={form.nivelMembresia} onChange={e => setForm({...form, nivelMembresia: e.target.value})}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white">
+                {MEMBRESIAS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
+              </select>
+            </div>
             <div className="col-span-2">
               <label className="text-xs text-slate-500 mb-1 block">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({...form, notas: e.target.value})} rows={2}
@@ -180,7 +219,7 @@ export default function FichaEspectadorPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <p className="text-xs text-slate-400 mb-1">Funciones asistidas</p>
-          <p className="text-2xl font-bold text-slate-900">{esp.npsList.length}</p>
+          <p className="text-2xl font-bold text-slate-900">{esp.asistencias.length}</p>
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <p className="text-xs text-slate-400 mb-1">Puntaje promedio</p>
@@ -196,6 +235,29 @@ export default function FichaEspectadorPage() {
             ); })()
           ) : <p className="text-sm text-slate-400">Sin datos</p>}
         </div>
+      </div>
+
+      {/* Historial de asistencias */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-5">
+        <h2 className="text-sm font-bold text-slate-900 mb-4">Historial de asistencias</h2>
+        {esp.asistencias.length === 0 ? (
+          <p className="text-sm text-slate-400">Sin asistencias registradas aún.</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {esp.asistencias.map(a => (
+              <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">
+                {a.funcion ? (
+                  <Link href={`/dashboard/funciones/${a.funcion.id}`} className="text-sm font-medium text-blue-600 hover:underline">
+                    {a.funcion.titulo}
+                  </Link>
+                ) : <span className="text-sm text-slate-400">Función eliminada</span>}
+                <span className="text-xs text-slate-400">
+                  {a.funcion ? new Date(a.funcion.fecha).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" }) : ""}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Historial NPS */}

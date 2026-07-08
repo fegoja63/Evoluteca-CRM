@@ -14,6 +14,10 @@ export async function GET(request: Request, { params }: { params: { id: string }
         orderBy: { creadoEn: "desc" },
         include: { funcion: { select: { id: true, titulo: true, fecha: true } } },
       },
+      asistencias: {
+        orderBy: { creadoEn: "desc" },
+        include: { funcion: { select: { id: true, titulo: true, fecha: true } } },
+      },
     },
   });
 
@@ -30,17 +34,19 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   });
   if (!existente) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
-  const { nombre, email, telefono, segmento, notas } = await request.json();
+  const { nombre, email, telefono, segmento, nivelMembresia, notas } = await request.json();
+
+  const data: Record<string, unknown> = {};
+  if (nombre !== undefined) data.nombre = nombre.trim() || existente.nombre;
+  if (email !== undefined) data.email = email?.trim() || null;
+  if (telefono !== undefined) data.telefono = telefono?.trim() || null;
+  if (segmento !== undefined) data.segmento = segmento || existente.segmento;
+  if (nivelMembresia !== undefined) data.nivelMembresia = nivelMembresia || null;
+  if (notas !== undefined) data.notas = notas?.trim() || null;
 
   const espectador = await prisma.espectador.update({
     where: { id: params.id },
-    data: {
-      nombre: nombre?.trim() || existente.nombre,
-      email: email?.trim() || null,
-      telefono: telefono?.trim() || null,
-      segmento: segmento || existente.segmento,
-      notas: notas?.trim() || null,
-    },
+    data,
   });
 
   return NextResponse.json(espectador);

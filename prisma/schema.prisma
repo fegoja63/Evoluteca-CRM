@@ -49,6 +49,7 @@ model Tenant {
   terminosExpediente  TerminoExpediente[]
   eventosExpediente   EventoExpediente[]
   registrosHoras      RegistroHoras[]
+  asistencias         Asistencia[]
 
   @@map("tenants")
 }
@@ -505,6 +506,7 @@ model Funcion {
   tenant          Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   npsList         NpsRespuesta[]
+  asistencias     Asistencia[]
 
   @@index([tenantId])
   @@map("funciones")
@@ -517,23 +519,58 @@ enum SegmentoEspectador {
   COLEGIO
 }
 
+enum NivelMembresia {
+  ESPECTADOR
+  FANATICO
+  MECENAS
+}
+
 model Espectador {
-  id          String              @id @default(uuid())
-  nombre      String
-  email       String?
-  telefono    String?
-  segmento    SegmentoEspectador  @default(INDIVIDUAL)
-  notas       String?
-  extras      Json?
-  creadoEn    DateTime            @default(now())
+  id             String              @id @default(uuid())
+  nombre         String
+  email          String?
+  telefono       String?
+  segmento       SegmentoEspectador  @default(INDIVIDUAL)
+  nivelMembresia NivelMembresia?
+  notas          String?
+  extras         Json?
+  creadoEn       DateTime            @default(now())
 
   tenantId    String
   tenant      Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   npsList     NpsRespuesta[]
+  asistencias Asistencia[]
 
   @@index([tenantId])
   @@map("espectadores")
+}
+
+// Registro de asistencia de un espectador a una función específica — es la
+// pieza que faltaba para medir retención real (antes solo se inferían
+// asistencias a partir de quién respondió la encuesta NPS, lo que subestima
+// mucho la asistencia real ya que la mayoría no responde encuesta).
+model Asistencia {
+  id              String    @id @default(uuid())
+  creadoEn        DateTime  @default(now())
+  // Se marca cuando alguien hace clic en "Enviar por WhatsApp" en la cola de
+  // NPS pendientes, para no repetir la solicitud a la misma persona.
+  npsSolicitadoEn DateTime?
+
+  tenantId     String
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  funcionId    String
+  funcion      Funcion    @relation(fields: [funcionId], references: [id], onDelete: Cascade)
+
+  espectadorId String
+  espectador   Espectador @relation(fields: [espectadorId], references: [id], onDelete: Cascade)
+
+  @@unique([funcionId, espectadorId])
+  @@index([tenantId])
+  @@index([funcionId])
+  @@index([espectadorId])
+  @@map("asistencias")
 }
 
 model NpsRespuesta {

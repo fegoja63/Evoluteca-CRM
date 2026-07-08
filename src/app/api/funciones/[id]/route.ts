@@ -18,6 +18,10 @@ export async function GET(request: Request, { params }: { params: { id: string }
         orderBy: { creadoEn: "desc" },
         include: { espectador: { select: { id: true, nombre: true } } },
       },
+      asistencias: {
+        orderBy: { creadoEn: "desc" },
+        include: { espectador: { select: { id: true, nombre: true, telefono: true, segmento: true, _count: { select: { asistencias: true } } } } },
+      },
     },
   });
 

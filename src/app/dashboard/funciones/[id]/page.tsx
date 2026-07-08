@@ -14,6 +14,12 @@ type NpsRespuesta = {
 
 type Espectador = { id: string; nombre: string; segmento: string | null };
 
+type Asistencia = {
+  id: string;
+  creadoEn: string;
+  espectador: { id: string; nombre: string; telefono: string | null; segmento: string; _count: { asistencias: number } };
+};
+
 type Funcion = {
   id: string;
   titulo: string;
@@ -24,6 +30,7 @@ type Funcion = {
   ingresoEstimado: string | null;
   notas: string | null;
   npsList: NpsRespuesta[];
+  asistencias: Asistencia[];
 };
 
 const CANALES: Record<string, string> = {
@@ -51,6 +58,9 @@ export default function FichaFuncionPage() {
   const [guardando, setGuardando] = useState(false);
   const [npsForm, setNpsForm] = useState({ puntuacion: "", comentario: "", espectadorId: "" });
   const [enviandoNps, setEnviandoNps] = useState(false);
+  const [asistForm, setAsistForm] = useState({ espectadorId: "", nombre: "", telefono: "" });
+  const [guardandoAsist, setGuardandoAsist] = useState(false);
+  const [errorAsist, setErrorAsist] = useState("");
   const [form, setForm] = useState({
     titulo: "", fecha: "", sillasTotales: "", sillasVendidas: "", canal: "PLATAFORMA", ingresoEstimado: "", notas: "",
   });
@@ -117,6 +127,39 @@ export default function FichaFuncionPage() {
     });
     setNpsForm({ puntuacion: "", comentario: "", espectadorId: "" });
     setEnviandoNps(false);
+    cargar();
+  }
+
+  async function handleAgregarAsistente(e: React.FormEvent) {
+    e.preventDefault();
+    setErrorAsist("");
+    setGuardandoAsist(true);
+    try {
+      const res = await fetch(`/api/funciones/${id}/asistencias`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(asistForm),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setErrorAsist(data.error || "No se pudo registrar la asistencia");
+        return;
+      }
+      setAsistForm({ espectadorId: "", nombre: "", telefono: "" });
+      await cargar();
+    } finally {
+      setGuardandoAsist(false);
+    }
+  }
+
+  async function handleEliminarAsistente(asistenciaId: string) {
+    if (!confirm("¿Quitar esta asistencia?")) return;
+    const res = await fetch(`/api/funciones/asistencias/${asistenciaId}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "No se pudo quitar la asistencia");
+      return;
+    }
     cargar();
   }
 
@@ -223,7 +266,7 @@ export default function FichaFuncionPage() {
             </div>
 
             {/* KPIs */}
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-5 gap-3">
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-xs text-slate-400 mb-1">Ocupación</p>
                 <p className="text-2xl font-bold text-blue-700">{ocupacion}%</p>
@@ -231,6 +274,11 @@ export default function FichaFuncionPage() {
                 <div className="mt-2 h-1.5 rounded-full bg-slate-200">
                   <div className="h-1.5 rounded-full bg-blue-500 transition-all" style={{ width: `${ocupacion}%` }} />
                 </div>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs text-slate-400 mb-1">Asistentes registrados</p>
+                <p className="text-2xl font-bold text-violet-700">{fn.asistencias.length}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{fn.asistencias.filter(a => a.espectador._count.asistencias > 1).length} recurrentes</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-xs text-slate-400 mb-1">Ingresos</p>
@@ -259,6 +307,80 @@ export default function FichaFuncionPage() {
               </div>
             )}
           </>
+        )}
+      </div>
+
+      {/* Asistentes */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-5">
+        <h2 className="text-sm font-bold text-slate-900 mb-4">Asistentes</h2>
+
+        <form onSubmit={handleAgregarAsistente} className="mb-6 pb-6 border-b border-slate-100">
+          <div className="flex gap-3 items-end flex-wrap">
+            <div className="w-48">
+              <label className="text-xs text-slate-500 mb-1 block">Espectador existente</label>
+              <select
+                value={asistForm.espectadorId}
+                onChange={e => setAsistForm({ ...asistForm, espectadorId: e.target.value, nombre: "", telefono: "" })}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+              >
+                <option value="">— Seleccionar —</option>
+                {espectadores.map(e => (
+                  <option key={e.id} value={e.id}>{e.nombre}</option>
+                ))}
+              </select>
+            </div>
+            {!asistForm.espectadorId && (
+              <>
+                <div>
+                  <label className="text-xs text-slate-500 mb-1 block">O nombre nuevo</label>
+                  <input
+                    value={asistForm.nombre}
+                    onChange={e => setAsistForm({ ...asistForm, nombre: e.target.value })}
+                    placeholder="Nombre del espectador"
+                    className="w-48 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-500 mb-1 block">Teléfono (opcional)</label>
+                  <input
+                    value={asistForm.telefono}
+                    onChange={e => setAsistForm({ ...asistForm, telefono: e.target.value })}
+                    placeholder="WhatsApp"
+                    className="w-40 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                  />
+                </div>
+              </>
+            )}
+            <button type="submit" disabled={guardandoAsist || (!asistForm.espectadorId && !asistForm.nombre.trim())}
+              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 shrink-0">
+              {guardandoAsist ? "Guardando..." : "+ Registrar asistencia"}
+            </button>
+          </div>
+          {errorAsist && <p className="mt-2 text-xs text-red-600">{errorAsist}</p>}
+        </form>
+
+        {fn.asistencias.length === 0 ? (
+          <p className="text-sm text-slate-400">Sin asistentes registrados aún.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {fn.asistencias.map(a => {
+              const esRecurrente = a.espectador._count.asistencias > 1;
+              return (
+                <div key={a.id} className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 pl-3 pr-1.5 py-1">
+                  <Link href={`/dashboard/audiencia/${a.espectador.id}`} className="text-sm text-slate-700 hover:text-blue-600 hover:underline">
+                    {a.espectador.nombre}
+                  </Link>
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${esRecurrente ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"}`}>
+                    {esRecurrente ? "recurrente" : "nuevo"}
+                  </span>
+                  <button onClick={() => handleEliminarAsistente(a.id)}
+                    className="text-slate-400 hover:text-red-600 text-base leading-none px-1">
+                    ×
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 

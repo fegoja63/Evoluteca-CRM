@@ -15,7 +15,10 @@ export async function GET(request: Request) {
       ...(q ? { nombre: { contains: q, mode: "insensitive" } } : {}),
     },
     orderBy: { creadoEn: "desc" },
-    include: { _count: { select: { npsList: true } } },
+    include: {
+      _count: { select: { npsList: true } },
+      asistencias: { select: { funcion: { select: { fecha: true } } } },
+    },
   });
 
   return NextResponse.json(espectadores);
