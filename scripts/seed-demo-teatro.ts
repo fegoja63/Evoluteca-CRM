@@ -64,76 +64,245 @@ async function main() {
   ]);
   console.log("✅ Catálogo creado: 5 servicios de alquiler B2B");
 
-  // ── CLIENTES B2B (colegios, corporativos, agencias) ─────────────────────
-  const [colSanMarcos, colBilingue, empTech, empSeguros, agenciaEventos, ongCultura] = await Promise.all([
-    prisma.empresa.create({ data: { nombre: "Colegio San Marcos", sector: "Educación", email: "eventos@sanmarcos.edu.co", telefono: "601 555 0101", etiquetas: ["colegio", "recurrente"], notas: "Alquila la sala para su acto de graduación cada noviembre.", tenantId: tenant.id } }),
-    prisma.empresa.create({ data: { nombre: "Colegio Bilingüe del Norte", sector: "Educación", email: "coordinacion@bilingueNorte.edu.co", telefono: "601 555 0102", etiquetas: ["colegio", "nuevo"], tenantId: tenant.id } }),
-    prisma.empresa.create({ data: { nombre: "Tech Solutions Colombia", sector: "Tecnología", email: "eventos@techsolutions.co", telefono: "601 555 0201", etiquetas: ["corporativo", "potencial-alto"], notas: "Buscan sede para su kickoff anual.", tenantId: tenant.id } }),
-    prisma.empresa.create({ data: { nombre: "Aseguradora Confianza S.A", sector: "Otro", email: "comunicaciones@confianza.co", telefono: "601 555 0202", etiquetas: ["corporativo"], tenantId: tenant.id } }),
-    prisma.empresa.create({ data: { nombre: "Agencia Momentum Eventos", sector: "Medios y Comunicación", email: "produccion@momentumeventos.co", telefono: "601 555 0301", etiquetas: ["agencia", "recurrente"], notas: "Intermediarios frecuentes para eventos corporativos de terceros.", tenantId: tenant.id } }),
-    prisma.empresa.create({ data: { nombre: "Fundación Cultura Viva", sector: "Arte y Cultura", email: "proyectos@culturaviva.org", telefono: "601 555 0401", etiquetas: ["ong"], tenantId: tenant.id } }),
-  ]);
-  console.log("✅ Empresas B2B creadas: 6 (colegios, corporativos, agencia, ONG)");
+  // ── CLIENTES B2B — 50 empresas (colegios, universidades, corporativos,
+  // agencias, ONGs, entidades públicas, religiosas, clubes) ────────────────
+  type EmpresaSpec = { nombre: string; sector: string; tag: string };
+  const empresasSpecs: EmpresaSpec[] = [
+    // Colegios (10)
+    { nombre: "Colegio San Marcos", sector: "Educación", tag: "colegio" },
+    { nombre: "Colegio Bilingüe del Norte", sector: "Educación", tag: "colegio" },
+    { nombre: "Gimnasio Los Andes", sector: "Educación", tag: "colegio" },
+    { nombre: "Colegio Nueva Granada", sector: "Educación", tag: "colegio" },
+    { nombre: "Instituto Técnico San Rafael", sector: "Educación", tag: "colegio" },
+    { nombre: "Liceo Moderno del Valle", sector: "Educación", tag: "colegio" },
+    { nombre: "Colegio Campestre El Bosque", sector: "Educación", tag: "colegio" },
+    { nombre: "Institución Educativa Santa Fe", sector: "Educación", tag: "colegio" },
+    { nombre: "Colegio Anglo Colombiano", sector: "Educación", tag: "colegio" },
+    { nombre: "Gimnasio Femenino del Norte", sector: "Educación", tag: "colegio" },
+    // Universidades (3)
+    { nombre: "Universidad del Rosario Norte", sector: "Educación", tag: "universidad" },
+    { nombre: "Universidad Central Extensión", sector: "Educación", tag: "universidad" },
+    { nombre: "Politécnico Gran Sabana", sector: "Educación", tag: "universidad" },
+    // Corporativos (15)
+    { nombre: "Tech Solutions Colombia", sector: "Tecnología", tag: "corporativo" },
+    { nombre: "Aseguradora Confianza S.A", sector: "Otro", tag: "corporativo" },
+    { nombre: "Banco Regional del Norte", sector: "Otro", tag: "corporativo" },
+    { nombre: "Farmacéutica BioMed", sector: "Salud", tag: "corporativo" },
+    { nombre: "Grupo Editorial Nuevos Horizontes", sector: "Medios y Comunicación", tag: "corporativo" },
+    { nombre: "Constructora Andina Ltda", sector: "Otro", tag: "corporativo" },
+    { nombre: "Distribuidora Nacional S.A", sector: "Otro", tag: "corporativo" },
+    { nombre: "Logística Express Colombia", sector: "Otro", tag: "corporativo" },
+    { nombre: "Retail Moda Total", sector: "Otro", tag: "corporativo" },
+    { nombre: "Consultora Estratégica Prisma", sector: "Otro", tag: "corporativo" },
+    { nombre: "Industrias Metálicas del Sur", sector: "Otro", tag: "corporativo" },
+    { nombre: "Telecomunicaciones Andinas", sector: "Tecnología", tag: "corporativo" },
+    { nombre: "Grupo Financiero Meridiano", sector: "Otro", tag: "corporativo" },
+    { nombre: "Automotriz del Pacífico", sector: "Otro", tag: "corporativo" },
+    { nombre: "Energía Renovable Colombia", sector: "Otro", tag: "corporativo" },
+    // Agencias (5)
+    { nombre: "Agencia Momentum Eventos", sector: "Medios y Comunicación", tag: "agencia" },
+    { nombre: "Producciones Estelar", sector: "Medios y Comunicación", tag: "agencia" },
+    { nombre: "Creativa Group Eventos", sector: "Medios y Comunicación", tag: "agencia" },
+    { nombre: "Agencia Punto Vivo", sector: "Medios y Comunicación", tag: "agencia" },
+    { nombre: "BTL Experiencias", sector: "Medios y Comunicación", tag: "agencia" },
+    // ONGs (5)
+    { nombre: "Fundación Cultura Viva", sector: "Arte y Cultura", tag: "ong" },
+    { nombre: "Fundación Arte y Comunidad", sector: "Arte y Cultura", tag: "ong" },
+    { nombre: "ONG Sembrando Futuro", sector: "Otro", tag: "ong" },
+    { nombre: "Fundación Manos Unidas", sector: "Otro", tag: "ong" },
+    { nombre: "Corporación Educativa Renacer", sector: "Educación", tag: "ong" },
+    // Entidades públicas (5)
+    { nombre: "Cámara de Comercio Local", sector: "Gobierno", tag: "publica" },
+    { nombre: "Secretaría de Cultura Distrital", sector: "Gobierno", tag: "publica" },
+    { nombre: "Alcaldía Local — Oficina de Eventos", sector: "Gobierno", tag: "publica" },
+    { nombre: "Instituto Distrital de las Artes", sector: "Gobierno", tag: "publica" },
+    { nombre: "Gobernación — Programa Cultural", sector: "Gobierno", tag: "publica" },
+    // Religiosas (3)
+    { nombre: "Parroquia San José", sector: "Religioso", tag: "religiosa" },
+    { nombre: "Comunidad Cristiana Vida Nueva", sector: "Religioso", tag: "religiosa" },
+    { nombre: "Arquidiócesis — Pastoral Juvenil", sector: "Religioso", tag: "religiosa" },
+    // Clubes / asociaciones (4)
+    { nombre: "Club Rotario Central", sector: "Otro", tag: "club" },
+    { nombre: "Asociación de Egresados Unidos", sector: "Otro", tag: "club" },
+    { nombre: "Club Social Los Fundadores", sector: "Otro", tag: "club" },
+    { nombre: "Asociación Colombiana de Productores", sector: "Otro", tag: "club" },
+  ];
 
-  const [con1, con2, con3, con4, con5, con6] = await Promise.all([
-    prisma.contacto.create({ data: { nombre: "Rectoría — Padre Luis Gómez", email: "rectoria@sanmarcos.edu.co", telefono: "310 111 2222", cargo: "Rector", empresaId: colSanMarcos.id, tenantId: tenant.id } }),
-    prisma.contacto.create({ data: { nombre: "Carolina Méndez", email: "c.mendez@bilingueNorte.edu.co", telefono: "311 222 3333", cargo: "Coordinadora de Eventos", empresaId: colBilingue.id, tenantId: tenant.id } }),
-    prisma.contacto.create({ data: { nombre: "Andrés Salazar", email: "a.salazar@techsolutions.co", telefono: "312 333 4444", cargo: "Head of People", empresaId: empTech.id, tenantId: tenant.id } }),
-    prisma.contacto.create({ data: { nombre: "Lorena Villamil", email: "l.villamil@confianza.co", telefono: "313 444 5555", cargo: "Directora de Comunicaciones", empresaId: empSeguros.id, tenantId: tenant.id } }),
-    prisma.contacto.create({ data: { nombre: "Esteban Rojas", email: "e.rojas@momentumeventos.co", telefono: "314 555 6666", cargo: "Productor General", empresaId: agenciaEventos.id, tenantId: tenant.id } }),
-    prisma.contacto.create({ data: { nombre: "Isabel Cuéllar", email: "i.cuellar@culturaviva.org", telefono: "315 666 7777", cargo: "Directora de Proyectos", empresaId: ongCultura.id, tenantId: tenant.id } }),
-  ]);
-  console.log("✅ Contactos creados: 6");
+  const slugify = (t: string) => t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "");
 
-  // ── PIPELINE (alquiler B2B) ──────────────────────────────────────────────
-  const [op1, op2, op3, op4, op5, op6] = await Promise.all([
-    prisma.oportunidad.create({ data: { titulo: "Graduación promoción 2026 — San Marcos", etapa: "GANADA", valor: 6500000, costo: 800000, probabilidad: 100, empresaId: colSanMarcos.id, contactoId: con1.id, origenLead: "Referido", recurrente: true, fechaCierre: dia(-20), sede: "Sala principal", notas: "Cliente recurrente, cuarto año consecutivo.", tenantId: tenant.id, creadoBy: comercial.id } }),
-    prisma.oportunidad.create({ data: { titulo: "Kickoff anual Tech Solutions", etapa: "NEGOCIACION", valor: 9800000, costo: 1500000, probabilidad: 65, empresaId: empTech.id, contactoId: con3.id, origenLead: "LinkedIn", fechaCierre: dia(12), sede: "Sala principal + foyer", notas: "Piden cotización con catering incluido. Segunda reunión el jueves.", tenantId: tenant.id, creadoBy: comercial.id } }),
-    prisma.oportunidad.create({ data: { titulo: "Función privada Colegio Bilingüe del Norte", etapa: "PROPUESTA", valor: 4200000, costo: 500000, probabilidad: 45, empresaId: colBilingue.id, contactoId: con2.id, origenLead: "Web", fechaCierre: dia(25), sede: "Sala principal", notas: "Propuesta enviada, esperando aprobación del comité.", tenantId: tenant.id, creadoBy: comercial.id } }),
-    prisma.oportunidad.create({ data: { titulo: "Lanzamiento de marca Aseguradora Confianza", etapa: "CALIFICADO", valor: 9800000, probabilidad: 30, empresaId: empSeguros.id, contactoId: con4.id, origenLead: "Frío", fechaCierre: dia(40), tenantId: tenant.id, creadoBy: comercial.id } }),
-    prisma.oportunidad.create({ data: { titulo: "Evento cultural Fundación Cultura Viva", etapa: "PROSPECTO", valor: 3500000, probabilidad: 20, empresaId: ongCultura.id, contactoId: con6.id, origenLead: "Instagram", fechaCierre: dia(55), tenantId: tenant.id, creadoBy: comercial.id } }),
-    prisma.oportunidad.create({ data: { titulo: "Evento corporativo vía Agencia Momentum", etapa: "PERDIDA", valor: 5200000, probabilidad: 0, empresaId: agenciaEventos.id, contactoId: con5.id, origenLead: "Referido", notas: "El cliente final canceló el evento.", fechaCierre: dia(-8), tenantId: tenant.id, creadoBy: comercial.id } }),
-  ]);
-  console.log("✅ Oportunidades creadas: 6 (1 ganada, 1 negociación, 1 propuesta, 1 calificado, 1 prospecto, 1 perdida)");
+  const empresas: { id: string; nombre: string }[] = [];
+  for (let i = 0; i < empresasSpecs.length; i++) {
+    const spec = empresasSpecs[i];
+    const emp = await prisma.empresa.create({
+      data: {
+        nombre: spec.nombre,
+        sector: spec.sector,
+        email: `contacto@${slugify(spec.nombre)}.co`,
+        telefono: `601 555 ${String(1000 + i).slice(-4)}`,
+        etiquetas: [spec.tag],
+        tenantId: tenant.id,
+      },
+    });
+    empresas.push(emp);
+  }
+  console.log(`✅ Empresas B2B creadas: ${empresas.length}`);
 
-  // ── ACTIVIDADES ───────────────────────────────────────────────────────────
-  await Promise.all([
-    prisma.actividad.create({ data: { titulo: "Llamada de seguimiento — Tech Solutions", tipo: "LLAMADA", fecha: dia(-4), completada: false, empresaId: empTech.id, contactoId: con3.id, oportunidadId: op2.id, notas: "Confirmar si aprobaron el catering", tenantId: tenant.id, creadoBy: comercial.id } }),
-    prisma.actividad.create({ data: { titulo: "Enviar propuesta ajustada — Bilingüe del Norte", tipo: "EMAIL", fecha: dia(-2), completada: false, empresaId: colBilingue.id, contactoId: con2.id, oportunidadId: op3.id, tenantId: tenant.id, creadoBy: comercial.id } }),
-    prisma.actividad.create({ data: { titulo: "Reunión inicial Aseguradora Confianza", tipo: "REUNION", fecha: dia(3), completada: false, empresaId: empSeguros.id, contactoId: con4.id, oportunidadId: op4.id, tenantId: tenant.id, creadoBy: comercial.id } }),
-    prisma.actividad.create({ data: { titulo: "Firma de contrato graduación San Marcos", tipo: "REUNION", fecha: dia(-22), completada: true, empresaId: colSanMarcos.id, contactoId: con1.id, oportunidadId: op1.id, tenantId: tenant.id, creadoBy: comercial.id } }),
-    prisma.actividad.create({ data: { titulo: "Visita técnica a la sala — Tech Solutions", tipo: "REUNION", fecha: dia(6), completada: false, empresaId: empTech.id, contactoId: con3.id, oportunidadId: op2.id, notas: "Llevar cotización de catering impresa", tenantId: tenant.id, creadoBy: comercial.id } }),
-    prisma.actividad.create({ data: { titulo: "Cotizar producción técnica adicional", tipo: "TAREA", fecha: dia(8), completada: false, empresaId: empSeguros.id, contactoId: con4.id, oportunidadId: op4.id, tenantId: tenant.id, creadoBy: comercial.id } }),
-  ]);
-  console.log("✅ Actividades creadas: 6 (2 vencidas, 1 completada, 3 próximas)");
+  // ── CONTACTOS — 80 en total (30 empresas con 2, 20 empresas con 1) ───────
+  const nombresPila = ["Andrés", "María", "Carlos", "Laura", "Juan", "Diana", "Felipe", "Camila", "Santiago", "Valentina", "Daniel", "Isabella", "Miguel", "Sofía", "Alejandro", "Gabriela", "Ricardo", "Paula", "Esteban", "Natalia"];
+  const apellidos = ["Gómez", "Rodríguez", "Martínez", "López", "García", "Hernández", "Pérez", "Sánchez", "Ramírez", "Torres", "Flórez", "Rojas", "Castro", "Ortiz", "Silva", "Vargas", "Molina", "Cárdenas", "Reyes", "Salazar"];
+  const cargosPorTag: Record<string, string[]> = {
+    colegio: ["Rector", "Coordinador de Eventos", "Coordinadora Académica"],
+    universidad: ["Decano de Bienestar", "Coordinador de Eventos Institucionales"],
+    corporativo: ["Gerente de Recursos Humanos", "Directora de Comunicaciones", "Head of People", "Gerente Comercial"],
+    agencia: ["Productor General", "Director de Cuentas"],
+    ong: ["Directora de Proyectos", "Coordinador de Alianzas"],
+    publica: ["Coordinador de Cultura", "Profesional de Eventos"],
+    religiosa: ["Párroco", "Coordinador de Pastoral"],
+    club: ["Presidente", "Secretario General"],
+  };
+
+  let contactoIdx = 0;
+  const contactosPorEmpresa: Record<string, { id: string; nombre: string }[]> = {};
+  for (let i = 0; i < empresas.length; i++) {
+    const emp = empresas[i];
+    const spec = empresasSpecs[i];
+    const cantidad = i < 30 ? 2 : 1; // 30×2 + 20×1 = 80
+    contactosPorEmpresa[emp.id] = [];
+    for (let j = 0; j < cantidad; j++) {
+      const nombreCompleto = `${nombresPila[contactoIdx % nombresPila.length]} ${apellidos[(contactoIdx * 3) % apellidos.length]}`;
+      const cargos = cargosPorTag[spec.tag] ?? ["Coordinador"];
+      const con = await prisma.contacto.create({
+        data: {
+          nombre: nombreCompleto,
+          cargo: cargos[j % cargos.length],
+          email: `${slugify(nombreCompleto)}@ejemplo.com`,
+          telefono: `3${String(10 + contactoIdx).padStart(2, "0")} ${String(2000000 + contactoIdx * 173).slice(0, 3)} ${String(1000 + contactoIdx * 57).slice(-4)}`,
+          empresaId: emp.id,
+          tenantId: tenant.id,
+        },
+      });
+      contactosPorEmpresa[emp.id].push(con);
+      contactoIdx++;
+    }
+  }
+  console.log(`✅ Contactos creados: ${contactoIdx}`);
+
+  // ── PIPELINE — 40 oportunidades: 20 activas repartidas en los 4 rangos de
+  // antigüedad (<30, 30-60, 60-90, >90 días desde creadoEn), 12 ganadas
+  // (3 en el mes en curso) y 8 perdidas, distribuidas en los últimos meses ──
+  type Etapa = "PROSPECTO" | "CALIFICADO" | "PROPUESTA" | "NEGOCIACION" | "GANADA" | "PERDIDA";
+  type OpSpec = { etapa: Etapa; diasCreacion: number; diasCierre: number; valor: number; probabilidad: number };
+
+  const opsSpecs: OpSpec[] = [];
+  const etapasActivas: Etapa[] = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];
+  const bucketsDias = [-8, -18, -40, -70, -110]; // 2× <30d, 1× 30-60d, 1× 60-90d, 1× >90d
+  for (const etapa of etapasActivas) {
+    for (const dc of bucketsDias) {
+      const probBase = etapa === "PROSPECTO" ? 20 : etapa === "CALIFICADO" ? 35 : etapa === "PROPUESTA" ? 50 : 70;
+      opsSpecs.push({ etapa, diasCreacion: dc, diasCierre: 15 + (Math.abs(dc) % 20), valor: 3500000 + (Math.abs(dc) % 7) * 1200000, probabilidad: probBase });
+    }
+  }
+  // Ganadas — 3 dentro del mes en curso para que "Ganado este mes" no sea $0
+  const ganadaDiasCierre = [-2, -5, -7, -35, -50, -65, -95, -125, -155, -185, -210, -240];
+  for (const dc of ganadaDiasCierre) {
+    opsSpecs.push({ etapa: "GANADA", diasCreacion: dc - 25, diasCierre: dc, valor: 4000000 + (Math.abs(dc) % 9) * 900000, probabilidad: 100 });
+  }
+  // Perdidas
+  const perdidaDiasCierre = [-12, -28, -45, -60, -80, -100, -140, -170];
+  for (const dc of perdidaDiasCierre) {
+    opsSpecs.push({ etapa: "PERDIDA", diasCreacion: dc - 20, diasCierre: dc, valor: 3000000 + (Math.abs(dc) % 6) * 800000, probabilidad: 0 });
+  }
+
+  const serviciosTitulo = ["Alquiler sala", "Función privada", "Evento corporativo", "Lanzamiento de marca", "Graduación", "Congreso anual", "Asamblea general", "Concierto corporativo", "Celebración institucional", "Capacitación con acto cultural"];
+  const origenes = ["Referido", "Web", "LinkedIn", "Frío", "Instagram"];
+
+  const oportunidades: { id: string; titulo: string; empresaId: string | null; contactoId: string | null }[] = [];
+  for (let i = 0; i < opsSpecs.length; i++) {
+    const spec = opsSpecs[i];
+    const emp = empresas[i % empresas.length];
+    const con = contactosPorEmpresa[emp.id][i % contactosPorEmpresa[emp.id].length];
+    const op = await prisma.oportunidad.create({
+      data: {
+        titulo: `${serviciosTitulo[i % serviciosTitulo.length]} — ${emp.nombre}`,
+        etapa: spec.etapa,
+        valor: spec.valor,
+        probabilidad: spec.probabilidad,
+        empresaId: emp.id,
+        contactoId: con.id,
+        origenLead: origenes[i % origenes.length],
+        fechaCierre: dia(spec.diasCierre),
+        creadoEn: dia(spec.diasCreacion),
+        tenantId: tenant.id,
+        creadoBy: comercial.id,
+      },
+    });
+    oportunidades.push(op);
+  }
+  console.log(`✅ Oportunidades creadas: ${oportunidades.length} (20 activas en los 4 rangos de antigüedad, 12 ganadas, 8 perdidas)`);
+
+  // ── ACTIVIDADES — vinculadas a una muestra de oportunidades de distintas
+  // etapas y antigüedades ──────────────────────────────────────────────────
+  const actividadEspecs: { opIdx: number; tipo: "LLAMADA" | "EMAIL" | "REUNION" | "TAREA"; dias: number; completada: boolean; titulo: string }[] = [
+    { opIdx: 15, tipo: "LLAMADA", dias: -4, completada: false, titulo: "Llamada de seguimiento" },
+    { opIdx: 10, tipo: "EMAIL", dias: -2, completada: false, titulo: "Enviar propuesta ajustada" },
+    { opIdx: 5, tipo: "REUNION", dias: 3, completada: false, titulo: "Reunión inicial de calificación" },
+    { opIdx: 20, tipo: "REUNION", dias: -3, completada: true, titulo: "Firma de contrato" },
+    { opIdx: 15, tipo: "REUNION", dias: 6, completada: false, titulo: "Visita técnica a la sala" },
+    { opIdx: 0, tipo: "TAREA", dias: 8, completada: false, titulo: "Preparar propuesta inicial" },
+    { opIdx: 1, tipo: "LLAMADA", dias: -6, completada: false, titulo: "Llamada de seguimiento" },
+    { opIdx: 11, tipo: "EMAIL", dias: 5, completada: false, titulo: "Enviar cotización actualizada" },
+    { opIdx: 16, tipo: "REUNION", dias: -10, completada: true, titulo: "Presentación de propuesta" },
+    { opIdx: 6, tipo: "TAREA", dias: 4, completada: false, titulo: "Validar disponibilidad de fecha" },
+    { opIdx: 21, tipo: "LLAMADA", dias: -8, completada: true, titulo: "Confirmación de pago" },
+    { opIdx: 2, tipo: "REUNION", dias: 10, completada: false, titulo: "Reunión de seguimiento" },
+    { opIdx: 17, tipo: "EMAIL", dias: -1, completada: false, titulo: "Enviar términos de contrato" },
+    { opIdx: 12, tipo: "TAREA", dias: 7, completada: false, titulo: "Cotizar producción técnica adicional" },
+    { opIdx: 7, tipo: "LLAMADA", dias: -12, completada: false, titulo: "Llamada de seguimiento" },
+  ];
+  for (const a of actividadEspecs) {
+    const op = oportunidades[a.opIdx];
+    const nombreEmpresa = op.titulo.split(" — ")[1] ?? "";
+    await prisma.actividad.create({
+      data: {
+        titulo: `${a.titulo} — ${nombreEmpresa}`,
+        tipo: a.tipo,
+        fecha: dia(a.dias),
+        completada: a.completada,
+        empresaId: op.empresaId,
+        contactoId: op.contactoId,
+        oportunidadId: op.id,
+        tenantId: tenant.id,
+        creadoBy: comercial.id,
+      },
+    });
+  }
+  console.log(`✅ Actividades creadas: ${actividadEspecs.length}`);
 
   // ── COTIZACIONES ──────────────────────────────────────────────────────────
-  await prisma.cotizacion.create({
-    data: {
-      estado: "ACEPTADA", sede: "Sala principal", fechaEvento: dia(-20), fechaValidez: dia(-10),
-      empresaId: colSanMarcos.id, contactoId: con1.id, oportunidadId: op1.id, tenantId: tenant.id,
-      items: { create: [{ descripcion: "Alquiler sala — día completo", cantidad: 1, precioUnit: 6500000 }] },
-    },
-  });
-  await prisma.cotizacion.create({
-    data: {
-      estado: "ENVIADA", fechaValidez: dia(15), creadoEn: dia(-4),
-      empresaId: empTech.id, contactoId: con3.id, oportunidadId: op2.id, tenantId: tenant.id,
-      notas: "Incluye catering para 200 personas.",
-      items: { create: [
-        { descripcion: "Paquete corporativo con catering", cantidad: 1, precioUnit: 9800000 },
-        { descripcion: "Producción técnica adicional", cantidad: 1, precioUnit: 1800000 },
-      ] },
-    },
-  });
-  await prisma.cotizacion.create({
-    data: {
-      estado: "BORRADOR", fechaValidez: dia(20),
-      empresaId: colBilingue.id, contactoId: con2.id, oportunidadId: op3.id, tenantId: tenant.id,
-      items: { create: [{ descripcion: "Función privada colegio", cantidad: 1, precioUnit: 4200000 }] },
-    },
-  });
-  console.log("✅ Cotizaciones creadas: 3 (aceptada, enviada, borrador)");
+  const cotizacionEspecs: { opIdx: number; estado: "ACEPTADA" | "ENVIADA" | "BORRADOR" | "RECHAZADA"; diasValidez: number; motivoRechazo?: string }[] = [
+    { opIdx: 20, estado: "ACEPTADA", diasValidez: -5 },
+    { opIdx: 15, estado: "ENVIADA", diasValidez: 15 },
+    { opIdx: 10, estado: "BORRADOR", diasValidez: 20 },
+    { opIdx: 32, estado: "RECHAZADA", diasValidez: -30, motivoRechazo: "presupuesto" },
+    { opIdx: 16, estado: "ENVIADA", diasValidez: 18 },
+    { opIdx: 21, estado: "ACEPTADA", diasValidez: -12 },
+  ];
+  for (const c of cotizacionEspecs) {
+    const op = oportunidades[c.opIdx];
+    await prisma.cotizacion.create({
+      data: {
+        estado: c.estado,
+        fechaValidez: dia(c.diasValidez),
+        motivoRechazo: c.motivoRechazo,
+        empresaId: op.empresaId,
+        contactoId: op.contactoId,
+        oportunidadId: op.id,
+        tenantId: tenant.id,
+        items: { create: [{ descripcion: op.titulo.split(" — ")[0], cantidad: 1, precioUnit: 4500000 }] },
+      },
+    });
+  }
+  console.log(`✅ Cotizaciones creadas: ${cotizacionEspecs.length}`);
 
   // ── METAS DE VENTA ────────────────────────────────────────────────────────
   const hoy = new Date();
@@ -294,8 +463,8 @@ async function main() {
 ╠════════════════════════════════════════════════════════════╣
 ║  Tenant:      Demo Teatro (Funciones + Audiencia activos)  ║
 ║  Usuarios:    3 (admin, gerente, comercial)                ║
-║  Empresas B2B: 6 · Contactos: 6 · Pipeline: 6 oportunidades║
-║  Cotizaciones: 3 · Metas de venta: mensual + anual         ║
+║  Empresas B2B: 50 · Contactos: 80 · Pipeline: 40 oport.    ║
+║  Cotizaciones: 6 · Metas de venta: mensual + anual         ║
 ║  Funciones:   16 (pasadas + 3 próximas)                    ║
 ║  Espectadores: 35 · Asistencias: ${String(totalAsistencias).padEnd(3)} · NPS: ${String(totalNps).padEnd(3)}          ║
 ║  Membresías:  5 Mecenas, 7 Fanático                         ║
