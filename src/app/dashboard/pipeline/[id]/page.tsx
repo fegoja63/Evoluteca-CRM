@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
@@ -15,6 +15,9 @@ type Oportunidad = {
   creadoEn: string;
   fechaCierre: string | null;
   probabilidad: number | null;
+  salonId: string | null;
+  sede: string | null;
+  fechaEvento: string | null;
   extras: Record<string, string> | null;
   empresa:  { id: string; nombre: string; sector: string | null; telefono: string | null } | null;
   contacto: { id: string; nombre: string; email: string | null; telefono: string | null; cargo: string | null } | null;
@@ -33,6 +36,9 @@ const ETAPAS = [
 
 const ETAPA_ORDEN = ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION","GANADA","PERDIDA"];
 
+type Salon = { id: string; nombre: string; capacidad: number | null };
+type Disponibilidad = { aceptadas: { id: string; empresa: { nombre: string } | null }[]; pendientes: { id: string; empresa: { nombre: string } | null }[] };
+
 export default function OportunidadDetallePage() {
   const params  = useParams();
   const router  = useRouter();
@@ -41,10 +47,14 @@ export default function OportunidadDetallePage() {
   const [op, setOp] = useState<Oportunidad | null>(null);
   const [editando, setEditando] = useState(false);
   const [guardando, setGuardando] = useState(false);
-  const [form, setForm] = useState({ titulo: "", valor: "", etapa: "", notas: "", fechaCierre: "", probabilidad: "" });
+  const [form, setForm] = useState({ titulo: "", valor: "", etapa: "", notas: "", fechaCierre: "", probabilidad: "", salonId: "", sede: "", fechaEvento: "" });
   const [modalPerdida, setModalPerdida] = useState(false);
   const [motivoPerdida, setMotivoPerdida] = useState("");
   const [otroMotivo, setOtroMotivo] = useState("");
+  const [salones, setSalones] = useState<Salon[]>([]);
+  const [moduloSalones, setModuloSalones] = useState(false);
+  const [disponibilidad, setDisponibilidad] = useState<Disponibilidad | null>(null);
+  const disponibilidadClaveRef = useRef("");
 
   const MOTIVOS_PERDIDA = [
     "Precio muy alto",
@@ -64,10 +74,34 @@ export default function OportunidadDetallePage() {
       titulo: data.titulo, valor: data.valor ?? "", etapa: data.etapa, notas: data.notas ?? "",
       fechaCierre: data.fechaCierre ? data.fechaCierre.substring(0, 10) : "",
       probabilidad: String(data.probabilidad ?? 50),
+      salonId: data.salonId ?? "", sede: data.sede ?? "",
+      fechaEvento: data.fechaEvento ? data.fechaEvento.substring(0, 10) : "",
     });
   }
 
   useEffect(() => { cargar(); }, [id]);
+
+  useEffect(() => {
+    fetch("/api/configuracion").then(r => r.json()).then(config => {
+      const salonesActivo = !!config?.modulos?.salones;
+      setModuloSalones(salonesActivo);
+      if (salonesActivo) {
+        fetch("/api/salones").then(r => r.json()).then(s => setSalones(Array.isArray(s) ? s : []));
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!form.salonId || !form.fechaEvento) { setDisponibilidad(null); return; }
+    const clave = `${form.salonId}|${form.fechaEvento}`;
+    const t = setTimeout(async () => {
+      disponibilidadClaveRef.current = clave;
+      const res = await fetch(`/api/salones/disponibilidad?salonId=${encodeURIComponent(form.salonId)}&fecha=${encodeURIComponent(form.fechaEvento)}`);
+      const data = await res.json();
+      if (disponibilidadClaveRef.current === clave) setDisponibilidad(data);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [form.salonId, form.fechaEvento]);
 
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
@@ -78,6 +112,7 @@ export default function OportunidadDetallePage() {
       body: JSON.stringify({
         titulo: form.titulo, valor: form.valor || null, etapa: form.etapa, notas: form.notas || null,
         fechaCierre: form.fechaCierre || null, probabilidad: Number(form.probabilidad),
+        salonId: form.salonId || null, sede: form.sede || null, fechaEvento: form.fechaEvento || null,
       }),
     });
     setEditando(false);
@@ -187,6 +222,40 @@ export default function OportunidadDetallePage() {
                 <input type="range" min="0" max="100" step="5" value={form.probabilidad}
                   onChange={e => setForm({...form, probabilidad: e.target.value})}
                   className="w-full accent-blue-600 mt-2" />
+              </div>
+              {moduloSalones && (
+                <div className="col-span-2">
+                  <label className="text-xs text-slate-500 mb-1 block">Salón</label>
+                  <select value={form.salonId} onChange={e => setForm({...form, salonId: e.target.value})}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white">
+                    <option value="">— Sin salón del catálogo —</option>
+                    {salones.map(s => <option key={s.id} value={s.id}>{s.nombre}{s.capacidad ? ` (${s.capacidad} pers.)` : ""}</option>)}
+                  </select>
+                  {disponibilidad && disponibilidad.aceptadas.length > 0 && (
+                    <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                      <p className="font-semibold">⚠ Ese salón ya tiene una cotización aceptada ese día:</p>
+                      <ul className="mt-1 list-disc list-inside">
+                        {disponibilidad.aceptadas.map(c => <li key={c.id}>{c.empresa?.nombre ?? "Sin empresa"}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                  {disponibilidad && disponibilidad.aceptadas.length === 0 && disponibilidad.pendientes.length > 0 && (
+                    <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                      {disponibilidad.pendientes.length} cotización(es) pendiente(s) también interesada(s) en esa fecha y salón.
+                    </div>
+                  )}
+                </div>
+              )}
+              <div>
+                <label className="text-xs text-slate-500 mb-1 block">Sede / Lugar</label>
+                <input value={form.sede} onChange={e => setForm({...form, sede: e.target.value})}
+                  placeholder="Teatro Nacional, Sala A..."
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+              </div>
+              <div>
+                <label className="text-xs text-slate-500 mb-1 block">Fecha del evento</label>
+                <input type="date" value={form.fechaEvento} onChange={e => setForm({...form, fechaEvento: e.target.value})}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
               </div>
               <div className="col-span-2">
                 <label className="text-xs text-slate-500 mb-1 block">Notas</label>

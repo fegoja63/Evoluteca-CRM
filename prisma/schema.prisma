@@ -165,11 +165,16 @@ model Oportunidad {
 
   contactoId  String?
   contacto    Contacto?         @relation(fields: [contactoId], references: [id], onDelete: SetNull)
+
+  salonId     String?
+  salon       Salon?            @relation(fields: [salonId], references: [id], onDelete: SetNull)
+
   actividades   Actividad[]
   cotizaciones  Cotizacion[]
   cambiosEtapa  CambioEtapa[]
 
   @@index([tenantId])
+  @@index([salonId, fechaEvento])
   @@map("oportunidades")
 }
 
@@ -608,6 +613,7 @@ model Salon {
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   cotizaciones Cotizacion[]
+  oportunidades Oportunidad[]
 
   @@index([tenantId])
   @@map("salones")

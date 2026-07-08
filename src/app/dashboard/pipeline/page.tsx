@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { KpiCard } from "@/components/kpi-card";
 
@@ -51,6 +51,8 @@ function urgenciaBadgeColor(dias: number): string {
 
 type Empresa = { id: string; nombre: string };
 type Contacto = { id: string; nombre: string };
+type Salon = { id: string; nombre: string; capacidad: number | null };
+type Disponibilidad = { aceptadas: { id: string; empresa: { nombre: string } | null }[]; pendientes: { id: string; empresa: { nombre: string } | null }[] };
 
 const ETAPAS = [
   { key: "PROSPECTO",   label: "Prospecto",   color: "border-t-slate-400",   badge: "bg-slate-100 text-slate-600" },
@@ -85,7 +87,12 @@ export default function PipelinePage() {
   const [orden, setOrden] = useState<{ col: string; dir: "asc" | "desc" }>({ col: "creadoEn", dir: "desc" });
   const [form, setForm] = useState({
     titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50", fechaCierre: "",
+    salonId: "", sede: "", fechaEvento: "",
   });
+  const [salones, setSalones] = useState<Salon[]>([]);
+  const [moduloSalones, setModuloSalones] = useState(false);
+  const [disponibilidad, setDisponibilidad] = useState<Disponibilidad | null>(null);
+  const disponibilidadClaveRef = useRef("");
 
   async function cargar() {
     setCargando(true);
@@ -95,12 +102,30 @@ export default function PipelinePage() {
   }
 
   async function cargarRelaciones() {
-    const [resEmp, resCon] = await Promise.all([fetch("/api/empresas"), fetch("/api/contactos")]);
+    const [resEmp, resCon, resConfig] = await Promise.all([fetch("/api/empresas"), fetch("/api/contactos"), fetch("/api/configuracion")]);
     setEmpresas(await resEmp.json());
     setContactos(await resCon.json());
+    const config = await resConfig.json();
+    const salonesActivo = !!config?.modulos?.salones;
+    setModuloSalones(salonesActivo);
+    if (salonesActivo) {
+      fetch("/api/salones").then(r => r.json()).then(s => setSalones(Array.isArray(s) ? s : []));
+    }
   }
 
   useEffect(() => { cargar(); cargarRelaciones(); }, []);
+
+  useEffect(() => {
+    if (!form.salonId || !form.fechaEvento) { setDisponibilidad(null); return; }
+    const clave = `${form.salonId}|${form.fechaEvento}`;
+    const t = setTimeout(async () => {
+      disponibilidadClaveRef.current = clave;
+      const res = await fetch(`/api/salones/disponibilidad?salonId=${encodeURIComponent(form.salonId)}&fecha=${encodeURIComponent(form.fechaEvento)}`);
+      const data = await res.json();
+      if (disponibilidadClaveRef.current === clave) setDisponibilidad(data);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [form.salonId, form.fechaEvento]);
 
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
@@ -110,7 +135,8 @@ export default function PipelinePage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
-    setForm({ titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50", fechaCierre: "" });
+    setForm({ titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50", fechaCierre: "", salonId: "", sede: "", fechaEvento: "" });
+    setDisponibilidad(null);
     setMostrarForm(false);
     setGuardando(false);
     cargar();
@@ -277,6 +303,11 @@ export default function PipelinePage() {
           </div>
         )}
 
+        <button onClick={() => setMostrarForm(v => !v)}
+          className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700">
+          {mostrarForm ? "× Cancelar" : "+ Nueva oportunidad"}
+        </button>
+
         {/* Toggle vista */}
         <div className="ml-auto flex rounded-xl border border-slate-200 overflow-hidden bg-white">
           <button onClick={() => setVista("kanban")}
@@ -330,6 +361,40 @@ export default function PipelinePage() {
                 <option value="">Sin contacto</option>
                 {contactos.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
               </select>
+            </div>
+            {moduloSalones && (
+              <div className="col-span-2">
+                <label className="mb-1 block text-xs text-slate-500">Salón</label>
+                <select value={form.salonId} onChange={e => setForm({...form, salonId: e.target.value})}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
+                  <option value="">— Sin salón del catálogo —</option>
+                  {salones.map(s => <option key={s.id} value={s.id}>{s.nombre}{s.capacidad ? ` (${s.capacidad} pers.)` : ""}</option>)}
+                </select>
+                {disponibilidad && disponibilidad.aceptadas.length > 0 && (
+                  <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                    <p className="font-semibold">⚠ Ese salón ya tiene una cotización aceptada ese día:</p>
+                    <ul className="mt-1 list-disc list-inside">
+                      {disponibilidad.aceptadas.map(c => <li key={c.id}>{c.empresa?.nombre ?? "Sin empresa"}</li>)}
+                    </ul>
+                  </div>
+                )}
+                {disponibilidad && disponibilidad.aceptadas.length === 0 && disponibilidad.pendientes.length > 0 && (
+                  <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                    {disponibilidad.pendientes.length} cotización(es) pendiente(s) también interesada(s) en esa fecha y salón.
+                  </div>
+                )}
+              </div>
+            )}
+            <div>
+              <label className="mb-1 block text-xs text-slate-500">Sede / Lugar</label>
+              <input value={form.sede} onChange={e => setForm({...form, sede: e.target.value})}
+                placeholder="Teatro Nacional, Sala A..."
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-slate-500">Fecha del evento</label>
+              <input type="date" value={form.fechaEvento} onChange={e => setForm({...form, fechaEvento: e.target.value})}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">

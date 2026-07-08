@@ -23,6 +23,9 @@ export default function CalendarioSalonesPage() {
   const [anio, setAnio] = useState(hoy.getFullYear());
   const [mes, setMes] = useState(hoy.getMonth() + 1); // 1-12
   const [cargando, setCargando] = useState(true);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverDia, setDragOverDia] = useState<number | null>(null);
+  const [moviendo, setMoviendo] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -68,6 +71,42 @@ export default function CalendarioSalonesPage() {
     setAnio(a);
   }
 
+  async function handleDrop(dia: number | null) {
+    const draggedId = draggingId;
+    setDraggingId(null);
+    setDragOverDia(null);
+    if (dia == null || !draggedId || moviendo) return;
+
+    const cot = cotizaciones.find(c => c.id === draggedId);
+    if (!cot) return;
+
+    if (cot.fechaEvento) {
+      const actual = new Date(cot.fechaEvento);
+      if (actual.getUTCFullYear() === anio && actual.getUTCMonth() + 1 === mes && actual.getUTCDate() === dia) return;
+    }
+
+    const nuevaFecha = `${anio}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+
+    setMoviendo(true);
+    const res = await fetch(`/api/salones/disponibilidad?salonId=${encodeURIComponent(salonId)}&fecha=${encodeURIComponent(nuevaFecha)}&excluirCotizacionId=${encodeURIComponent(draggedId)}`);
+    const disp = await res.json();
+    if (disp.aceptadas?.length > 0) {
+      const nombres = disp.aceptadas.map((c: { empresa: { nombre: string } | null }) => c.empresa?.nombre ?? "Sin empresa").join(", ");
+      if (!confirm(`Ese día ya tiene otra reserva aceptada para este salón (${nombres}). ¿Mover de todas formas?`)) {
+        setMoviendo(false);
+        return;
+      }
+    }
+
+    setCotizaciones(prev => prev.map(c => c.id === draggedId ? { ...c, fechaEvento: new Date(Date.UTC(anio, mes - 1, dia)).toISOString() } : c));
+    await fetch(`/api/cotizaciones/${draggedId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fechaEvento: nuevaFecha }),
+    });
+    setMoviendo(false);
+  }
+
   if (cargando) return <p className="text-sm text-slate-400 p-6">Cargando...</p>;
 
   return (
@@ -109,18 +148,32 @@ export default function CalendarioSalonesPage() {
             <div className="grid grid-cols-7 gap-1">
               {celdas.map((dia, i) => {
                 const reservas = dia ? reservasDelMes.get(dia) : undefined;
+                const isOver = dia != null && dragOverDia === dia;
                 return (
-                  <div key={i} className={`min-h-[72px] rounded-lg border p-1.5 ${
-                    dia == null ? "border-transparent" : reservas?.length ? "border-red-200 bg-red-50" : "border-slate-100"
-                  }`}>
+                  <div key={i}
+                    onDragOver={e => { if (dia != null) { e.preventDefault(); setDragOverDia(dia); } }}
+                    onDragLeave={() => setDragOverDia(prev => prev === dia ? null : prev)}
+                    onDrop={e => { e.preventDefault(); handleDrop(dia); }}
+                    className={`min-h-[72px] rounded-lg border p-1.5 transition-colors ${
+                      dia == null ? "border-transparent" :
+                      isOver ? "border-blue-300 bg-blue-50" :
+                      reservas?.length ? "border-red-200 bg-red-50" : "border-slate-100"
+                    }`}>
                     {dia != null && (
                       <>
                         <p className="text-xs text-slate-400 mb-1">{dia}</p>
                         {reservas?.map(r => (
-                          <Link key={r.id} href={`/dashboard/cotizaciones-formales/${r.id}`}
-                            className="block truncate text-[11px] font-medium text-red-700 hover:underline">
-                            {r.empresa?.nombre ?? "Sin empresa"}
-                          </Link>
+                          <div key={r.id}
+                            draggable
+                            onDragStart={e => { e.dataTransfer.setData("cotizacionId", r.id); e.dataTransfer.effectAllowed = "move"; setDraggingId(r.id); }}
+                            onDragEnd={() => { setDraggingId(null); setDragOverDia(null); }}
+                            className={`cursor-grab active:cursor-grabbing ${draggingId === r.id ? "opacity-40" : ""}`}>
+                            <Link href={`/dashboard/cotizaciones-formales/${r.id}`}
+                              onClick={e => { if (draggingId) e.preventDefault(); }}
+                              className="block truncate text-[11px] font-medium text-red-700 hover:underline">
+                              {r.empresa?.nombre ?? "Sin empresa"}
+                            </Link>
+                          </div>
                         ))}
                       </>
                     )}
@@ -129,7 +182,7 @@ export default function CalendarioSalonesPage() {
               })}
             </div>
           </div>
-          <p className="mt-3 text-xs text-slate-400">Se muestran solo las cotizaciones con estado "Aceptada" — las reservas confirmadas del salón.</p>
+          <p className="mt-3 text-xs text-slate-400">Se muestran solo las cotizaciones con estado "Aceptada" — las reservas confirmadas del salón. Arrastra una reserva a otro día para reprogramarla.</p>
         </>
       )}
     </div>
