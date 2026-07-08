@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 export default function BienvenidaPage() {
   const [nombre, setNombre] = useState("");
   const [esTeatro, setEsTeatro] = useState(false);
+  const [esDemoTeatro, setEsDemoTeatro] = useState(false);
 
   useEffect(() => {
     fetch("/api/configuracion")
@@ -13,6 +14,7 @@ export default function BienvenidaPage() {
       .then(d => {
         if (d.tenantNombre) setNombre(d.tenantNombre);
         setEsTeatro(!!d.modulos?.funciones || !!d.modulos?.audiencia);
+        setEsDemoTeatro(d.tenantNombre === "Demo Teatro");
       });
   }, []);
 
@@ -145,6 +147,27 @@ export default function BienvenidaPage() {
                 <a href="/api/manual/pdf-teatro" target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-colors">
                   <span>⬇</span> Descargar anexo PDF
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manual de pruebas — solo visible en la cuenta demo de teatro */}
+      {esDemoTeatro && (
+        <div className="bg-white rounded-2xl border border-amber-200 p-5 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="text-3xl shrink-0">🧪</div>
+            <div className="flex-1">
+              <h2 className="text-sm font-bold text-slate-900 mb-1">Manual de pruebas — Cuenta Demo</h2>
+              <p className="text-xs text-slate-500 mb-4">
+                Recorrido guiado paso a paso por esta cuenta de demostración: la parte comercial general y la parte específica de teatros, con las credenciales de los 3 roles.
+              </p>
+              <div className="flex gap-3">
+                <a href="/api/manual/pdf-demo-teatro" target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition-colors">
+                  <span>⬇</span> Descargar manual de pruebas
                 </a>
               </div>
             </div>
