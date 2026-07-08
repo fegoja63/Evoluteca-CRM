@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -10,6 +10,8 @@ type Oportunidad = { id: string; titulo: string; empresa: { id: string } | null 
 type Producto = { id: string; nombre: string; precioBase: string; descripcion: string | null };
 type ItemPlantilla = { descripcion: string; cantidad: number; precioUnit: string };
 type Plantilla = { id: string; nombre: string; notas: string | null; items: ItemPlantilla[] };
+type Salon = { id: string; nombre: string; capacidad: number | null };
+type Disponibilidad = { aceptadas: { id: string; empresa: { nombre: string } | null }[]; pendientes: { id: string; empresa: { nombre: string } | null }[] };
 
 type Linea = { descripcion: string; cantidad: string; precioUnit: string };
 
@@ -25,6 +27,8 @@ export default function NuevaCotizacionPage() {
   const [oportunidades, setOportunidades] = useState<Oportunidad[]>([]);
   const [productos, setProductos]     = useState<Producto[]>([]);
   const [plantillas, setPlantillas]   = useState<Plantilla[]>([]);
+  const [salones, setSalones]         = useState<Salon[]>([]);
+  const [moduloSalones, setModuloSalones] = useState(false);
   const [cargando, setCargando]       = useState(true);
   const [enviando, setEnviando]       = useState(false);
   const [error, setError]             = useState("");
@@ -32,10 +36,27 @@ export default function NuevaCotizacionPage() {
   const [empresaId, setEmpresaId]         = useState("");
   const [contactoId, setContactoId]       = useState("");
   const [oportunidadId, setOportunidadId] = useState("");
+  const [salonId, setSalonId]         = useState("");
   const [sede, setSede]               = useState("");
   const [fechaEvento, setFechaEvento] = useState("");
   const [fechaValidez, setFechaValidez] = useState("");
   const [notas, setNotas]             = useState("");
+  const [disponibilidad, setDisponibilidad] = useState<Disponibilidad | null>(null);
+  const disponibilidadClaveRef = useRef("");
+
+  useEffect(() => {
+    if (!salonId || !fechaEvento) { setDisponibilidad(null); return; }
+    const clave = `${salonId}|${fechaEvento}`;
+    const t = setTimeout(async () => {
+      disponibilidadClaveRef.current = clave;
+      const res = await fetch(`/api/salones/disponibilidad?salonId=${encodeURIComponent(salonId)}&fecha=${encodeURIComponent(fechaEvento)}`);
+      const data = await res.json();
+      // Ignora la respuesta si el usuario ya cambió salón/fecha (evita que una
+      // respuesta lenta y vieja sobreescriba el resultado de una selección más reciente).
+      if (disponibilidadClaveRef.current === clave) setDisponibilidad(data);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [salonId, fechaEvento]);
 
   const [lineas, setLineas] = useState<Linea[]>([
     { descripcion: "", cantidad: "1", precioUnit: "" },
@@ -48,12 +69,18 @@ export default function NuevaCotizacionPage() {
       fetch("/api/oportunidades").then(r => r.json()),
       fetch("/api/productos").then(r => r.json()),
       fetch("/api/plantillas-cotizacion").then(r => r.json()),
-    ]).then(([emp, con, opo, prod, plant]) => {
+      fetch("/api/configuracion").then(r => r.json()),
+    ]).then(([emp, con, opo, prod, plant, config]) => {
       setEmpresas(Array.isArray(emp) ? emp : []);
       setContactos(Array.isArray(con) ? con : []);
       setOportunidades(Array.isArray(opo) ? opo : []);
       setProductos(Array.isArray(prod) ? prod : []);
       setPlantillas(Array.isArray(plant) ? plant : []);
+      const salonesActivo = !!config?.modulos?.salones;
+      setModuloSalones(salonesActivo);
+      if (salonesActivo) {
+        fetch("/api/salones").then(r => r.json()).then(s => setSalones(Array.isArray(s) ? s : []));
+      }
       setCargando(false);
     });
   }, []);
@@ -100,6 +127,7 @@ export default function NuevaCotizacionPage() {
         empresaId:    empresaId    || null,
         contactoId:   contactoId   || null,
         oportunidadId: oportunidadId || null,
+        salonId:      salonId      || null,
         sede:         sede.trim()  || null,
         fechaEvento:  fechaEvento  || null,
         fechaValidez: fechaValidez || null,
@@ -196,6 +224,36 @@ export default function NuevaCotizacionPage() {
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <h2 className="text-sm font-bold text-slate-700 mb-4">Detalles del evento</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {moduloSalones && (
+              <div className="col-span-2">
+                <label className="block text-xs font-medium text-slate-600 mb-1">Salón</label>
+                <select value={salonId} onChange={e => setSalonId(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-blue-500">
+                  <option value="">— Sin salón del catálogo (usar texto libre abajo) —</option>
+                  {salones.map(s => (
+                    <option key={s.id} value={s.id}>{s.nombre}{s.capacidad ? ` (${s.capacidad} pers.)` : ""}</option>
+                  ))}
+                </select>
+                {salones.length === 0 && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    Aún no tienes salones en el catálogo. <Link href="/dashboard/salones" className="underline">Agrega uno</Link>.
+                  </p>
+                )}
+                {disponibilidad && disponibilidad.aceptadas.length > 0 && (
+                  <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                    <p className="font-semibold">⚠ Ya reservado ese día:</p>
+                    <ul className="mt-1 list-disc list-inside">
+                      {disponibilidad.aceptadas.map(c => <li key={c.id}>{c.empresa?.nombre ?? "Sin empresa"} (cotización aceptada)</li>)}
+                    </ul>
+                  </div>
+                )}
+                {disponibilidad && disponibilidad.aceptadas.length === 0 && disponibilidad.pendientes.length > 0 && (
+                  <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                    {disponibilidad.pendientes.length} cotización(es) pendiente(s) también interesada(s) en esa fecha y salón.
+                  </div>
+                )}
+              </div>
+            )}
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Sede / Lugar</label>
               <input type="text" value={sede} onChange={e => setSede(e.target.value)}

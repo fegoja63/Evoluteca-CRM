@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { empresaId, contactoId, oportunidadId, fechaEvento, sede, notas, fechaValidez, items } = body;
+  const { empresaId, contactoId, oportunidadId, salonId, fechaEvento, sede, notas, fechaValidez, items } = body;
 
   if (!Array.isArray(items) || items.length === 0) {
     return NextResponse.json({ error: "Agrega al menos un ítem" }, { status: 400 });
@@ -42,6 +42,7 @@ export async function POST(request: Request) {
       empresaId: empresaId || null,
       contactoId: contactoId || null,
       oportunidadId: oportunidadId || null,
+      salonId: salonId || null,
       fechaEvento: fechaEvento ? new Date(fechaEvento) : null,
       sede: sede?.trim() || null,
       notas: notas?.trim() || null,

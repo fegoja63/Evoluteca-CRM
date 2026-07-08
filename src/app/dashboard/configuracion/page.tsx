@@ -7,6 +7,7 @@ type Modulos = {
   funciones?: boolean;
   audiencia?: boolean;
   expedientes?: boolean;
+  salones?: boolean;
 };
 
 const MODULOS_DISPONIBLES = [
@@ -27,6 +28,12 @@ const MODULOS_DISPONIBLES = [
     titulo: "Módulo Expedientes (jurídico)",
     descripcion: "Gestiona casos jurídicos: radicado, juzgado, contraparte, plazos procesales con alertas, bitácora de actuaciones y registro de horas por abogado. Ideal para despachos de abogados.",
     emoji: "⚖️",
+  },
+  {
+    key: "salones",
+    titulo: "Módulo Salones (alquiler de espacios)",
+    descripcion: "Catálogo de salones con capacidad y descripción, selector de salón en cada cotización, calendario mensual de reservas y aviso de choque de fechas cuando dos cotizaciones apuntan al mismo salón el mismo día. Ideal para negocios con varios espacios en alquiler.",
+    emoji: "🏛️",
   },
 ];
 

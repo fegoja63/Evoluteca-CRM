@@ -27,6 +27,7 @@ const navOpcionales: Record<string, { href: string; label: string; emoji: string
   funciones: { href: "/dashboard/funciones", label: "Funciones", emoji: "🎭" },
   audiencia: { href: "/dashboard/audiencia", label: "Audiencia", emoji: "🎪" },
   expedientes: { href: "/dashboard/expedientes", label: "Expedientes", emoji: "⚖️" },
+  salones: { href: "/dashboard/salones", label: "Salones", emoji: "🏛️" },
 };
 
 export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClose?: () => void }) {
