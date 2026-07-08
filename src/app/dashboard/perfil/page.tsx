@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const ROL_LABEL: Record<string, string> = {
   ADMINISTRADOR: "Administrador",
@@ -14,6 +14,22 @@ export default function PerfilPage() {
 
   const [nombre, setNombre]               = useState(session?.user?.name ?? "");
   const [email, setEmail]                 = useState(session?.user?.email ?? "");
+  const [datosOriginales, setDatosOriginales] = useState({ nombre: session?.user?.name ?? "", email: session?.user?.email ?? "" });
+
+  // useSession() suele resolver la sesión de forma asíncrona — en el primer
+  // render "session" todavía es undefined, así que los campos quedaban vacíos
+  // (el email vacío bloqueaba el envío del formulario por validación nativa
+  // del navegador, sin ningún mensaje de error visible). Se sincronizan en
+  // cuanto la sesión carga, una sola vez, para no pisar lo que el usuario
+  // esté escribiendo si la sesión se refresca después.
+  useEffect(() => {
+    if (session?.user && !datosOriginales.nombre && !datosOriginales.email) {
+      setNombre(session.user.name ?? "");
+      setEmail(session.user.email ?? "");
+      setDatosOriginales({ nombre: session.user.name ?? "", email: session.user.email ?? "" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session]);
   const [passwordActual, setPasswordActual] = useState("");
   const [nuevaPassword, setNuevaPassword] = useState("");
   const [confirmar, setConfirmar]         = useState("");
@@ -36,8 +52,8 @@ export default function PerfilPage() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        nombre: nombre !== session?.user?.name ? nombre : undefined,
-        email: email !== session?.user?.email ? email : undefined,
+        nombre: nombre !== datosOriginales.nombre ? nombre : undefined,
+        email: email !== datosOriginales.email ? email : undefined,
         passwordActual: passwordActual || undefined,
         nuevaPassword: nuevaPassword || undefined,
       }),
@@ -51,7 +67,8 @@ export default function PerfilPage() {
       return;
     }
 
-    await update({ name: nombre });
+    await update({ name: nombre, email });
+    setDatosOriginales({ nombre, email });
     setExito("Cambios guardados correctamente");
     setPasswordActual("");
     setNuevaPassword("");

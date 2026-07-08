@@ -85,7 +85,7 @@ model Empresa {
   sitioWeb    String?
   telefono    String?
   notas       String?
-  etiquetas   String[]
+  etiquetas   String[]  @default([])
   extras      Json?
   creadoEn    DateTime  @default(now())
   creadoBy    String?
@@ -146,6 +146,8 @@ model Oportunidad {
   costo         Decimal?          @db.Decimal(12, 2)
   etapa         EtapaOportunidad  @default(PROSPECTO)
   fechaEvento   DateTime?
+  horaInicio    String?
+  horaFin       String?
   fechaCierre   DateTime?
   sede          String?
   origenLead    String?
@@ -243,6 +245,10 @@ model Cotizacion {
   fechaValidez    DateTime?
   tokenPublico    String?           @unique
   motivoRechazo   String?
+  impuestoNombre     String?
+  impuestoPorcentaje Decimal?       @db.Decimal(5, 2)
+  horaInicio      String?
+  horaFin         String?
   creadoEn        DateTime          @default(now())
 
   tenantId    String

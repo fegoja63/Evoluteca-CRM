@@ -13,6 +13,8 @@ type Cotizacion = {
   fechaValidez: string | null;
   sede: string | null;
   notas: string | null;
+  impuestoNombre: string | null;
+  impuestoPorcentaje: string | null;
   creadoEn: string;
   empresa:     { id: string; nombre: string } | null;
   contacto:    { id: string; nombre: string; email: string | null } | null;
@@ -60,6 +62,12 @@ export default function CotizacionDetailPage() {
   const [duplicando, setDuplicando] = useState(false);
   const [enviando, setEnviando]   = useState(false);
   const [enviado, setEnviado]     = useState(false);
+  const [mostrarEmailPanel, setMostrarEmailPanel] = useState(false);
+  const [emailDestino, setEmailDestino] = useState("");
+  const [editImpuesto, setEditImpuesto] = useState(false);
+  const [impuestoNombre, setImpuestoNombre] = useState("");
+  const [impuestoPorcentaje, setImpuestoPorcentaje] = useState("");
+  const [guardandoImpuesto, setGuardandoImpuesto] = useState(false);
   const [linkPublico, setLinkPublico] = useState("");
   const [copiado, setCopiado]     = useState(false);
   const [motivoRechazo, setMotivoRechazo] = useState("");
@@ -74,6 +82,9 @@ export default function CotizacionDetailPage() {
     const data = await res.json();
     setCot(data);
     setNotas(data.notas ?? "");
+    setEmailDestino(prev => prev || data.contacto?.email || "");
+    setImpuestoNombre(data.impuestoNombre ?? "IVA");
+    setImpuestoPorcentaje(data.impuestoPorcentaje ?? "");
     setCargando(false);
   }
 
@@ -109,6 +120,18 @@ export default function CotizacionDetailPage() {
     });
     setEditNotas(false);
     setGuardando(false);
+    cargar();
+  }
+
+  async function guardarImpuesto() {
+    setGuardandoImpuesto(true);
+    await fetch(`/api/cotizaciones/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ impuestoNombre: impuestoNombre || null, impuestoPorcentaje: impuestoPorcentaje || null }),
+    });
+    setEditImpuesto(false);
+    setGuardandoImpuesto(false);
     cargar();
   }
 
@@ -162,17 +185,26 @@ export default function CotizacionDetailPage() {
   }
 
   async function enviarEmail() {
+    if (!emailDestino.trim()) return;
     setEnviando(true);
-    await fetch(`/api/cotizaciones/${id}/enviar-email`, { method: "POST" });
+    await fetch(`/api/cotizaciones/${id}/enviar-email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: emailDestino.trim() }),
+    });
     setEnviando(false);
     setEnviado(true);
+    setMostrarEmailPanel(false);
     setTimeout(() => setEnviado(false), 3000);
     cargar();
   }
 
   if (cargando || !cot) return <p className="text-sm text-slate-400 p-6">Cargando...</p>;
 
-  const total = cot.items.reduce((acc, i) => acc + i.cantidad * Number(i.precioUnit), 0);
+  const subtotal = cot.items.reduce((acc, i) => acc + i.cantidad * Number(i.precioUnit), 0);
+  const pctImpuesto = Number(cot.impuestoPorcentaje ?? 0);
+  const valorImpuesto = subtotal * (pctImpuesto / 100);
+  const total = subtotal + valorImpuesto;
 
   return (
     <div className="max-w-3xl">
@@ -216,7 +248,7 @@ export default function CotizacionDetailPage() {
             className="rounded-xl border border-violet-200 px-3 py-2 text-xs font-medium text-violet-600 hover:bg-violet-50 transition-colors">
             🔗 Link cliente
           </button>
-          <button onClick={enviarEmail} disabled={enviando || enviado}
+          <button onClick={() => setMostrarEmailPanel(v => !v)} disabled={enviando || enviado}
             className="rounded-xl border border-blue-200 px-3 py-2 text-xs font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 transition-colors">
             {enviado ? "✓ Enviado" : enviando ? "Enviando..." : "✉ Enviar email"}
           </button>
@@ -290,6 +322,18 @@ export default function CotizacionDetailPage() {
               })}
             </tbody>
             <tfoot>
+              <tr className="border-t border-slate-100">
+                <td colSpan={3} className="px-5 py-1.5 text-xs text-slate-500 text-right">Subtotal</td>
+                <td className="px-5 py-1.5 text-right text-sm text-slate-600">{fmt(subtotal)}</td>
+              </tr>
+              {pctImpuesto > 0 && (
+                <tr>
+                  <td colSpan={3} className="px-5 py-1.5 text-xs text-slate-500 text-right">
+                    {cot.impuestoNombre || "Impuesto"} ({pctImpuesto}%)
+                  </td>
+                  <td className="px-5 py-1.5 text-right text-sm text-slate-600">{fmt(valorImpuesto)}</td>
+                </tr>
+              )}
               <tr className="bg-slate-50 border-t-2 border-slate-200">
                 <td colSpan={3} className="px-5 py-4 text-sm font-bold text-slate-700 text-right uppercase tracking-wide">
                   Total
@@ -298,6 +342,36 @@ export default function CotizacionDetailPage() {
               </tr>
             </tfoot>
           </table>
+          <div className="px-5 py-3 border-t border-slate-100">
+            {editImpuesto ? (
+              <div className="flex flex-wrap items-end gap-2">
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Impuesto</label>
+                  <input type="text" value={impuestoNombre} onChange={e => setImpuestoNombre(e.target.value)}
+                    placeholder="Ej: IVA"
+                    className="w-28 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">%</label>
+                  <input type="number" min={0} max={100} step="0.01" value={impuestoPorcentaje}
+                    onChange={e => setImpuestoPorcentaje(e.target.value)}
+                    className="w-20 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                </div>
+                <button onClick={guardarImpuesto} disabled={guardandoImpuesto}
+                  className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                  {guardandoImpuesto ? "Guardando..." : "Guardar"}
+                </button>
+                <button onClick={() => setEditImpuesto(false)}
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50">
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setEditImpuesto(true)} className="text-xs text-blue-600 hover:underline">
+                {pctImpuesto > 0 ? "Editar impuesto" : "+ Agregar impuesto"}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Notas */}
@@ -337,6 +411,23 @@ export default function CotizacionDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Panel enviar email */}
+      {mostrarEmailPanel && (
+        <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 p-4 flex items-center gap-3">
+          <span className="text-blue-500 text-lg">✉</span>
+          <div className="flex-1">
+            <p className="text-xs font-semibold text-blue-700 mb-1">Enviar cotización por email a</p>
+            <input type="email" value={emailDestino} onChange={e => setEmailDestino(e.target.value)}
+              placeholder="correo@cliente.com"
+              className="w-full rounded-lg border border-blue-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500 bg-white" />
+          </div>
+          <button onClick={enviarEmail} disabled={enviando || !emailDestino.trim()}
+            className="shrink-0 rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+            {enviando ? "Enviando..." : "Enviar"}
+          </button>
+        </div>
+      )}
 
       {/* Panel link público */}
       {linkPublico && (

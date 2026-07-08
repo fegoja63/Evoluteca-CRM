@@ -25,7 +25,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { estado, notas, empresaId, motivoRechazo, fechaEvento } = body;
+  const { estado, notas, empresaId, motivoRechazo, fechaEvento, horaInicio, horaFin, impuestoNombre, impuestoPorcentaje } = body;
 
   await prisma.cotizacion.updateMany({
     where: { id: params.id, tenantId: session.user.tenantId },
@@ -35,6 +35,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       ...(empresaId !== undefined && { empresaId: empresaId || null }),
       ...(motivoRechazo !== undefined && { motivoRechazo: motivoRechazo || null }),
       ...(fechaEvento !== undefined && { fechaEvento: fechaEvento ? new Date(fechaEvento) : null }),
+      ...(horaInicio !== undefined && { horaInicio: horaInicio || null }),
+      ...(horaFin !== undefined && { horaFin: horaFin || null }),
+      ...(impuestoNombre !== undefined && { impuestoNombre: impuestoNombre?.trim() || null }),
+      ...(impuestoPorcentaje !== undefined && { impuestoPorcentaje: impuestoPorcentaje === "" || impuestoPorcentaje === null ? null : Number(impuestoPorcentaje) }),
     },
   });
 

@@ -32,7 +32,7 @@ export async function PATCH(
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { titulo, valor, etapa, notas, empresaId, contactoId, probabilidad, fechaCierre, salonId, sede, fechaEvento } = body;
+  const { titulo, valor, etapa, notas, empresaId, contactoId, probabilidad, fechaCierre, salonId, sede, fechaEvento, horaInicio, horaFin } = body;
 
   const oportunidad = await prisma.oportunidad.findFirst({
     where: { id: params.id, tenantId: session.user.tenantId },
@@ -69,6 +69,8 @@ export async function PATCH(
   if (salonId !== undefined) data.salonId = salonId || null;
   if (sede !== undefined) data.sede = sede?.trim() || null;
   if (fechaEvento !== undefined) data.fechaEvento = fechaEvento ? new Date(fechaEvento) : null;
+  if (horaInicio !== undefined) data.horaInicio = horaInicio || null;
+  if (horaFin !== undefined) data.horaFin = horaFin || null;
 
   const cambioDeEtapa = etapa !== undefined && etapa !== oportunidad.etapa;
 

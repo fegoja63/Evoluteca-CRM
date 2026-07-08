@@ -75,6 +75,10 @@ export default function SalonesPage() {
           <p className="text-slate-500 text-sm mt-1">Catálogo de espacios que alquilas para eventos</p>
         </div>
         <div className="flex gap-2">
+          <a href="/dashboard/salones/dia"
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+            📋 Ver por día
+          </a>
           <a href="/dashboard/salones/calendario"
             className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
             📅 Calendario

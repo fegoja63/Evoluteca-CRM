@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { KpiCard } from "@/components/kpi-card";
 
 type Oportunidad = {
@@ -71,6 +72,21 @@ const MESES_LABEL: Record<string, number> = {
 const MESES_NOMBRE = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
 export default function PipelinePage() {
+  const { data: session } = useSession();
+  const esAdminOGerente = session?.user?.rol === "ADMINISTRADOR" || session?.user?.rol === "GERENTE";
+  const [limpiandoProspectos, setLimpiandoProspectos] = useState(false);
+
+  async function limpiarProspectos() {
+    if (!confirm("¿Eliminar todos los Prospectos y Calificados que nunca pasaron a cotización? Esta acción no se puede deshacer.")) return;
+    setLimpiandoProspectos(true);
+    const res = await fetch("/api/oportunidades/limpiar-prospectos", { method: "DELETE" });
+    const data = await res.json().catch(() => ({}));
+    setLimpiandoProspectos(false);
+    if (!res.ok) { alert(data.error ?? "No se pudo completar la limpieza"); return; }
+    alert(`✓ ${data.eliminadas} oportunidad(es) eliminada(s).`);
+    cargar();
+  }
+
   const [oportunidades, setOportunidades] = useState<Oportunidad[]>([]);
   const [empresas, setEmpresas]   = useState<Empresa[]>([]);
   const [contactos, setContactos] = useState<Contacto[]>([]);
@@ -87,7 +103,7 @@ export default function PipelinePage() {
   const [orden, setOrden] = useState<{ col: string; dir: "asc" | "desc" }>({ col: "creadoEn", dir: "desc" });
   const [form, setForm] = useState({
     titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50", fechaCierre: "",
-    salonId: "", sede: "", fechaEvento: "",
+    salonId: "", sede: "", fechaEvento: "", horaInicio: "", horaFin: "",
   });
   const [salones, setSalones] = useState<Salon[]>([]);
   const [moduloSalones, setModuloSalones] = useState(false);
@@ -117,15 +133,17 @@ export default function PipelinePage() {
 
   useEffect(() => {
     if (!form.salonId || !form.fechaEvento) { setDisponibilidad(null); return; }
-    const clave = `${form.salonId}|${form.fechaEvento}`;
+    const clave = `${form.salonId}|${form.fechaEvento}|${form.horaInicio}|${form.horaFin}`;
     const t = setTimeout(async () => {
       disponibilidadClaveRef.current = clave;
-      const res = await fetch(`/api/salones/disponibilidad?salonId=${encodeURIComponent(form.salonId)}&fecha=${encodeURIComponent(form.fechaEvento)}`);
+      const params = new URLSearchParams({ salonId: form.salonId, fecha: form.fechaEvento });
+      if (form.horaInicio && form.horaFin) { params.set("horaInicio", form.horaInicio); params.set("horaFin", form.horaFin); }
+      const res = await fetch(`/api/salones/disponibilidad?${params.toString()}`);
       const data = await res.json();
       if (disponibilidadClaveRef.current === clave) setDisponibilidad(data);
     }, 300);
     return () => clearTimeout(t);
-  }, [form.salonId, form.fechaEvento]);
+  }, [form.salonId, form.fechaEvento, form.horaInicio, form.horaFin]);
 
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
@@ -135,7 +153,7 @@ export default function PipelinePage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
-    setForm({ titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50", fechaCierre: "", salonId: "", sede: "", fechaEvento: "" });
+    setForm({ titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50", fechaCierre: "", salonId: "", sede: "", fechaEvento: "", horaInicio: "", horaFin: "" });
     setDisponibilidad(null);
     setMostrarForm(false);
     setGuardando(false);
@@ -308,6 +326,13 @@ export default function PipelinePage() {
           {mostrarForm ? "× Cancelar" : "+ Nueva oportunidad"}
         </button>
 
+        {esAdminOGerente && (
+          <button onClick={limpiarProspectos} disabled={limpiandoProspectos}
+            className="rounded-xl border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50">
+            {limpiandoProspectos ? "Limpiando..." : "🧹 Limpiar prospectos sin cotizar"}
+          </button>
+        )}
+
         {/* Toggle vista */}
         <div className="ml-auto flex rounded-xl border border-slate-200 overflow-hidden bg-white">
           <button onClick={() => setVista("kanban")}
@@ -396,6 +421,18 @@ export default function PipelinePage() {
               <input type="date" value={form.fechaEvento} onChange={e => setForm({...form, fechaEvento: e.target.value})}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
+            {moduloSalones && form.salonId && (
+              <div>
+                <label className="mb-1 block text-xs text-slate-500">Horario (opcional)</label>
+                <div className="flex items-center gap-2">
+                  <input type="time" value={form.horaInicio} onChange={e => setForm({...form, horaInicio: e.target.value})}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                  <span className="text-slate-400 text-xs">a</span>
+                  <input type="time" value={form.horaFin} onChange={e => setForm({...form, horaFin: e.target.value})}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                </div>
+              </div>
+            )}
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">
                 Probabilidad de cierre: <span className="font-semibold text-blue-600">{form.probabilidad}%</span>

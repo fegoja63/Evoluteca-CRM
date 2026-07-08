@@ -3,10 +3,13 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
 
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: "RESEND_API_KEY no configurada" }, { status: 503 });
+
+  const body = await req.json().catch(() => ({}));
+  const emailDestino: string | undefined = body?.email?.trim() || undefined;
 
   const cot = await prisma.cotizacion.findFirst({
     where: { id: params.id, tenantId: session.user.tenantId },
@@ -21,7 +24,10 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   const fmt = (v: number) =>
     new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
 
-  const total = cot.items.reduce((acc, i) => acc + i.cantidad * Number(i.precioUnit), 0);
+  const subtotal = cot.items.reduce((acc, i) => acc + i.cantidad * Number(i.precioUnit), 0);
+  const pctImpuesto = Number(cot.impuestoPorcentaje ?? 0);
+  const valorImpuesto = subtotal * (pctImpuesto / 100);
+  const total = subtotal + valorImpuesto;
   const numero = `#${String(cot.numero).padStart(4, "0")}`;
   const cliente = cot.empresa?.nombre ?? "Cliente";
   const contacto = cot.contacto?.nombre ?? "";
@@ -63,6 +69,15 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
           </thead>
           <tbody>${filasItems}</tbody>
           <tfoot>
+            <tr>
+              <td colspan="3" style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">Subtotal</td>
+              <td style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${fmt(subtotal)}</td>
+            </tr>
+            ${pctImpuesto > 0 ? `
+            <tr>
+              <td colspan="3" style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${cot.impuestoNombre ?? "Impuesto"} (${pctImpuesto}%)</td>
+              <td style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${fmt(valorImpuesto)}</td>
+            </tr>` : ""}
             <tr style="background:#f8fafc">
               <td colspan="3" style="padding:12px;font-size:13px;font-weight:700;color:#1e293b">TOTAL</td>
               <td style="padding:12px;font-size:15px;font-weight:700;color:#1e3a8a;text-align:right">${fmt(total)}</td>
@@ -88,7 +103,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   const resend = new Resend(process.env.RESEND_API_KEY);
   const { error } = await resend.emails.send({
     from: "Evoluteca CRM <noreply@evoluteca.com>",
-    to: cot.contacto?.email ?? session.user.email ?? "felipegomezjaramillo@gmail.com",
+    to: emailDestino ?? cot.contacto?.email ?? session.user.email ?? "felipegomezjaramillo@gmail.com",
     subject: `📄 Cotización ${numero} — ${cliente}`,
     html,
   });

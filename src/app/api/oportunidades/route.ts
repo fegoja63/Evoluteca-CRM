@@ -3,12 +3,19 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
+  // ?todas=1 omite el filtro "solo mis oportunidades" — lo usa el selector de
+  // "Oportunidad vinculada" al crear una cotización, donde cualquier usuario
+  // debe poder enlazar una oportunidad del negocio sin importar quién la creó.
+  // El Pipeline (vista principal) sigue llamando sin este parámetro.
+  const { searchParams } = new URL(request.url);
+  const todas = searchParams.get("todas") === "1";
+
   const oportunidades = await prisma.oportunidad.findMany({
-    where: { tenantId: session.user.tenantId, ...filtroOwner(session.user.rol, session.user.id) },
+    where: { tenantId: session.user.tenantId, ...(todas ? {} : filtroOwner(session.user.rol, session.user.id)) },
     orderBy: { creadoEn: "desc" },
     include: {
       empresa: { select: { id: true, nombre: true } },
@@ -24,7 +31,7 @@ export async function POST(request: Request) {
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { titulo, valor, etapa, notas, empresaId, contactoId, probabilidad, fechaCierre, salonId, sede, fechaEvento } = body;
+  const { titulo, valor, etapa, notas, empresaId, contactoId, probabilidad, fechaCierre, salonId, sede, fechaEvento, horaInicio, horaFin } = body;
 
   if (!titulo?.trim()) {
     return NextResponse.json({ error: "El título es obligatorio" }, { status: 400 });
@@ -53,6 +60,8 @@ export async function POST(request: Request) {
       salonId: salonId || null,
       sede: sede?.trim() || null,
       fechaEvento: fechaEvento ? new Date(fechaEvento) : null,
+      horaInicio: horaInicio || null,
+      horaFin: horaFin || null,
       tenantId: session.user.tenantId,
       creadoBy: session.user.id,
     },

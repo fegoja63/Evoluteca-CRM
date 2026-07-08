@@ -39,24 +39,60 @@ export default function NuevaCotizacionPage() {
   const [salonId, setSalonId]         = useState("");
   const [sede, setSede]               = useState("");
   const [fechaEvento, setFechaEvento] = useState("");
+  const [horaInicio, setHoraInicio] = useState("");
+  const [horaFin, setHoraFin]       = useState("");
   const [fechaValidez, setFechaValidez] = useState("");
   const [notas, setNotas]             = useState("");
+  const [impuestoNombre, setImpuestoNombre] = useState("IVA");
+  const [impuestoPorcentaje, setImpuestoPorcentaje] = useState("");
   const [disponibilidad, setDisponibilidad] = useState<Disponibilidad | null>(null);
   const disponibilidadClaveRef = useRef("");
 
+  const [creandoEmpresa, setCreandoEmpresa] = useState(false);
+  const [nuevaEmpresaForm, setNuevaEmpresaForm] = useState({ nombre: "", email: "", telefono: "" });
+  const [creandoEmpresaLoading, setCreandoEmpresaLoading] = useState(false);
+  const [creandoEmpresaError, setCreandoEmpresaError] = useState("");
+
+  async function crearEmpresaInline() {
+    if (!nuevaEmpresaForm.nombre.trim()) return;
+    setCreandoEmpresaLoading(true);
+    setCreandoEmpresaError("");
+    const res = await fetch("/api/empresas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(nuevaEmpresaForm),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setCreandoEmpresaError(data.error ?? "No se pudo crear el cliente");
+      setCreandoEmpresaLoading(false);
+      return;
+    }
+    const nueva = await res.json();
+    setEmpresas(prev => [{ id: nueva.id, nombre: nueva.nombre }, ...prev]);
+    setEmpresaId(nueva.id);
+    setContactoId("");
+    setOportunidadId("");
+    setCreandoEmpresa(false);
+    setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
+    setCreandoEmpresaLoading(false);
+  }
+
   useEffect(() => {
     if (!salonId || !fechaEvento) { setDisponibilidad(null); return; }
-    const clave = `${salonId}|${fechaEvento}`;
+    const clave = `${salonId}|${fechaEvento}|${horaInicio}|${horaFin}`;
     const t = setTimeout(async () => {
       disponibilidadClaveRef.current = clave;
-      const res = await fetch(`/api/salones/disponibilidad?salonId=${encodeURIComponent(salonId)}&fecha=${encodeURIComponent(fechaEvento)}`);
+      const params = new URLSearchParams({ salonId, fecha: fechaEvento });
+      if (horaInicio && horaFin) { params.set("horaInicio", horaInicio); params.set("horaFin", horaFin); }
+      const res = await fetch(`/api/salones/disponibilidad?${params.toString()}`);
       const data = await res.json();
-      // Ignora la respuesta si el usuario ya cambió salón/fecha (evita que una
+      // Ignora la respuesta si el usuario ya cambió salón/fecha/hora (evita que una
       // respuesta lenta y vieja sobreescriba el resultado de una selección más reciente).
       if (disponibilidadClaveRef.current === clave) setDisponibilidad(data);
     }, 300);
     return () => clearTimeout(t);
-  }, [salonId, fechaEvento]);
+  }, [salonId, fechaEvento, horaInicio, horaFin]);
 
   const [lineas, setLineas] = useState<Linea[]>([
     { descripcion: "", cantidad: "1", precioUnit: "" },
@@ -66,7 +102,7 @@ export default function NuevaCotizacionPage() {
     Promise.all([
       fetch("/api/empresas").then(r => r.json()),
       fetch("/api/contactos").then(r => r.json()),
-      fetch("/api/oportunidades").then(r => r.json()),
+      fetch("/api/oportunidades?todas=1").then(r => r.json()),
       fetch("/api/productos").then(r => r.json()),
       fetch("/api/plantillas-cotizacion").then(r => r.json()),
       fetch("/api/configuracion").then(r => r.json()),
@@ -103,11 +139,14 @@ export default function NuevaCotizacionPage() {
     setLineas(prev => prev.filter((_, idx) => idx !== i));
   }
 
-  const totalGeneral = lineas.reduce((acc, l) => {
+  const subtotal = lineas.reduce((acc, l) => {
     const q = parseFloat(l.cantidad) || 0;
     const p = parseFloat(l.precioUnit) || 0;
     return acc + q * p;
   }, 0);
+  const pctImpuesto = parseFloat(impuestoPorcentaje) || 0;
+  const valorImpuesto = subtotal * (pctImpuesto / 100);
+  const totalGeneral = subtotal + valorImpuesto;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -130,8 +169,12 @@ export default function NuevaCotizacionPage() {
         salonId:      salonId      || null,
         sede:         sede.trim()  || null,
         fechaEvento:  fechaEvento  || null,
+        horaInicio:   horaInicio   || null,
+        horaFin:      horaFin      || null,
         fechaValidez: fechaValidez || null,
         notas:        notas.trim() || null,
+        impuestoNombre: impuestoNombre.trim() || null,
+        impuestoPorcentaje: impuestoPorcentaje || null,
         items: lineasValidas.map(l => ({
           descripcion: l.descripcion.trim(),
           cantidad:    parseInt(l.cantidad) || 1,
@@ -195,11 +238,42 @@ export default function NuevaCotizacionPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Empresa</label>
-              <select value={empresaId} onChange={e => { setEmpresaId(e.target.value); setContactoId(""); setOportunidadId(""); }}
+              <select value={empresaId} onChange={e => {
+                  if (e.target.value === "__nueva__") { setCreandoEmpresa(true); return; }
+                  setEmpresaId(e.target.value); setContactoId(""); setOportunidadId("");
+                }}
                 className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-blue-500">
                 <option value="">— Sin empresa —</option>
                 {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+                <option value="__nueva__">+ Crear cliente nuevo</option>
               </select>
+              {creandoEmpresa && (
+                <div className="mt-2 rounded-xl border border-blue-200 bg-blue-50 p-3">
+                  <p className="text-xs font-semibold text-blue-800 mb-2">Nuevo cliente</p>
+                  <div className="flex flex-col gap-2">
+                    <input type="text" placeholder="Nombre del cliente *" value={nuevaEmpresaForm.nombre}
+                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, nombre: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                    <input type="email" placeholder="Email (opcional)" value={nuevaEmpresaForm.email}
+                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, email: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                    <input type="text" placeholder="Teléfono (opcional)" value={nuevaEmpresaForm.telefono}
+                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, telefono: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                    {creandoEmpresaError && <p className="text-xs text-red-600">{creandoEmpresaError}</p>}
+                    <div className="flex gap-2">
+                      <button type="button" onClick={crearEmpresaInline} disabled={creandoEmpresaLoading || !nuevaEmpresaForm.nombre.trim()}
+                        className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                        {creandoEmpresaLoading ? "Creando..." : "Crear y usar"}
+                      </button>
+                      <button type="button" onClick={() => { setCreandoEmpresa(false); setCreandoEmpresaError(""); }}
+                        className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50">
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Contacto</label>
@@ -265,6 +339,19 @@ export default function NuevaCotizacionPage() {
               <input type="date" value={fechaEvento} onChange={e => setFechaEvento(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
+            {moduloSalones && salonId && (
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Horario</label>
+                <div className="flex items-center gap-2">
+                  <input type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                  <span className="text-slate-400 text-xs">a</span>
+                  <input type="time" value={horaFin} onChange={e => setHoraFin(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">Opcional — déjalo vacío para reservar el día completo.</p>
+              </div>
+            )}
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Fecha de validez</label>
               <input type="date" value={fechaValidez} onChange={e => setFechaValidez(e.target.value)}
@@ -344,10 +431,29 @@ export default function NuevaCotizacionPage() {
             )}
           </div>
 
-          {/* Total */}
-          <div className="mt-4 pt-4 border-t border-slate-100 flex justify-end">
+          {/* Impuesto */}
+          <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-end justify-between gap-4">
+            <div className="flex gap-2">
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Impuesto</label>
+                <input type="text" value={impuestoNombre} onChange={e => setImpuestoNombre(e.target.value)}
+                  placeholder="Ej: IVA"
+                  className="w-28 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">%</label>
+                <input type="number" min={0} max={100} step="0.01" value={impuestoPorcentaje}
+                  onChange={e => setImpuestoPorcentaje(e.target.value)}
+                  placeholder="0"
+                  className="w-20 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+              </div>
+            </div>
             <div className="text-right">
-              <p className="text-xs text-slate-400 uppercase tracking-wide">Total</p>
+              <p className="text-xs text-slate-400">Subtotal: <span className="font-medium text-slate-600">{fmt(subtotal)}</span></p>
+              {pctImpuesto > 0 && (
+                <p className="text-xs text-slate-400">{impuestoNombre || "Impuesto"} ({pctImpuesto}%): <span className="font-medium text-slate-600">{fmt(valorImpuesto)}</span></p>
+              )}
+              <p className="text-xs text-slate-400 uppercase tracking-wide mt-1">Total</p>
               <p className="text-2xl font-bold text-slate-900">{fmt(totalGeneral)}</p>
             </div>
           </div>

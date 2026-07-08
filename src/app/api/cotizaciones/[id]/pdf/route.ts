@@ -78,14 +78,21 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   });
   if (!cot) return new NextResponse("No encontrada", { status: 404 });
 
-  const total = cot.items.reduce((acc, i) => acc + i.cantidad * Number(i.precioUnit), 0);
+  const subtotal = cot.items.reduce((acc, i) => acc + i.cantidad * Number(i.precioUnit), 0);
+  const pctImpuesto = Number(cot.impuestoPorcentaje ?? 0);
+  const valorImpuesto = subtotal * (pctImpuesto / 100);
+  const total = subtotal + valorImpuesto;
 
   // Si el logo configurado no carga (URL rota, host caído, no es una imagen),
   // @react-pdf/renderer puede lanzar una excepción no controlada dentro de
   // renderToBuffer y tumbar la ruta con un 500. Se valida antes de intentar
   // usarlo y, si falla, se cae al placeholder en vez de romper el PDF.
   let logoUrl: string | null = null;
-  if (cot.tenant.logoUrl) {
+  if (cot.tenant.logoUrl?.startsWith("data:image/")) {
+    // Logo subido como archivo (base64) — ya validado al guardarlo, no hace
+    // falta (ni se puede) verificarlo con un fetch de red.
+    logoUrl = cot.tenant.logoUrl;
+  } else if (cot.tenant.logoUrl) {
     try {
       const check = await fetch(cot.tenant.logoUrl, { method: "GET", signal: AbortSignal.timeout(4000) });
       const contentType = check.headers.get("content-type") ?? "";
@@ -171,6 +178,10 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
         ),
         React.createElement(View, { style: styles.totalBox, wrap: false },
           React.createElement(View, { style: styles.totalInner },
+            pctImpuesto > 0 ? React.createElement(View, { style: { marginBottom: 6, alignItems: "flex-end" } },
+              React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `Subtotal: ${fmt(subtotal)}`),
+              React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `${cot.impuestoNombre ?? "Impuesto"} (${pctImpuesto}%): ${fmt(valorImpuesto)}`),
+            ) : null,
             React.createElement(Text, { style: styles.totalLabel }, "TOTAL"),
             React.createElement(Text, { style: styles.totalValue }, fmt(total)),
           )

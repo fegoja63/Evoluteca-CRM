@@ -48,12 +48,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    jwt: async ({ token, user }) => {
+    jwt: async ({ token, user, trigger, session }) => {
       if (user) {
         token.rol = user.rol;
         token.tenantId = user.tenantId;
         token.tenantNombre = user.tenantNombre;
         token.aceptoTerminosEn = user.aceptoTerminosEn ?? null;
+      }
+      // Se dispara cuando el cliente llama a update({...}) tras editar "Mi perfil" —
+      // sin esto, el nombre/email quedaban congelados en el token del login inicial
+      // hasta que el usuario cerraba sesión y volvía a entrar.
+      if (trigger === "update" && session) {
+        if (session.name) token.name = session.name;
+        if (session.email) token.email = session.email;
       }
       return token;
     },

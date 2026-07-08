@@ -10,6 +10,8 @@ export async function GET(request: Request) {
   const salonId = searchParams.get("salonId");
   const fecha = searchParams.get("fecha");
   const excluir = searchParams.get("excluirCotizacionId");
+  const horaInicioQ = searchParams.get("horaInicio");
+  const horaFinQ = searchParams.get("horaFin");
 
   if (!salonId || !fecha) {
     return NextResponse.json({ aceptadas: [], pendientes: [] });
@@ -31,12 +33,26 @@ export async function GET(request: Request) {
     select: {
       id: true,
       estado: true,
+      horaInicio: true,
+      horaFin: true,
       empresa: { select: { nombre: true } },
     },
   });
 
-  const aceptadas = cotizaciones.filter(c => c.estado === "ACEPTADA");
-  const pendientes = cotizaciones.filter(c => c.estado !== "ACEPTADA");
+  // Si quien consulta especifica un rango de horas, dos reservas del mismo
+  // salón el mismo día ya no chocan si sus horarios no se solapan. Una
+  // reserva sin hora (creada antes de este cambio, o explícitamente "todo
+  // el día") siempre se considera en conflicto, igual que si quien consulta
+  // tampoco especifica hora.
+  const seSolapan = (c: { horaInicio: string | null; horaFin: string | null }) => {
+    if (!horaInicioQ || !horaFinQ) return true;
+    if (!c.horaInicio || !c.horaFin) return true;
+    return c.horaInicio < horaFinQ && c.horaFin > horaInicioQ;
+  };
+
+  const relevantes = cotizaciones.filter(seSolapan);
+  const aceptadas = relevantes.filter(c => c.estado === "ACEPTADA");
+  const pendientes = relevantes.filter(c => c.estado !== "ACEPTADA");
 
   return NextResponse.json({ aceptadas, pendientes });
 }

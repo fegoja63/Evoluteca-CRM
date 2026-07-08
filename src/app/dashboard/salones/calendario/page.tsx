@@ -9,6 +9,8 @@ type Cotizacion = {
   estado: "BORRADOR" | "ENVIADA" | "ACEPTADA" | "RECHAZADA";
   salonId: string | null;
   fechaEvento: string | null;
+  horaInicio: string | null;
+  horaFin: string | null;
   empresa: { nombre: string } | null;
 };
 
@@ -50,6 +52,11 @@ export default function CalendarioSalonesPage() {
       const dia = f.getUTCDate();
       mapa.set(dia, [...(mapa.get(dia) ?? []), c]);
     }
+    // Ordena por hora de inicio dentro del mismo día — las reservas de día
+    // completo (sin hora) van primero.
+    Array.from(mapa.entries()).forEach(([dia, reservas]) => {
+      mapa.set(dia, [...reservas].sort((a, b) => (a.horaInicio ?? "").localeCompare(b.horaInicio ?? "")));
+    });
     return mapa;
   }, [cotizaciones, salonId, anio, mes]);
 
@@ -171,7 +178,7 @@ export default function CalendarioSalonesPage() {
                             <Link href={`/dashboard/cotizaciones-formales/${r.id}`}
                               onClick={e => { if (draggingId) e.preventDefault(); }}
                               className="block truncate text-[11px] font-medium text-red-700 hover:underline">
-                              {r.empresa?.nombre ?? "Sin empresa"}
+                              {r.horaInicio ? `${r.horaInicio} ` : ""}{r.empresa?.nombre ?? "Sin empresa"}
                             </Link>
                           </div>
                         ))}

@@ -47,7 +47,7 @@ export default function OportunidadDetallePage() {
   const [op, setOp] = useState<Oportunidad | null>(null);
   const [editando, setEditando] = useState(false);
   const [guardando, setGuardando] = useState(false);
-  const [form, setForm] = useState({ titulo: "", valor: "", etapa: "", notas: "", fechaCierre: "", probabilidad: "", salonId: "", sede: "", fechaEvento: "" });
+  const [form, setForm] = useState({ titulo: "", valor: "", etapa: "", notas: "", fechaCierre: "", probabilidad: "", salonId: "", sede: "", fechaEvento: "", horaInicio: "", horaFin: "" });
   const [modalPerdida, setModalPerdida] = useState(false);
   const [motivoPerdida, setMotivoPerdida] = useState("");
   const [otroMotivo, setOtroMotivo] = useState("");
@@ -76,6 +76,7 @@ export default function OportunidadDetallePage() {
       probabilidad: String(data.probabilidad ?? 50),
       salonId: data.salonId ?? "", sede: data.sede ?? "",
       fechaEvento: data.fechaEvento ? data.fechaEvento.substring(0, 10) : "",
+      horaInicio: data.horaInicio ?? "", horaFin: data.horaFin ?? "",
     });
   }
 
@@ -93,15 +94,17 @@ export default function OportunidadDetallePage() {
 
   useEffect(() => {
     if (!form.salonId || !form.fechaEvento) { setDisponibilidad(null); return; }
-    const clave = `${form.salonId}|${form.fechaEvento}`;
+    const clave = `${form.salonId}|${form.fechaEvento}|${form.horaInicio}|${form.horaFin}`;
     const t = setTimeout(async () => {
       disponibilidadClaveRef.current = clave;
-      const res = await fetch(`/api/salones/disponibilidad?salonId=${encodeURIComponent(form.salonId)}&fecha=${encodeURIComponent(form.fechaEvento)}`);
+      const params = new URLSearchParams({ salonId: form.salonId, fecha: form.fechaEvento });
+      if (form.horaInicio && form.horaFin) { params.set("horaInicio", form.horaInicio); params.set("horaFin", form.horaFin); }
+      const res = await fetch(`/api/salones/disponibilidad?${params.toString()}`);
       const data = await res.json();
       if (disponibilidadClaveRef.current === clave) setDisponibilidad(data);
     }, 300);
     return () => clearTimeout(t);
-  }, [form.salonId, form.fechaEvento]);
+  }, [form.salonId, form.fechaEvento, form.horaInicio, form.horaFin]);
 
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
@@ -113,6 +116,7 @@ export default function OportunidadDetallePage() {
         titulo: form.titulo, valor: form.valor || null, etapa: form.etapa, notas: form.notas || null,
         fechaCierre: form.fechaCierre || null, probabilidad: Number(form.probabilidad),
         salonId: form.salonId || null, sede: form.sede || null, fechaEvento: form.fechaEvento || null,
+        horaInicio: form.horaInicio || null, horaFin: form.horaFin || null,
       }),
     });
     setEditando(false);
@@ -257,6 +261,18 @@ export default function OportunidadDetallePage() {
                 <input type="date" value={form.fechaEvento} onChange={e => setForm({...form, fechaEvento: e.target.value})}
                   className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
               </div>
+              {moduloSalones && form.salonId && (
+                <div>
+                  <label className="text-xs text-slate-500 mb-1 block">Horario (opcional)</label>
+                  <div className="flex items-center gap-2">
+                    <input type="time" value={form.horaInicio} onChange={e => setForm({...form, horaInicio: e.target.value})}
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                    <span className="text-slate-400 text-xs">a</span>
+                    <input type="time" value={form.horaFin} onChange={e => setForm({...form, horaFin: e.target.value})}
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                  </div>
+                </div>
+              )}
               <div className="col-span-2">
                 <label className="text-xs text-slate-500 mb-1 block">Notas</label>
                 <textarea value={form.notas} onChange={e => setForm({...form, notas: e.target.value})}
