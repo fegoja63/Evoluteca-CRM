@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { BitacoraExpediente } from "@/components/bitacora-expediente";
+import { plazoVencido, plazoProximo } from "@/lib/plazo-legal";
 
 type Termino = {
   id: string;
@@ -19,8 +20,8 @@ type RegistroHoras = {
   fecha: string;
   horas: string;
   descripcion: string | null;
-  usuarioId: string;
-  usuario: { id: string; nombre: string };
+  usuarioId: string | null;
+  usuario: { id: string; nombre: string } | null;
 };
 
 type Detalle = {
@@ -41,11 +42,8 @@ const ESTADOS: Detalle["estado"][] = ["ACTIVO", "ARCHIVADO", "GANADO", "PERDIDO"
 
 function terminoUrgencia(t: Termino): "vencido" | "proximo" | "normal" | "cumplido" {
   if (t.estado === "CUMPLIDO") return "cumplido";
-  const hoy = new Date();
-  const limite = new Date(t.fechaLimite);
-  const en7dias = new Date(hoy.getTime() + 7 * 86_400_000);
-  if (limite < hoy) return "vencido";
-  if (limite <= en7dias) return "proximo";
+  if (plazoVencido(t.fechaLimite)) return "vencido";
+  if (plazoProximo(t.fechaLimite)) return "proximo";
   return "normal";
 }
 
@@ -77,98 +75,159 @@ export default function DetalleExpedientePage() {
   const [guardandoHoras, setGuardandoHoras] = useState(false);
   const [formHoras, setFormHoras] = useState({ fecha: "", horas: "", descripcion: "" });
   const [conflicto, setConflicto] = useState<Conflicto | null>(null);
+  const [error, setError] = useState("");
+  const [errorTermino, setErrorTermino] = useState("");
+  const [errorHoras, setErrorHoras] = useState("");
 
   const puedeEliminar = session?.user?.rol === "ADMINISTRADOR" || session?.user?.rol === "GERENTE";
 
   async function cargar() {
     setCargando(true);
-    const res = await fetch(`/api/expedientes/${id}`);
-    if (res.ok) {
-      const data = await res.json();
-      setExpediente(data);
-      setForm({
-        numeroRadicado: data.numeroRadicado,
-        juzgado: data.juzgado ?? "",
-        tipoProceso: data.tipoProceso ?? "",
-        contraparte: data.contraparte,
-        estado: data.estado,
-        notas: data.notas ?? "",
-      });
-      const confRes = await fetch(`/api/expedientes/conflicto?nombre=${encodeURIComponent(data.contraparte)}`);
-      const conf: Conflicto = await confRes.json();
-      conf.empresas = conf.empresas.filter(e => e.id !== data.empresaId);
-      setConflicto(conf);
+    try {
+      const res = await fetch(`/api/expedientes/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setExpediente(data);
+        setForm({
+          numeroRadicado: data.numeroRadicado,
+          juzgado: data.juzgado ?? "",
+          tipoProceso: data.tipoProceso ?? "",
+          contraparte: data.contraparte,
+          estado: data.estado,
+          notas: data.notas ?? "",
+        });
+        const confRes = await fetch(`/api/expedientes/conflicto?nombre=${encodeURIComponent(data.contraparte)}`);
+        const conf: Conflicto = await confRes.json();
+        conf.empresas = conf.empresas.filter(e => e.id !== data.empresaId);
+        setConflicto(conf);
+      }
+    } finally {
+      setCargando(false);
     }
-    setCargando(false);
   }
 
-  useEffect(() => { cargar(); }, [id]);
+  useEffect(() => {
+    setEditando(false);
+    setMostrarFormTermino(false);
+    setMostrarFormHoras(false);
+    setError("");
+    setErrorTermino("");
+    setErrorHoras("");
+    cargar();
+  }, [id]);
 
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
     setGuardando(true);
-    await fetch(`/api/expedientes/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    setEditando(false);
-    setGuardando(false);
-    cargar();
+    try {
+      const res = await fetch(`/api/expedientes/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "No se pudo guardar el expediente");
+        return;
+      }
+      setEditando(false);
+      await cargar();
+    } finally {
+      setGuardando(false);
+    }
   }
 
   async function handleEliminar() {
     if (!confirm("¿Eliminar este expediente? Esta acción no se puede deshacer.")) return;
-    await fetch(`/api/expedientes/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/expedientes/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "No se pudo eliminar el expediente");
+      return;
+    }
     router.push("/dashboard/expedientes");
   }
 
   async function handleCrearTermino(e: React.FormEvent) {
     e.preventDefault();
+    setErrorTermino("");
     setGuardandoTermino(true);
-    await fetch(`/api/expedientes/${id}/terminos`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formTermino),
-    });
-    setFormTermino({ descripcion: "", fechaLimite: "", notas: "" });
-    setMostrarFormTermino(false);
-    setGuardandoTermino(false);
-    cargar();
+    try {
+      const res = await fetch(`/api/expedientes/${id}/terminos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formTermino),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setErrorTermino(data.error || "No se pudo crear el plazo");
+        return;
+      }
+      setFormTermino({ descripcion: "", fechaLimite: "", notas: "" });
+      setMostrarFormTermino(false);
+      await cargar();
+    } finally {
+      setGuardandoTermino(false);
+    }
   }
 
   async function handleMarcarCumplido(terminoId: string) {
-    await fetch(`/api/expedientes/terminos/${terminoId}`, {
+    const res = await fetch(`/api/expedientes/terminos/${terminoId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ estado: "CUMPLIDO" }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "No se pudo actualizar el plazo");
+      return;
+    }
     cargar();
   }
 
   async function handleEliminarTermino(terminoId: string) {
     if (!confirm("¿Eliminar este plazo?")) return;
-    await fetch(`/api/expedientes/terminos/${terminoId}`, { method: "DELETE" });
+    const res = await fetch(`/api/expedientes/terminos/${terminoId}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "No se pudo eliminar el plazo");
+      return;
+    }
     cargar();
   }
 
   async function handleCrearRegistroHoras(e: React.FormEvent) {
     e.preventDefault();
+    setErrorHoras("");
     setGuardandoHoras(true);
-    await fetch(`/api/expedientes/${id}/horas`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formHoras),
-    });
-    setFormHoras({ fecha: "", horas: "", descripcion: "" });
-    setMostrarFormHoras(false);
-    setGuardandoHoras(false);
-    cargar();
+    try {
+      const res = await fetch(`/api/expedientes/${id}/horas`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formHoras),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setErrorHoras(data.error || "No se pudo registrar las horas");
+        return;
+      }
+      setFormHoras({ fecha: "", horas: "", descripcion: "" });
+      setMostrarFormHoras(false);
+      await cargar();
+    } finally {
+      setGuardandoHoras(false);
+    }
   }
 
   async function handleEliminarRegistroHoras(registroId: string) {
     if (!confirm("¿Eliminar este registro de horas?")) return;
-    await fetch(`/api/expedientes/horas/${registroId}`, { method: "DELETE" });
+    const res = await fetch(`/api/expedientes/horas/${registroId}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "No se pudo eliminar el registro de horas");
+      return;
+    }
     cargar();
   }
 
@@ -235,6 +294,11 @@ export default function DetalleExpedientePage() {
               <textarea value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })} rows={3}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
+            {error && (
+              <div className="col-span-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                {error}
+              </div>
+            )}
             <div className="col-span-2">
               <button type="submit" disabled={guardando}
                 className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
@@ -305,6 +369,11 @@ export default function DetalleExpedientePage() {
               <input value={formTermino.notas} onChange={e => setFormTermino({ ...formTermino, notas: e.target.value })}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
+            {errorTermino && (
+              <div className="col-span-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                {errorTermino}
+              </div>
+            )}
             <div className="col-span-2">
               <button type="submit" disabled={guardandoTermino}
                 className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
@@ -360,7 +429,7 @@ export default function DetalleExpedientePage() {
             <h2 className="text-sm font-bold text-slate-900">Registro de horas</h2>
             <p className="text-xs text-slate-400 mt-0.5">
               Total acumulado: <span className="font-semibold text-slate-600">
-                {expediente.registrosHoras.reduce((acc, r) => acc + Number(r.horas), 0)} h
+                {Math.round(expediente.registrosHoras.reduce((acc, r) => acc + Number(r.horas), 0) * 100) / 100} h
               </span>
             </p>
           </div>
@@ -387,6 +456,11 @@ export default function DetalleExpedientePage() {
               <input value={formHoras.descripcion} onChange={e => setFormHoras({ ...formHoras, descripcion: e.target.value })}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
+            {errorHoras && (
+              <div className="col-span-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                {errorHoras}
+              </div>
+            )}
             <div className="col-span-3">
               <button type="submit" disabled={guardandoHoras}
                 className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
@@ -416,7 +490,7 @@ export default function DetalleExpedientePage() {
                   return (
                     <tr key={r.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-3 py-1.5 text-slate-500 whitespace-nowrap">{new Date(r.fecha).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })}</td>
-                      <td className="px-3 py-1.5 text-slate-700">{r.usuario.nombre}</td>
+                      <td className="px-3 py-1.5 text-slate-700">{r.usuario?.nombre ?? "Usuario eliminado"}</td>
                       <td className="px-3 py-1.5 font-medium text-slate-900">{Number(r.horas)} h</td>
                       <td className="px-3 py-1.5 text-slate-500">{r.descripcion ?? "—"}</td>
                       <td className="px-3 py-1.5 text-right">
@@ -437,7 +511,7 @@ export default function DetalleExpedientePage() {
       </div>
 
       <div className="mt-6">
-        <BitacoraExpediente expedienteId={id} />
+        <BitacoraExpediente expedienteId={id} puedeEliminar={puedeEliminar} />
       </div>
     </div>
   );

@@ -430,7 +430,7 @@ export default function PipelinePage() {
                         {cb
                           ? <span className={`text-xs rounded-full px-2 py-0.5 font-medium ${cb.color}`}>📅 {cb.label}</span>
                           : o.fechaCierre
-                            ? <span className="text-xs text-slate-400">{new Date(o.fechaCierre).toLocaleDateString("es-CO")}</span>
+                            ? <span className="text-xs text-slate-400">{new Date(o.fechaCierre).toLocaleDateString("es-CO",{timeZone:"UTC"})}</span>
                             : <span className="text-slate-300">—</span>}
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-400">

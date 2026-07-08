@@ -36,7 +36,7 @@ export default function EquipoPage() {
 
   const [reasignando, setReasignando] = useState(false);
   const [reasignarId, setReasignarId] = useState("");
-  const [reasignarResultado, setReasignarResultado] = useState<{ empresas: number; oportunidades: number; actividades: number } | null>(null);
+  const [reasignarResultado, setReasignarResultado] = useState<{ empresas: number; oportunidades: number; actividades: number; expedientes: number; terminos: number } | null>(null);
 
   async function exportarExcel() {
     setExportando(true);
@@ -341,6 +341,9 @@ export default function EquipoPage() {
           {reasignarResultado && (
             <div className="mt-3 rounded-xl bg-white border border-amber-200 px-4 py-3 text-sm text-amber-900">
               ✅ Asignados: <strong>{reasignarResultado.empresas}</strong> clientes · <strong>{reasignarResultado.oportunidades}</strong> oportunidades · <strong>{reasignarResultado.actividades}</strong> actividades
+              {(reasignarResultado.expedientes > 0 || reasignarResultado.terminos > 0) && (
+                <> · <strong>{reasignarResultado.expedientes}</strong> expedientes · <strong>{reasignarResultado.terminos}</strong> términos</>
+              )}
             </div>
           )}
         </div>

@@ -37,6 +37,17 @@ export async function POST(request: Request) {
   if (!contraparte?.trim()) {
     return NextResponse.json({ error: "La contraparte es obligatoria" }, { status: 400 });
   }
+  if (empresaId) {
+    const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId } });
+    if (!empresa) return NextResponse.json({ error: "Empresa no encontrada" }, { status: 400 });
+  }
+
+  const duplicado = await prisma.expediente.findFirst({
+    where: { tenantId: session.user.tenantId, numeroRadicado: numeroRadicado.trim() },
+  });
+  if (duplicado) {
+    return NextResponse.json({ error: "Ya existe un expediente con ese número de radicado" }, { status: 400 });
+  }
 
   const expediente = await prisma.expediente.create({
     data: {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
 import { EtapaOportunidad } from "@prisma/client";
+import { plazoVencido, diasHastaPlazo } from "@/lib/plazo-legal";
 
 export const dynamic = "force-dynamic";
 
@@ -186,8 +187,8 @@ export async function GET(req: Request) {
 
     if (terminosProximos.length > 0) {
       const filas = terminosProximos.map(t => {
-        const dias = Math.ceil((new Date(t.fechaLimite).getTime() - ahora.getTime()) / 86_400_000);
-        const vencido = dias < 0;
+        const dias = diasHastaPlazo(t.fechaLimite);
+        const vencido = plazoVencido(t.fechaLimite);
         const color = vencido ? "#dc2626" : dias <= 2 ? "#dc2626" : "#d97706";
         const etiqueta = vencido ? `${Math.abs(dias)}d de atraso` : dias === 0 ? "Hoy" : dias === 1 ? "Mañana" : `en ${dias} días`;
         return `<div style="background:white;border:1px solid #e2e8f0;border-left:4px solid ${color};border-radius:8px;padding:12px;margin-bottom:8px">

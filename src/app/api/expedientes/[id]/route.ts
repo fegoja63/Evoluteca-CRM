@@ -44,6 +44,19 @@ export async function PATCH(
   const body = await request.json();
   const { numeroRadicado, juzgado, tipoProceso, contraparte, estado, notas, empresaId } = body;
 
+  if (empresaId) {
+    const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId } });
+    if (!empresa) return NextResponse.json({ error: "Empresa no encontrada" }, { status: 400 });
+  }
+  if (numeroRadicado !== undefined && numeroRadicado.trim() !== existente.numeroRadicado) {
+    const duplicado = await prisma.expediente.findFirst({
+      where: { tenantId: session.user.tenantId, numeroRadicado: numeroRadicado.trim(), id: { not: params.id } },
+    });
+    if (duplicado) {
+      return NextResponse.json({ error: "Ya existe un expediente con ese número de radicado" }, { status: 400 });
+    }
+  }
+
   const data: Record<string, unknown> = {};
   if (numeroRadicado !== undefined) data.numeroRadicado = numeroRadicado.trim();
   if (juzgado !== undefined) data.juzgado = juzgado?.trim() || null;

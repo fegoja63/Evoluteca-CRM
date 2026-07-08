@@ -48,6 +48,14 @@ export async function PATCH(
   if (probabilidad !== undefined && (probabilidad === "" || isNaN(Number(probabilidad)))) {
     return NextResponse.json({ error: "Probabilidad inválida" }, { status: 400 });
   }
+  if (empresaId) {
+    const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId } });
+    if (!empresa) return NextResponse.json({ error: "Empresa no encontrada" }, { status: 400 });
+  }
+  if (contactoId) {
+    const contacto = await prisma.contacto.findFirst({ where: { id: contactoId, tenantId: session.user.tenantId } });
+    if (!contacto) return NextResponse.json({ error: "Contacto no encontrado" }, { status: 400 });
+  }
 
   const data: Record<string, unknown> = {};
   if (titulo !== undefined) data.titulo = titulo.trim();

@@ -412,6 +412,7 @@ model Expediente {
   bitacora       EventoExpediente[]
   registrosHoras RegistroHoras[]
 
+  @@unique([tenantId, numeroRadicado])
   @@index([tenantId])
   @@index([empresaId])
   @@map("expedientes")
@@ -434,6 +435,7 @@ model TerminoExpediente {
 
   @@index([expedienteId])
   @@index([tenantId])
+  @@index([tenantId, estado, fechaLimite])
   @@map("terminos_expediente")
 }
 
@@ -470,8 +472,8 @@ model RegistroHoras {
   expedienteId String
   expediente   Expediente @relation(fields: [expedienteId], references: [id], onDelete: Cascade)
 
-  usuarioId    String
-  usuario      Usuario    @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId    String?
+  usuario      Usuario?   @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
 
   @@index([tenantId])
   @@index([expedienteId])

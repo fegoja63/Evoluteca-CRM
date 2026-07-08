@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { moduloActivo, puedeEliminar } from "@/lib/permisos";
 
 export async function GET(
   _req: Request,
@@ -24,6 +25,11 @@ export async function POST(
 ) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  const tenant = await prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { modulos: true } });
+  if (!moduloActivo(tenant?.modulos, "expedientes")) {
+    return NextResponse.json({ error: "El módulo Expedientes no está activo" }, { status: 403 });
+  }
 
   const expediente = await prisma.expediente.findFirst({
     where: { id: params.id, tenantId: session.user.tenantId },
@@ -52,6 +58,9 @@ export async function DELETE(
 ) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (!puedeEliminar(session.user.rol)) {
+    return NextResponse.json({ error: "No tienes permiso para eliminar" }, { status: 403 });
+  }
 
   const { eventoId } = await req.json();
   await prisma.eventoExpediente.deleteMany({

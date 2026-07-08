@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
+import { plazoVencido } from "@/lib/plazo-legal";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -138,8 +139,8 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  const terminosVencidos = terminosProximos.filter(t => new Date(t.fechaLimite) < hoy);
-  const terminosPorVencer = terminosProximos.filter(t => new Date(t.fechaLimite) >= hoy);
+  const terminosVencidos = terminosProximos.filter(t => plazoVencido(t.fechaLimite));
+  const terminosPorVencer = terminosProximos.filter(t => !plazoVencido(t.fechaLimite));
 
   const negociosEstancados = opActivasConActividad
     .filter(o => o.actividades.length === 0 || new Date(o.actividades[0].fecha) < hace14dias)
@@ -525,7 +526,7 @@ export default async function DashboardPage() {
                   {cierranEstaSemana.slice(0,2).map(o => (
                     <Link key={o.id} href={`/dashboard/pipeline/${o.id}`} className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-2.5 py-1.5 mb-1 hover:border-amber-300 transition-colors">
                       <span className="text-xs font-medium text-slate-800 truncate flex-1">{o.empresa?.nombre ?? o.titulo}</span>
-                      <span className="text-xs text-amber-600 font-semibold shrink-0">{new Date(o.fechaCierre!).toLocaleDateString("es-CO",{day:"2-digit",month:"short"})}</span>
+                      <span className="text-xs text-amber-600 font-semibold shrink-0">{new Date(o.fechaCierre!).toLocaleDateString("es-CO",{day:"2-digit",month:"short",timeZone:"UTC"})}</span>
                     </Link>
                   ))}
                 </div>

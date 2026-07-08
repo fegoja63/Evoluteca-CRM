@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -14,6 +14,7 @@ export default function NuevoExpedientePage() {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
   const [conflicto, setConflicto] = useState<Conflicto | null>(null);
+  const conflictoNombreRef = useRef("");
   const [form, setForm] = useState({
     numeroRadicado: "",
     juzgado: "",
@@ -33,8 +34,12 @@ export default function NuevoExpedientePage() {
     const nombre = form.contraparte.trim();
     if (nombre.length < 3) { setConflicto(null); return; }
     const t = setTimeout(async () => {
+      conflictoNombreRef.current = nombre;
       const res = await fetch(`/api/expedientes/conflicto?nombre=${encodeURIComponent(nombre)}`);
-      setConflicto(await res.json());
+      const data = await res.json();
+      // Ignora la respuesta si el usuario ya siguió escribiendo (evita que una
+      // respuesta lenta y vieja sobreescriba el resultado de un texto más reciente).
+      if (conflictoNombreRef.current === nombre) setConflicto(data);
     }, 300);
     return () => clearTimeout(t);
   }, [form.contraparte]);

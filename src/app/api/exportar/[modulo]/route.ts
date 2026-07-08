@@ -28,7 +28,7 @@ export async function GET(
   switch (params.modulo) {
     case "empresas": {
       const datos = await prisma.empresa.findMany({
-        where: { tenantId },
+        where: { tenantId, ...ownerFiltro },
         orderBy: { nombre: "asc" },
         include: { _count: { select: { contactos: true } } },
       });

@@ -19,15 +19,19 @@ export async function POST(req: NextRequest) {
     ? { tenantId, creadoBy: null }
     : { tenantId };
 
-  const [empresas, oportunidades, actividades] = await Promise.all([
+  const [empresas, oportunidades, actividades, expedientes, terminos] = await Promise.all([
     prisma.empresa.updateMany({ where, data: { creadoBy: usuarioId } }),
     prisma.oportunidad.updateMany({ where, data: { creadoBy: usuarioId } }),
     prisma.actividad.updateMany({ where, data: { creadoBy: usuarioId } }),
+    prisma.expediente.updateMany({ where, data: { creadoBy: usuarioId } }),
+    prisma.terminoExpediente.updateMany({ where, data: { creadoBy: usuarioId } }),
   ]);
 
   return NextResponse.json({
     empresas: empresas.count,
     oportunidades: oportunidades.count,
     actividades: actividades.count,
+    expedientes: expedientes.count,
+    terminos: terminos.count,
   });
 }

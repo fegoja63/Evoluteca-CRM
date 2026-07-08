@@ -19,6 +19,8 @@ export async function DELETE() {
     prisma.eventoTimeline.deleteMany({ where: { tenantId } }),
     prisma.actividad.deleteMany({ where: { tenantId } }),
     prisma.oportunidad.deleteMany({ where: { tenantId } }),
+    // Expediente en cascada borra sus términos, bitácora y registros de horas.
+    prisma.expediente.deleteMany({ where: { tenantId } }),
     prisma.espectador.deleteMany({ where: { tenantId } }),
     prisma.funcion.deleteMany({ where: { tenantId } }),
     prisma.contacto.deleteMany({ where: { tenantId } }),

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { moduloActivo } from "@/lib/permisos";
 
 export async function GET(
   _req: Request,
@@ -25,6 +26,11 @@ export async function POST(
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
+  const tenant = await prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { modulos: true } });
+  if (!moduloActivo(tenant?.modulos, "expedientes")) {
+    return NextResponse.json({ error: "El módulo Expedientes no está activo" }, { status: 403 });
+  }
+
   const expediente = await prisma.expediente.findFirst({
     where: { id: params.id, tenantId: session.user.tenantId },
   });
@@ -32,8 +38,8 @@ export async function POST(
 
   const { fecha, horas, descripcion } = await req.json();
   if (!fecha) return NextResponse.json({ error: "La fecha es obligatoria" }, { status: 400 });
-  if (!horas || isNaN(Number(horas)) || Number(horas) <= 0) {
-    return NextResponse.json({ error: "Las horas deben ser un número mayor a 0" }, { status: 400 });
+  if (!horas || isNaN(Number(horas)) || Number(horas) < 0.25) {
+    return NextResponse.json({ error: "Las horas deben ser un número mayor o igual a 0.25" }, { status: 400 });
   }
 
   const registro = await prisma.registroHoras.create({
