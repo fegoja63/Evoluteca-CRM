@@ -16,7 +16,9 @@ export default async function DashboardPage() {
   const inicioHoy   = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
   const finHoy      = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 1);
   const inicioMes   = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  const finMes      = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1);
   const inicioAnio  = new Date(hoy.getFullYear(), 0, 1);
+  const finAnio     = new Date(hoy.getFullYear() + 1, 0, 1);
   const fin7dias    = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 7);
   const hace60dias  = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 60);
   const hace14dias  = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 14);
@@ -115,7 +117,7 @@ export default async function DashboardPage() {
       select: { id: true, titulo: true, valor: true, etapa: true, probabilidad: true, empresa: { select: { nombre: true } }, fechaCierre: true },
     }),
     prisma.oportunidad.findMany({
-      where: { tenantId, etapa: "GANADA", fechaCierre: { gte: inicioMes }, ...ownerFiltro },
+      where: { tenantId, etapa: "GANADA", fechaCierre: { gte: inicioMes, lt: finMes }, ...ownerFiltro },
       orderBy: { fechaCierre: "desc" },
       take: 5,
       select: { id: true, titulo: true, valor: true, creadoBy: true, empresa: { select: { nombre: true } } },
@@ -149,8 +151,8 @@ export default async function DashboardPage() {
   // ── Métricas principales ──────────────────────────────────────────────────
   const opActivas = oportunidades.filter(o => !["PERDIDA","GANADA"].includes(o.etapa));
   const valorPipeline = opActivas.reduce((a, o) => a + Number(o.valor ?? 0), 0);
-  const ganadasMes  = oportunidades.filter(o => o.etapa === "GANADA" && fechaEfectiva(o) >= inicioMes);
-  const ganadasAnio = oportunidades.filter(o => o.etapa === "GANADA" && fechaEfectiva(o) >= inicioAnio);
+  const ganadasMes  = oportunidades.filter(o => o.etapa === "GANADA" && fechaEfectiva(o) >= inicioMes && fechaEfectiva(o) < finMes);
+  const ganadasAnio = oportunidades.filter(o => o.etapa === "GANADA" && fechaEfectiva(o) >= inicioAnio && fechaEfectiva(o) < finAnio);
   const valorGanadoMes  = ganadasMes.reduce((a, o) => a + Number(o.valor ?? 0), 0);
   const valorGanadoAnio = ganadasAnio.reduce((a, o) => a + Number(o.valor ?? 0), 0);
   const ganadas         = oportunidades.filter(o => o.etapa === "GANADA").length;

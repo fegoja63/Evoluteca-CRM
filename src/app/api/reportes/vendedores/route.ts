@@ -40,6 +40,7 @@ export async function GET() {
 
   const hoy = new Date();
   const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  const finMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1);
   const etapasActivas: EtapaOportunidad[] = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];
 
   const vendedores = usuarios.map(u => {
@@ -60,7 +61,7 @@ export async function GET() {
     // Ganadas este mes — usa la misma fecha efectiva que Dashboard/Reportes
     // (extras.MES -> fechaCierre -> fechaEvento -> creadoEn), no creadoEn a secas,
     // para que este ranking no diverja de lo que muestran esas otras pantallas.
-    const ganadasMes = ganadas.filter(o => fechaEfectiva(o) >= inicioMes);
+    const ganadasMes = ganadas.filter(o => fechaEfectiva(o) >= inicioMes && fechaEfectiva(o) < finMes);
     const valorMes   = ganadasMes.reduce((acc, o) => acc + Number(o.valor ?? 0), 0);
 
     // Actividades
