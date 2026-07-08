@@ -5,11 +5,15 @@ import { useEffect, useState } from "react";
 
 export default function BienvenidaPage() {
   const [nombre, setNombre] = useState("");
+  const [esTeatro, setEsTeatro] = useState(false);
 
   useEffect(() => {
     fetch("/api/configuracion")
       .then(r => r.json())
-      .then(d => { if (d.tenantNombre) setNombre(d.tenantNombre); });
+      .then(d => {
+        if (d.tenantNombre) setNombre(d.tenantNombre);
+        setEsTeatro(!!d.modulos?.funciones || !!d.modulos?.audiencia);
+      });
   }, []);
 
   const pasos = [
@@ -126,6 +130,27 @@ export default function BienvenidaPage() {
           </div>
         </div>
       </div>
+
+      {/* Anexo Teatros — solo visible si el tenant tiene Funciones o Audiencia activo */}
+      {esTeatro && (
+        <div className="bg-white rounded-2xl border border-violet-200 p-5 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="text-3xl shrink-0">🎭</div>
+            <div className="flex-1">
+              <h2 className="text-sm font-bold text-slate-900 mb-1">Anexo — Teatros y espacios de espectáculos</h2>
+              <p className="text-xs text-slate-500 mb-4">
+                Guía adicional solo con lo específico de tu operación: registro de asistencia, alerta de ocupación baja, tasa de recompra, segmentación por recencia, niveles de membresía y cola de encuestas NPS por WhatsApp.
+              </p>
+              <div className="flex gap-3">
+                <a href="/api/manual/pdf-teatro" target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-colors">
+                  <span>⬇</span> Descargar anexo PDF
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <div className="flex items-center justify-between">
