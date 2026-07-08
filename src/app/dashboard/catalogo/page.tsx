@@ -16,6 +16,7 @@ export default function CatalogoPage() {
   const [modo, setModo]           = useState<"lista" | "nuevo">("lista");
   const [guardando, setGuardando] = useState(false);
   const [exportando, setExportando] = useState(false);
+  const [error, setError]         = useState("");
 
   async function exportarExcel() {
     setExportando(true);
@@ -41,20 +42,25 @@ export default function CatalogoPage() {
   async function guardar() {
     if (!form.nombre.trim()) return;
     setGuardando(true);
-    if (editId) {
-      await fetch(`/api/productos/${editId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      setEditId(null);
-    } else {
-      await fetch("/api/productos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+    setError("");
+    const res = editId
+      ? await fetch(`/api/productos/${editId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        })
+      : await fetch("/api/productos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? "No se pudo guardar el servicio");
+      setGuardando(false);
+      return;
     }
+    setEditId(null);
     setForm({ nombre: "", descripcion: "", precioBase: "" });
     setModo("lista");
     setGuardando(false);
@@ -63,7 +69,13 @@ export default function CatalogoPage() {
 
   async function eliminar(id: string) {
     if (!confirm("¿Desactivar este servicio del catálogo?")) return;
-    await fetch(`/api/productos/${id}`, { method: "DELETE" });
+    setError("");
+    const res = await fetch(`/api/productos/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? "No se pudo desactivar el servicio");
+      return;
+    }
     cargar();
   }
 
@@ -91,6 +103,12 @@ export default function CatalogoPage() {
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Formulario */}
       {modo === "nuevo" && (
