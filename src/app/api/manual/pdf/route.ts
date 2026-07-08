@@ -104,7 +104,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.9"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.10"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -237,7 +237,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.9 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.10 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -483,26 +483,47 @@ export async function GET() {
 
       React.createElement(H2, null, "5.1 Crear una cotización"),
       React.createElement(Paso, { n: 1, titulo: "Ir a Nueva cotización", desc: 'En el menú lateral haz clic en "Nueva cotización" o usa el botón "+ Nueva cotización" desde la pestaña Cotizaciones.' }),
-      React.createElement(Paso, { n: 2, titulo: "Seleccionar cliente", desc: "Elige la empresa, el contacto y (opcionalmente) la oportunidad vinculada. Al seleccionar empresa, los contactos y oportunidades se filtran automáticamente." }),
+      React.createElement(Paso, { n: 2, titulo: "Seleccionar cliente", desc: "Para Cliente, Contacto y Oportunidad vinculada verás dos botones: Existente y + Nuevo. Usa Existente para elegir de la lista un cliente ya registrado (incluso si ya lo has cotizado antes); usa + Nuevo para crearlo sin salir del formulario." }),
       React.createElement(Paso, { n: 3, titulo: "Detalles del evento", desc: "Ingresa la sede o lugar, la fecha del evento y la fecha de validez de la cotización." }),
       React.createElement(Paso, { n: 4, titulo: "Agregar ítems", desc: 'Escribe cada servicio en la tabla de líneas: descripción, cantidad y precio unitario. Usa el selector "Agregar servicio del catálogo" para cargar ítems predefinidos automáticamente.' }),
-      React.createElement(Paso, { n: 5, titulo: "Guardar y descargar", desc: 'Haz clic en "Guardar como borrador". Luego desde el detalle puedes cambiar el estado y descargar el PDF.' }),
+      React.createElement(Paso, { n: 5, titulo: "Impuesto y total", desc: "Si aplica, escribe el nombre del impuesto (ej: IVA) y su porcentaje. El sistema calcula automáticamente el desglose de Subtotal, Impuesto y Total." }),
+      React.createElement(Paso, { n: 6, titulo: "Guardar y descargar", desc: 'Haz clic en "Guardar como borrador". Luego desde el detalle puedes cambiar el estado y descargar el PDF.' }),
 
-      React.createElement(H2, null, "5.2 Estados de una cotización"),
+      React.createElement(H2, null, "5.2 Cliente, contacto y oportunidad: existente o nuevo"),
+      React.createElement(P, null, "Cada uno de los tres campos del bloque \"Cliente y oportunidad\" tiene su propia casilla separada con dos modos, para que nunca tengas que elegir entre cotizar a alguien nuevo o a alguien que ya conoces:"),
+      React.createElement(LI, null, "Existente — despliega la lista de registros ya creados en tu CRM. Úsalo también para cotizar de nuevo a un cliente al que ya le has hecho cotizaciones antes."),
+      React.createElement(LI, null, "+ Nuevo — abre un mini-formulario para crear el registro sin salir de la pantalla. Para Cliente solo el nombre es obligatorio; para Contacto, el nombre; para Oportunidad, el título."),
+      React.createElement(P, null, "Al crear un Contacto o una Oportunidad nuevos, quedan vinculados automáticamente al Cliente que tengas seleccionado (o creado) en ese momento. Haz clic en \"Crear cliente\" / \"Crear contacto\" / \"Crear oportunidad\" para confirmarlo — el formulario vuelve solo al modo Existente con el registro recién creado ya seleccionado."),
+      React.createElement(Nota, null, "El cliente, contacto u oportunidad que crees aquí queda guardado de inmediato en el CRM, aunque después decidas no guardar la cotización. Podrás encontrarlo luego en Clientes, Contactos o Pipeline."),
+      React.createElement(Tip, null, "Si escribes datos en un mini-formulario \"+ Nuevo\" pero olvidas hacer clic en Crear antes de guardar la cotización, el sistema te avisa y no deja continuar — así nunca se pierde por accidente lo que empezaste a escribir."),
+
+      React.createElement(H2, null, "5.3 Estados de una cotización"),
       React.createElement(LI, null, "BORRADOR — Recién creada, aún no enviada al cliente"),
       React.createElement(LI, null, "ENVIADA — El cliente ya la recibió. Se activan las opciones Aceptada / Rechazada"),
       React.createElement(LI, null, "ACEPTADA — Cliente aprobó la cotización"),
       React.createElement(LI, null, "RECHAZADA — Cliente no aceptó. Puede reabrirse como borrador"),
 
-      React.createElement(H2, null, "5.3 Descargar PDF"),
-      React.createElement(P, null, 'Desde el detalle de cualquier cotización, haz clic en el botón "Descargar PDF". El PDF incluye el logo de tu empresa (si lo configuraste en Configuración), datos del cliente y contacto, tabla de ítems, total y notas.'),
+      React.createElement(H2, null, "5.4 Impuesto y desglose del total"),
+      React.createElement(P, null, "Junto a la tabla de ítems encontrarás dos campos: el nombre del impuesto (por defecto \"IVA\", editable a cualquier texto) y su porcentaje. El sistema calcula automáticamente:"),
+      React.createElement(LI, null, "Subtotal — suma de todas las líneas de servicio (cantidad × precio unitario)"),
+      React.createElement(LI, null, "Impuesto — el porcentaje que ingresaste aplicado sobre el subtotal"),
+      React.createElement(LI, null, "Total — subtotal más impuesto"),
+      React.createElement(P, null, "Si dejas el porcentaje en 0 o vacío, el desglose de impuesto simplemente no aparece y el Total es igual al Subtotal. Puedes editar el impuesto en cualquier momento desde el detalle de la cotización, incluso después de guardarla, con el enlace \"Editar impuesto\" junto a la tabla de ítems."),
+      React.createElement(Tip, null, "El desglose de Subtotal / Impuesto / Total se muestra también en el PDF descargable, en el email enviado al cliente y en el link público de la cotización — no necesitas repetir la configuración en cada lugar."),
+
+      React.createElement(H2, null, "5.5 Descargar PDF"),
+      React.createElement(P, null, 'Desde el detalle de cualquier cotización, haz clic en el botón "Descargar PDF". El PDF incluye el logo de tu empresa (si lo configuraste en Configuración), datos del cliente y contacto, tabla de ítems, desglose de impuesto y total, y notas.'),
       React.createElement(Tip, null, "El PDF se genera automáticamente con el estado actual de la cotización. Si haces cambios, descarga de nuevo para obtener la versión actualizada."),
 
-      React.createElement(H2, null, "5.4 Catálogo de servicios"),
+      React.createElement(H2, null, "5.6 Enviar la cotización por email"),
+      React.createElement(P, null, 'Desde el detalle de la cotización, haz clic en "✉ Enviar email" para abrir un panel con un campo de correo editable. Viene pre-llenado con el email del contacto vinculado (si tiene), pero puedes cambiarlo por cualquier otra dirección antes de enviar — útil cuando quien recibe la cotización no es el contacto principal registrado en el CRM.'),
+      React.createElement(P, null, "El correo incluye el PDF de la cotización como adjunto. También puedes generar un \"🔗 Link cliente\" — una URL pública de solo lectura que puedes compartir por cualquier canal (WhatsApp, mensaje directo) sin necesidad de enviar un correo."),
+
+      React.createElement(H2, null, "5.7 Catálogo de servicios"),
       React.createElement(P, null, 'Ve a Catálogo para crear servicios reutilizables con nombre, descripción y precio base. Al crear una cotización, aparece el selector "Agregar servicio del catálogo" que carga los datos automáticamente en una nueva línea.'),
       React.createElement(Nota, null, "El precio del catálogo es un precio base. Puedes modificarlo libremente en cada cotización sin afectar el catálogo."),
 
-      React.createElement(H2, null, "5.5 Fecha de validez y alertas de vencimiento"),
+      React.createElement(H2, null, "5.8 Fecha de validez y alertas de vencimiento"),
       React.createElement(P, null, "Cada cotización puede tener una fecha de validez. El sistema monitorea automáticamente las cotizaciones en estado BORRADOR o ENVIADA y muestra alertas cuando están próximas a vencer o ya vencidas:"),
       React.createElement(LI, null, "Badge rojo 'Vencida Xd' — la fecha de validez ya pasó"),
       React.createElement(LI, null, "Badge rojo 'Vence hoy' — vence el día de hoy"),
@@ -636,8 +657,8 @@ export async function GET() {
 
       React.createElement(H2, null, "10.1 Configuración general"),
       React.createElement(P, null, 'Ve a Configuración. Desde allí puedes cambiar el nombre de tu empresa (aparece en el sidebar y en los PDFs de cotizaciones).'),
-      React.createElement(P, null, "También puedes configurar el logo de tu empresa: pega la URL pública de tu imagen (PNG o JPG). El logo aparecerá automáticamente en el encabezado de todas tus cotizaciones en PDF en lugar del ícono genérico."),
-      React.createElement(Tip, null, "La URL del logo debe ser pública (sin login requerido para verla). Sube tu logo a un hosting de imágenes o usa una URL directa de tu sitio web."),
+      React.createElement(P, null, "También puedes configurar el logo de tu empresa: en la sección \"Logo de la empresa\" haz clic para elegir un archivo de imagen (PNG o JPG) desde tu computador — no necesitas subirlo a ningún sitio externo ni tener una URL pública. El logo aparecerá automáticamente en el encabezado de todas tus cotizaciones en PDF en lugar del ícono genérico."),
+      React.createElement(Tip, null, "El archivo de logo debe pesar máximo 2MB. Si tu imagen es más pesada, redúcela antes de subirla (herramientas de compresión de imágenes en línea funcionan bien para esto)."),
 
       React.createElement(H2, null, "10.1.1 Notificaciones automáticas por email"),
       React.createElement(P, null, "En Configuración encontrarás el toggle 'Notificaciones automáticas por email'. Cuando está activo (azul), el CRM envía cada mañana correos automáticos a cada usuario del equipo con:"),
@@ -697,7 +718,10 @@ export async function GET() {
       React.createElement(P, null, "Las notificaciones están activas por defecto. Si deseas desactivarlas, el Administrador puede ir a Configuración y apagar el toggle 'Notificaciones automáticas por email'. Al desactivarlo, ningún miembro del equipo recibirá los correos automáticos diarios. Para reactivarlos simplemente vuelve a encender el toggle."),
 
       React.createElement(H2, null, "¿El PDF de cotización incluye el logo de mi empresa?"),
-      React.createElement(P, null, "Sí. Ve a Configuración, sección 'Logo de la empresa' y pega la URL pública de tu logo. A partir de ese momento, todos los PDFs de cotización mostrarán tu logo en el encabezado."),
+      React.createElement(P, null, "Sí. Ve a Configuración, sección 'Logo de la empresa' y elige el archivo de imagen (PNG o JPG, máximo 2MB) desde tu computador. A partir de ese momento, todos los PDFs de cotización mostrarán tu logo en el encabezado."),
+
+      React.createElement(H2, null, "¿Puedo cotizar a un cliente nuevo y a uno existente sin cambiar de pantalla?"),
+      React.createElement(P, null, "Sí. En Nueva cotización, cada campo (Cliente, Contacto, Oportunidad vinculada) tiene sus propios botones Existente / + Nuevo. Puedes, por ejemplo, elegir un Cliente existente y crear al mismo tiempo un Contacto nuevo para esa empresa, todo en el mismo formulario."),
 
       React.createElement(H2, null, "¿Puedo exportar los datos del CRM?"),
       React.createElement(P, null, 'Sí. Todas las páginas de listado tienen un botón "Excel" en la esquina superior. Puedes exportar: Clientes, Contactos, Cotizaciones activas, Cotizaciones formales, Agenda, Equipo, Catálogo de servicios, Funciones y Audiencia.'),

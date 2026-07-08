@@ -48,10 +48,20 @@ export default function NuevaCotizacionPage() {
   const [disponibilidad, setDisponibilidad] = useState<Disponibilidad | null>(null);
   const disponibilidadClaveRef = useRef("");
 
-  const [creandoEmpresa, setCreandoEmpresa] = useState(false);
+  const [modoEmpresa, setModoEmpresa] = useState<"existente" | "nueva">("existente");
   const [nuevaEmpresaForm, setNuevaEmpresaForm] = useState({ nombre: "", email: "", telefono: "" });
   const [creandoEmpresaLoading, setCreandoEmpresaLoading] = useState(false);
   const [creandoEmpresaError, setCreandoEmpresaError] = useState("");
+
+  const [modoContacto, setModoContacto] = useState<"existente" | "nuevo">("existente");
+  const [nuevoContactoForm, setNuevoContactoForm] = useState({ nombre: "", email: "", telefono: "", cargo: "" });
+  const [creandoContactoLoading, setCreandoContactoLoading] = useState(false);
+  const [creandoContactoError, setCreandoContactoError] = useState("");
+
+  const [modoOportunidad, setModoOportunidad] = useState<"existente" | "nueva">("existente");
+  const [nuevaOportunidadForm, setNuevaOportunidadForm] = useState({ titulo: "" });
+  const [creandoOportunidadLoading, setCreandoOportunidadLoading] = useState(false);
+  const [creandoOportunidadError, setCreandoOportunidadError] = useState("");
 
   async function crearEmpresaInline() {
     if (!nuevaEmpresaForm.nombre.trim()) return;
@@ -73,9 +83,59 @@ export default function NuevaCotizacionPage() {
     setEmpresaId(nueva.id);
     setContactoId("");
     setOportunidadId("");
-    setCreandoEmpresa(false);
+    setModoEmpresa("existente");
     setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
     setCreandoEmpresaLoading(false);
+  }
+
+  async function crearContactoInline() {
+    if (!nuevoContactoForm.nombre.trim()) return;
+    setCreandoContactoLoading(true);
+    setCreandoContactoError("");
+    const res = await fetch("/api/contactos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...nuevoContactoForm, empresaId: empresaId || null }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setCreandoContactoError(data.error ?? "No se pudo crear el contacto");
+      setCreandoContactoLoading(false);
+      return;
+    }
+    const nuevo = await res.json();
+    setContactos(prev => [nuevo, ...prev]);
+    setContactoId(nuevo.id);
+    setModoContacto("existente");
+    setNuevoContactoForm({ nombre: "", email: "", telefono: "", cargo: "" });
+    setCreandoContactoLoading(false);
+  }
+
+  async function crearOportunidadInline() {
+    if (!nuevaOportunidadForm.titulo.trim()) return;
+    setCreandoOportunidadLoading(true);
+    setCreandoOportunidadError("");
+    const res = await fetch("/api/oportunidades", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        titulo: nuevaOportunidadForm.titulo.trim(),
+        empresaId: empresaId || null,
+        contactoId: contactoId || null,
+      }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setCreandoOportunidadError(data.error ?? "No se pudo crear la oportunidad");
+      setCreandoOportunidadLoading(false);
+      return;
+    }
+    const nueva = await res.json();
+    setOportunidades(prev => [{ id: nueva.id, titulo: nueva.titulo, empresa: empresaId ? { id: empresaId } : null }, ...prev]);
+    setOportunidadId(nueva.id);
+    setModoOportunidad("existente");
+    setNuevaOportunidadForm({ titulo: "" });
+    setCreandoOportunidadLoading(false);
   }
 
   useEffect(() => {
@@ -157,6 +217,18 @@ export default function NuevaCotizacionPage() {
       setError("Agrega al menos una línea de servicio con descripción.");
       return;
     }
+    if (modoEmpresa === "nueva" && !empresaId && nuevaEmpresaForm.nombre.trim()) {
+      setError("Tienes datos de un cliente nuevo sin crear. Haz clic en \"Crear cliente\" o cambia a \"Existente\".");
+      return;
+    }
+    if (modoContacto === "nuevo" && !contactoId && nuevoContactoForm.nombre.trim()) {
+      setError("Tienes datos de un contacto nuevo sin crear. Haz clic en \"Crear contacto\" o cambia a \"Existente\".");
+      return;
+    }
+    if (modoOportunidad === "nueva" && !oportunidadId && nuevaOportunidadForm.titulo.trim()) {
+      setError("Tienes datos de una oportunidad nueva sin crear. Haz clic en \"Crear oportunidad\" o cambia a \"Existente\".");
+      return;
+    }
 
     setEnviando(true);
     const res = await fetch("/api/cotizaciones", {
@@ -235,21 +307,31 @@ export default function NuevaCotizacionPage() {
         {/* Cliente */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <h2 className="text-sm font-bold text-slate-700 mb-4">Cliente y oportunidad</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-5">
+
+            {/* Empresa */}
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Empresa</label>
-              <select value={empresaId} onChange={e => {
-                  if (e.target.value === "__nueva__") { setCreandoEmpresa(true); return; }
-                  setEmpresaId(e.target.value); setContactoId(""); setOportunidadId("");
-                }}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-blue-500">
-                <option value="">— Sin empresa —</option>
-                {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
-                <option value="__nueva__">+ Crear cliente nuevo</option>
-              </select>
-              {creandoEmpresa && (
-                <div className="mt-2 rounded-xl border border-blue-200 bg-blue-50 p-3">
-                  <p className="text-xs font-semibold text-blue-800 mb-2">Nuevo cliente</p>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-medium text-slate-600">Cliente</label>
+                <div className="flex gap-1">
+                  <button type="button" onClick={() => setModoEmpresa("existente")}
+                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${modoEmpresa === "existente" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
+                    Existente
+                  </button>
+                  <button type="button" onClick={() => setModoEmpresa("nueva")}
+                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${modoEmpresa === "nueva" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
+                    + Nuevo
+                  </button>
+                </div>
+              </div>
+              {modoEmpresa === "existente" ? (
+                <select value={empresaId} onChange={e => { setEmpresaId(e.target.value); setContactoId(""); setOportunidadId(""); }}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-blue-500">
+                  <option value="">— Sin empresa —</option>
+                  {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+                </select>
+              ) : (
+                <div className="rounded-xl border border-blue-200 bg-blue-50 p-3">
                   <div className="flex flex-col gap-2">
                     <input type="text" placeholder="Nombre del cliente *" value={nuevaEmpresaForm.nombre}
                       onChange={e => setNuevaEmpresaForm(f => ({ ...f, nombre: e.target.value }))}
@@ -261,36 +343,95 @@ export default function NuevaCotizacionPage() {
                       onChange={e => setNuevaEmpresaForm(f => ({ ...f, telefono: e.target.value }))}
                       className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
                     {creandoEmpresaError && <p className="text-xs text-red-600">{creandoEmpresaError}</p>}
-                    <div className="flex gap-2">
-                      <button type="button" onClick={crearEmpresaInline} disabled={creandoEmpresaLoading || !nuevaEmpresaForm.nombre.trim()}
-                        className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
-                        {creandoEmpresaLoading ? "Creando..." : "Crear y usar"}
-                      </button>
-                      <button type="button" onClick={() => { setCreandoEmpresa(false); setCreandoEmpresaError(""); }}
-                        className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50">
-                        Cancelar
-                      </button>
-                    </div>
+                    <button type="button" onClick={crearEmpresaInline} disabled={creandoEmpresaLoading || !nuevaEmpresaForm.nombre.trim()}
+                      className="self-start rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                      {creandoEmpresaLoading ? "Creando..." : "Crear cliente"}
+                    </button>
                   </div>
                 </div>
               )}
             </div>
+
+            {/* Contacto */}
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Contacto</label>
-              <select value={contactoId} onChange={e => setContactoId(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-blue-500">
-                <option value="">— Sin contacto —</option>
-                {contactosFiltrados.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-              </select>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-medium text-slate-600">Contacto</label>
+                <div className="flex gap-1">
+                  <button type="button" onClick={() => setModoContacto("existente")}
+                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${modoContacto === "existente" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
+                    Existente
+                  </button>
+                  <button type="button" onClick={() => setModoContacto("nuevo")}
+                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${modoContacto === "nuevo" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
+                    + Nuevo
+                  </button>
+                </div>
+              </div>
+              {modoContacto === "existente" ? (
+                <select value={contactoId} onChange={e => setContactoId(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-blue-500">
+                  <option value="">— Sin contacto —</option>
+                  {contactosFiltrados.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                </select>
+              ) : (
+                <div className="rounded-xl border border-blue-200 bg-blue-50 p-3">
+                  <div className="flex flex-col gap-2">
+                    <input type="text" placeholder="Nombre del contacto *" value={nuevoContactoForm.nombre}
+                      onChange={e => setNuevoContactoForm(f => ({ ...f, nombre: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                    <input type="email" placeholder="Email (opcional)" value={nuevoContactoForm.email}
+                      onChange={e => setNuevoContactoForm(f => ({ ...f, email: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                    <input type="text" placeholder="Teléfono (opcional)" value={nuevoContactoForm.telefono}
+                      onChange={e => setNuevoContactoForm(f => ({ ...f, telefono: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                    {creandoContactoError && <p className="text-xs text-red-600">{creandoContactoError}</p>}
+                    <button type="button" onClick={crearContactoInline} disabled={creandoContactoLoading || !nuevoContactoForm.nombre.trim()}
+                      className="self-start rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                      {creandoContactoLoading ? "Creando..." : "Crear contacto"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="col-span-2">
-              <label className="block text-xs font-medium text-slate-600 mb-1">Oportunidad vinculada</label>
-              <select value={oportunidadId} onChange={e => setOportunidadId(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-blue-500">
-                <option value="">— Sin oportunidad —</option>
-                {oportunidadesFiltradas.map(o => <option key={o.id} value={o.id}>{o.titulo}</option>)}
-              </select>
+
+            {/* Oportunidad */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-medium text-slate-600">Oportunidad vinculada</label>
+                <div className="flex gap-1">
+                  <button type="button" onClick={() => setModoOportunidad("existente")}
+                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${modoOportunidad === "existente" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
+                    Existente
+                  </button>
+                  <button type="button" onClick={() => setModoOportunidad("nueva")}
+                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${modoOportunidad === "nueva" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
+                    + Nueva
+                  </button>
+                </div>
+              </div>
+              {modoOportunidad === "existente" ? (
+                <select value={oportunidadId} onChange={e => setOportunidadId(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-blue-500">
+                  <option value="">— Sin oportunidad —</option>
+                  {oportunidadesFiltradas.map(o => <option key={o.id} value={o.id}>{o.titulo}</option>)}
+                </select>
+              ) : (
+                <div className="rounded-xl border border-blue-200 bg-blue-50 p-3">
+                  <div className="flex flex-col gap-2">
+                    <input type="text" placeholder="Título de la oportunidad *" value={nuevaOportunidadForm.titulo}
+                      onChange={e => setNuevaOportunidadForm(f => ({ ...f, titulo: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                    {creandoOportunidadError && <p className="text-xs text-red-600">{creandoOportunidadError}</p>}
+                    <button type="button" onClick={crearOportunidadInline} disabled={creandoOportunidadLoading || !nuevaOportunidadForm.titulo.trim()}
+                      className="self-start rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                      {creandoOportunidadLoading ? "Creando..." : "Crear oportunidad"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
+
           </div>
         </div>
 

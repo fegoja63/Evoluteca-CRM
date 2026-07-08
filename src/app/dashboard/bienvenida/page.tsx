@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 export default function BienvenidaPage() {
   const [nombre, setNombre] = useState("");
   const [esTeatro, setEsTeatro] = useState(false);
+  const [esSalones, setEsSalones] = useState(false);
   const [esDemoTeatro, setEsDemoTeatro] = useState(false);
 
   useEffect(() => {
@@ -14,6 +15,7 @@ export default function BienvenidaPage() {
       .then(d => {
         if (d.tenantNombre) setNombre(d.tenantNombre);
         setEsTeatro(!!d.modulos?.funciones || !!d.modulos?.audiencia);
+        setEsSalones(!!d.modulos?.salones);
         setEsDemoTeatro(d.tenantNombre === "Demo Teatro");
       });
   }, []);
@@ -146,6 +148,27 @@ export default function BienvenidaPage() {
               <div className="flex gap-3">
                 <a href="/api/manual/pdf-teatro" target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-colors">
+                  <span>⬇</span> Descargar anexo PDF
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Anexo Salones — solo visible si el tenant tiene el módulo Salones activo */}
+      {esSalones && (
+        <div className="bg-white rounded-2xl border border-teal-200 p-5 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="text-3xl shrink-0">🏛️</div>
+            <div className="flex-1">
+              <h2 className="text-sm font-bold text-slate-900 mb-1">Anexo — Alquiler de Salones</h2>
+              <p className="text-xs text-slate-500 mb-4">
+                Guía adicional solo con lo específico de tu operación: catálogo de salones, vincular un salón a una cotización u oportunidad, horarios y choques de fecha, calendario de reservas con arrastrar y soltar, y la tabla de alquileres por día.
+              </p>
+              <div className="flex gap-3">
+                <a href="/api/manual/pdf-salones" target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 transition-colors">
                   <span>⬇</span> Descargar anexo PDF
                 </a>
               </div>
