@@ -35,10 +35,10 @@ async function main() {
       slug: "demo-teatro",
       plan: "empresa",
       activo: true,
-      modulos: { funciones: true, audiencia: true },
+      modulos: { funciones: true, audiencia: true, salones: true },
     },
   });
-  console.log(`✅ Tenant creado: ${tenant.nombre} (Funciones + Audiencia activos)`);
+  console.log(`✅ Tenant creado: ${tenant.nombre} (Funciones + Audiencia + Salones activos)`);
 
   // ── USUARIOS ──────────────────────────────────────────────────────────────
   const passHash = await bcrypt.hash("Demo2026!", 10);
@@ -456,18 +456,63 @@ async function main() {
   console.log(`✅ Respuestas NPS registradas: ${totalNps}`);
   console.log(`✅ Cola de NPS pendiente: asistentes de las 2 funciones más recientes quedan sin contactar (demo en vivo)`);
 
+  // ══════════════════════════════════════════════════════════════════════
+  //  MÓDULO SALONES (el teatro también alquila su propia sala a terceros,
+  //  así que sirve de demo real de disponibilidad/choque de fechas)
+  // ══════════════════════════════════════════════════════════════════════
+
+  const salaPrincipal = await prisma.salon.create({
+    data: { nombre: "Sala Principal", capacidad: 239, descripcion: "Sala principal del teatro, capacidad completa.", tenantId: tenant.id },
+  });
+  const salaVip = await prisma.salon.create({
+    data: { nombre: "Sala VIP / Foyer", capacidad: 80, descripcion: "Espacio más íntimo para eventos corporativos pequeños.", tenantId: tenant.id },
+  });
+  console.log("✅ Salones creados: 2 (Sala Principal, Sala VIP / Foyer)");
+
+  type ReservaSpec = { salonId: string; empresaIdx: number; dias: number; estado: "ACEPTADA" | "ENVIADA" | "BORRADOR"; valor: number };
+  const reservasSalones: ReservaSpec[] = [
+    { salonId: salaPrincipal.id, empresaIdx: 2,  dias: -10, estado: "ACEPTADA", valor: 6500000 },
+    { salonId: salaPrincipal.id, empresaIdx: 8,  dias: 5,   estado: "ACEPTADA", valor: 7200000 },
+    { salonId: salaPrincipal.id, empresaIdx: 14, dias: 12,  estado: "ACEPTADA", valor: 5800000 },
+    { salonId: salaPrincipal.id, empresaIdx: 20, dias: 12,  estado: "ENVIADA",  valor: 6100000 },
+    { salonId: salaPrincipal.id, empresaIdx: 26, dias: 25,  estado: "ENVIADA",  valor: 4900000 },
+    { salonId: salaPrincipal.id, empresaIdx: 33, dias: 40,  estado: "ACEPTADA", valor: 8300000 },
+    { salonId: salaVip.id,       empresaIdx: 5,  dias: -5,  estado: "ACEPTADA", valor: 3200000 },
+    { salonId: salaVip.id,       empresaIdx: 11, dias: 8,   estado: "ACEPTADA", valor: 2900000 },
+    { salonId: salaVip.id,       empresaIdx: 18, dias: 18,  estado: "ACEPTADA", valor: 3500000 },
+    { salonId: salaVip.id,       empresaIdx: 24, dias: 18,  estado: "BORRADOR", valor: 2700000 },
+  ];
+  for (const r of reservasSalones) {
+    const emp = empresas[r.empresaIdx];
+    const con = contactosPorEmpresa[emp.id]?.[0];
+    await prisma.cotizacion.create({
+      data: {
+        estado: r.estado,
+        salonId: r.salonId,
+        fechaEvento: dia(r.dias),
+        fechaValidez: dia(r.dias - 5),
+        empresaId: emp.id,
+        contactoId: con?.id,
+        tenantId: tenant.id,
+        items: { create: [{ descripcion: "Alquiler de sala — evento", cantidad: 1, precioUnit: r.valor }] },
+      },
+    });
+  }
+  console.log(`✅ Reservas de salones creadas: ${reservasSalones.length} (8 aceptadas, 2 pendientes)`);
+
   // ── RESUMEN FINAL ─────────────────────────────────────────────────────────
   console.log(`
 ╔════════════════════════════════════════════════════════════╗
 ║         SEED DEMO TEATRO COMPLETADO ✅                     ║
 ╠════════════════════════════════════════════════════════════╣
-║  Tenant:      Demo Teatro (Funciones + Audiencia activos)  ║
+║  Tenant:      Demo Teatro (Funciones+Audiencia+Salones)    ║
 ║  Usuarios:    3 (admin, gerente, comercial)                ║
 ║  Empresas B2B: 50 · Contactos: 80 · Pipeline: 40 oport.    ║
 ║  Cotizaciones: 6 · Metas de venta: mensual + anual         ║
 ║  Funciones:   16 (pasadas + 3 próximas)                    ║
 ║  Espectadores: 35 · Asistencias: ${String(totalAsistencias).padEnd(3)} · NPS: ${String(totalNps).padEnd(3)}          ║
 ║  Membresías:  5 Mecenas, 7 Fanático                         ║
+║  Salones:     2 · Reservas: 10 (8 aceptadas, 2 pendientes) ║
 ╠════════════════════════════════════════════════════════════╣
 ║  CREDENCIALES DE ACCESO:                                    ║
 ║  URL: https://crm.evoluteca.com/login                       ║
