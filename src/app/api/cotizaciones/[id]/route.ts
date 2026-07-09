@@ -27,6 +27,11 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const body = await request.json();
   const { estado, notas, empresaId, motivoRechazo, fechaEvento, horaInicio, horaFin, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje } = body;
 
+  if (empresaId) {
+    const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId } });
+    if (!empresa) return NextResponse.json({ error: "Empresa no encontrada" }, { status: 400 });
+  }
+
   await prisma.cotizacion.updateMany({
     where: { id: params.id, tenantId: session.user.tenantId },
     data: {

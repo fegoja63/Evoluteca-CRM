@@ -37,6 +37,27 @@ export async function POST(request: Request) {
     }
   }
 
+  // Cada relación opcional debe pertenecer al mismo tenant — sin esto, un
+  // usuario podría enlazar (y luego ver los datos de) una empresa/contacto/
+  // oportunidad/salón de otro tenant simplemente enviando su id.
+  const tenantId = session.user.tenantId;
+  if (empresaId) {
+    const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId } });
+    if (!empresa) return NextResponse.json({ error: "Empresa no encontrada" }, { status: 400 });
+  }
+  if (contactoId) {
+    const contacto = await prisma.contacto.findFirst({ where: { id: contactoId, tenantId } });
+    if (!contacto) return NextResponse.json({ error: "Contacto no encontrado" }, { status: 400 });
+  }
+  if (oportunidadId) {
+    const oportunidad = await prisma.oportunidad.findFirst({ where: { id: oportunidadId, tenantId } });
+    if (!oportunidad) return NextResponse.json({ error: "Oportunidad no encontrada" }, { status: 400 });
+  }
+  if (salonId) {
+    const salon = await prisma.salon.findFirst({ where: { id: salonId, tenantId } });
+    if (!salon) return NextResponse.json({ error: "Salón no encontrado" }, { status: 400 });
+  }
+
   const cotizacion = await prisma.cotizacion.create({
     data: {
       empresaId: empresaId || null,

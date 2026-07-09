@@ -22,7 +22,15 @@ export async function PATCH(request: Request) {
   const body = await request.json();
   const data: Record<string, unknown> = {};
   if (body.modulos !== undefined) data.modulos = body.modulos;
-  if (body.logoUrl !== undefined) data.logoUrl = body.logoUrl;
+  if (body.logoUrl !== undefined) {
+    // El límite de 2MB ya se valida en el frontend, pero eso no protege contra
+    // una llamada directa a esta API — se revalida aquí (2MB en base64 ≈ 2.8M
+    // caracteres) para que la fila de Tenant no pueda inflarse sin control.
+    if (typeof body.logoUrl === "string" && body.logoUrl.length > 2_800_000) {
+      return NextResponse.json({ error: "El logo no puede pesar más de 2MB" }, { status: 400 });
+    }
+    data.logoUrl = body.logoUrl;
+  }
   if (body.emailsActivos !== undefined) data.emailsActivos = body.emailsActivos;
 
   const tenant = await prisma.tenant.update({
