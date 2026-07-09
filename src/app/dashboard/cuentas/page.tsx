@@ -34,7 +34,6 @@ export default function ClientesPage() {
   const [guardando, setGuardando] = useState(false);
   const [form, setForm] = useState({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "" });
   const [todasEmpresas, setTodasEmpresas] = useState<Empresa[]>([]);
-  const [agregarContacto, setAgregarContacto] = useState(false);
   const [nuevoContactoForm, setNuevoContactoForm] = useState({ nombre: "", email: "", telefono: "", cargo: "" });
 
   // Duplicados: busca por nombre similar o email exacto
@@ -73,7 +72,7 @@ export default function ClientesPage() {
       body: JSON.stringify(form),
     });
     const nuevaEmpresa = await res.json().catch(() => null);
-    if (res.ok && agregarContacto && nuevoContactoForm.nombre.trim() && nuevaEmpresa?.id) {
+    if (res.ok && nuevoContactoForm.nombre.trim() && nuevaEmpresa?.id) {
       await fetch("/api/contactos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -81,7 +80,6 @@ export default function ClientesPage() {
       });
     }
     setForm({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "" });
-    setAgregarContacto(false);
     setNuevoContactoForm({ nombre: "", email: "", telefono: "", cargo: "" });
     setMostrarForm(false);
     setGuardando(false);
@@ -192,28 +190,23 @@ export default function ClientesPage() {
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
 
-            <div className="col-span-2">
-              <button type="button" onClick={() => setAgregarContacto(v => !v)}
-                className="text-xs font-medium text-blue-600 hover:underline">
-                {agregarContacto ? "− Quitar contacto" : "+ Agregar un contacto de este cliente"}
-              </button>
-              {agregarContacto && (
-                <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50 p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <input type="text" placeholder="Nombre del contacto *" value={nuevoContactoForm.nombre}
-                    onChange={e => setNuevoContactoForm(f => ({ ...f, nombre: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
-                  <input type="text" placeholder="Cargo (opcional)" value={nuevoContactoForm.cargo}
-                    onChange={e => setNuevoContactoForm(f => ({ ...f, cargo: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
-                  <input type="email" placeholder="Email (opcional)" value={nuevoContactoForm.email}
-                    onChange={e => setNuevoContactoForm(f => ({ ...f, email: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
-                  <input type="text" placeholder="Teléfono (opcional)" value={nuevoContactoForm.telefono}
-                    onChange={e => setNuevoContactoForm(f => ({ ...f, telefono: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
-                  <p className="col-span-2 text-[11px] text-slate-500">Se creará automáticamente vinculado a este cliente al guardar.</p>
-                </div>
-              )}
+            <div className="col-span-2 mt-1 rounded-lg border border-blue-200 bg-blue-50 p-3">
+              <p className="text-xs font-semibold text-blue-800 mb-2">Contacto de este cliente (opcional)</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input type="text" placeholder="Nombre del contacto" value={nuevoContactoForm.nombre}
+                  onChange={e => setNuevoContactoForm(f => ({ ...f, nombre: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500 bg-white" />
+                <input type="text" placeholder="Cargo" value={nuevoContactoForm.cargo}
+                  onChange={e => setNuevoContactoForm(f => ({ ...f, cargo: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500 bg-white" />
+                <input type="email" placeholder="Email" value={nuevoContactoForm.email}
+                  onChange={e => setNuevoContactoForm(f => ({ ...f, email: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500 bg-white" />
+                <input type="text" placeholder="Teléfono" value={nuevoContactoForm.telefono}
+                  onChange={e => setNuevoContactoForm(f => ({ ...f, telefono: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500 bg-white" />
+              </div>
+              <p className="mt-2 text-[11px] text-slate-500">Si escribes un nombre, se creará automáticamente vinculado a este cliente al guardar. Puedes dejarlo en blanco.</p>
             </div>
 
             {duplicados.length > 0 && (
