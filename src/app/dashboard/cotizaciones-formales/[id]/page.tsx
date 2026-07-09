@@ -18,7 +18,7 @@ type Cotizacion = {
   impuesto2Nombre: string | null;
   impuesto2Porcentaje: string | null;
   creadoEn: string;
-  empresa:     { id: string; nombre: string; telefono: string | null } | null;
+  empresa:     { id: string; nombre: string; email: string | null; telefono: string | null } | null;
   contacto:    { id: string; nombre: string; email: string | null; telefono: string | null } | null;
   oportunidad: { id: string; titulo: string } | null;
   items: Item[];
@@ -90,7 +90,7 @@ export default function CotizacionDetailPage() {
     const data = await res.json();
     setCot(data);
     setNotas(data.notas ?? "");
-    setEmailDestino(prev => prev || data.contacto?.email || "");
+    setEmailDestino(prev => prev || data.contacto?.email || data.empresa?.email || "");
     setTelefonoDestino(prev => prev || data.contacto?.telefono || data.empresa?.telefono || "");
     setImpuestoNombre(data.impuestoNombre ?? "IVA");
     setImpuestoPorcentaje(data.impuestoPorcentaje ?? "");
@@ -332,7 +332,9 @@ export default function CotizacionDetailPage() {
             <div className="flex items-center gap-3">
               <span className="text-blue-500 text-lg">✉</span>
               <div className="flex-1">
-                <p className="text-xs font-semibold text-blue-700 mb-1">Enviar cotización a un correo distinto</p>
+                <p className="text-xs font-semibold text-blue-700 mb-1">
+                  {cot.contacto?.email || cot.empresa?.email ? "Enviar cotización a un correo distinto" : "¿A qué correo enviamos la cotización?"}
+                </p>
                 <input type="email" value={emailDestino} onChange={e => setEmailDestino(e.target.value)}
                   placeholder="correo@cliente.com" autoFocus
                   className="w-full rounded-lg border border-blue-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500 bg-white" />

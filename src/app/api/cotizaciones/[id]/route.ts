@@ -10,7 +10,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const cot = await prisma.cotizacion.findFirst({
     where: { id: params.id, tenantId: session.user.tenantId },
     include: {
-      empresa:  { select: { id: true, nombre: true, telefono: true } },
+      empresa:  { select: { id: true, nombre: true, email: true, telefono: true } },
       contacto: { select: { id: true, nombre: true, email: true, telefono: true } },
       oportunidad: { select: { id: true, titulo: true } },
       items: { orderBy: { id: "asc" } },
