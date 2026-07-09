@@ -199,7 +199,7 @@ export default function ContactosPage() {
                     Existente
                   </button>
                   <button type="button" onClick={() => setModoEmpresa("nueva")}
-                    className={`rounded-md px-2 py-0.5 text-xs font-medium transition-colors ${modoEmpresa === "nueva" ? "bg-blue-600 text-white" : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200"}`}>
+                    className={`rounded-md px-2 py-0.5 text-xs font-medium transition-colors ${modoEmpresa === "nueva" ? "bg-blue-600 text-white" : "bg-neutral-300 text-neutral-800 hover:bg-neutral-400"}`}>
                     + Nueva
                   </button>
                 </div>

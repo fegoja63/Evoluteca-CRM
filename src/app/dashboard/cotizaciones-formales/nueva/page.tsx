@@ -338,7 +338,7 @@ export default function NuevaCotizacionPage() {
                     Existente
                   </button>
                   <button type="button" onClick={() => setModoEmpresa("nueva")}
-                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${modoEmpresa === "nueva" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
+                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${modoEmpresa === "nueva" ? "bg-blue-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
                     + Nuevo
                   </button>
                 </div>
@@ -381,7 +381,7 @@ export default function NuevaCotizacionPage() {
                     Existente
                   </button>
                   <button type="button" onClick={() => setModoContacto("nuevo")}
-                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${modoContacto === "nuevo" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
+                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${modoContacto === "nuevo" ? "bg-blue-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
                     + Nuevo
                   </button>
                 </div>
@@ -424,7 +424,7 @@ export default function NuevaCotizacionPage() {
                     Existente
                   </button>
                   <button type="button" onClick={() => setModoOportunidad("nueva")}
-                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${modoOportunidad === "nueva" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
+                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${modoOportunidad === "nueva" ? "bg-blue-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
                     + Nueva
                   </button>
                 </div>
