@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { KpiCard } from "@/components/kpi-card";
 
 type Oportunidad = {
@@ -72,21 +71,6 @@ const MESES_LABEL: Record<string, number> = {
 const MESES_NOMBRE = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
 export default function PipelinePage() {
-  const { data: session } = useSession();
-  const esAdminOGerente = session?.user?.rol === "ADMINISTRADOR" || session?.user?.rol === "GERENTE";
-  const [limpiandoProspectos, setLimpiandoProspectos] = useState(false);
-
-  async function limpiarProspectos() {
-    if (!confirm("¿Eliminar todos los Prospectos y Calificados que nunca pasaron a cotización? Esta acción no se puede deshacer.")) return;
-    setLimpiandoProspectos(true);
-    const res = await fetch("/api/oportunidades/limpiar-prospectos", { method: "DELETE" });
-    const data = await res.json().catch(() => ({}));
-    setLimpiandoProspectos(false);
-    if (!res.ok) { alert(data.error ?? "No se pudo completar la limpieza"); return; }
-    alert(`✓ ${data.eliminadas} oportunidad(es) eliminada(s).`);
-    cargar();
-  }
-
   const [oportunidades, setOportunidades] = useState<Oportunidad[]>([]);
   const [empresas, setEmpresas]   = useState<Empresa[]>([]);
   const [contactos, setContactos] = useState<Contacto[]>([]);
@@ -169,8 +153,8 @@ export default function PipelinePage() {
     });
   }
 
-  async function eliminarOportunidad(id: string) {
-    if (!confirm("¿Eliminar esta oportunidad?")) return;
+  async function eliminarOportunidad(id: string, titulo: string) {
+    if (!confirm(`¿Eliminar la oportunidad "${titulo}"? Esta acción no se puede deshacer.`)) return;
     setOportunidades(prev => prev.filter(o => o.id !== id));
     await fetch(`/api/oportunidades/${id}`, { method: "DELETE" });
   }
@@ -325,13 +309,6 @@ export default function PipelinePage() {
           className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700">
           {mostrarForm ? "× Cancelar" : "+ Nueva oportunidad"}
         </button>
-
-        {esAdminOGerente && (
-          <button onClick={limpiarProspectos} disabled={limpiandoProspectos}
-            className="rounded-xl border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50">
-            {limpiandoProspectos ? "Limpiando..." : "🧹 Limpiar prospectos sin cotizar"}
-          </button>
-        )}
 
         {/* Toggle vista */}
         <div className="ml-auto flex rounded-xl border border-slate-200 overflow-hidden bg-white">
@@ -540,7 +517,8 @@ export default function PipelinePage() {
                         <span className={`ml-1 text-xs rounded-full px-1 ${urgenciaBadgeColor(dias)}`}>{dias}d</span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button onClick={() => eliminarOportunidad(o.id)} className="text-slate-300 hover:text-red-500 text-base leading-none">×</button>
+                        <button onClick={() => eliminarOportunidad(o.id, o.titulo)} title="Eliminar oportunidad"
+                          className="text-slate-300 hover:text-red-500 text-sm leading-none">🗑</button>
                       </td>
                     </tr>
                   );
@@ -606,8 +584,8 @@ export default function PipelinePage() {
                           onClick={e => { if (draggingId) e.preventDefault(); }}>
                           {o.titulo}
                         </Link>
-                        <button onClick={() => eliminarOportunidad(o.id)}
-                          className="text-slate-300 hover:text-red-500 shrink-0 leading-none text-base">×</button>
+                        <button onClick={() => eliminarOportunidad(o.id, o.titulo)} title="Eliminar oportunidad"
+                          className="text-slate-300 hover:text-red-500 shrink-0 leading-none text-sm">🗑</button>
                       </div>
                       {o.empresa && <p className="text-slate-500 mb-1">{o.empresa.nombre}</p>}
                       {(() => { const cb = cierreBadge(o.fechaCierre, o.etapa); return cb ? (
