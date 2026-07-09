@@ -5,6 +5,9 @@ import { EtapaOportunidad } from "@prisma/client";
 import { plazoVencido, diasHastaPlazo } from "@/lib/plazo-legal";
 
 export const dynamic = "force-dynamic";
+// Con muchos tenants el recorrido completo puede tardar más que el límite
+// por defecto de una función serverless — se pide el máximo permitido.
+export const maxDuration = 300;
 
 const BASE_URL = process.env.NEXTAUTH_URL ?? "https://evoluteca-crm-six.vercel.app";
 
@@ -32,42 +35,41 @@ function footer() {
   return `<p style="margin-top:20px;font-size:11px;color:#94a3b8">Este recordatorio se envía automáticamente cada mañana.</p>`;
 }
 
-export async function GET(req: Request) {
-  const secret = req.headers.get("authorization")?.replace("Bearer ", "");
-  if (secret !== process.env.CRON_SECRET) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+type Usuario = { id: string; nombre: string; email: string; tenantId: string; rol: string };
+type TenantInfo = { emailsActivos: boolean; logoUrl: string | null };
+type CorreoPendiente = { subject: string; html: string };
+
+// Reintenta el envío una vez más ante fallos transitorios (timeouts, rate
+// limits del proveedor) antes de darlo por perdido.
+async function enviarConReintento(
+  resend: Resend,
+  params: { from: string; to: string; subject: string; html: string },
+  intentos = 2
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  let ultimoError = "desconocido";
+  for (let i = 0; i < intentos; i++) {
+    const { error } = await resend.emails.send(params);
+    if (!error) return { ok: true };
+    ultimoError = error.message;
+    if (i < intentos - 1) await new Promise(r => setTimeout(r, 500 * (i + 1)));
   }
-  if (!process.env.RESEND_API_KEY) {
-    return NextResponse.json({ error: "RESEND_API_KEY no configurada" }, { status: 503 });
-  }
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  return { ok: false, error: ultimoError };
+}
 
-  const ahora = new Date();
-  const hace14 = new Date(ahora.getTime() - 14 * 86_400_000);
-  const en7dias = new Date(ahora.getTime() + 7 * 86_400_000);
-  const en5dias = new Date(ahora.getTime() + 5 * 86_400_000);
-
-  const usuarios = await prisma.usuario.findMany({
-    where: { activo: true },
-    select: { id: true, nombre: true, email: true, tenantId: true, rol: true },
-  });
-
-  let enviados = 0;
+async function procesarUsuario(
+  u: Usuario,
+  tenantInfo: TenantInfo,
+  fechas: { ahora: Date; hace14: Date; en7dias: Date; en5dias: Date },
+  resend: Resend
+): Promise<{ enviados: number; errores: string[] }> {
+  const { ahora, hace14, en7dias, en5dias } = fechas;
   const errores: string[] = [];
+  let enviados = 0;
 
-  // Cache de emailsActivos y logoUrl por tenant
-  const tenantCache: Record<string, { emailsActivos: boolean; logoUrl: string | null }> = {};
-
-  for (const u of usuarios) {
-    if (tenantCache[u.tenantId] === undefined) {
-      const t = await prisma.tenant.findUnique({ where: { id: u.tenantId }, select: { emailsActivos: true, logoUrl: true } });
-      tenantCache[u.tenantId] = { emailsActivos: t?.emailsActivos ?? true, logoUrl: t?.logoUrl ?? null };
-    }
-    if (!tenantCache[u.tenantId].emailsActivos) continue;
-    const logoUrl = tenantCache[u.tenantId].logoUrl;
-
+  try {
+    const logoUrl = tenantInfo.logoUrl;
     const ownerWhere = u.rol === "COMERCIAL" ? { creadoBy: u.id } : {};
-    const emails: { subject: string; html: string }[] = [];
+    const emails: CorreoPendiente[] = [];
 
     // ── 1. Actividades vencidas ──────────────────────────────────────────────
     const vencidas = await prisma.actividad.findMany({
@@ -243,16 +245,80 @@ export async function GET(req: Request) {
       });
     }
 
-    // ── Enviar emails ─────────────────────────────────────────────────────────
+    // ── Enviar emails (con reintento) ────────────────────────────────────────
     for (const mail of emails) {
-      const { error } = await resend.emails.send({
+      const resultado = await enviarConReintento(resend, {
         from: "Evoluteca CRM <noreply@evoluteca.com>",
         to: u.email,
         subject: `[${u.nombre}] ${mail.subject}`,
         html: mail.html,
       });
-      if (error) errores.push(`${u.email} (${mail.subject}): ${error.message}`);
-      else enviados++;
+      if (resultado.ok) enviados++;
+      else errores.push(`${u.email} (${mail.subject}): ${resultado.error}`);
+    }
+
+    return { enviados, errores };
+  } catch (e) {
+    // Aislado por usuario: un error inesperado en un tenant (dato corrupto,
+    // timeout puntual) no debe impedir que se procesen los demás.
+    return { enviados: 0, errores: [`${u.email}: error interno — ${e instanceof Error ? e.message : String(e)}`] };
+  }
+}
+
+export async function GET(req: Request) {
+  // Falla cerrado: si CRON_SECRET no está configurado, cualquier solicitud
+  // sin credencial (secret === undefined) coincidiría con undefined === undefined.
+  if (!process.env.CRON_SECRET) {
+    return NextResponse.json({ error: "CRON_SECRET no configurado" }, { status: 503 });
+  }
+  const secret = req.headers.get("authorization")?.replace("Bearer ", "");
+  if (secret !== process.env.CRON_SECRET) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+  if (!process.env.RESEND_API_KEY) {
+    return NextResponse.json({ error: "RESEND_API_KEY no configurada" }, { status: 503 });
+  }
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  const ahora = new Date();
+  const fechas = {
+    ahora,
+    hace14: new Date(ahora.getTime() - 14 * 86_400_000),
+    en7dias: new Date(ahora.getTime() + 7 * 86_400_000),
+    en5dias: new Date(ahora.getTime() + 5 * 86_400_000),
+  };
+
+  const usuarios = await prisma.usuario.findMany({
+    where: { activo: true },
+    select: { id: true, nombre: true, email: true, tenantId: true, rol: true },
+  });
+
+  // Cache de emailsActivos y logoUrl por tenant
+  const tenantCache: Record<string, TenantInfo> = {};
+  async function obtenerTenantInfo(tenantId: string): Promise<TenantInfo> {
+    if (tenantCache[tenantId] === undefined) {
+      const t = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { emailsActivos: true, logoUrl: true } });
+      tenantCache[tenantId] = { emailsActivos: t?.emailsActivos ?? true, logoUrl: t?.logoUrl ?? null };
+    }
+    return tenantCache[tenantId];
+  }
+
+  let enviados = 0;
+  const errores: string[] = [];
+
+  // Concurrencia acotada por lotes: procesa varios usuarios en paralelo sin
+  // saturar el pool de conexiones de Neon ni el rate limit de Resend.
+  const CONCURRENCIA = 5;
+  for (let i = 0; i < usuarios.length; i += CONCURRENCIA) {
+    const lote = usuarios.slice(i, i + CONCURRENCIA);
+    const resultados = await Promise.all(lote.map(async u => {
+      const tenantInfo = await obtenerTenantInfo(u.tenantId);
+      if (!tenantInfo.emailsActivos) return { enviados: 0, errores: [] };
+      return procesarUsuario(u, tenantInfo, fechas, resend);
+    }));
+    for (const r of resultados) {
+      enviados += r.enviados;
+      errores.push(...r.errores);
     }
   }
 
