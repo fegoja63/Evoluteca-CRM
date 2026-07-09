@@ -81,7 +81,9 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const subtotal = cot.items.reduce((acc, i) => acc + i.cantidad * Number(i.precioUnit), 0);
   const pctImpuesto = Number(cot.impuestoPorcentaje ?? 0);
   const valorImpuesto = subtotal * (pctImpuesto / 100);
-  const total = subtotal + valorImpuesto;
+  const pctImpuesto2 = Number(cot.impuesto2Porcentaje ?? 0);
+  const valorImpuesto2 = subtotal * (pctImpuesto2 / 100);
+  const total = subtotal + valorImpuesto + valorImpuesto2;
 
   // Si el logo configurado no carga (URL rota, host caído, no es una imagen),
   // @react-pdf/renderer puede lanzar una excepción no controlada dentro de
@@ -178,9 +180,10 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
         ),
         React.createElement(View, { style: styles.totalBox, wrap: false },
           React.createElement(View, { style: styles.totalInner },
-            pctImpuesto > 0 ? React.createElement(View, { style: { marginBottom: 6, alignItems: "flex-end" } },
+            (pctImpuesto > 0 || pctImpuesto2 > 0) ? React.createElement(View, { style: { marginBottom: 6, alignItems: "flex-end" } },
               React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `Subtotal: ${fmt(subtotal)}`),
-              React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `${cot.impuestoNombre ?? "Impuesto"} (${pctImpuesto}%): ${fmt(valorImpuesto)}`),
+              pctImpuesto > 0 ? React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `${cot.impuestoNombre ?? "Impuesto"} (${pctImpuesto}%): ${fmt(valorImpuesto)}`) : null,
+              pctImpuesto2 > 0 ? React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `${cot.impuesto2Nombre ?? "Impuesto"} (${pctImpuesto2}%): ${fmt(valorImpuesto2)}`) : null,
             ) : null,
             React.createElement(Text, { style: styles.totalLabel }, "TOTAL"),
             React.createElement(Text, { style: styles.totalValue }, fmt(total)),

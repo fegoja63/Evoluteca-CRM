@@ -45,6 +45,8 @@ export default function NuevaCotizacionPage() {
   const [notas, setNotas]             = useState("");
   const [impuestoNombre, setImpuestoNombre] = useState("IVA");
   const [impuestoPorcentaje, setImpuestoPorcentaje] = useState("");
+  const [impuesto2Nombre, setImpuesto2Nombre] = useState("");
+  const [impuesto2Porcentaje, setImpuesto2Porcentaje] = useState("");
   const [disponibilidad, setDisponibilidad] = useState<Disponibilidad | null>(null);
   const disponibilidadClaveRef = useRef("");
 
@@ -161,7 +163,7 @@ export default function NuevaCotizacionPage() {
   const dirty =
     empresaId !== "" || contactoId !== "" || oportunidadId !== "" || salonId !== "" ||
     sede !== "" || fechaEvento !== "" || horaInicio !== "" || horaFin !== "" || fechaValidez !== "" || notas !== "" ||
-    impuestoNombre !== "IVA" || impuestoPorcentaje !== "" ||
+    impuestoNombre !== "IVA" || impuestoPorcentaje !== "" || impuesto2Nombre !== "" || impuesto2Porcentaje !== "" ||
     lineas.some(l => l.descripcion !== "" || l.cantidad !== "1" || l.precioUnit !== "") || lineas.length > 1 ||
     modoEmpresa !== "existente" || nuevaEmpresaForm.nombre !== "" || nuevaEmpresaForm.email !== "" || nuevaEmpresaForm.telefono !== "" ||
     modoContacto !== "existente" || nuevoContactoForm.nombre !== "" || nuevoContactoForm.email !== "" || nuevoContactoForm.telefono !== "" || nuevoContactoForm.cargo !== "" ||
@@ -225,7 +227,9 @@ export default function NuevaCotizacionPage() {
   }, 0);
   const pctImpuesto = parseFloat(impuestoPorcentaje) || 0;
   const valorImpuesto = subtotal * (pctImpuesto / 100);
-  const totalGeneral = subtotal + valorImpuesto;
+  const pctImpuesto2 = parseFloat(impuesto2Porcentaje) || 0;
+  const valorImpuesto2 = subtotal * (pctImpuesto2 / 100);
+  const totalGeneral = subtotal + valorImpuesto + valorImpuesto2;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -266,6 +270,8 @@ export default function NuevaCotizacionPage() {
         notas:        notas.trim() || null,
         impuestoNombre: impuestoNombre.trim() || null,
         impuestoPorcentaje: impuestoPorcentaje || null,
+        impuesto2Nombre: impuesto2Nombre.trim() || null,
+        impuesto2Porcentaje: impuesto2Porcentaje || null,
         items: lineasValidas.map(l => ({
           descripcion: l.descripcion.trim(),
           cantidad:    parseInt(l.cantidad) || 1,
@@ -591,27 +597,47 @@ export default function NuevaCotizacionPage() {
             )}
           </div>
 
-          {/* Impuesto */}
+          {/* Impuestos */}
           <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-end justify-between gap-4">
-            <div className="flex gap-2">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Impuesto</label>
-                <input type="text" value={impuestoNombre} onChange={e => setImpuestoNombre(e.target.value)}
-                  placeholder="Ej: IVA"
-                  className="w-28 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Impuesto</label>
+                  <input type="text" value={impuestoNombre} onChange={e => setImpuestoNombre(e.target.value)}
+                    placeholder="Ej: IVA"
+                    className="w-28 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">%</label>
+                  <input type="number" min={0} max={100} step="0.01" value={impuestoPorcentaje}
+                    onChange={e => setImpuestoPorcentaje(e.target.value)}
+                    placeholder="0"
+                    className="w-20 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">%</label>
-                <input type="number" min={0} max={100} step="0.01" value={impuestoPorcentaje}
-                  onChange={e => setImpuestoPorcentaje(e.target.value)}
-                  placeholder="0"
-                  className="w-20 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+              <div className="flex gap-2">
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">2º impuesto (opcional)</label>
+                  <input type="text" value={impuesto2Nombre} onChange={e => setImpuesto2Nombre(e.target.value)}
+                    placeholder="Ej: Retención"
+                    className="w-28 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">%</label>
+                  <input type="number" min={0} max={100} step="0.01" value={impuesto2Porcentaje}
+                    onChange={e => setImpuesto2Porcentaje(e.target.value)}
+                    placeholder="0"
+                    className="w-20 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                </div>
               </div>
             </div>
             <div className="text-right">
               <p className="text-xs text-slate-400">Subtotal: <span className="font-medium text-slate-600">{fmt(subtotal)}</span></p>
               {pctImpuesto > 0 && (
                 <p className="text-xs text-slate-400">{impuestoNombre || "Impuesto"} ({pctImpuesto}%): <span className="font-medium text-slate-600">{fmt(valorImpuesto)}</span></p>
+              )}
+              {pctImpuesto2 > 0 && (
+                <p className="text-xs text-slate-400">{impuesto2Nombre || "Impuesto"} ({pctImpuesto2}%): <span className="font-medium text-slate-600">{fmt(valorImpuesto2)}</span></p>
               )}
               <p className="text-xs text-slate-400 uppercase tracking-wide mt-1">Total</p>
               <p className="text-2xl font-bold text-slate-900">{fmt(totalGeneral)}</p>

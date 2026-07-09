@@ -15,6 +15,8 @@ type Cotizacion = {
   motivoRechazo: string | null;
   impuestoNombre: string | null;
   impuestoPorcentaje: string | null;
+  impuesto2Nombre: string | null;
+  impuesto2Porcentaje: string | null;
   empresa:  { nombre: string } | null;
   contacto: { nombre: string; email: string | null } | null;
   tenant:   { nombre: string };
@@ -97,7 +99,9 @@ export default function CotizacionPublicaPage() {
   const subtotal = cot.items.reduce((acc, i) => acc + i.cantidad * Number(i.precioUnit), 0);
   const pctImpuesto = Number(cot.impuestoPorcentaje ?? 0);
   const valorImpuesto = subtotal * (pctImpuesto / 100);
-  const total = subtotal + valorImpuesto;
+  const pctImpuesto2 = Number(cot.impuesto2Porcentaje ?? 0);
+  const valorImpuesto2 = subtotal * (pctImpuesto2 / 100);
+  const total = subtotal + valorImpuesto + valorImpuesto2;
   const yaRespondida = cot.estado === "ACEPTADA" || cot.estado === "RECHAZADA";
 
   return (
@@ -165,6 +169,12 @@ export default function CotizacionPublicaPage() {
                   <tr>
                     <td colSpan={3} className="px-4 py-1.5 text-right text-xs text-slate-500">{cot.impuestoNombre ?? "Impuesto"} ({pctImpuesto}%)</td>
                     <td className="px-4 py-1.5 text-right text-sm text-slate-600">{fmt(valorImpuesto)}</td>
+                  </tr>
+                )}
+                {pctImpuesto2 > 0 && (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-1.5 text-right text-xs text-slate-500">{cot.impuesto2Nombre ?? "Impuesto"} ({pctImpuesto2}%)</td>
+                    <td className="px-4 py-1.5 text-right text-sm text-slate-600">{fmt(valorImpuesto2)}</td>
                   </tr>
                 )}
                 <tr className="bg-slate-50 border-t-2 border-slate-200">

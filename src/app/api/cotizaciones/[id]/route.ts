@@ -10,8 +10,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const cot = await prisma.cotizacion.findFirst({
     where: { id: params.id, tenantId: session.user.tenantId },
     include: {
-      empresa:  { select: { id: true, nombre: true } },
-      contacto: { select: { id: true, nombre: true, email: true } },
+      empresa:  { select: { id: true, nombre: true, telefono: true } },
+      contacto: { select: { id: true, nombre: true, email: true, telefono: true } },
       oportunidad: { select: { id: true, titulo: true } },
       items: { orderBy: { id: "asc" } },
     },
@@ -25,7 +25,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { estado, notas, empresaId, motivoRechazo, fechaEvento, horaInicio, horaFin, impuestoNombre, impuestoPorcentaje } = body;
+  const { estado, notas, empresaId, motivoRechazo, fechaEvento, horaInicio, horaFin, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje } = body;
 
   await prisma.cotizacion.updateMany({
     where: { id: params.id, tenantId: session.user.tenantId },
@@ -39,6 +39,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       ...(horaFin !== undefined && { horaFin: horaFin || null }),
       ...(impuestoNombre !== undefined && { impuestoNombre: impuestoNombre?.trim() || null }),
       ...(impuestoPorcentaje !== undefined && { impuestoPorcentaje: impuestoPorcentaje === "" || impuestoPorcentaje === null ? null : Number(impuestoPorcentaje) }),
+      ...(impuesto2Nombre !== undefined && { impuesto2Nombre: impuesto2Nombre?.trim() || null }),
+      ...(impuesto2Porcentaje !== undefined && { impuesto2Porcentaje: impuesto2Porcentaje === "" || impuesto2Porcentaje === null ? null : Number(impuesto2Porcentaje) }),
     },
   });
 

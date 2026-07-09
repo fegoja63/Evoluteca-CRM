@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { empresaId, contactoId, oportunidadId, salonId, fechaEvento, horaInicio, horaFin, sede, notas, fechaValidez, items, impuestoNombre, impuestoPorcentaje } = body;
+  const { empresaId, contactoId, oportunidadId, salonId, fechaEvento, horaInicio, horaFin, sede, notas, fechaValidez, items, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje } = body;
 
   if (!Array.isArray(items) || items.length === 0) {
     return NextResponse.json({ error: "Agrega al menos un ítem" }, { status: 400 });
@@ -51,6 +51,8 @@ export async function POST(request: Request) {
       fechaValidez: fechaValidez ? new Date(fechaValidez) : null,
       impuestoNombre: impuestoNombre?.trim() || null,
       impuestoPorcentaje: impuestoPorcentaje !== undefined && impuestoPorcentaje !== "" && impuestoPorcentaje !== null ? Number(impuestoPorcentaje) : null,
+      impuesto2Nombre: impuesto2Nombre?.trim() || null,
+      impuesto2Porcentaje: impuesto2Porcentaje !== undefined && impuesto2Porcentaje !== "" && impuesto2Porcentaje !== null ? Number(impuesto2Porcentaje) : null,
       tenantId: session.user.tenantId,
       items: {
         create: items.map((item: { descripcion: string; cantidad: number; precioUnit: number }) => ({

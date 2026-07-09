@@ -27,7 +27,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const subtotal = cot.items.reduce((acc, i) => acc + i.cantidad * Number(i.precioUnit), 0);
   const pctImpuesto = Number(cot.impuestoPorcentaje ?? 0);
   const valorImpuesto = subtotal * (pctImpuesto / 100);
-  const total = subtotal + valorImpuesto;
+  const pctImpuesto2 = Number(cot.impuesto2Porcentaje ?? 0);
+  const valorImpuesto2 = subtotal * (pctImpuesto2 / 100);
+  const total = subtotal + valorImpuesto + valorImpuesto2;
   const numero = `#${String(cot.numero).padStart(4, "0")}`;
   const cliente = cot.empresa?.nombre ?? "Cliente";
   const contacto = cot.contacto?.nombre ?? "";
@@ -77,6 +79,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             <tr>
               <td colspan="3" style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${cot.impuestoNombre ?? "Impuesto"} (${pctImpuesto}%)</td>
               <td style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${fmt(valorImpuesto)}</td>
+            </tr>` : ""}
+            ${pctImpuesto2 > 0 ? `
+            <tr>
+              <td colspan="3" style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${cot.impuesto2Nombre ?? "Impuesto"} (${pctImpuesto2}%)</td>
+              <td style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${fmt(valorImpuesto2)}</td>
             </tr>` : ""}
             <tr style="background:#f8fafc">
               <td colspan="3" style="padding:12px;font-size:13px;font-weight:700;color:#1e293b">TOTAL</td>

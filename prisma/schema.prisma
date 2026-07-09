@@ -247,6 +247,8 @@ model Cotizacion {
   motivoRechazo   String?
   impuestoNombre     String?
   impuestoPorcentaje Decimal?       @db.Decimal(5, 2)
+  impuesto2Nombre     String?
+  impuesto2Porcentaje Decimal?      @db.Decimal(5, 2)
   horaInicio      String?
   horaFin         String?
   creadoEn        DateTime          @default(now())
