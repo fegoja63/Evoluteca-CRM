@@ -17,9 +17,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       empresa:  { select: { nombre: true } },
       contacto: { select: { nombre: true, email: true } },
       items:    true,
+      tenant:   { select: { logoUrl: true } },
     },
   });
   if (!cot) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
+
+  const logoUrl = cot.tenant.logoUrl || "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg";
 
   const fmt = (v: number) =>
     new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
@@ -51,7 +54,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
           <h2 style="color:white;margin:0;font-size:20px">Evoluteca CRM</h2>
           <p style="color:#93c5fd;margin:4px 0 0;font-size:13px">Cotización ${numero}</p>
         </div>
-        <img src="https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" alt="Felipe Gómez Jaramillo"
+        <img src="${logoUrl}" alt="Logo"
           style="height:48px;width:auto;border-radius:8px;object-fit:contain;background:white;padding:4px" />
       </div>
       <div style="background:white;padding:28px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px">

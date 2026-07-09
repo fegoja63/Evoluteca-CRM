@@ -19,7 +19,7 @@ type Cotizacion = {
   impuesto2Porcentaje: string | null;
   empresa:  { nombre: string } | null;
   contacto: { nombre: string; email: string | null } | null;
-  tenant:   { nombre: string };
+  tenant:   { nombre: string; logoUrl: string | null };
   items: Item[];
 };
 
@@ -116,7 +116,7 @@ export default function CotizacionPublicaPage() {
               Cotización #{String(cot.numero).padStart(4, "0")}
             </h1>
           </div>
-          <img src="https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" alt="Logo"
+          <img src={cot.tenant.logoUrl || "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg"} alt="Logo"
             className="h-12 w-auto rounded-lg object-contain bg-white p-1" />
         </div>
 

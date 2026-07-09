@@ -10,7 +10,7 @@ export async function GET(_req: Request, { params }: { params: { token: string }
       empresa:  { select: { nombre: true } },
       contacto: { select: { nombre: true, email: true } },
       items:    { orderBy: { id: "asc" } },
-      tenant:   { select: { nombre: true } },
+      tenant:   { select: { nombre: true, logoUrl: true } },
     },
   });
   if (!cot) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
