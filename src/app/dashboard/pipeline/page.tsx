@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { KpiCard } from "@/components/kpi-card";
 
 type Oportunidad = {
@@ -71,6 +72,9 @@ const MESES_LABEL: Record<string, number> = {
 const MESES_NOMBRE = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
 export default function PipelinePage() {
+  const { data: session } = useSession();
+  const esAdministrador = session?.user?.rol === "ADMINISTRADOR";
+
   const [oportunidades, setOportunidades] = useState<Oportunidad[]>([]);
   const [empresas, setEmpresas]   = useState<Empresa[]>([]);
   const [contactos, setContactos] = useState<Contacto[]>([]);
@@ -154,6 +158,7 @@ export default function PipelinePage() {
   }
 
   async function eliminarOportunidad(id: string, titulo: string) {
+    if (!esAdministrador) { alert("Solicita al Administrador borrar esta oportunidad."); return; }
     if (!confirm(`¿Eliminar la oportunidad "${titulo}"? Esta acción no se puede deshacer.`)) return;
     setOportunidades(prev => prev.filter(o => o.id !== id));
     await fetch(`/api/oportunidades/${id}`, { method: "DELETE" });

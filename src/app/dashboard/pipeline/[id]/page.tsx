@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 import { NotasRapidas } from "@/components/notas-rapidas";
@@ -43,6 +44,8 @@ export default function OportunidadDetallePage() {
   const params  = useParams();
   const router  = useRouter();
   const id      = params.id as string;
+  const { data: session } = useSession();
+  const esAdministrador = session?.user?.rol === "ADMINISTRADOR";
 
   const [op, setOp] = useState<Oportunidad | null>(null);
   const [editando, setEditando] = useState(false);
@@ -151,6 +154,7 @@ export default function OportunidadDetallePage() {
   }
 
   async function eliminar() {
+    if (!esAdministrador) { alert("Solicita al Administrador borrar esta oportunidad."); return; }
     if (!confirm("¿Eliminar esta oportunidad? Esta acción no se puede deshacer.")) return;
     await fetch(`/api/oportunidades/${id}`, { method: "DELETE" });
     router.push("/dashboard/pipeline");
