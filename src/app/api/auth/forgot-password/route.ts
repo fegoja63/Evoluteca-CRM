@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import { permitirYRegistrar, obtenerIp } from "@/lib/rate-limit";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -14,6 +15,16 @@ const transporter = nodemailer.createTransport({
 export async function POST(req: NextRequest) {
   const { email } = await req.json();
   if (!email) return NextResponse.json({ error: "Email requerido" }, { status: 400 });
+
+  // Máximo 3 solicitudes cada 15 minutos por correo y por IP — evita que se
+  // use este endpoint para bombardear de emails a un usuario ajeno.
+  const permitidoEmail = await permitirYRegistrar(`forgot:email:${email.toLowerCase()}`, 3, 15 * 60 * 1000);
+  const permitidoIp = await permitirYRegistrar(`forgot:ip:${obtenerIp(req)}`, 10, 15 * 60 * 1000);
+  if (!permitidoEmail || !permitidoIp) {
+    // Misma respuesta que "usuario no encontrado" — no revela si el límite
+    // se alcanzó por email o por IP, ni si el correo existe.
+    return NextResponse.json({ ok: true });
+  }
 
   const usuario = await prisma.usuario.findUnique({ where: { email: email.toLowerCase() } });
 

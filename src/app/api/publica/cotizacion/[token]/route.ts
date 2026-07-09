@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { permitirYRegistrar } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,11 @@ export async function GET(_req: Request, { params }: { params: { token: string }
 }
 
 export async function PATCH(req: Request, { params }: { params: { token: string } }) {
+  // El token ya es la protección principal (alta entropía), pero se limita
+  // por token para frenar abuso automatizado del enlace público.
+  const permitido = await permitirYRegistrar(`cotpublica:${params.token}`, 10, 60 * 60 * 1000);
+  if (!permitido) return NextResponse.json({ error: "Demasiados intentos. Espera unos minutos." }, { status: 429 });
+
   const cot = await prisma.cotizacion.findFirst({
     where: { tokenPublico: params.token },
     select: { id: true, estado: true },

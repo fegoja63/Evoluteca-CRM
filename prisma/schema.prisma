@@ -18,6 +18,19 @@ enum RolUsuario {
   COMERCIAL
 }
 
+// Rate limiting de ventana fija persistido en Postgres — evita depender de
+// Redis/Upstash solo para esto. Cada fila es una "clave" (ej. login:email,
+// ip:forgot-password) con un contador que se reinicia cuando expira la
+// ventana. El volumen de filas es bajo (una por identidad activa) y se
+// autolimpia al expirar cada ventana, así que no hace falta un cron de purga.
+model RateLimit {
+  clave         String   @id
+  intentos      Int      @default(1)
+  ventanaInicio DateTime @default(now())
+
+  @@map("rate_limits")
+}
+
 // Cada empresa cliente de Evoluteca es un "tenant" aislado.
 // Todas las tablas de negocio (empresas, contactos, oportunidades...)
 // llevan tenantId para garantizar separación de datos entre clientes.

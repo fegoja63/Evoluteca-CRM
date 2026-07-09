@@ -3,9 +3,13 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validations/auth";
+import { estaBloqueado, registrarIntentoFallido, limpiarIntentos } from "@/lib/rate-limit";
+
+const VENTANA_LOGIN_MS = 15 * 60 * 1000; // 15 minutos
+const MAX_INTENTOS_LOGIN = 5;
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt", maxAge: 12 * 60 * 60, updateAge: 60 * 60 }, // 12h de sesión, se renueva cada hora de uso activo
   pages: {
     signIn: "/login",
   },
@@ -20,20 +24,37 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!parsed.success) return null;
 
         const { email, password } = parsed.data;
+        const clave = `login:${email.toLowerCase()}`;
+
+        // 5 intentos fallidos en 15 minutos bloquean el correo temporalmente,
+        // sin importar si la contraseña que sigue mandando es correcta o no —
+        // así se frena tanto fuerza bruta como intentos de adivinar.
+        if (await estaBloqueado(clave, MAX_INTENTOS_LOGIN, VENTANA_LOGIN_MS)) return null;
 
         const usuario = await prisma.usuario.findUnique({
           where: { email },
           include: { tenant: true },
         });
 
-        if (!usuario || !usuario.activo) return null;
-        if (!usuario.tenant.activo) return null;
+        if (!usuario || !usuario.activo) {
+          await registrarIntentoFallido(clave, VENTANA_LOGIN_MS);
+          return null;
+        }
+        if (!usuario.tenant.activo) {
+          await registrarIntentoFallido(clave, VENTANA_LOGIN_MS);
+          return null;
+        }
 
         const passwordValida = await bcrypt.compare(
           password,
           usuario.passwordHash
         );
-        if (!passwordValida) return null;
+        if (!passwordValida) {
+          await registrarIntentoFallido(clave, VENTANA_LOGIN_MS);
+          return null;
+        }
+
+        await limpiarIntentos(clave);
 
         return {
           id: usuario.id,
