@@ -303,6 +303,67 @@ export default function CotizacionDetailPage() {
         </div>
       </div>
 
+      {/* Panel enviar email */}
+      {mostrarEmailPanel && (
+        <div className="mb-5 rounded-2xl border border-blue-200 bg-blue-50 p-4 flex items-center gap-3">
+          <span className="text-blue-500 text-lg">✉</span>
+          <div className="flex-1">
+            <p className="text-xs font-semibold text-blue-700 mb-1">Enviar cotización por email a</p>
+            <input type="email" value={emailDestino} onChange={e => setEmailDestino(e.target.value)}
+              placeholder="correo@cliente.com"
+              className="w-full rounded-lg border border-blue-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500 bg-white" />
+          </div>
+          <button onClick={enviarEmail} disabled={enviando || !emailDestino.trim()}
+            className="shrink-0 rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+            {enviando ? "Enviando..." : "Enviar"}
+          </button>
+        </div>
+      )}
+
+      {/* Panel enviar WhatsApp */}
+      {mostrarWhatsappPanel && (
+        <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+          <div className="flex items-start gap-3">
+            <span className="text-emerald-500 text-lg">💬</span>
+            <div className="flex-1 flex flex-col gap-2">
+              <div>
+                <p className="text-xs font-semibold text-emerald-700 mb-1">Número de WhatsApp</p>
+                <input type="tel" value={telefonoDestino} onChange={e => setTelefonoDestino(e.target.value)}
+                  placeholder="+57 300 000 0000"
+                  className="w-full rounded-lg border border-emerald-200 px-3 py-1.5 text-sm outline-none focus:border-emerald-500 bg-white" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-emerald-700 mb-1">Mensaje</p>
+                <textarea value={mensajeWhatsapp} onChange={e => setMensajeWhatsapp(e.target.value)}
+                  rows={3}
+                  className="w-full rounded-lg border border-emerald-200 px-3 py-1.5 text-sm outline-none focus:border-emerald-500 bg-white resize-none" />
+              </div>
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+                onClick={() => setMostrarWhatsappPanel(false)}
+                aria-disabled={!telefonoLimpio}
+                className={`self-start rounded-lg px-4 py-1.5 text-xs font-medium text-white transition-colors ${telefonoLimpio ? "bg-emerald-600 hover:bg-emerald-700" : "bg-emerald-300 pointer-events-none"}`}>
+                💬 Abrir WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Panel link público */}
+      {linkPublico && (
+        <div className="mb-5 rounded-2xl border border-violet-200 bg-violet-50 p-4 flex items-center gap-3">
+          <span className="text-violet-500 text-lg">🔗</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-violet-700 mb-1">Link para el cliente</p>
+            <p className="text-xs text-violet-600 truncate font-mono">{linkPublico}</p>
+          </div>
+          <button onClick={copiarLink}
+            className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${copiado ? "bg-emerald-100 text-emerald-700" : "bg-violet-200 text-violet-700 hover:bg-violet-300"}`}>
+            {copiado ? "✓ Copiado" : "Copiar"}
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-col gap-5">
         {/* Datos generales */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
@@ -467,67 +528,6 @@ export default function CotizacionDetailPage() {
           )}
         </div>
       </div>
-
-      {/* Panel enviar email */}
-      {mostrarEmailPanel && (
-        <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 p-4 flex items-center gap-3">
-          <span className="text-blue-500 text-lg">✉</span>
-          <div className="flex-1">
-            <p className="text-xs font-semibold text-blue-700 mb-1">Enviar cotización por email a</p>
-            <input type="email" value={emailDestino} onChange={e => setEmailDestino(e.target.value)}
-              placeholder="correo@cliente.com"
-              className="w-full rounded-lg border border-blue-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500 bg-white" />
-          </div>
-          <button onClick={enviarEmail} disabled={enviando || !emailDestino.trim()}
-            className="shrink-0 rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
-            {enviando ? "Enviando..." : "Enviar"}
-          </button>
-        </div>
-      )}
-
-      {/* Panel enviar WhatsApp */}
-      {mostrarWhatsappPanel && (
-        <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-          <div className="flex items-start gap-3">
-            <span className="text-emerald-500 text-lg">💬</span>
-            <div className="flex-1 flex flex-col gap-2">
-              <div>
-                <p className="text-xs font-semibold text-emerald-700 mb-1">Número de WhatsApp</p>
-                <input type="tel" value={telefonoDestino} onChange={e => setTelefonoDestino(e.target.value)}
-                  placeholder="+57 300 000 0000"
-                  className="w-full rounded-lg border border-emerald-200 px-3 py-1.5 text-sm outline-none focus:border-emerald-500 bg-white" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-emerald-700 mb-1">Mensaje</p>
-                <textarea value={mensajeWhatsapp} onChange={e => setMensajeWhatsapp(e.target.value)}
-                  rows={3}
-                  className="w-full rounded-lg border border-emerald-200 px-3 py-1.5 text-sm outline-none focus:border-emerald-500 bg-white resize-none" />
-              </div>
-              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-                onClick={() => setMostrarWhatsappPanel(false)}
-                aria-disabled={!telefonoLimpio}
-                className={`self-start rounded-lg px-4 py-1.5 text-xs font-medium text-white transition-colors ${telefonoLimpio ? "bg-emerald-600 hover:bg-emerald-700" : "bg-emerald-300 pointer-events-none"}`}>
-                💬 Abrir WhatsApp
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Panel link público */}
-      {linkPublico && (
-        <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50 p-4 flex items-center gap-3">
-          <span className="text-violet-500 text-lg">🔗</span>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-violet-700 mb-1">Link para el cliente</p>
-            <p className="text-xs text-violet-600 truncate font-mono">{linkPublico}</p>
-          </div>
-          <button onClick={copiarLink}
-            className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${copiado ? "bg-emerald-100 text-emerald-700" : "bg-violet-200 text-violet-700 hover:bg-violet-300"}`}>
-            {copiado ? "✓ Copiado" : "Copiar"}
-          </button>
-        </div>
-      )}
 
       {/* Modal motivo rechazo */}
       {mostrarMotivoModal && (
