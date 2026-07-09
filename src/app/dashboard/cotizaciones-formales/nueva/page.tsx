@@ -158,6 +158,25 @@ export default function NuevaCotizacionPage() {
     { descripcion: "", cantidad: "1", precioUnit: "" },
   ]);
 
+  const dirty =
+    empresaId !== "" || contactoId !== "" || oportunidadId !== "" || salonId !== "" ||
+    sede !== "" || fechaEvento !== "" || horaInicio !== "" || horaFin !== "" || fechaValidez !== "" || notas !== "" ||
+    impuestoNombre !== "IVA" || impuestoPorcentaje !== "" ||
+    lineas.some(l => l.descripcion !== "" || l.cantidad !== "1" || l.precioUnit !== "") || lineas.length > 1 ||
+    modoEmpresa !== "existente" || nuevaEmpresaForm.nombre !== "" || nuevaEmpresaForm.email !== "" || nuevaEmpresaForm.telefono !== "" ||
+    modoContacto !== "existente" || nuevoContactoForm.nombre !== "" || nuevoContactoForm.email !== "" || nuevoContactoForm.telefono !== "" || nuevoContactoForm.cargo !== "" ||
+    modoOportunidad !== "existente" || nuevaOportunidadForm.titulo !== "";
+
+  useEffect(() => {
+    function avisarSiHayCambios(e: BeforeUnloadEvent) {
+      if (!dirty) return;
+      e.preventDefault();
+      e.returnValue = "";
+    }
+    window.addEventListener("beforeunload", avisarSiHayCambios);
+    return () => window.removeEventListener("beforeunload", avisarSiHayCambios);
+  }, [dirty]);
+
   useEffect(() => {
     Promise.all([
       fetch("/api/empresas").then(r => r.json()),
