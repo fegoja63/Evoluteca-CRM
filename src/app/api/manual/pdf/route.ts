@@ -386,8 +386,9 @@ export async function GET() {
       ),
 
       React.createElement(H2, null, "3.2 Crear una oportunidad"),
-      React.createElement(P, null, 'Las oportunidades se crean desde la ficha de un cliente (pestaña Oportunidades) o al vincular una cotización formal a un negocio. El pipeline es la vista de gestión: arrastra las tarjetas entre etapas para actualizar el avance.'),
+      React.createElement(P, null, 'Las oportunidades se crean desde la ficha de un cliente (pestaña Oportunidades), al vincular una cotización formal a un negocio, o con el botón "+ Nueva" del campo Oportunidad vinculada en Nueva cotización. El pipeline es la vista de gestión: arrastra las tarjetas entre etapas para actualizar el avance.'),
       React.createElement(Tip, null, "El valor de la oportunidad es fundamental para los reportes. Ingrésalo siempre aunque sea estimado."),
+      React.createElement(Tip, null, "El título de la oportunidad debe describir el tipo de negocio (ej: \"Congreso anual\", \"Alquiler sala\", \"Función privada\"), no el nombre del cliente — el cliente ya queda registrado en el campo Empresa. Repetirlo en el título solo genera texto redundante en el pipeline y los reportes."),
 
       React.createElement(H2, null, "3.3 Indicadores de urgencia"),
       React.createElement(P, null, "Cada tarjeta del kanban muestra un borde de color en su lado izquierdo que indica la antigüedad de la oportunidad desde que fue creada:"),

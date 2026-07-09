@@ -223,7 +223,7 @@ async function main() {
     const con = contactosPorEmpresa[emp.id][i % contactosPorEmpresa[emp.id].length];
     const op = await prisma.oportunidad.create({
       data: {
-        titulo: `${serviciosTitulo[i % serviciosTitulo.length]} — ${emp.nombre}`,
+        titulo: serviciosTitulo[i % serviciosTitulo.length],
         etapa: spec.etapa,
         valor: spec.valor,
         probabilidad: spec.probabilidad,
@@ -261,7 +261,7 @@ async function main() {
   ];
   for (const a of actividadEspecs) {
     const op = oportunidades[a.opIdx];
-    const nombreEmpresa = op.titulo.split(" — ")[1] ?? "";
+    const nombreEmpresa = empresas.find(e => e.id === op.empresaId)?.nombre ?? "";
     await prisma.actividad.create({
       data: {
         titulo: `${a.titulo} — ${nombreEmpresa}`,
@@ -298,7 +298,7 @@ async function main() {
         contactoId: op.contactoId,
         oportunidadId: op.id,
         tenantId: tenant.id,
-        items: { create: [{ descripcion: op.titulo.split(" — ")[0], cantidad: 1, precioUnit: 4500000 }] },
+        items: { create: [{ descripcion: op.titulo, cantidad: 1, precioUnit: 4500000 }] },
       },
     });
   }
