@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { KpiCard } from "@/components/kpi-card";
+import { Pager } from "@/components/pager";
+
+const TAKE = 30;
 
 type Funcion = {
   id: string;
@@ -33,15 +36,29 @@ export default function FuncionesPage() {
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState(FORM_VACIO);
   const [form, setForm] = useState(FORM_VACIO);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [stats, setStats] = useState({ total: 0, promOcupacion: 0, totalIngreso: 0, npsTotal: 0 });
 
-  async function cargar() {
+  async function cargar(p = 1) {
     setCargando(true);
-    const res = await fetch("/api/funciones");
+    const res = await fetch(`/api/funciones?page=${p}&take=${TAKE}`);
     setFunciones(await res.json());
+    setTotalCount(Number(res.headers.get("X-Total-Count") ?? 0));
     setCargando(false);
   }
 
-  useEffect(() => { cargar(); }, []);
+  async function cargarStats() {
+    const res = await fetch("/api/funciones/stats");
+    setStats(await res.json());
+  }
+
+  useEffect(() => { cargar(1); cargarStats(); }, []);
+
+  function cambiarPagina(p: number) {
+    setPage(p);
+    cargar(p);
+  }
 
   async function handleCrear(e: React.FormEvent) {
     e.preventDefault();
@@ -54,7 +71,8 @@ export default function FuncionesPage() {
     setForm(FORM_VACIO);
     setMostrarForm(false);
     setGuardando(false);
-    cargar();
+    cargar(page);
+    cargarStats();
   }
 
   function iniciarEdicion(f: Funcion) {
@@ -79,13 +97,15 @@ export default function FuncionesPage() {
     });
     setEditandoId(null);
     setGuardando(false);
-    cargar();
+    cargar(page);
+    cargarStats();
   }
 
   async function handleEliminar(id: string) {
     if (!confirm("¿Eliminar esta función?")) return;
     await fetch(`/api/funciones/${id}`, { method: "DELETE" });
-    cargar();
+    cargar(page);
+    cargarStats();
   }
 
   async function exportar() {
@@ -117,11 +137,6 @@ export default function FuncionesPage() {
     return dias >= 0 && dias <= 5 && ocupacion(f) < 60;
   }
 
-  const promOcupacion = funciones.length
-    ? Math.round(funciones.reduce((acc, f) => acc + ocupacion(f), 0) / funciones.length) : 0;
-  const totalIngreso = funciones.reduce((acc, f) => acc + Number(f.ingresoEstimado ?? 0), 0);
-  const npsTotal = funciones.reduce((acc, f) => acc + f._count.npsList, 0);
-
   return (
     <div>
       <div className="mb-6">
@@ -130,16 +145,16 @@ export default function FuncionesPage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <KpiCard label="Total funciones" valor={funciones.length} emoji="🎭" color="bg-blue-500" />
-        <KpiCard label="Ocupación promedio" valor={`${promOcupacion}%`} emoji="💺" color="bg-emerald-500" />
-        <KpiCard label="Ingresos registrados" valor={fmt(String(totalIngreso))} emoji="💰" color="bg-violet-500" />
-        <KpiCard label="Respuestas NPS" valor={npsTotal} emoji="⭐" color="bg-amber-500" />
+        <KpiCard label="Total funciones" valor={stats.total} emoji="🎭" color="bg-blue-500" />
+        <KpiCard label="Ocupación promedio" valor={`${stats.promOcupacion}%`} emoji="💺" color="bg-emerald-500" />
+        <KpiCard label="Ingresos registrados" valor={fmt(String(stats.totalIngreso))} emoji="💰" color="bg-violet-500" />
+        <KpiCard label="Respuestas NPS" valor={stats.npsTotal} emoji="⭐" color="bg-amber-500" />
       </div>
 
       <div className="flex items-center justify-between mb-4">
-        <div className="text-xs text-slate-400">{funciones.length} funciones registradas</div>
+        <div className="text-xs text-slate-400">{totalCount} funciones registradas</div>
         <div className="flex gap-2">
-          <button onClick={exportar} disabled={exportando || funciones.length === 0}
+          <button onClick={exportar} disabled={exportando || totalCount === 0}
             className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50">
             {exportando ? "Generando..." : "↓ Exportar Excel"}
           </button>
@@ -320,9 +335,7 @@ export default function FuncionesPage() {
               ))}
             </tbody>
           </table>
-          <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 text-xs text-slate-400">
-            {funciones.length} funciones registradas
-          </div>
+          <Pager page={page} take={TAKE} total={totalCount} onChange={cambiarPagina} />
         </div>
       )}
     </div>

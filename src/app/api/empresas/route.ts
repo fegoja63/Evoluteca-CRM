@@ -9,18 +9,40 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q") ?? "";
+  const page = searchParams.get("page");
+  const take = Number(searchParams.get("take") ?? 30) || 30;
 
-  const empresas = await prisma.empresa.findMany({
-    where: {
-      tenantId: session.user.tenantId,
-      ...filtroOwner(session.user.rol, session.user.id),
-      ...(q ? { nombre: { contains: q, mode: "insensitive" } } : {}),
-    },
-    orderBy: { creadoEn: "desc" },
-    include: { _count: { select: { contactos: true } } },
-  });
+  const where = {
+    tenantId: session.user.tenantId,
+    ...filtroOwner(session.user.rol, session.user.id),
+    ...(q ? { nombre: { contains: q, mode: "insensitive" as const } } : {}),
+  };
 
-  return NextResponse.json(empresas);
+  // Sin "page" se mantiene el comportamiento anterior (lista completa) —
+  // varias pantallas (dropdowns de Empresa, detección de duplicados) dependen
+  // de recibir el arreglo entero sin paginar.
+  if (!page) {
+    const empresas = await prisma.empresa.findMany({
+      where,
+      orderBy: { creadoEn: "desc" },
+      include: { _count: { select: { contactos: true } } },
+    });
+    return NextResponse.json(empresas);
+  }
+
+  const pageNum = Math.max(1, Number(page) || 1);
+  const [empresas, total] = await Promise.all([
+    prisma.empresa.findMany({
+      where,
+      orderBy: { creadoEn: "desc" },
+      include: { _count: { select: { contactos: true } } },
+      skip: (pageNum - 1) * take,
+      take,
+    }),
+    prisma.empresa.count({ where }),
+  ]);
+
+  return NextResponse.json(empresas, { headers: { "X-Total-Count": String(total) } });
 }
 
 export async function POST(request: Request) {

@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { KpiCard } from "@/components/kpi-card";
+import { Pager } from "@/components/pager";
+
+const TAKE = 30;
 
 type Contacto = {
   id: string;
@@ -29,6 +32,9 @@ export default function ContactosPage() {
   const [nuevaEmpresaForm, setNuevaEmpresaForm] = useState({ nombre: "", email: "", telefono: "" });
   const [creandoEmpresaLoading, setCreandoEmpresaLoading] = useState(false);
   const [creandoEmpresaError, setCreandoEmpresaError] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [stats, setStats] = useState({ total: 0, conEmpresa: 0, sinEmpresa: 0, conEmail: 0 });
 
   const duplicados = todosContactos.filter(c => {
     const nombreMatch = form.nombre.trim().length >= 3 &&
@@ -39,15 +45,25 @@ export default function ContactosPage() {
   });
 
   const busquedaRef = useRef("");
-  async function cargar(q = "") {
+  async function cargar(q = "", p = 1) {
     busquedaRef.current = q;
     setCargando(true);
-    const res = await fetch(`/api/contactos?q=${encodeURIComponent(q)}`);
+    const res = await fetch(`/api/contactos?q=${encodeURIComponent(q)}&page=${p}&take=${TAKE}`);
     const data = await res.json();
     if (busquedaRef.current !== q) return; // respuesta obsoleta — ya se lanzó una búsqueda más reciente
     setContactos(data);
-    if (!q) setTodosContactos(data);
+    setTotalCount(Number(res.headers.get("X-Total-Count") ?? data.length));
     setCargando(false);
+  }
+
+  async function cargarStats(q = "") {
+    const res = await fetch(`/api/contactos/stats?q=${encodeURIComponent(q)}`);
+    setStats(await res.json());
+  }
+
+  function cambiarPagina(p: number) {
+    setPage(p);
+    cargar(busqueda, p);
   }
 
   async function crearEmpresaInline() {
@@ -79,10 +95,16 @@ export default function ContactosPage() {
     setEmpresas(data);
   }
 
-  useEffect(() => { cargar(); cargarEmpresas(); }, []);
+  useEffect(() => { cargar("", 1); cargarEmpresas(); cargarStats(""); }, []);
+
+  // Lista completa (sin paginar) solo para detección de duplicados al crear —
+  // independiente de la tabla paginada.
+  useEffect(() => {
+    fetch("/api/contactos").then(res => res.json()).then(setTodosContactos);
+  }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => cargar(busqueda), 300);
+    const timer = setTimeout(() => { setPage(1); cargar(busqueda, 1); cargarStats(busqueda); }, 300);
     return () => clearTimeout(timer);
   }, [busqueda]);
 
@@ -103,7 +125,9 @@ export default function ContactosPage() {
     setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
     setMostrarForm(false);
     setGuardando(false);
-    cargar(busqueda);
+    cargar(busqueda, page);
+    cargarStats(busqueda);
+    fetch("/api/contactos").then(res => res.json()).then(setTodosContactos);
   }
 
   return (
@@ -114,10 +138,10 @@ export default function ContactosPage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <KpiCard label="Total contactos" valor={contactos.length} emoji="👤" color="bg-violet-500" />
-        <KpiCard label="Con empresa" valor={contactos.filter(c => c.empresa).length} emoji="🏢" color="bg-blue-500" />
-        <KpiCard label="Sin empresa" valor={contactos.filter(c => !c.empresa).length} emoji="⚠️" color="bg-amber-500" sub="Sin vincular" />
-        <KpiCard label="Con email" valor={contactos.filter(c => c.email).length} emoji="✉️" color="bg-emerald-500" />
+        <KpiCard label="Total contactos" valor={stats.total} emoji="👤" color="bg-violet-500" />
+        <KpiCard label="Con empresa" valor={stats.conEmpresa} emoji="🏢" color="bg-blue-500" />
+        <KpiCard label="Sin empresa" valor={stats.sinEmpresa} emoji="⚠️" color="bg-amber-500" sub="Sin vincular" />
+        <KpiCard label="Con email" valor={stats.conEmail} emoji="✉️" color="bg-emerald-500" />
       </div>
 
       <div className="flex items-center justify-between mb-4">
@@ -315,6 +339,7 @@ export default function ContactosPage() {
               ))}
             </tbody>
           </table>
+          <Pager page={page} take={TAKE} total={totalCount} onChange={cambiarPagina} />
         </div>
       )}
     </div>

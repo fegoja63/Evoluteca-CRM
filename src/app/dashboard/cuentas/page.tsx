@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { KpiCard } from "@/components/kpi-card";
+import { Pager } from "@/components/pager";
+
+const TAKE = 30;
 
 type Empresa = {
   id: string;
@@ -35,6 +38,9 @@ export default function ClientesPage() {
   const [form, setForm] = useState({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "" });
   const [todasEmpresas, setTodasEmpresas] = useState<Empresa[]>([]);
   const [nuevoContactoForm, setNuevoContactoForm] = useState({ nombre: "", email: "", telefono: "", cargo: "" });
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [stats, setStats] = useState({ total: 0, conContactos: 0, sinContactos: 0, contactosVinculados: 0 });
 
   // Duplicados: busca por nombre similar o email exacto
   const duplicados = todasEmpresas.filter(e => {
@@ -46,22 +52,38 @@ export default function ClientesPage() {
   });
 
   const busquedaRef = useRef("");
-  async function cargar(q = "") {
+  async function cargar(q = "", p = 1) {
     busquedaRef.current = q;
     setCargando(true);
-    const res = await fetch(`/api/empresas?q=${encodeURIComponent(q)}`);
+    const res = await fetch(`/api/empresas?q=${encodeURIComponent(q)}&page=${p}&take=${TAKE}`);
     const data = await res.json();
     if (busquedaRef.current !== q) return; // respuesta obsoleta — ya se lanzó una búsqueda más reciente
     setEmpresas(data);
-    if (!q) setTodasEmpresas(data);
+    setTotalCount(Number(res.headers.get("X-Total-Count") ?? data.length));
     setCargando(false);
   }
 
-  useEffect(() => { cargar(); }, []);
+  async function cargarStats(q = "") {
+    const res = await fetch(`/api/empresas/stats?q=${encodeURIComponent(q)}`);
+    setStats(await res.json());
+  }
+
+  // Lista completa (sin paginar) solo para detección de duplicados al crear —
+  // independiente de la tabla paginada.
   useEffect(() => {
-    const t = setTimeout(() => cargar(busqueda), 300);
+    fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
+  }, []);
+
+  useEffect(() => { cargar("", 1); cargarStats(""); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => { setPage(1); cargar(busqueda, 1); cargarStats(busqueda); }, 300);
     return () => clearTimeout(t);
   }, [busqueda]);
+
+  function cambiarPagina(p: number) {
+    setPage(p);
+    cargar(busqueda, p);
+  }
 
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
@@ -83,7 +105,9 @@ export default function ClientesPage() {
     setNuevoContactoForm({ nombre: "", email: "", telefono: "", cargo: "" });
     setMostrarForm(false);
     setGuardando(false);
-    cargar(busqueda);
+    cargar(busqueda, page);
+    cargarStats(busqueda);
+    fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
   }
 
   return (
@@ -94,10 +118,10 @@ export default function ClientesPage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <KpiCard label="Total clientes" valor={empresas.length} emoji="🏢" color="bg-blue-500" />
-        <KpiCard label="Con contactos" valor={empresas.filter(e => e._count.contactos > 0).length} emoji="👤" color="bg-violet-500" />
-        <KpiCard label="Sin contactos" valor={empresas.filter(e => e._count.contactos === 0).length} emoji="⚠️" color="bg-amber-500" sub="Requieren seguimiento" />
-        <KpiCard label="Contactos vinculados" valor={empresas.reduce((acc, e) => acc + e._count.contactos, 0)} emoji="🔗" color="bg-emerald-500" />
+        <KpiCard label="Total clientes" valor={stats.total} emoji="🏢" color="bg-blue-500" />
+        <KpiCard label="Con contactos" valor={stats.conContactos} emoji="👤" color="bg-violet-500" />
+        <KpiCard label="Sin contactos" valor={stats.sinContactos} emoji="⚠️" color="bg-amber-500" sub="Requieren seguimiento" />
+        <KpiCard label="Contactos vinculados" valor={stats.contactosVinculados} emoji="🔗" color="bg-emerald-500" />
       </div>
 
       <div className="flex items-center justify-between mb-3">
@@ -132,7 +156,7 @@ export default function ClientesPage() {
 
       {/* Filtros de etiqueta */}
       {(() => {
-        const todasEtiquetas = Array.from(new Set(empresas.flatMap(e => e.etiquetas ?? [])));
+        const todasEtiquetas = Array.from(new Set(todasEmpresas.flatMap(e => e.etiquetas ?? [])));
         if (todasEtiquetas.length === 0) return null;
         return (
           <div className="flex flex-wrap gap-1.5 mb-4">
@@ -274,6 +298,7 @@ export default function ClientesPage() {
               ))}
             </tbody>
           </table>
+          <Pager page={page} take={TAKE} total={totalCount} onChange={cambiarPagina} />
         </div>
       )}
     </div>

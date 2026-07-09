@@ -13,17 +13,42 @@ export async function GET(request: Request) {
   // El Pipeline (vista principal) sigue llamando sin este parámetro.
   const { searchParams } = new URL(request.url);
   const todas = searchParams.get("todas") === "1";
+  const page = searchParams.get("page");
+  const take = Number(searchParams.get("take") ?? 30) || 30;
 
-  const oportunidades = await prisma.oportunidad.findMany({
-    where: { tenantId: session.user.tenantId, ...(todas ? {} : filtroOwner(session.user.rol, session.user.id)) },
-    orderBy: { creadoEn: "desc" },
-    include: {
-      empresa: { select: { id: true, nombre: true } },
-      contacto: { select: { id: true, nombre: true, email: true } },
-    },
-  });
+  const where = { tenantId: session.user.tenantId, ...(todas ? {} : filtroOwner(session.user.rol, session.user.id)) };
 
-  return NextResponse.json(oportunidades);
+  // Sin "page" se mantiene el comportamiento anterior (lista completa) — el
+  // Kanban de Pipeline y los KPIs de Cotizaciones necesitan el dataset
+  // entero para agrupar por etapa y calcular totales correctamente.
+  if (!page) {
+    const oportunidades = await prisma.oportunidad.findMany({
+      where,
+      orderBy: { creadoEn: "desc" },
+      include: {
+        empresa: { select: { id: true, nombre: true } },
+        contacto: { select: { id: true, nombre: true, email: true } },
+      },
+    });
+    return NextResponse.json(oportunidades);
+  }
+
+  const pageNum = Math.max(1, Number(page) || 1);
+  const [oportunidades, total] = await Promise.all([
+    prisma.oportunidad.findMany({
+      where,
+      orderBy: { creadoEn: "desc" },
+      include: {
+        empresa: { select: { id: true, nombre: true } },
+        contacto: { select: { id: true, nombre: true, email: true } },
+      },
+      skip: (pageNum - 1) * take,
+      take,
+    }),
+    prisma.oportunidad.count({ where }),
+  ]);
+
+  return NextResponse.json(oportunidades, { headers: { "X-Total-Count": String(total) } });
 }
 
 export async function POST(request: Request) {

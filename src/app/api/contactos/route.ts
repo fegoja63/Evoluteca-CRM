@@ -9,17 +9,38 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q") ?? "";
   const tenantId = session.user.tenantId;
+  const page = searchParams.get("page");
+  const take = Number(searchParams.get("take") ?? 30) || 30;
 
-  const contactos = await prisma.contacto.findMany({
-    where: {
-      tenantId,
-      ...(q ? { nombre: { contains: q, mode: "insensitive" } } : {}),
-    },
-    include: { empresa: { select: { id: true, nombre: true } } },
-    orderBy: { creadoEn: "desc" },
-  });
+  const where = {
+    tenantId,
+    ...(q ? { nombre: { contains: q, mode: "insensitive" as const } } : {}),
+  };
 
-  return NextResponse.json(contactos);
+  // Sin "page" se mantiene el comportamiento anterior (lista completa) —
+  // el dropdown de Contacto en otras pantallas depende del arreglo entero.
+  if (!page) {
+    const contactos = await prisma.contacto.findMany({
+      where,
+      include: { empresa: { select: { id: true, nombre: true } } },
+      orderBy: { creadoEn: "desc" },
+    });
+    return NextResponse.json(contactos);
+  }
+
+  const pageNum = Math.max(1, Number(page) || 1);
+  const [contactos, total] = await Promise.all([
+    prisma.contacto.findMany({
+      where,
+      include: { empresa: { select: { id: true, nombre: true } } },
+      orderBy: { creadoEn: "desc" },
+      skip: (pageNum - 1) * take,
+      take,
+    }),
+    prisma.contacto.count({ where }),
+  ]);
+
+  return NextResponse.json(contactos, { headers: { "X-Total-Count": String(total) } });
 }
 
 export async function POST(request: Request) {

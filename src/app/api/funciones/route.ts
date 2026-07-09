@@ -2,17 +2,37 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-  const funciones = await prisma.funcion.findMany({
-    where: { tenantId: session.user.tenantId },
-    orderBy: { fecha: "desc" },
-    include: { _count: { select: { npsList: true } } },
-  });
+  const { searchParams } = new URL(request.url);
+  const page = searchParams.get("page");
+  const take = Number(searchParams.get("take") ?? 30) || 30;
+  const where = { tenantId: session.user.tenantId };
 
-  return NextResponse.json(funciones);
+  if (!page) {
+    const funciones = await prisma.funcion.findMany({
+      where,
+      orderBy: { fecha: "desc" },
+      include: { _count: { select: { npsList: true } } },
+    });
+    return NextResponse.json(funciones);
+  }
+
+  const pageNum = Math.max(1, Number(page) || 1);
+  const [funciones, total] = await Promise.all([
+    prisma.funcion.findMany({
+      where,
+      orderBy: { fecha: "desc" },
+      include: { _count: { select: { npsList: true } } },
+      skip: (pageNum - 1) * take,
+      take,
+    }),
+    prisma.funcion.count({ where }),
+  ]);
+
+  return NextResponse.json(funciones, { headers: { "X-Total-Count": String(total) } });
 }
 
 export async function POST(request: Request) {
