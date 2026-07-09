@@ -93,6 +93,14 @@ export default function PipelinePage() {
     titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50", fechaCierre: "",
     salonId: "", sede: "", fechaEvento: "", horaInicio: "", horaFin: "",
   });
+  const [modoEmpresa, setModoEmpresa] = useState<"existente" | "nueva">("existente");
+  const [nuevaEmpresaForm, setNuevaEmpresaForm] = useState({ nombre: "", email: "", telefono: "" });
+  const [creandoEmpresaLoading, setCreandoEmpresaLoading] = useState(false);
+  const [creandoEmpresaError, setCreandoEmpresaError] = useState("");
+  const [modoContacto, setModoContacto] = useState<"existente" | "nuevo">("existente");
+  const [nuevoContactoForm, setNuevoContactoForm] = useState({ nombre: "", email: "", telefono: "", cargo: "" });
+  const [creandoContactoLoading, setCreandoContactoLoading] = useState(false);
+  const [creandoContactoError, setCreandoContactoError] = useState("");
   const [salones, setSalones] = useState<Salon[]>([]);
   const [moduloSalones, setModuloSalones] = useState(false);
   const [disponibilidad, setDisponibilidad] = useState<Disponibilidad | null>(null);
@@ -133,8 +141,62 @@ export default function PipelinePage() {
     return () => clearTimeout(t);
   }, [form.salonId, form.fechaEvento, form.horaInicio, form.horaFin]);
 
+  async function crearEmpresaInline() {
+    if (!nuevaEmpresaForm.nombre.trim()) return;
+    setCreandoEmpresaLoading(true);
+    setCreandoEmpresaError("");
+    const res = await fetch("/api/empresas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(nuevaEmpresaForm),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setCreandoEmpresaError(data.error ?? "No se pudo crear el cliente");
+      setCreandoEmpresaLoading(false);
+      return;
+    }
+    const nueva = await res.json();
+    setEmpresas(prev => [{ id: nueva.id, nombre: nueva.nombre }, ...prev]);
+    setForm(f => ({ ...f, empresaId: nueva.id }));
+    setModoEmpresa("existente");
+    setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
+    setCreandoEmpresaLoading(false);
+  }
+
+  async function crearContactoInline() {
+    if (!nuevoContactoForm.nombre.trim()) return;
+    setCreandoContactoLoading(true);
+    setCreandoContactoError("");
+    const res = await fetch("/api/contactos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...nuevoContactoForm, empresaId: form.empresaId || null }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setCreandoContactoError(data.error ?? "No se pudo crear el contacto");
+      setCreandoContactoLoading(false);
+      return;
+    }
+    const nuevo = await res.json();
+    setContactos(prev => [nuevo, ...prev]);
+    setForm(f => ({ ...f, contactoId: nuevo.id }));
+    setModoContacto("existente");
+    setNuevoContactoForm({ nombre: "", email: "", telefono: "", cargo: "" });
+    setCreandoContactoLoading(false);
+  }
+
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
+    if (modoEmpresa === "nueva" && !form.empresaId && nuevaEmpresaForm.nombre.trim()) {
+      setCreandoEmpresaError("Tienes datos de un cliente nuevo sin crear. Haz clic en \"Crear cliente\" o cambia a \"Existente\".");
+      return;
+    }
+    if (modoContacto === "nuevo" && !form.contactoId && nuevoContactoForm.nombre.trim()) {
+      setCreandoContactoError("Tienes datos de un contacto nuevo sin crear. Haz clic en \"Crear contacto\" o cambia a \"Existente\".");
+      return;
+    }
     setGuardando(true);
     await fetch("/api/oportunidades", {
       method: "POST",
@@ -142,6 +204,10 @@ export default function PipelinePage() {
       body: JSON.stringify(form),
     });
     setForm({ titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50", fechaCierre: "", salonId: "", sede: "", fechaEvento: "", horaInicio: "", horaFin: "" });
+    setModoEmpresa("existente");
+    setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
+    setModoContacto("existente");
+    setNuevoContactoForm({ nombre: "", email: "", telefono: "", cargo: "" });
     setDisponibilidad(null);
     setMostrarForm(false);
     setGuardando(false);
@@ -354,23 +420,90 @@ export default function PipelinePage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs text-slate-500">Empresa</label>
-              <select value={form.empresaId} onChange={e => setForm({...form, empresaId: e.target.value})}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
-                <option value="">Sin empresa</option>
-                {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
-              </select>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs text-slate-500">Empresa</label>
+                <div className="flex gap-1">
+                  <button type="button" onClick={() => setModoEmpresa("existente")}
+                    className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${modoEmpresa === "existente" ? "bg-blue-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
+                    Existente
+                  </button>
+                  <button type="button" onClick={() => setModoEmpresa("nueva")}
+                    className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${modoEmpresa === "nueva" ? "bg-blue-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
+                    + Nueva
+                  </button>
+                </div>
+              </div>
+              {modoEmpresa === "existente" ? (
+                <select value={form.empresaId} onChange={e => setForm({...form, empresaId: e.target.value})}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
+                  <option value="">Sin empresa</option>
+                  {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+                </select>
+              ) : (
+                <div className="rounded-lg border border-blue-200 bg-blue-50 p-2.5">
+                  <div className="flex flex-col gap-2">
+                    <input type="text" placeholder="Nombre del cliente *" value={nuevaEmpresaForm.nombre}
+                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, nombre: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                    <input type="email" placeholder="Email (opcional)" value={nuevaEmpresaForm.email}
+                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, email: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                    <input type="text" placeholder="Teléfono (opcional)" value={nuevaEmpresaForm.telefono}
+                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, telefono: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                    {creandoEmpresaError && <p className="text-xs text-red-600">{creandoEmpresaError}</p>}
+                    <button type="button" onClick={crearEmpresaInline} disabled={creandoEmpresaLoading || !nuevaEmpresaForm.nombre.trim()}
+                      className="self-start rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                      {creandoEmpresaLoading ? "Creando..." : "Crear cliente"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             <div>
-              <label className="mb-1 block text-xs text-slate-500">Contacto</label>
-              <select value={form.contactoId} onChange={e => setForm({...form, contactoId: e.target.value})}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
-                <option value="">Sin contacto</option>
-                {contactos.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-              </select>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs text-slate-500">Contacto</label>
+                <div className="flex gap-1">
+                  <button type="button" onClick={() => setModoContacto("existente")}
+                    className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${modoContacto === "existente" ? "bg-blue-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
+                    Existente
+                  </button>
+                  <button type="button" onClick={() => setModoContacto("nuevo")}
+                    className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${modoContacto === "nuevo" ? "bg-blue-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
+                    + Nuevo
+                  </button>
+                </div>
+              </div>
+              {modoContacto === "existente" ? (
+                <select value={form.contactoId} onChange={e => setForm({...form, contactoId: e.target.value})}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
+                  <option value="">Sin contacto</option>
+                  {contactos.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                </select>
+              ) : (
+                <div className="rounded-lg border border-blue-200 bg-blue-50 p-2.5">
+                  <div className="flex flex-col gap-2">
+                    <input type="text" placeholder="Nombre del contacto *" value={nuevoContactoForm.nombre}
+                      onChange={e => setNuevoContactoForm(f => ({ ...f, nombre: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                    <input type="email" placeholder="Email (opcional)" value={nuevoContactoForm.email}
+                      onChange={e => setNuevoContactoForm(f => ({ ...f, email: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                    <input type="text" placeholder="Teléfono (opcional)" value={nuevoContactoForm.telefono}
+                      onChange={e => setNuevoContactoForm(f => ({ ...f, telefono: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                    {creandoContactoError && <p className="text-xs text-red-600">{creandoContactoError}</p>}
+                    <button type="button" onClick={crearContactoInline} disabled={creandoContactoLoading || !nuevoContactoForm.nombre.trim()}
+                      className="self-start rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                      {creandoContactoLoading ? "Creando..." : "Crear contacto"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             {moduloSalones && (
-              <div className="col-span-2">
+              <div className="col-span-2 pt-2 mt-1 border-t border-slate-200">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">🏛️ Salón (módulo Salones)</p>
                 <label className="mb-1 block text-xs text-slate-500">Salón</label>
                 <select value={form.salonId} onChange={e => setForm({...form, salonId: e.target.value})}
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
