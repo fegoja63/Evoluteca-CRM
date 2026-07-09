@@ -39,11 +39,36 @@ const styles = StyleSheet.create({
   notesBox:    { backgroundColor: "#fefce8", borderRadius: 6, padding: 12, borderWidth: 1, borderColor: "#fde68a", marginTop: 20 },
   notesLabel:  { fontSize: 7, fontFamily: "Helvetica-Bold", color: "#92400e", marginBottom: 4 },
   notesTx:     { fontSize: 9, color: "#78350f" },
+  condBox:     { backgroundColor: "#f8fafc", borderRadius: 6, padding: 12, borderWidth: 1, borderColor: "#e2e8f0", marginTop: 20 },
+  condLabel:   { fontSize: 7, fontFamily: "Helvetica-Bold", color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 },
+  condLi:      { flexDirection: "row", marginBottom: 4 },
+  condBullet:  { width: 10, fontSize: 9, color: "#64748b" },
+  condTx:      { flex: 1, fontSize: 8.5, color: "#475569", lineHeight: 1.4 },
+  condStrong:  { fontFamily: "Helvetica-Bold", color: "#334155" },
   footer:      { position: "absolute", bottom: 28, left: 40, right: 40, flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: "#e2e8f0", paddingTop: 8 },
   footerTx:    { fontSize: 7, color: "#94a3b8" },
 });
 
 const ESTADO: Record<string, string> = { BORRADOR: "Borrador", ENVIADA: "Enviada", ACEPTADA: "Aceptada", RECHAZADA: "Rechazada" };
+
+const CONDICIONES_COMERCIALES: [string, string][] = [
+  ["Vigencia de la cotización:", "30 días calendario a partir de la fecha de emisión."],
+  ["Moneda:", "Los precios están expresados en pesos colombianos e incluyen impuestos."],
+  ["Forma de pago:", "50% de anticipo y 50% contra entrega."],
+  ["Modificaciones:", "Cualquier modificación al alcance será cotizada por separado."],
+  ["Aceptación:", "La aceptación de esta propuesta se realizará mediante la emisión de una orden de compra o la aceptación de la presente cotización."],
+  ["Intereses:", "Los pagos vencidos generarán intereses moratorios a la máxima tasa legal permitida en Colombia."],
+];
+
+function CondLI({ titulo, texto }: { titulo: string; texto: string }) {
+  return React.createElement(View, { style: styles.condLi },
+    React.createElement(Text, { style: styles.condBullet }, "•"),
+    React.createElement(Text, { style: styles.condTx },
+      React.createElement(Text, { style: styles.condStrong }, `${titulo} `),
+      texto,
+    ),
+  );
+}
 
 function fmt(v: number) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
@@ -196,6 +221,12 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
         React.createElement(Text, { style: styles.notesLabel }, "OBSERVACIONES"),
         React.createElement(Text, { style: styles.notesTx }, cot.notas),
       ) : null,
+
+      // Condiciones comerciales
+      React.createElement(View, { style: styles.condBox, wrap: false },
+        React.createElement(Text, { style: styles.condLabel }, "Condiciones comerciales"),
+        ...CONDICIONES_COMERCIALES.map(([titulo, texto]) => React.createElement(CondLI, { key: titulo, titulo, texto })),
+      ),
 
       // Footer
       React.createElement(View, { style: styles.footer },

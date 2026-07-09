@@ -10,13 +10,13 @@ const BASE_URL = process.env.NEXTAUTH_URL ?? "https://evoluteca-crm-six.vercel.a
 
 const LOGO_FGJ = "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg";
 
-function header(_titulo: string, subtitulo: string) {
+function header(_titulo: string, subtitulo: string, logoUrl?: string | null) {
   return `<div style="background:#1e3a8a;padding:20px 24px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between">
     <div>
       <h2 style="color:white;margin:0;font-size:18px">Evoluteca CRM</h2>
       <p style="color:#93c5fd;margin:4px 0 0;font-size:13px">${subtitulo}</p>
     </div>
-    <img src="${LOGO_FGJ}" alt="Felipe Gómez Jaramillo" style="height:48px;width:auto;border-radius:8px;object-fit:contain;background:white;padding:4px" />
+    <img src="${logoUrl || LOGO_FGJ}" alt="Logo" style="height:48px;width:auto;border-radius:8px;object-fit:contain;background:white;padding:4px" />
   </div>`;
 }
 
@@ -55,15 +55,16 @@ export async function GET(req: Request) {
   let enviados = 0;
   const errores: string[] = [];
 
-  // Cache de emailsActivos por tenant
-  const tenantCache: Record<string, boolean> = {};
+  // Cache de emailsActivos y logoUrl por tenant
+  const tenantCache: Record<string, { emailsActivos: boolean; logoUrl: string | null }> = {};
 
   for (const u of usuarios) {
     if (tenantCache[u.tenantId] === undefined) {
-      const t = await prisma.tenant.findUnique({ where: { id: u.tenantId }, select: { emailsActivos: true } });
-      tenantCache[u.tenantId] = t?.emailsActivos ?? true;
+      const t = await prisma.tenant.findUnique({ where: { id: u.tenantId }, select: { emailsActivos: true, logoUrl: true } });
+      tenantCache[u.tenantId] = { emailsActivos: t?.emailsActivos ?? true, logoUrl: t?.logoUrl ?? null };
     }
-    if (!tenantCache[u.tenantId]) continue;
+    if (!tenantCache[u.tenantId].emailsActivos) continue;
+    const logoUrl = tenantCache[u.tenantId].logoUrl;
 
     const ownerWhere = u.rol === "COMERCIAL" ? { creadoBy: u.id } : {};
     const emails: { subject: string; html: string }[] = [];
@@ -88,11 +89,11 @@ export async function GET(req: Request) {
 
       emails.push({
         subject: `⏰ ${vencidas.length} actividad(es) vencida(s) — Evoluteca CRM`,
-        html: wrapper(`${header("", "Actividades vencidas pendientes")}
+        html: wrapper(`${header("", "Actividades vencidas pendientes", logoUrl)}
           <div style="background:#fef9f0;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
             <p style="font-size:14px;color:#64748b;margin-bottom:16px">Hola <strong>${u.nombre}</strong>, tienes <strong>${vencidas.length}</strong> actividad(es) vencida(s):</p>
             ${filas}
-            ${btn(`${BASE_URL}/dashboard/agenda`, "Ir a la Agenda")}
+            ${btn(`${BASE_URL}/dashboard/agenda?vencidas=1`, vencidas.length === 1 ? "Ver la tarea vencida" : "Ver las tareas vencidas")}
             ${footer()}
           </div>`),
       });
@@ -127,7 +128,7 @@ export async function GET(req: Request) {
 
       emails.push({
         subject: `⚠️ ${estancados.length} negocio(s) estancado(s) — Evoluteca CRM`,
-        html: wrapper(`${header("", "Negocios sin actividad +14 días")}
+        html: wrapper(`${header("", "Negocios sin actividad +14 días", logoUrl)}
           <div style="background:#fffbeb;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
             <p style="font-size:14px;color:#64748b;margin-bottom:16px">Hola <strong>${u.nombre}</strong>, estos negocios llevan más de 14 días sin actividad:</p>
             ${filas}
@@ -164,7 +165,7 @@ export async function GET(req: Request) {
 
       emails.push({
         subject: `📅 ${cierranProximo.length} cierre(s) próximo(s) esta semana — Evoluteca CRM`,
-        html: wrapper(`${header("", "Cierres estimados en los próximos 7 días")}
+        html: wrapper(`${header("", "Cierres estimados en los próximos 7 días", logoUrl)}
           <div style="background:#eff6ff;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
             <p style="font-size:14px;color:#64748b;margin-bottom:16px">Hola <strong>${u.nombre}</strong>, estos negocios tienen fecha de cierre esta semana:</p>
             ${filas}
@@ -200,7 +201,7 @@ export async function GET(req: Request) {
 
       emails.push({
         subject: `⚖️ ${terminosProximos.length} plazo(s) procesal(es) — Evoluteca CRM`,
-        html: wrapper(`${header("", "Plazos procesales vencidos o próximos")}
+        html: wrapper(`${header("", "Plazos procesales vencidos o próximos", logoUrl)}
           <div style="background:#fef2f2;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
             <p style="font-size:14px;color:#64748b;margin-bottom:16px">Hola <strong>${u.nombre}</strong>, estos plazos procesales requieren atención:</p>
             ${filas}
@@ -232,7 +233,7 @@ export async function GET(req: Request) {
 
       emails.push({
         subject: `🎭 ${funcionesBajaOcupacion.length} función(es) con ocupación baja — Evoluteca CRM`,
-        html: wrapper(`${header("", "Ocupación por debajo del 60% a menos de 5 días")}
+        html: wrapper(`${header("", "Ocupación por debajo del 60% a menos de 5 días", logoUrl)}
           <div style="background:#fffbeb;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
             <p style="font-size:14px;color:#64748b;margin-bottom:16px">Hola <strong>${u.nombre}</strong>, estas funciones necesitan una campaña de urgencia:</p>
             ${filas}

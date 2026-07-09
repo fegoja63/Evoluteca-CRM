@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { KpiCard } from "@/components/kpi-card";
 
 type Actividad = {
@@ -180,7 +181,7 @@ function CalendarioActividades({
   );
 }
 
-export default function AgendaPage() {
+function AgendaContent() {
   const [actividades, setActividades] = useState<Actividad[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [contactos, setContactos] = useState<Contacto[]>([]);
@@ -189,7 +190,10 @@ export default function AgendaPage() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [exportando, setExportando] = useState(false);
-  const [filtro, setFiltro] = useState<"pendientes" | "todas">("pendientes");
+  const searchParams = useSearchParams();
+  const [filtro, setFiltro] = useState<"pendientes" | "todas" | "vencidas">(
+    searchParams.get("vencidas") === "1" ? "vencidas" : "pendientes"
+  );
   const [vista, setVista] = useState<"lista" | "calendario">("lista");
   const [mesCalendario, setMesCalendario] = useState(() => {
     const h = new Date(); return { anio: h.getFullYear(), mes: h.getMonth() };
@@ -290,7 +294,11 @@ export default function AgendaPage() {
     });
   }
 
-  const visibles = actividades.filter((a) => (filtro === "pendientes" ? !a.completada : true));
+  const visibles = actividades.filter((a) => {
+    if (filtro === "vencidas") return !a.completada && new Date(a.fecha) < new Date();
+    if (filtro === "pendientes") return !a.completada;
+    return true;
+  });
 
   return (
     <div>
@@ -348,6 +356,10 @@ export default function AgendaPage() {
           <button onClick={() => setFiltro("todas")}
             className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "todas" ? "bg-blue-50 text-blue-700" : "text-neutral-500 hover:bg-neutral-100"}`}>
             Todas
+          </button>
+          <button onClick={() => setFiltro("vencidas")}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "vencidas" ? "bg-red-50 text-red-700" : "text-neutral-500 hover:bg-neutral-100"}`}>
+            Vencidas
           </button>
         </div>
       )}
@@ -508,5 +520,13 @@ export default function AgendaPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AgendaPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-neutral-400 p-6">Cargando...</p>}>
+      <AgendaContent />
+    </Suspense>
   );
 }

@@ -259,7 +259,7 @@ export default async function DashboardPage() {
             <p className="text-blue-300 text-xs font-medium mb-1">
               {hoy.toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
             </p>
-            <h1 className="text-2xl font-bold tracking-tight">{saludo}, {nombre} 👋</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{saludo}, {nombre}</h1>
             <p className="text-blue-300 mt-0.5 text-xs">{session?.user?.tenantNombre} · {session?.user?.rol ? session.user.rol.charAt(0)+session.user.rol.slice(1).toLowerCase() : ""}</p>
           </div>
 
