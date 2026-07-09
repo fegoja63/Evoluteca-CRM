@@ -65,6 +65,7 @@ export default function CotizacionDetailPage() {
   const [enviando, setEnviando]   = useState(false);
   const [enviado, setEnviado]     = useState(false);
   const [mostrarEmailPanel, setMostrarEmailPanel] = useState(false);
+  const [modoEmailPanel, setModoEmailPanel] = useState<"confirmar" | "editar">("confirmar");
   const [emailDestino, setEmailDestino] = useState("");
   const [mostrarWhatsappPanel, setMostrarWhatsappPanel] = useState(false);
   const [telefonoDestino, setTelefonoDestino] = useState("");
@@ -276,7 +277,11 @@ export default function CotizacionDetailPage() {
             className="rounded-xl border border-violet-200 px-3 py-2 text-xs font-medium text-violet-600 hover:bg-violet-50 transition-colors">
             🔗 Link cliente
           </button>
-          <button onClick={() => setMostrarEmailPanel(v => !v)} disabled={enviando || enviado}
+          <button onClick={() => setMostrarEmailPanel(v => {
+              const next = !v;
+              if (next) setModoEmailPanel(emailDestino.trim() ? "confirmar" : "editar");
+              return next;
+            })} disabled={enviando || enviado}
             className="rounded-xl border border-blue-200 px-3 py-2 text-xs font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 transition-colors">
             {enviado ? "✓ Enviado" : enviando ? "Enviando..." : "✉ Enviar email"}
           </button>
@@ -305,18 +310,39 @@ export default function CotizacionDetailPage() {
 
       {/* Panel enviar email */}
       {mostrarEmailPanel && (
-        <div className="mb-5 rounded-2xl border border-blue-200 bg-blue-50 p-4 flex items-center gap-3">
-          <span className="text-blue-500 text-lg">✉</span>
-          <div className="flex-1">
-            <p className="text-xs font-semibold text-blue-700 mb-1">Enviar cotización por email a</p>
-            <input type="email" value={emailDestino} onChange={e => setEmailDestino(e.target.value)}
-              placeholder="correo@cliente.com"
-              className="w-full rounded-lg border border-blue-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500 bg-white" />
-          </div>
-          <button onClick={enviarEmail} disabled={enviando || !emailDestino.trim()}
-            className="shrink-0 rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
-            {enviando ? "Enviando..." : "Enviar"}
-          </button>
+        <div className="mb-5 rounded-2xl border border-blue-200 bg-blue-50 p-4">
+          {modoEmailPanel === "confirmar" ? (
+            <div className="flex items-center gap-3">
+              <span className="text-blue-500 text-lg">✉</span>
+              <p className="flex-1 text-sm text-blue-900">
+                ¿Enviar la cotización al correo <strong>{emailDestino}</strong>?
+              </p>
+              <div className="flex gap-2 shrink-0">
+                <button onClick={() => setModoEmailPanel("editar")}
+                  className="rounded-lg border border-blue-300 bg-white px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">
+                  Cambiar correo
+                </button>
+                <button onClick={enviarEmail} disabled={enviando}
+                  className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                  {enviando ? "Enviando..." : "Sí, enviar al actual"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <span className="text-blue-500 text-lg">✉</span>
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-blue-700 mb-1">Enviar cotización a un correo distinto</p>
+                <input type="email" value={emailDestino} onChange={e => setEmailDestino(e.target.value)}
+                  placeholder="correo@cliente.com" autoFocus
+                  className="w-full rounded-lg border border-blue-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500 bg-white" />
+              </div>
+              <button onClick={enviarEmail} disabled={enviando || !emailDestino.trim()}
+                className="shrink-0 rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                {enviando ? "Enviando..." : "Enviar"}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
