@@ -23,9 +23,15 @@ export async function PATCH(
   }
 
   const body = await request.json();
-  const { rol, activo, nuevaPassword } = body;
+  const { nombre, rol, activo, nuevaPassword } = body;
 
   const data: Record<string, unknown> = {};
+  if (nombre !== undefined) {
+    if (typeof nombre !== "string" || !nombre.trim()) {
+      return NextResponse.json({ error: "El nombre no puede estar vacío" }, { status: 400 });
+    }
+    data.nombre = nombre.trim();
+  }
   if (rol !== undefined) {
     if (!["ADMINISTRADOR", "GERENTE", "COMERCIAL"].includes(rol)) {
       return NextResponse.json({ error: "Rol inválido" }, { status: 400 });

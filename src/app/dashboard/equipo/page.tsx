@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
+import { RendimientoEquipo } from "@/components/rendimiento-equipo";
 
 type Usuario = {
   id: string;
@@ -33,6 +33,10 @@ export default function EquipoPage() {
   const [resetPass, setResetPass] = useState("");
   const [reseteando, setReseteando] = useState(false);
   const [resetOk, setResetOk] = useState(false);
+
+  const [editNombreId, setEditNombreId] = useState<string | null>(null);
+  const [editNombreValor, setEditNombreValor] = useState("");
+  const [guardandoNombre, setGuardandoNombre] = useState(false);
 
   const [reasignando, setReasignando] = useState(false);
   const [reasignarId, setReasignarId] = useState("");
@@ -84,6 +88,20 @@ export default function EquipoPage() {
     setMostrarForm(false);
     setGuardando(false);
     cargar();
+  }
+
+  async function guardarNombre(id: string) {
+    if (!editNombreValor.trim()) return;
+    setGuardandoNombre(true);
+    const nombreNuevo = editNombreValor.trim();
+    await fetch(`/api/usuarios/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombre: nombreNuevo }),
+    });
+    setUsuarios(prev => prev.map(u => (u.id === id ? { ...u, nombre: nombreNuevo } : u)));
+    setGuardandoNombre(false);
+    setEditNombreId(null);
   }
 
   async function cambiarRol(id: string, rol: string) {
@@ -139,12 +157,6 @@ export default function EquipoPage() {
           <p className="text-sm text-neutral-500">Usuarios con acceso a este CRM</p>
         </div>
         <div className="flex gap-2">
-          {puedeVerRendimiento && (
-            <Link href="/dashboard/equipo/rendimiento"
-              className="rounded-md border border-violet-200 bg-violet-50 px-4 py-2 text-sm font-medium text-violet-700 hover:bg-violet-100">
-              📊 Rendimiento
-            </Link>
-          )}
           <button onClick={exportarExcel} disabled={exportando}
             className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
             {exportando ? "Exportando..." : "⬇ Excel"}
@@ -256,7 +268,35 @@ export default function EquipoPage() {
                 return (
                   <tr key={u.id} className="hover:bg-neutral-50">
                     <td className="px-4 py-1 font-medium text-neutral-900">
-                      {u.nombre} {esUnoMismo && <span className="text-xs text-neutral-400">(tú)</span>}
+                      {esAdmin && !esUnoMismo && editNombreId === u.id ? (
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            autoFocus
+                            value={editNombreValor}
+                            onChange={e => setEditNombreValor(e.target.value)}
+                            onKeyDown={e => { if (e.key === "Enter") guardarNombre(u.id); if (e.key === "Escape") setEditNombreId(null); }}
+                            className="rounded border border-blue-300 px-2 py-0.5 text-sm outline-none focus:border-blue-500"
+                          />
+                          <button onClick={() => guardarNombre(u.id)} disabled={guardandoNombre || !editNombreValor.trim()}
+                            className="text-xs text-blue-600 hover:underline disabled:opacity-50">
+                            {guardandoNombre ? "..." : "Guardar"}
+                          </button>
+                          <button onClick={() => setEditNombreId(null)} className="text-xs text-neutral-400 hover:underline">
+                            Cancelar
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="group inline-flex items-center gap-1.5">
+                          {u.nombre} {esUnoMismo && <span className="text-xs text-neutral-400">(tú)</span>}
+                          {esAdmin && !esUnoMismo && (
+                            <button onClick={() => { setEditNombreId(u.id); setEditNombreValor(u.nombre); }}
+                              className="text-neutral-300 hover:text-blue-500 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Editar nombre">
+                              ✏️
+                            </button>
+                          )}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-1 text-neutral-500">{u.email}</td>
                     <td className="px-4 py-1">
@@ -309,6 +349,13 @@ export default function EquipoPage() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Rendimiento del equipo — siempre visible, sin necesidad de otra pestaña */}
+      {puedeVerRendimiento && (
+        <div className="mt-6">
+          <RendimientoEquipo esAdmin={esAdmin} />
         </div>
       )}
 
