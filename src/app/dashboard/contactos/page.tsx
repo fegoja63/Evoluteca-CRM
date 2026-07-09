@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { KpiCard } from "@/components/kpi-card";
 
@@ -25,6 +25,10 @@ export default function ContactosPage() {
   const [guardando, setGuardando] = useState(false);
   const [form, setForm] = useState({ nombre: "", email: "", telefono: "", cargo: "", notas: "", empresaId: "" });
   const [todosContactos, setTodosContactos] = useState<Contacto[]>([]);
+  const [modoEmpresa, setModoEmpresa] = useState<"existente" | "nueva">("existente");
+  const [nuevaEmpresaForm, setNuevaEmpresaForm] = useState({ nombre: "", email: "", telefono: "" });
+  const [creandoEmpresaLoading, setCreandoEmpresaLoading] = useState(false);
+  const [creandoEmpresaError, setCreandoEmpresaError] = useState("");
 
   const duplicados = todosContactos.filter(c => {
     const nombreMatch = form.nombre.trim().length >= 3 &&
@@ -34,13 +38,39 @@ export default function ContactosPage() {
     return nombreMatch || emailMatch;
   });
 
+  const busquedaRef = useRef("");
   async function cargar(q = "") {
+    busquedaRef.current = q;
     setCargando(true);
     const res = await fetch(`/api/contactos?q=${encodeURIComponent(q)}`);
     const data = await res.json();
+    if (busquedaRef.current !== q) return; // respuesta obsoleta — ya se lanzó una búsqueda más reciente
     setContactos(data);
     if (!q) setTodosContactos(data);
     setCargando(false);
+  }
+
+  async function crearEmpresaInline() {
+    if (!nuevaEmpresaForm.nombre.trim()) return;
+    setCreandoEmpresaLoading(true);
+    setCreandoEmpresaError("");
+    const res = await fetch("/api/empresas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(nuevaEmpresaForm),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setCreandoEmpresaError(data.error ?? "No se pudo crear el cliente");
+      setCreandoEmpresaLoading(false);
+      return;
+    }
+    const nueva = await res.json();
+    setEmpresas(prev => [{ id: nueva.id, nombre: nueva.nombre }, ...prev]);
+    setForm(f => ({ ...f, empresaId: nueva.id }));
+    setModoEmpresa("existente");
+    setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
+    setCreandoEmpresaLoading(false);
   }
 
   async function cargarEmpresas() {
@@ -58,6 +88,10 @@ export default function ContactosPage() {
 
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
+    if (modoEmpresa === "nueva" && !form.empresaId && nuevaEmpresaForm.nombre.trim()) {
+      setCreandoEmpresaError("Tienes datos de un cliente nuevo sin crear. Haz clic en \"Crear cliente\" o cambia a \"Existente\".");
+      return;
+    }
     setGuardando(true);
     await fetch("/api/contactos", {
       method: "POST",
@@ -65,6 +99,8 @@ export default function ContactosPage() {
       body: JSON.stringify(form),
     });
     setForm({ nombre: "", email: "", telefono: "", cargo: "", notas: "", empresaId: "" });
+    setModoEmpresa("existente");
+    setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
     setMostrarForm(false);
     setGuardando(false);
     cargar(busqueda);
@@ -155,17 +191,50 @@ export default function ContactosPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-neutral-500">Empresa</label>
-              <select
-                value={form.empresaId}
-                onChange={(e) => setForm({ ...form, empresaId: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
-              >
-                <option value="">Sin empresa</option>
-                {empresas.map((emp) => (
-                  <option key={emp.id} value={emp.id}>{emp.nombre}</option>
-                ))}
-              </select>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs text-neutral-500">Empresa</label>
+                <div className="flex gap-1">
+                  <button type="button" onClick={() => setModoEmpresa("existente")}
+                    className={`rounded-md px-2 py-0.5 text-xs font-medium transition-colors ${modoEmpresa === "existente" ? "bg-blue-600 text-white" : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200"}`}>
+                    Existente
+                  </button>
+                  <button type="button" onClick={() => setModoEmpresa("nueva")}
+                    className={`rounded-md px-2 py-0.5 text-xs font-medium transition-colors ${modoEmpresa === "nueva" ? "bg-blue-600 text-white" : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200"}`}>
+                    + Nueva
+                  </button>
+                </div>
+              </div>
+              {modoEmpresa === "existente" ? (
+                <select
+                  value={form.empresaId}
+                  onChange={(e) => setForm({ ...form, empresaId: e.target.value })}
+                  className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                >
+                  <option value="">Sin empresa</option>
+                  {empresas.map((emp) => (
+                    <option key={emp.id} value={emp.id}>{emp.nombre}</option>
+                  ))}
+                </select>
+              ) : (
+                <div className="rounded-md border border-blue-200 bg-blue-50 p-2.5">
+                  <div className="flex flex-col gap-2">
+                    <input type="text" placeholder="Nombre de la empresa *" value={nuevaEmpresaForm.nombre}
+                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, nombre: e.target.value }))}
+                      className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                    <input type="email" placeholder="Email (opcional)" value={nuevaEmpresaForm.email}
+                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, email: e.target.value }))}
+                      className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                    <input type="text" placeholder="Teléfono (opcional)" value={nuevaEmpresaForm.telefono}
+                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, telefono: e.target.value }))}
+                      className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                    {creandoEmpresaError && <p className="text-xs text-red-600">{creandoEmpresaError}</p>}
+                    <button type="button" onClick={crearEmpresaInline} disabled={creandoEmpresaLoading || !nuevaEmpresaForm.nombre.trim()}
+                      className="self-start rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                      {creandoEmpresaLoading ? "Creando..." : "Crear empresa"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-neutral-500">Notas</label>
@@ -198,7 +267,7 @@ export default function ContactosPage() {
                 disabled={guardando}
                 className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
               >
-                {guardando ? "Guardando..." : "Guardar de todas formas"}
+                {guardando ? "Guardando..." : duplicados.length > 0 ? "Guardar de todas formas" : "Guardar"}
               </button>
               <button
                 type="button"

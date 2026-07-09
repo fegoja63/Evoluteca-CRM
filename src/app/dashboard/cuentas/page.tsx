@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { KpiCard } from "@/components/kpi-card";
@@ -34,6 +34,8 @@ export default function ClientesPage() {
   const [guardando, setGuardando] = useState(false);
   const [form, setForm] = useState({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "" });
   const [todasEmpresas, setTodasEmpresas] = useState<Empresa[]>([]);
+  const [agregarContacto, setAgregarContacto] = useState(false);
+  const [nuevoContactoForm, setNuevoContactoForm] = useState({ nombre: "", email: "", telefono: "", cargo: "" });
 
   // Duplicados: busca por nombre similar o email exacto
   const duplicados = todasEmpresas.filter(e => {
@@ -44,10 +46,13 @@ export default function ClientesPage() {
     return nombreMatch || emailMatch;
   });
 
+  const busquedaRef = useRef("");
   async function cargar(q = "") {
+    busquedaRef.current = q;
     setCargando(true);
     const res = await fetch(`/api/empresas?q=${encodeURIComponent(q)}`);
     const data = await res.json();
+    if (busquedaRef.current !== q) return; // respuesta obsoleta — ya se lanzó una búsqueda más reciente
     setEmpresas(data);
     if (!q) setTodasEmpresas(data);
     setCargando(false);
@@ -62,12 +67,22 @@ export default function ClientesPage() {
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
     setGuardando(true);
-    await fetch("/api/empresas", {
+    const res = await fetch("/api/empresas", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
+    const nuevaEmpresa = await res.json().catch(() => null);
+    if (res.ok && agregarContacto && nuevoContactoForm.nombre.trim() && nuevaEmpresa?.id) {
+      await fetch("/api/contactos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...nuevoContactoForm, empresaId: nuevaEmpresa.id }),
+      });
+    }
     setForm({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "" });
+    setAgregarContacto(false);
+    setNuevoContactoForm({ nombre: "", email: "", telefono: "", cargo: "" });
     setMostrarForm(false);
     setGuardando(false);
     cargar(busqueda);
@@ -176,6 +191,31 @@ export default function ClientesPage() {
               <textarea value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })} rows={2}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
             </div>
+
+            <div className="col-span-2">
+              <button type="button" onClick={() => setAgregarContacto(v => !v)}
+                className="text-xs font-medium text-blue-600 hover:underline">
+                {agregarContacto ? "− Quitar contacto" : "+ Agregar un contacto de este cliente"}
+              </button>
+              {agregarContacto && (
+                <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50 p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input type="text" placeholder="Nombre del contacto *" value={nuevoContactoForm.nombre}
+                    onChange={e => setNuevoContactoForm(f => ({ ...f, nombre: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                  <input type="text" placeholder="Cargo (opcional)" value={nuevoContactoForm.cargo}
+                    onChange={e => setNuevoContactoForm(f => ({ ...f, cargo: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                  <input type="email" placeholder="Email (opcional)" value={nuevoContactoForm.email}
+                    onChange={e => setNuevoContactoForm(f => ({ ...f, email: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                  <input type="text" placeholder="Teléfono (opcional)" value={nuevoContactoForm.telefono}
+                    onChange={e => setNuevoContactoForm(f => ({ ...f, telefono: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                  <p className="col-span-2 text-[11px] text-slate-500">Se creará automáticamente vinculado a este cliente al guardar.</p>
+                </div>
+              )}
+            </div>
+
             {duplicados.length > 0 && (
               <div className="col-span-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
                 <p className="font-semibold mb-1">⚠️ Posible duplicado detectado:</p>
@@ -194,7 +234,7 @@ export default function ClientesPage() {
             <div className="col-span-2 flex gap-2">
               <button type="submit" disabled={guardando}
                 className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
-                {guardando ? "Guardando..." : "Guardar de todas formas"}
+                {guardando ? "Guardando..." : duplicados.length > 0 ? "Guardar de todas formas" : "Guardar"}
               </button>
               <button type="button" onClick={() => setMostrarForm(false)}
                 className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
