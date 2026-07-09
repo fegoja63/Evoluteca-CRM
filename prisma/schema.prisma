@@ -114,6 +114,7 @@ model Empresa {
   expedientes     Expediente[]
 
   @@index([tenantId])
+  @@index([tenantId, creadoEn])
   @@map("empresas")
 }
 
@@ -140,6 +141,7 @@ model Contacto {
   eventosTimeline EventoTimeline[]
 
   @@index([tenantId])
+  @@index([tenantId, creadoEn])
   @@map("contactos")
 }
 
@@ -189,6 +191,8 @@ model Oportunidad {
   cambiosEtapa  CambioEtapa[]
 
   @@index([tenantId])
+  @@index([tenantId, creadoEn])
+  @@index([tenantId, etapa])
   @@index([salonId, fechaEvento])
   @@map("oportunidades")
 }
@@ -238,6 +242,7 @@ model Actividad {
   oportunidad   Oportunidad?  @relation(fields: [oportunidadId], references: [id], onDelete: SetNull)
 
   @@index([tenantId])
+  @@index([tenantId, fecha])
   @@map("actividades")
 }
 
@@ -284,6 +289,7 @@ model Cotizacion {
   items       ItemCotizacion[]
 
   @@index([tenantId])
+  @@index([tenantId, creadoEn])
   @@index([salonId, fechaEvento])
   @@map("cotizaciones")
 }
@@ -446,6 +452,7 @@ model Expediente {
 
   @@unique([tenantId, numeroRadicado])
   @@index([tenantId])
+  @@index([tenantId, creadoEn])
   @@index([empresaId])
   @@map("expedientes")
 }
@@ -540,6 +547,7 @@ model Funcion {
   asistencias     Asistencia[]
 
   @@index([tenantId])
+  @@index([tenantId, fecha])
   @@map("funciones")
 }
 
@@ -574,6 +582,7 @@ model Espectador {
   asistencias Asistencia[]
 
   @@index([tenantId])
+  @@index([tenantId, creadoEn])
   @@map("espectadores")
 }
 
