@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { permitirYRegistrar, obtenerIp } from "@/lib/rate-limit";
+import { resetPasswordSchema } from "@/lib/validations/auth";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function POST(req: NextRequest) {
-  const { token, password } = await req.json();
-  if (!token || !password) return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
-  if (password.length < 8) return NextResponse.json({ error: "La contraseña debe tener al menos 8 caracteres" }, { status: 400 });
+  const body = await req.json();
+  const { data, error } = parseOrError(resetPasswordSchema, body);
+  if (error) return error;
+  const { token, password } = data;
 
   // El token es de 256 bits (imposible de adivinar), pero se limita por IP
   // de todas formas como defensa adicional y para frenar abuso automatizado.

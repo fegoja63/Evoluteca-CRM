@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { permitirYRegistrar } from "@/lib/rate-limit";
+import { accionCotizacionPublicaSchema } from "@/lib/validations/publica";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export const dynamic = "force-dynamic";
 
@@ -33,10 +35,10 @@ export async function PATCH(req: Request, { params }: { params: { token: string 
     return NextResponse.json({ error: "No se puede cambiar el estado" }, { status: 400 });
   }
 
-  const { accion, motivoRechazo } = await req.json();
-  if (accion !== "ACEPTADA" && accion !== "RECHAZADA") {
-    return NextResponse.json({ error: "Acción inválida" }, { status: 400 });
-  }
+  const body = await req.json();
+  const { data, error } = parseOrError(accionCotizacionPublicaSchema, body);
+  if (error) return error;
+  const { accion, motivoRechazo } = data;
 
   await prisma.cotizacion.update({
     where: { id: cot.id },

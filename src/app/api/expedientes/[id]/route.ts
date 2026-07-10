@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar, moduloActivo } from "@/lib/permisos";
+import { editarExpedienteSchema } from "@/lib/validations/expedientes";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function GET(
   request: Request,
@@ -42,7 +44,9 @@ export async function PATCH(
   if (!existente) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
   const body = await request.json();
-  const { numeroRadicado, juzgado, tipoProceso, contraparte, estado, notas, empresaId } = body;
+  const { data: parsed, error } = parseOrError(editarExpedienteSchema, body);
+  if (error) return error;
+  const { numeroRadicado, juzgado, tipoProceso, contraparte, estado, notas, empresaId } = parsed;
 
   if (empresaId) {
     const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId } });

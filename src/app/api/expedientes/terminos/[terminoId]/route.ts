@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar, moduloActivo } from "@/lib/permisos";
+import { editarTerminoSchema } from "@/lib/validations/expedientes";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function PATCH(
   request: Request,
@@ -21,12 +23,14 @@ export async function PATCH(
   if (!existente) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
   const body = await request.json();
-  const { estado, descripcion, fechaLimite, notas } = body;
+  const { data: parsed, error } = parseOrError(editarTerminoSchema, body);
+  if (error) return error;
+  const { estado, descripcion, fechaLimite, notas } = parsed;
 
   const data: Record<string, unknown> = {};
   if (estado !== undefined) data.estado = estado;
   if (descripcion !== undefined) data.descripcion = descripcion.trim();
-  if (fechaLimite !== undefined) data.fechaLimite = new Date(fechaLimite);
+  if (fechaLimite !== undefined) data.fechaLimite = fechaLimite || undefined;
   if (notas !== undefined) data.notas = notas?.trim() || null;
 
   const actualizado = await prisma.terminoExpediente.update({ where: { id: params.terminoId }, data });

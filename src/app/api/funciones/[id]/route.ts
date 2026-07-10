@@ -2,10 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
-
-function numeroValido(v: unknown): v is number | string {
-  return v !== null && v !== undefined && v !== "" && !isNaN(Number(v));
-}
+import { editarFuncionSchema } from "@/lib/validations/funciones";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const session = await auth();
@@ -38,17 +36,20 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   });
   if (!existente) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
 
-  const { titulo, fecha, sillasTotales, sillasVendidas, canal, ingresoEstimado, notas } = await request.json();
+  const body = await request.json();
+  const { data: parsed, error } = parseOrError(editarFuncionSchema, body);
+  if (error) return error;
+  const { titulo, fecha, sillasTotales, sillasVendidas, canal, ingresoEstimado, notas } = parsed;
 
   const funcion = await prisma.funcion.update({
     where: { id: params.id },
     data: {
       titulo: titulo?.trim() || existente.titulo,
-      fecha: fecha ? new Date(fecha) : existente.fecha,
-      sillasTotales: numeroValido(sillasTotales) ? Number(sillasTotales) : existente.sillasTotales,
-      sillasVendidas: numeroValido(sillasVendidas) ? Number(sillasVendidas) : existente.sillasVendidas,
+      fecha: fecha ?? existente.fecha,
+      sillasTotales: sillasTotales ?? existente.sillasTotales,
+      sillasVendidas: sillasVendidas ?? existente.sillasVendidas,
       canal: canal || existente.canal,
-      ingresoEstimado: numeroValido(ingresoEstimado) ? Number(ingresoEstimado) : existente.ingresoEstimado,
+      ingresoEstimado: ingresoEstimado ?? existente.ingresoEstimado,
       notas: notas?.trim() || null,
     },
   });

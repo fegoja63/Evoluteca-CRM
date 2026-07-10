@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { crearContactoSchema } from "@/lib/validations/contactos";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -48,9 +50,9 @@ export async function POST(request: Request) {
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { nombre, email, telefono, cargo, notas, empresaId } = body;
-
-  if (!nombre) return NextResponse.json({ error: "Nombre requerido" }, { status: 400 });
+  const { data: parsed, error } = parseOrError(crearContactoSchema, body);
+  if (error) return error;
+  const { nombre, email, telefono, cargo, notas, empresaId } = parsed;
 
   if (empresaId) {
     const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId } });

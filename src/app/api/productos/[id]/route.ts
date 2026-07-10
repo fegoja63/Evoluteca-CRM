@@ -2,20 +2,21 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
+import { editarProductoSchema } from "@/lib/validations/productos";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  const body = await req.json();
-  if (body.precioBase !== undefined && (body.precioBase === "" || isNaN(Number(body.precioBase)))) {
-    return NextResponse.json({ error: "Precio base inválido" }, { status: 400 });
-  }
+  const raw = await req.json();
+  const { data: body, error } = parseOrError(editarProductoSchema, raw);
+  if (error) return error;
   await prisma.producto.updateMany({
     where: { id: params.id, tenantId: session.user.tenantId },
     data: {
       ...(body.nombre !== undefined && { nombre: body.nombre.trim() }),
       ...(body.descripcion !== undefined && { descripcion: body.descripcion?.trim() || null }),
-      ...(body.precioBase !== undefined && { precioBase: Number(body.precioBase) }),
+      ...(body.precioBase !== undefined && { precioBase: body.precioBase }),
       ...(body.activo !== undefined && { activo: body.activo }),
     },
   });

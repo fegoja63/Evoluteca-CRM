@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
+import { editarEmpresaSchema } from "@/lib/validations/empresas";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function GET(
   request: Request,
@@ -37,12 +39,14 @@ export async function PATCH(
   if (!existente) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
 
   const body = await request.json();
-  const { nombre, email, sector, sitioWeb, telefono, notas, etiquetas } = body;
+  const { data: parsed, error } = parseOrError(editarEmpresaSchema, body);
+  if (error) return error;
+  const { nombre, email, sector, sitioWeb, telefono, notas, etiquetas } = parsed;
 
   if (etiquetas !== undefined && !nombre) {
     const empresa = await prisma.empresa.update({
       where: { id: params.id },
-      data: { etiquetas: Array.isArray(etiquetas) ? etiquetas : [] },
+      data: { etiquetas },
     });
     return NextResponse.json(empresa);
   }

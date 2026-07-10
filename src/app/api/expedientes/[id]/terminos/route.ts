@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { moduloActivo } from "@/lib/permisos";
+import { crearTerminoSchema } from "@/lib/validations/expedientes";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function POST(
   request: Request,
@@ -21,19 +23,14 @@ export async function POST(
   if (!expediente) return NextResponse.json({ error: "Expediente no encontrado" }, { status: 404 });
 
   const body = await request.json();
-  const { descripcion, fechaLimite, notas } = body;
-
-  if (!descripcion?.trim()) {
-    return NextResponse.json({ error: "La descripción es obligatoria" }, { status: 400 });
-  }
-  if (!fechaLimite) {
-    return NextResponse.json({ error: "La fecha límite es obligatoria" }, { status: 400 });
-  }
+  const { data: parsed, error } = parseOrError(crearTerminoSchema, body);
+  if (error) return error;
+  const { descripcion, fechaLimite, notas } = parsed;
 
   const termino = await prisma.terminoExpediente.create({
     data: {
       descripcion: descripcion.trim(),
-      fechaLimite: new Date(fechaLimite),
+      fechaLimite,
       notas: notas?.trim() || null,
       expedienteId: params.id,
       tenantId: session.user.tenantId,

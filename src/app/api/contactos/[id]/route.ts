@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
+import { editarContactoSchema } from "@/lib/validations/contactos";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
@@ -25,7 +27,9 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { nombre, email, telefono, cargo, notas, empresaId } = body;
+  const { data: parsed, error } = parseOrError(editarContactoSchema, body);
+  if (error) return error;
+  const { nombre, email, telefono, cargo, notas, empresaId } = parsed;
 
   if (empresaId) {
     const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId } });

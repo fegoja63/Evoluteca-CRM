@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { crearEspectadorSchema } from "@/lib/validations/espectadores";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -29,11 +31,9 @@ export async function POST(request: Request) {
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { nombre, email, telefono, segmento, notas } = body;
-
-  if (!nombre?.trim()) {
-    return NextResponse.json({ error: "El nombre es obligatorio" }, { status: 400 });
-  }
+  const { data: parsed, error } = parseOrError(crearEspectadorSchema, body);
+  if (error) return error;
+  const { nombre, email, telefono, segmento, notas } = parsed;
 
   const espectador = await prisma.espectador.create({
     data: {

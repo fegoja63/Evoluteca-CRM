@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
+import { crearOportunidadSchema } from "@/lib/validations/oportunidades";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -56,11 +58,9 @@ export async function POST(request: Request) {
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { titulo, valor, etapa, notas, empresaId, contactoId, probabilidad, fechaCierre, salonId, sede, fechaEvento, horaInicio, horaFin } = body;
-
-  if (!titulo?.trim()) {
-    return NextResponse.json({ error: "El título es obligatorio" }, { status: 400 });
-  }
+  const { data: parsed, error } = parseOrError(crearOportunidadSchema, body);
+  if (error) return error;
+  const { titulo, valor, etapa, notas, empresaId, contactoId, probabilidad, fechaCierre, salonId, sede, fechaEvento, horaInicio, horaFin } = parsed;
 
   const tenantId = session.user.tenantId;
   if (empresaId) {
@@ -75,16 +75,16 @@ export async function POST(request: Request) {
   const oportunidad = await prisma.oportunidad.create({
     data: {
       titulo: titulo.trim(),
-      valor: valor ? Number(valor) : null,
+      valor: valor ?? null,
       etapa: etapa || "PROSPECTO",
       notas: notas?.trim() || null,
       empresaId: empresaId || null,
       contactoId: contactoId || null,
-      probabilidad: probabilidad !== undefined ? Number(probabilidad) : 50,
-      fechaCierre: fechaCierre ? new Date(fechaCierre) : null,
+      probabilidad: probabilidad ?? 50,
+      fechaCierre: fechaCierre || null,
       salonId: salonId || null,
       sede: sede?.trim() || null,
-      fechaEvento: fechaEvento ? new Date(fechaEvento) : null,
+      fechaEvento: fechaEvento || null,
       horaInicio: horaInicio || null,
       horaFin: horaFin || null,
       tenantId: session.user.tenantId,

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { moduloActivo } from "@/lib/permisos";
+import { crearSalonSchema } from "@/lib/validations/salones";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function GET() {
   const session = await auth();
@@ -24,13 +26,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "El módulo Salones no está activo" }, { status: 403 });
   }
 
-  const { nombre, capacidad, descripcion } = await req.json();
-  if (!nombre?.trim()) return NextResponse.json({ error: "Nombre requerido" }, { status: 400 });
+  const body = await req.json();
+  const { data, error } = parseOrError(crearSalonSchema, body);
+  if (error) return error;
+  const { nombre, capacidad, descripcion } = data;
 
   const salon = await prisma.salon.create({
     data: {
       nombre: nombre.trim(),
-      capacidad: capacidad ? Number(capacidad) : null,
+      capacidad: capacidad ?? null,
       descripcion: descripcion?.trim() || null,
       tenantId: session.user.tenantId,
     },

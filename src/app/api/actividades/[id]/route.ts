@@ -2,13 +2,17 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
+import { editarActividadSchema } from "@/lib/validations/actividades";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { completada, titulo, tipo, fecha, notas, empresaId, contactoId, oportunidadId } = body;
+  const { data: parsed, error } = parseOrError(editarActividadSchema, body);
+  if (error) return error;
+  const { completada, titulo, tipo, fecha, notas, empresaId, contactoId, oportunidadId } = parsed;
 
   await prisma.actividad.updateMany({
     where: { id: params.id, tenantId: session.user.tenantId },
@@ -16,7 +20,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       ...(completada !== undefined && { completada }),
       ...(titulo !== undefined && { titulo }),
       ...(tipo !== undefined && { tipo }),
-      ...(fecha !== undefined && { fecha: new Date(fecha) }),
+      ...(fecha !== undefined && { fecha: fecha || undefined }),
       ...(notas !== undefined && { notas: notas || null }),
       ...(empresaId !== undefined && { empresaId: empresaId || null }),
       ...(contactoId !== undefined && { contactoId: contactoId || null }),

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner, moduloActivo } from "@/lib/permisos";
+import { crearExpedienteSchema } from "@/lib/validations/expedientes";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function GET() {
   const session = await auth();
@@ -29,14 +31,10 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { numeroRadicado, juzgado, tipoProceso, contraparte, estado, notas, empresaId } = body;
+  const { data: parsed, error } = parseOrError(crearExpedienteSchema, body);
+  if (error) return error;
+  const { numeroRadicado, juzgado, tipoProceso, contraparte, estado, notas, empresaId } = parsed;
 
-  if (!numeroRadicado?.trim()) {
-    return NextResponse.json({ error: "El número de radicado es obligatorio" }, { status: 400 });
-  }
-  if (!contraparte?.trim()) {
-    return NextResponse.json({ error: "La contraparte es obligatoria" }, { status: 400 });
-  }
   if (empresaId) {
     const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId } });
     if (!empresa) return NextResponse.json({ error: "Empresa no encontrada" }, { status: 400 });

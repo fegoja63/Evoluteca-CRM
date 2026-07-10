@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { crearCotizacionSchema } from "@/lib/validations/cotizaciones";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function GET() {
   const session = await auth();
@@ -25,17 +27,9 @@ export async function POST(request: Request) {
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { empresaId, contactoId, oportunidadId, salonId, fechaEvento, horaInicio, horaFin, sede, notas, fechaValidez, items, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje } = body;
-
-  if (!Array.isArray(items) || items.length === 0) {
-    return NextResponse.json({ error: "Agrega al menos un ítem" }, { status: 400 });
-  }
-
-  for (const item of items) {
-    if (!item.descripcion?.trim() || !item.precioUnit) {
-      return NextResponse.json({ error: "Cada ítem necesita descripción y precio" }, { status: 400 });
-    }
-  }
+  const { data: parsed, error } = parseOrError(crearCotizacionSchema, body);
+  if (error) return error;
+  const { empresaId, contactoId, oportunidadId, salonId, fechaEvento, horaInicio, horaFin, sede, notas, fechaValidez, items, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje } = parsed;
 
   // Cada relación opcional debe pertenecer al mismo tenant — sin esto, un
   // usuario podría enlazar (y luego ver los datos de) una empresa/contacto/
@@ -71,15 +65,15 @@ export async function POST(request: Request) {
       notas: notas?.trim() || null,
       fechaValidez: fechaValidez ? new Date(fechaValidez) : null,
       impuestoNombre: impuestoNombre?.trim() || null,
-      impuestoPorcentaje: impuestoPorcentaje !== undefined && impuestoPorcentaje !== "" && impuestoPorcentaje !== null ? Number(impuestoPorcentaje) : null,
+      impuestoPorcentaje: impuestoPorcentaje ?? null,
       impuesto2Nombre: impuesto2Nombre?.trim() || null,
-      impuesto2Porcentaje: impuesto2Porcentaje !== undefined && impuesto2Porcentaje !== "" && impuesto2Porcentaje !== null ? Number(impuesto2Porcentaje) : null,
+      impuesto2Porcentaje: impuesto2Porcentaje ?? null,
       tenantId: session.user.tenantId,
       items: {
-        create: items.map((item: { descripcion: string; cantidad: number; precioUnit: number }) => ({
+        create: items.map(item => ({
           descripcion: item.descripcion.trim(),
-          cantidad: Number(item.cantidad) || 1,
-          precioUnit: Number(item.precioUnit),
+          cantidad: item.cantidad ?? 1,
+          precioUnit: item.precioUnit,
         })),
       },
     },

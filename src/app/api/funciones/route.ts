@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { crearFuncionSchema } from "@/lib/validations/funciones";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -40,20 +42,18 @@ export async function POST(request: Request) {
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { titulo, fecha, sillasTotales, sillasVendidas, canal, ingresoEstimado, notas } = body;
-
-  if (!titulo?.trim() || !fecha) {
-    return NextResponse.json({ error: "Título y fecha son obligatorios" }, { status: 400 });
-  }
+  const { data, error } = parseOrError(crearFuncionSchema, body);
+  if (error) return error;
+  const { titulo, fecha, sillasTotales, sillasVendidas, canal, ingresoEstimado, notas } = data;
 
   const funcion = await prisma.funcion.create({
     data: {
       titulo: titulo.trim(),
-      fecha: new Date(fecha),
-      sillasTotales: Number(sillasTotales) || 239,
-      sillasVendidas: Number(sillasVendidas) || 0,
+      fecha,
+      sillasTotales: sillasTotales ?? 239,
+      sillasVendidas: sillasVendidas ?? 0,
       canal: canal || "PLATAFORMA",
-      ingresoEstimado: ingresoEstimado ? Number(ingresoEstimado) : null,
+      ingresoEstimado: ingresoEstimado ?? null,
       notas: notas?.trim() || null,
       tenantId: session.user.tenantId,
     },

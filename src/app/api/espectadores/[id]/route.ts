@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
+import { editarEspectadorSchema } from "@/lib/validations/espectadores";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const session = await auth();
@@ -34,7 +36,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   });
   if (!existente) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
-  const { nombre, email, telefono, segmento, nivelMembresia, notas } = await request.json();
+  const body = await request.json();
+  const { data: parsed, error } = parseOrError(editarEspectadorSchema, body);
+  if (error) return error;
+  const { nombre, email, telefono, segmento, nivelMembresia, notas } = parsed;
 
   const data: Record<string, unknown> = {};
   if (nombre !== undefined) data.nombre = nombre.trim() || existente.nombre;

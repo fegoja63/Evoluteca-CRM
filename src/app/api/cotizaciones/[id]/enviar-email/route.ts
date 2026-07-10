@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
+import { enviarEmailCotizacionSchema } from "@/lib/validations/cotizaciones";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
@@ -9,7 +11,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: "RESEND_API_KEY no configurada" }, { status: 503 });
 
   const body = await req.json().catch(() => ({}));
-  const emailDestino: string | undefined = body?.email?.trim() || undefined;
+  const { data: parsedBody, error: errorValidacion } = parseOrError(enviarEmailCotizacionSchema, body);
+  if (errorValidacion) return errorValidacion;
+  const emailDestino: string | undefined = parsedBody.email?.trim() || undefined;
 
   const cot = await prisma.cotizacion.findFirst({
     where: { id: params.id, tenantId: session.user.tenantId },

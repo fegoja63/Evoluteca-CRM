@@ -2,20 +2,21 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
+import { editarSalonSchema } from "@/lib/validations/salones";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  const body = await req.json();
-  if (body.capacidad !== undefined && body.capacidad !== null && isNaN(Number(body.capacidad))) {
-    return NextResponse.json({ error: "Capacidad inválida" }, { status: 400 });
-  }
+  const raw = await req.json();
+  const { data: body, error } = parseOrError(editarSalonSchema, raw);
+  if (error) return error;
   await prisma.salon.updateMany({
     where: { id: params.id, tenantId: session.user.tenantId },
     data: {
       ...(body.nombre !== undefined && { nombre: body.nombre.trim() }),
       ...(body.descripcion !== undefined && { descripcion: body.descripcion?.trim() || null }),
-      ...(body.capacidad !== undefined && { capacidad: body.capacidad === null ? null : Number(body.capacidad) }),
+      ...(body.capacidad !== undefined && { capacidad: body.capacidad ?? null }),
       ...(body.activo !== undefined && { activo: body.activo }),
     },
   });

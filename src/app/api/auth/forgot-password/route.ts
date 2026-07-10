@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 import { permitirYRegistrar, obtenerIp } from "@/lib/rate-limit";
+import { forgotPasswordSchema } from "@/lib/validations/auth";
+import { parseOrError } from "@/lib/validations/helpers";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -13,8 +15,10 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function POST(req: NextRequest) {
-  const { email } = await req.json();
-  if (!email) return NextResponse.json({ error: "Email requerido" }, { status: 400 });
+  const body = await req.json();
+  const { data, error } = parseOrError(forgotPasswordSchema, body);
+  if (error) return error;
+  const { email } = data;
 
   // Máximo 3 solicitudes cada 15 minutos por correo y por IP — evita que se
   // use este endpoint para bombardear de emails a un usuario ajeno.

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
+import { editarCotizacionSchema } from "@/lib/validations/cotizaciones";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
@@ -25,7 +27,9 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { estado, notas, empresaId, motivoRechazo, fechaEvento, horaInicio, horaFin, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje } = body;
+  const { data: parsedBody, error } = parseOrError(editarCotizacionSchema, body);
+  if (error) return error;
+  const { estado, notas, empresaId, motivoRechazo, fechaEvento, horaInicio, horaFin, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje } = parsedBody;
 
   if (empresaId) {
     const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId } });
@@ -43,9 +47,9 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       ...(horaInicio !== undefined && { horaInicio: horaInicio || null }),
       ...(horaFin !== undefined && { horaFin: horaFin || null }),
       ...(impuestoNombre !== undefined && { impuestoNombre: impuestoNombre?.trim() || null }),
-      ...(impuestoPorcentaje !== undefined && { impuestoPorcentaje: impuestoPorcentaje === "" || impuestoPorcentaje === null ? null : Number(impuestoPorcentaje) }),
+      ...(impuestoPorcentaje !== undefined && { impuestoPorcentaje: impuestoPorcentaje ?? null }),
       ...(impuesto2Nombre !== undefined && { impuesto2Nombre: impuesto2Nombre?.trim() || null }),
-      ...(impuesto2Porcentaje !== undefined && { impuesto2Porcentaje: impuesto2Porcentaje === "" || impuesto2Porcentaje === null ? null : Number(impuesto2Porcentaje) }),
+      ...(impuesto2Porcentaje !== undefined && { impuesto2Porcentaje: impuesto2Porcentaje ?? null }),
     },
   });
 

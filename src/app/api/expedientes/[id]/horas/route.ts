@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { moduloActivo } from "@/lib/permisos";
+import { registrarHorasSchema } from "@/lib/validations/expedientes";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function GET(
   _req: Request,
@@ -36,16 +38,15 @@ export async function POST(
   });
   if (!expediente) return NextResponse.json({ error: "Expediente no encontrado" }, { status: 404 });
 
-  const { fecha, horas, descripcion } = await req.json();
-  if (!fecha) return NextResponse.json({ error: "La fecha es obligatoria" }, { status: 400 });
-  if (!horas || isNaN(Number(horas)) || Number(horas) < 0.25) {
-    return NextResponse.json({ error: "Las horas deben ser un número mayor o igual a 0.25" }, { status: 400 });
-  }
+  const body = await req.json();
+  const { data: parsed, error } = parseOrError(registrarHorasSchema, body);
+  if (error) return error;
+  const { fecha, horas, descripcion } = parsed;
 
   const registro = await prisma.registroHoras.create({
     data: {
-      fecha: new Date(fecha),
-      horas: Number(horas),
+      fecha,
+      horas,
       descripcion: descripcion?.trim() || null,
       expedienteId: params.id,
       tenantId: session.user.tenantId,

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { crearMetaVendedorSchema } from "@/lib/validations/metas";
+import { parseOrError } from "@/lib/validations/helpers";
 
 export async function GET(req: Request) {
   const session = await auth();
@@ -30,10 +32,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Solo el administrador puede definir la meta de un vendedor" }, { status: 403 });
   }
 
-  const { userId, anio, mes, meta } = await req.json();
-  if (!userId || !anio || !mes || meta === undefined) {
-    return NextResponse.json({ error: "Faltan campos" }, { status: 400 });
-  }
+  const body = await req.json();
+  const { data, error } = parseOrError(crearMetaVendedorSchema, body);
+  if (error) return error;
+  const { userId, anio, mes, meta } = data;
 
   const result = await prisma.metaVendedor.upsert({
     where: { tenantId_userId_anio_mes: { tenantId, userId, anio, mes } },
