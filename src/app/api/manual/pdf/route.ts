@@ -104,7 +104,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.10"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.11"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -237,7 +237,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.10 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.11 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -355,6 +355,13 @@ export async function GET() {
       React.createElement(LI, null, "Al guardar aparece un mensaje 'Guardado' por 2 segundos"),
       React.createElement(LI, null, "Las notas son internas — no se muestran al cliente"),
       React.createElement(Tip, null, "Usa las notas rápidas para registrar contexto importante sobre el cliente o negocio: preferencias, restricciones de presupuesto, fechas clave, contactos adicionales."),
+
+      React.createElement(H2, null, "2.8 Papelera de clientes y contactos"),
+      React.createElement(P, null, 'Al eliminar un cliente o un contacto, el registro no se borra de inmediato: se mueve a la Papelera (ícono 🗑️ en el menú lateral), donde queda disponible para restaurarlo o eliminarlo definitivamente.'),
+      React.createElement(LI, null, "Restaurar — el cliente o contacto vuelve a aparecer en su listado normal, con todos sus datos e historial intactos"),
+      React.createElement(LI, null, "Eliminar definitivamente — borra el registro de forma permanente y no se puede deshacer"),
+      React.createElement(Nota, null, "Solo Administrador y Gerente pueden eliminar y restaurar registros (mismo permiso que elimina hoy clientes u oportunidades). La Papelera es por organización: cada empresa ve únicamente lo que ella misma eliminó."),
+      React.createElement(Tip, null, "Si eliminaste un cliente por error, ve a Papelera antes de eliminarlo definitivamente — restaurarlo desde ahí es inmediato y no requiere volver a crearlo ni perder su historial."),
     ),
 
     // ── CAPÍTULO 3: PIPELINE ──
@@ -531,6 +538,13 @@ export async function GET() {
       React.createElement(LI, null, "Badge ámbar 'Vence en Xd' — vence en 7 días o menos"),
       React.createElement(P, null, "En el dashboard principal aparece un bloque en el panel de alertas con el número de cotizaciones vencidas o próximas a vencer. Al hacer clic va directamente a la lista de cotizaciones."),
       React.createElement(Tip, null, "Cuando una cotización es ACEPTADA o RECHAZADA, los badges de vencimiento desaparecen — el estado definitivo ya no requiere seguimiento de validez."),
+
+      React.createElement(H2, null, "5.9 Plantillas de cotización"),
+      React.createElement(P, null, 'Ve a Plantillas para guardar combinaciones completas de ítems que usas seguido (por ejemplo, un paquete de servicios para un tipo de evento) y reutilizarlas en segundos al armar una cotización nueva.'),
+      React.createElement(Paso, { n: 1, titulo: "Crear una plantilla", desc: 'En Plantillas, botón "+ Nueva plantilla". Dale un nombre y agrega tantas líneas como necesites (descripción, cantidad, precio unitario) — igual que en el formulario de una cotización.' }),
+      React.createElement(Paso, { n: 2, titulo: "Editar una plantilla", desc: 'Botón "Editar" sobre cualquier plantilla de la lista. Puedes cambiar el nombre y modificar, agregar o quitar cualquier línea de ítems — no solo renombrarla. Al guardar, la lista de ítems de la plantilla se reemplaza por completo con lo que dejaste en el formulario.' }),
+      React.createElement(Paso, { n: 3, titulo: "Usar una plantilla en una cotización", desc: 'Desde una cotización existente, el botón "★ Guardar plantilla" también te permite crear una plantilla nueva a partir de los ítems que ya cargaste.' }),
+      React.createElement(Nota, null, "Editar o eliminar una plantilla no afecta las cotizaciones que ya se crearon a partir de ella — cada cotización guarda su propia copia de los ítems al momento de crearse."),
     ),
 
     // ── CAPÍTULO 6: IMPORTACIÓN ──
@@ -681,13 +695,14 @@ export async function GET() {
         ["Ver y gestionar sus propios clientes, oportunidades y actividades", true, true, true],
         ["Ver clientes, oportunidades y actividades de todo el equipo",        false, true, true],
         ["Ver reportes y forecast consolidado del equipo",                    false, true, true],
-        ["Eliminar clientes u oportunidades",                                 false, true, true],
+        ["Eliminar clientes, contactos u oportunidades",                      false, true, true],
         ["Editar metas de vendedores",                                       false, true, true],
         ["Configurar el CRM (logo, módulos opcionales, emails automáticos)",  false, false, true],
         ["Invitar y editar usuarios del equipo",                             false, false, true],
         ["Reasignar registros importados sin dueño",                        false, false, true],
         ["Limpiar datos de prueba (zona de peligro)",                       false, false, true],
       ] }),
+      React.createElement(Nota, null, "Eliminar un cliente o contacto no lo borra al instante: lo envía a la Papelera (ver 2.8), desde donde Administrador o Gerente pueden restaurarlo o eliminarlo definitivamente."),
       React.createElement(P, null, "Desde el panel de Equipo el Administrador puede:"),
       React.createElement(LI, null, "Crear nuevos usuarios con nombre, correo y contraseña inicial"),
       React.createElement(LI, null, "Ver el rol y estado de cada miembro"),
