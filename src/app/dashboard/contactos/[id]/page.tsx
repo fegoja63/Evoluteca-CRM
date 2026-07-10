@@ -7,6 +7,7 @@ import { WhatsAppBtn } from "@/components/whatsapp-btn";
 import { ExtrasPanel } from "@/components/extras-panel";
 import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 import { NotasRapidas } from "@/components/notas-rapidas";
+import { Adjuntos } from "@/components/adjuntos";
 
 type Empresa = { id: string; nombre: string };
 
@@ -210,6 +211,10 @@ export default function FichaContactoPage() {
           cargar();
         }}
       />
+
+      <div className="mt-4">
+        <Adjuntos contactoId={contacto.id} />
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
         <div className="rounded-xl border border-neutral-200 p-4">

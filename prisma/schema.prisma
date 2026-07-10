@@ -64,6 +64,7 @@ model Tenant {
   registrosHoras      RegistroHoras[]
   asistencias         Asistencia[]
   salones             Salon[]
+  adjuntos            Adjunto[]
 
   @@map("tenants")
 }
@@ -117,6 +118,7 @@ model Empresa {
   cotizaciones    Cotizacion[]
   eventosTimeline EventoTimeline[]
   expedientes     Expediente[]
+  adjuntos        Adjunto[]
 
   @@index([tenantId])
   @@index([tenantId, creadoEn])
@@ -146,6 +148,7 @@ model Contacto {
   actividades     Actividad[]
   cotizaciones    Cotizacion[]
   eventosTimeline EventoTimeline[]
+  adjuntos        Adjunto[]
 
   @@index([tenantId])
   @@index([tenantId, creadoEn])
@@ -198,12 +201,44 @@ model Oportunidad {
   actividades   Actividad[]
   cotizaciones  Cotizacion[]
   cambiosEtapa  CambioEtapa[]
+  adjuntos      Adjunto[]
 
   @@index([tenantId])
   @@index([tenantId, creadoEn])
   @@index([tenantId, etapa])
   @@index([salonId, fechaEvento])
   @@map("oportunidades")
+}
+
+// Archivos adjuntos (contratos, cédulas, fotos, etc.) guardados como base64
+// directo en la fila, igual que Tenant.logoUrl — sin servicio de storage externo.
+// Cada adjunto pertenece a exactamente una entidad (empresa, contacto u oportunidad).
+model Adjunto {
+  id        String   @id @default(uuid())
+  nombre    String
+  tipo      String
+  tamano    Int
+  datos     String
+  creadoEn  DateTime @default(now())
+  creadoBy  String?
+
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  empresaId String?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  contactoId String?
+  contacto   Contacto? @relation(fields: [contactoId], references: [id], onDelete: Cascade)
+
+  oportunidadId String?
+  oportunidad   Oportunidad? @relation(fields: [oportunidadId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([empresaId])
+  @@index([contactoId])
+  @@index([oportunidadId])
+  @@map("adjuntos")
 }
 
 model CambioEtapa {

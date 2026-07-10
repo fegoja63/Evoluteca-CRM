@@ -14,6 +14,7 @@ import { ExtrasPanel } from "@/components/extras-panel";
 import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 import { TimelineCliente } from "@/components/timeline-cliente";
 import { NotasRapidas } from "@/components/notas-rapidas";
+import { Adjuntos } from "@/components/adjuntos";
 import { Etiquetas } from "@/components/etiquetas";
 import { WhatsAppBtn } from "@/components/whatsapp-btn";
 import { IconPhone, IconMail, IconUsers, type Icon } from "@tabler/icons-react";
@@ -210,6 +211,10 @@ export default function FichaClientePage() {
           cargar();
         }}
       />
+
+      <div className="mt-4">
+        <Adjuntos empresaId={empresa.id} />
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
         {/* Contactos */}
