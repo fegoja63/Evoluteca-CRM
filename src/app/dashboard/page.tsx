@@ -50,8 +50,8 @@ export default async function DashboardPage() {
     terminosProximos,
     funcionesProximas,
   ] = await Promise.all([
-    prisma.empresa.count({ where: { tenantId, ...ownerFiltro } }),
-    prisma.contacto.count({ where: { tenantId } }),
+    prisma.empresa.count({ where: { tenantId, eliminadoEn: null, ...ownerFiltro } }),
+    prisma.contacto.count({ where: { tenantId, eliminadoEn: null } }),
     prisma.oportunidad.findMany({
       where: { tenantId, ...ownerFiltro },
       select: { etapa: true, valor: true, creadoEn: true, fechaCierre: true, fechaEvento: true, extras: true, creadoBy: true },

@@ -16,9 +16,11 @@ export async function GET(request: Request) {
 
   const where = {
     tenantId: session.user.tenantId,
+    eliminadoEn: null,
     ...filtroOwner(session.user.rol, session.user.id),
     ...(q ? { nombre: { contains: q, mode: "insensitive" as const } } : {}),
   };
+  const contactosActivos = { contactos: { where: { eliminadoEn: null } } };
 
   // Sin "page" se mantiene el comportamiento anterior (lista completa) —
   // varias pantallas (dropdowns de Empresa, detección de duplicados) dependen
@@ -27,7 +29,7 @@ export async function GET(request: Request) {
     const empresas = await prisma.empresa.findMany({
       where,
       orderBy: { creadoEn: "desc" },
-      include: { _count: { select: { contactos: true } } },
+      include: { _count: { select: contactosActivos } },
     });
     return NextResponse.json(empresas);
   }
@@ -37,7 +39,7 @@ export async function GET(request: Request) {
     prisma.empresa.findMany({
       where,
       orderBy: { creadoEn: "desc" },
-      include: { _count: { select: { contactos: true } } },
+      include: { _count: { select: contactosActivos } },
       skip: (pageNum - 1) * take,
       take,
     }),

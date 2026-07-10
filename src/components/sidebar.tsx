@@ -76,6 +76,7 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
       .map(([key]) => navOpcionales[key])
       .filter(Boolean),
     { href: "/dashboard/datos", label: "Datos", emoji: "📥" },
+    { href: "/dashboard/papelera", label: "Papelera", emoji: "🗑️" },
     { href: "/dashboard/bienvenida", label: "Guía de inicio", emoji: "🚀" },
     { href: "/dashboard/ayuda", label: "Ayuda / Soporte", emoji: "🆘" },
     { href: "/dashboard/configuracion", label: "Configuración", emoji: "⚙️" },

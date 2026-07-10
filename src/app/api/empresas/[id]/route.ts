@@ -13,9 +13,9 @@ export async function GET(
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const empresa = await prisma.empresa.findFirst({
-    where: { id: params.id, tenantId: session.user.tenantId },
+    where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
     include: {
-      contactos: true,
+      contactos: { where: { eliminadoEn: null } },
       oportunidades: true,
       actividades: { orderBy: { fecha: "asc" } },
       cotizaciones: { include: { items: true } },
@@ -34,7 +34,7 @@ export async function PATCH(
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const existente = await prisma.empresa.findFirst({
-    where: { id: params.id, tenantId: session.user.tenantId },
+    where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
   });
   if (!existente) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
 
@@ -82,10 +82,12 @@ export async function DELETE(
   }
 
   const existente = await prisma.empresa.findFirst({
-    where: { id: params.id, tenantId: session.user.tenantId },
+    where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
   });
   if (!existente) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
 
-  await prisma.empresa.delete({ where: { id: params.id } });
+  // Borrado suave: el registro se guarda en la papelera (/dashboard/papelera)
+  // y se puede restaurar. El borrado definitivo solo se hace desde ahí.
+  await prisma.empresa.update({ where: { id: params.id }, data: { eliminadoEn: new Date() } });
   return NextResponse.json({ ok: true });
 }

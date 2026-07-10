@@ -15,13 +15,14 @@ export async function GET(req: NextRequest) {
 
   const [empresas, contactos, oportunidades, cotizaciones, actividades] = await Promise.all([
     prisma.empresa.findMany({
-      where: { tenantId, ...ownerFiltro, nombre: { contains: q, mode: "insensitive" } },
+      where: { tenantId, eliminadoEn: null, ...ownerFiltro, nombre: { contains: q, mode: "insensitive" } },
       select: { id: true, nombre: true, sector: true },
       take: 5,
     }),
     prisma.contacto.findMany({
       where: {
         tenantId,
+        eliminadoEn: null,
         OR: [
           { nombre: { contains: q, mode: "insensitive" } },
           { email:  { contains: q, mode: "insensitive" } },

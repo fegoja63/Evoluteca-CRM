@@ -102,6 +102,7 @@ model Empresa {
   extras      Json?
   creadoEn    DateTime  @default(now())
   creadoBy    String?
+  eliminadoEn DateTime?
 
   tenantId    String
   tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -115,6 +116,7 @@ model Empresa {
 
   @@index([tenantId])
   @@index([tenantId, creadoEn])
+  @@index([tenantId, eliminadoEn])
   @@map("empresas")
 }
 
@@ -127,6 +129,7 @@ model Contacto {
   notas       String?
   extras      Json?
   creadoEn    DateTime  @default(now())
+  eliminadoEn DateTime?
 
   tenantId    String
   tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -142,6 +145,7 @@ model Contacto {
 
   @@index([tenantId])
   @@index([tenantId, creadoEn])
+  @@index([tenantId, eliminadoEn])
   @@map("contactos")
 }
 

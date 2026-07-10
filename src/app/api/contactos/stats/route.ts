@@ -13,6 +13,7 @@ export async function GET(request: Request) {
 
   const where = {
     tenantId: session.user.tenantId,
+    eliminadoEn: null,
     ...(q ? { nombre: { contains: q, mode: "insensitive" as const } } : {}),
   };
 

@@ -10,7 +10,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const contacto = await prisma.contacto.findFirst({
-    where: { id: params.id, tenantId: session.user.tenantId },
+    where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
     include: {
       empresa: { select: { id: true, nombre: true } },
       oportunidades: { select: { id: true, titulo: true, etapa: true, valor: true } },
@@ -32,7 +32,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const { nombre, email, telefono, cargo, notas, empresaId } = parsed;
 
   if (empresaId) {
-    const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId } });
+    const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId, eliminadoEn: null } });
     if (!empresa) return NextResponse.json({ error: "Empresa no encontrada" }, { status: 400 });
   }
 
@@ -58,8 +58,10 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     return NextResponse.json({ error: "No tienes permiso para eliminar" }, { status: 403 });
   }
 
-  await prisma.contacto.deleteMany({
+  // Borrado suave: el registro se guarda en la papelera y se puede restaurar.
+  await prisma.contacto.updateMany({
     where: { id: params.id, tenantId: session.user.tenantId },
+    data: { eliminadoEn: new Date() },
   });
 
   return NextResponse.json({ ok: true });

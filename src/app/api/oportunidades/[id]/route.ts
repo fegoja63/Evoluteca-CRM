@@ -46,11 +46,11 @@ export async function PATCH(
   }
 
   if (empresaId) {
-    const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId } });
+    const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId, eliminadoEn: null } });
     if (!empresa) return NextResponse.json({ error: "Empresa no encontrada" }, { status: 400 });
   }
   if (contactoId) {
-    const contacto = await prisma.contacto.findFirst({ where: { id: contactoId, tenantId: session.user.tenantId } });
+    const contacto = await prisma.contacto.findFirst({ where: { id: contactoId, tenantId: session.user.tenantId, eliminadoEn: null } });
     if (!contacto) return NextResponse.json({ error: "Contacto no encontrado" }, { status: 400 });
   }
 

@@ -15,14 +15,15 @@ export async function GET(request: Request) {
 
   const where = {
     tenantId: session.user.tenantId,
+    eliminadoEn: null,
     ...filtroOwner(session.user.rol, session.user.id),
     ...(q ? { nombre: { contains: q, mode: "insensitive" as const } } : {}),
   };
 
   const [total, conContactos, contactosVinculados] = await Promise.all([
     prisma.empresa.count({ where }),
-    prisma.empresa.count({ where: { ...where, contactos: { some: {} } } }),
-    prisma.contacto.count({ where: { empresa: where } }),
+    prisma.empresa.count({ where: { ...where, contactos: { some: { eliminadoEn: null } } } }),
+    prisma.contacto.count({ where: { empresa: where, eliminadoEn: null } }),
   ]);
 
   return NextResponse.json({ total, conContactos, sinContactos: total - conContactos, contactosVinculados });

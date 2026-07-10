@@ -49,7 +49,7 @@ export async function PATCH(
   const { numeroRadicado, juzgado, tipoProceso, contraparte, estado, notas, empresaId } = parsed;
 
   if (empresaId) {
-    const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId } });
+    const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId, eliminadoEn: null } });
     if (!empresa) return NextResponse.json({ error: "Empresa no encontrada" }, { status: 400 });
   }
   if (numeroRadicado !== undefined && numeroRadicado.trim() !== existente.numeroRadicado) {

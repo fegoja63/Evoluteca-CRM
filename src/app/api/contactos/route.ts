@@ -16,6 +16,7 @@ export async function GET(request: Request) {
 
   const where = {
     tenantId,
+    eliminadoEn: null,
     ...(q ? { nombre: { contains: q, mode: "insensitive" as const } } : {}),
   };
 
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
   const { nombre, email, telefono, cargo, notas, empresaId } = parsed;
 
   if (empresaId) {
-    const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId } });
+    const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId, eliminadoEn: null } });
     if (!empresa) return NextResponse.json({ error: "Empresa no encontrada" }, { status: 400 });
   }
 
