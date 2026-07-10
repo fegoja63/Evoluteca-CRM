@@ -80,6 +80,10 @@ model Usuario {
   resetTokenExpiry   DateTime?
   aceptoTerminosEn   DateTime?
   versionTerminos    String?
+  // Orden personalizado del menú lateral: array de hrefs en el orden que el
+  // usuario eligió. Los ítems no listados aquí (nuevos módulos, etc.) se
+  // agregan al final en su orden por defecto.
+  ordenMenu          Json?
 
   tenantId      String
   tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)

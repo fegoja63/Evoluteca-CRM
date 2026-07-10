@@ -9,15 +9,17 @@ import {
   IconFileText, IconFilePlus, IconPackage, IconTemplate, IconReportAnalytics,
   IconUsersGroup, IconTheater, IconTicket, IconScale, IconBuildingPavilion,
   IconDatabaseImport, IconTrash, IconRocket, IconLifebuoy, IconSettings,
-  IconUserCircle, IconLogout, IconSearch, IconX, type Icon,
+  IconUserCircle, IconLogout, IconSearch, IconX, IconArrowsSort, IconCheck,
+  IconGripVertical, IconArrowBackUp, type Icon,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/cn";
 
 type Resultado = { tipo: "cliente" | "contacto" | "oportunidad" | "cotizacion" | "actividad"; id: string; titulo: string; sub: string; href: string };
+type NavItem = { href: string; label: string; icon: Icon };
 
 const TIPO_ICON: Record<string, Icon> = { cliente: IconBuilding, contacto: IconUsers, oportunidad: IconChartFunnel, cotizacion: IconFileText, actividad: IconCalendar };
 
-const navBase: { href: string; label: string; icon: Icon }[] = [
+const navBase: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: IconLayoutDashboard },
   { href: "/dashboard/cuentas", label: "Clientes", icon: IconBuilding },
   { href: "/dashboard/contactos", label: "Contactos", icon: IconUsers },
@@ -31,7 +33,7 @@ const navBase: { href: string; label: string; icon: Icon }[] = [
   { href: "/dashboard/equipo", label: "Equipo", icon: IconUsersGroup },
 ];
 
-const navOpcionales: Record<string, { href: string; label: string; icon: Icon }> = {
+const navOpcionales: Record<string, NavItem> = {
   funciones: { href: "/dashboard/funciones", label: "Funciones", icon: IconTheater },
   audiencia: { href: "/dashboard/audiencia", label: "Audiencia", icon: IconTicket },
   expedientes: { href: "/dashboard/expedientes", label: "Expedientes", icon: IconScale },
@@ -43,11 +45,29 @@ function iniciales(nombre: string) {
   return ((partes[0]?.[0] ?? "") + (partes[1]?.[0] ?? "")).toUpperCase();
 }
 
+/** Aplica el orden guardado del usuario: los hrefs conocidos van en ese orden,
+ * cualquier ítem nuevo que el usuario no había visto (módulo recién activado,
+ * página nueva) se agrega al final en su orden por defecto. */
+function aplicarOrden(items: NavItem[], orden: string[] | null): NavItem[] {
+  if (!orden || orden.length === 0) return items;
+  const porHref = new Map(items.map(i => [i.href, i]));
+  const ordenados: NavItem[] = [];
+  for (const href of orden) {
+    const item = porHref.get(href);
+    if (item) { ordenados.push(item); porHref.delete(href); }
+  }
+  return [...ordenados, ...Array.from(porHref.values())];
+}
+
 export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClose?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
   const [modulos, setModulos] = useState<Record<string, boolean>>({});
+  const [ordenGuardado, setOrdenGuardado] = useState<string[] | null>(null);
+  const [reordenando, setReordenando] = useState(false);
+  const [draggingHref, setDraggingHref] = useState<string | null>(null);
+  const [dragOverHref, setDragOverHref] = useState<string | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const [resultados, setResultados] = useState<Resultado[]>([]);
   const [buscando, setBuscando] = useState(false);
@@ -81,9 +101,12 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
     fetch("/api/configuracion")
       .then((res) => res.json())
       .then((data) => setModulos((data.modulos as Record<string, boolean>) ?? {}));
+    fetch("/api/perfil/orden-menu")
+      .then((res) => res.json())
+      .then((data) => setOrdenGuardado(data.ordenMenu ?? null));
   }, []);
 
-  const navItems: { href: string; label: string; icon: Icon }[] = [
+  const navItemsBase: NavItem[] = [
     ...navBase,
     ...Object.entries(modulos)
       .filter(([, activo]) => activo)
@@ -95,6 +118,29 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
     { href: "/dashboard/ayuda", label: "Ayuda / Soporte", icon: IconLifebuoy },
     { href: "/dashboard/configuracion", label: "Configuración", icon: IconSettings },
   ];
+
+  const navItems = aplicarOrden(navItemsBase, ordenGuardado);
+
+  async function guardarOrden(nuevoOrden: string[] | null) {
+    setOrdenGuardado(nuevoOrden);
+    await fetch("/api/perfil/orden-menu", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ordenMenu: nuevoOrden }),
+    });
+  }
+
+  function onDrop(hrefDestino: string) {
+    if (!draggingHref || draggingHref === hrefDestino) { setDraggingHref(null); setDragOverHref(null); return; }
+    const hrefs = navItems.map(i => i.href);
+    const origenIdx = hrefs.indexOf(draggingHref);
+    const destinoIdx = hrefs.indexOf(hrefDestino);
+    hrefs.splice(origenIdx, 1);
+    hrefs.splice(destinoIdx, 0, draggingHref);
+    setDraggingHref(null);
+    setDragOverHref(null);
+    guardarOrden(hrefs);
+  }
 
   const nombreUsuario = session?.user?.name ?? "";
   const rolUsuario = session?.user?.rol ? session.user.rol.charAt(0) + session.user.rol.slice(1).toLowerCase() : "";
@@ -166,7 +212,34 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-0.5">
+      {/* Encabezado del menú + botón de reordenar */}
+      <div className="px-3 pt-3 flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-brand-400 px-1">Menú</span>
+        <div className="flex items-center gap-2">
+          {reordenando && ordenGuardado && (
+            <button
+              onClick={() => guardarOrden(null)}
+              title="Restablecer al orden original"
+              className="flex items-center gap-1 text-[11px] text-brand-300 hover:text-white transition-colors"
+            >
+              <IconArrowBackUp size={13} stroke={1.75} /> Restablecer
+            </button>
+          )}
+          <button
+            onClick={() => setReordenando(v => !v)}
+            title={reordenando ? "Listo" : "Ordenar menú a tu gusto"}
+            className={cn(
+              "flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium transition-colors",
+              reordenando ? "bg-accent-600 text-white" : "text-brand-300 hover:bg-white/5 hover:text-white"
+            )}
+          >
+            {reordenando ? <IconCheck size={13} stroke={2} /> : <IconArrowsSort size={13} stroke={1.75} />}
+            {reordenando ? "Listo" : "Ordenar"}
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-3 pb-3 pt-1 flex flex-col gap-0.5">
         {navItems.map((item) => {
           const activo = pathname === item.href ||
             (item.href !== "/dashboard" &&
@@ -174,17 +247,35 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
              pathname.startsWith(item.href)) ||
             (item.href === "/dashboard/cotizaciones" && (pathname === "/dashboard/cotizaciones" || (pathname.startsWith("/dashboard/cotizaciones") && !pathname.startsWith("/dashboard/cotizaciones-formales"))));
           const Icono = item.icon;
+          const claseBase = cn(
+            "flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors",
+            activo && !reordenando
+              ? "bg-accent-600 text-white font-medium"
+              : "text-brand-200 hover:bg-white/5 hover:text-white",
+            reordenando && dragOverHref === item.href && draggingHref !== item.href && "ring-1 ring-accent-400",
+            reordenando && draggingHref === item.href && "opacity-40"
+          );
+
+          if (reordenando) {
+            return (
+              <div
+                key={item.href}
+                draggable
+                onDragStart={() => setDraggingHref(item.href)}
+                onDragOver={e => { e.preventDefault(); setDragOverHref(item.href); }}
+                onDrop={() => onDrop(item.href)}
+                onDragEnd={() => { setDraggingHref(null); setDragOverHref(null); }}
+                className={cn(claseBase, "cursor-grab active:cursor-grabbing select-none")}
+              >
+                <IconGripVertical size={15} stroke={1.75} className="shrink-0 text-brand-400" />
+                <Icono size={16} stroke={1.75} className="shrink-0" />
+                {item.label}
+              </div>
+            );
+          }
+
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
-                activo
-                  ? "bg-accent-600 text-white font-medium"
-                  : "text-brand-200 hover:bg-white/5 hover:text-white"
-              )}
-            >
+            <Link key={item.href} href={item.href} className={claseBase}>
               <Icono size={17} stroke={1.75} className="shrink-0" />
               {item.label}
             </Link>
