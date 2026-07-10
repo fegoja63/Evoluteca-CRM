@@ -124,14 +124,14 @@ export default function ClientesPage() {
         <KpiCard label="Contactos vinculados" valor={stats.contactosVinculados} emoji="🔗" color="bg-emerald-500" />
       </div>
 
-      <div className="flex items-center justify-between mb-3">
-        <div className="relative">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+        <div className="relative w-full sm:w-72">
           <input
             type="text"
             placeholder="Buscar por nombre..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-72 rounded-xl border border-slate-200 px-3 py-2 pr-8 text-sm outline-none focus:border-blue-500"
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 pr-8 text-sm outline-none focus:border-blue-500"
           />
           {busqueda && (
             <button onClick={() => setBusqueda("")}
@@ -140,7 +140,7 @@ export default function ClientesPage() {
             </button>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <a href="/api/exportar/clientes"
             className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1.5">
             ↓ Exportar Excel

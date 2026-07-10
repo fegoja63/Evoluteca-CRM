@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { IconMenu2 } from "@tabler/icons-react";
 import { Sidebar } from "./sidebar";
 
 export function MobileTopBar({ tenantNombre }: { tenantNombre: string }) {
@@ -9,20 +10,15 @@ export function MobileTopBar({ tenantNombre }: { tenantNombre: string }) {
   return (
     <div className="md:hidden">
       {/* Barra superior móvil */}
-      <div className="flex items-center gap-3 bg-blue-950 px-4 py-3 text-white sticky top-0 z-30">
+      <div className="flex items-center gap-3 bg-brand-950 px-4 py-3 text-white sticky top-0 z-30">
         <button
           onClick={() => setOpen(true)}
-          className="flex flex-col gap-1 p-1"
+          className="p-1 text-brand-200 hover:text-white"
           aria-label="Abrir menú"
         >
-          <span className="block w-5 h-0.5 bg-white" />
-          <span className="block w-5 h-0.5 bg-white" />
-          <span className="block w-5 h-0.5 bg-white" />
+          <IconMenu2 size={22} stroke={1.75} />
         </button>
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-blue-500 flex items-center justify-center text-xs font-bold">E</div>
-          <span className="text-sm font-semibold">Evoluteca CRM</span>
-        </div>
+        <img src="/Logo Evoluteca.png" alt="Evoluteca" className="h-5 w-auto object-contain" />
       </div>
 
       {/* Overlay */}

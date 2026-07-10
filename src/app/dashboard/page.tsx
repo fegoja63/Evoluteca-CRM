@@ -4,6 +4,13 @@ import { filtroOwner } from "@/lib/permisos";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { plazoVencido } from "@/lib/plazo-legal";
 import Link from "next/link";
+import {
+  IconBuilding, IconUsers, IconChartFunnel, IconClipboardList, IconActivityHeartbeat,
+  IconPhone, IconCheck, IconMail, IconTarget, IconTrophy, IconAlertTriangle,
+  IconCircleCheck, IconScale, IconTheater, IconAlertCircle, IconSnowflake,
+  IconMoodSmile, IconPinned, IconFilePlus, IconCalendarPlus, IconReportAnalytics,
+  type Icon,
+} from "@tabler/icons-react";
 
 export const dynamic = "force-dynamic";
 
@@ -229,7 +236,7 @@ export default async function DashboardPage() {
     return new Intl.NumberFormat("es-CO", { style:"currency", currency:"COP", maximumFractionDigits:0 }).format(v);
   }
 
-  const TIPO_ICON: Record<string,string> = { LLAMADA:"📞", REUNION:"🤝", TAREA:"✅", EMAIL:"✉️" };
+  const TIPO_ICON: Record<string,Icon> = { LLAMADA:IconPhone, REUNION:IconUsers, TAREA:IconCheck, EMAIL:IconMail };
   const ETAPA_LABEL: Record<string,string> = { PROSPECTO:"Prospecto", CALIFICADO:"Calificado", PROPUESTA:"Cotización", NEGOCIACION:"Negociación", GANADA:"Ganada", PERDIDA:"Perdida" };
   const ETAPA_COLOR: Record<string,string> = { PROSPECTO:"bg-slate-400", CALIFICADO:"bg-blue-500", PROPUESTA:"bg-violet-500", NEGOCIACION:"bg-amber-500", GANADA:"bg-emerald-500", PERDIDA:"bg-red-400" };
   const ETAPA_TEXT: Record<string,string>  = { PROSPECTO:"text-slate-600", CALIFICADO:"text-blue-700", PROPUESTA:"text-violet-700", NEGOCIACION:"text-amber-700", GANADA:"text-emerald-700", PERDIDA:"text-red-600" };
@@ -249,18 +256,18 @@ export default async function DashboardPage() {
     <div className="space-y-5">
 
       {/* ══ HERO ═══════════════════════════════════════════════════════════ */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-900 px-8 py-6 text-white shadow-xl">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-800 via-brand-900 to-brand-950 px-8 py-6 text-white shadow-xl">
         <div className="pointer-events-none absolute -top-12 -right-12 w-56 h-56 rounded-full bg-white/5" />
         <div className="pointer-events-none absolute bottom-0 right-40 w-36 h-36 rounded-full bg-white/5" />
 
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           {/* Saludo */}
           <div>
-            <p className="text-blue-300 text-xs font-medium mb-1">
+            <p className="text-brand-300 text-xs font-medium mb-1">
               {hoy.toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
             </p>
             <h1 className="text-2xl font-bold tracking-tight">{saludo}, {nombre}</h1>
-            <p className="text-blue-300 mt-0.5 text-xs">{session?.user?.tenantNombre} · {session?.user?.rol ? session.user.rol.charAt(0)+session.user.rol.slice(1).toLowerCase() : ""}</p>
+            <p className="text-brand-300 mt-0.5 text-xs">{session?.user?.tenantNombre} · {session?.user?.rol ? session.user.rol.charAt(0)+session.user.rol.slice(1).toLowerCase() : ""}</p>
           </div>
 
           {/* Mega-KPIs del mes */}
@@ -276,7 +283,7 @@ export default async function DashboardPage() {
                     </svg>
                     <span className="absolute inset-0 flex items-center justify-center text-sm font-extrabold text-white">{metaPct}%</span>
                   </div>
-                  <p className="text-blue-300 text-xs mt-1">Meta del mes</p>
+                  <p className="text-brand-300 text-xs mt-1">Meta del mes</p>
                 </div>
                 <div className="w-px bg-white/20 self-stretch" />
               </>
@@ -292,24 +299,24 @@ export default async function DashboardPage() {
                     </svg>
                     <span className="absolute inset-0 flex items-center justify-center text-sm font-extrabold text-white">{metaAnioPct}%</span>
                   </div>
-                  <p className="text-blue-300 text-xs mt-1">Meta del año</p>
+                  <p className="text-brand-300 text-xs mt-1">Meta del año</p>
                 </div>
                 <div className="w-px bg-white/20 self-stretch" />
               </>
             )}
             <div className="text-center">
               <p className="text-2xl font-bold">{fmt(valorGanadoMes)}</p>
-              <p className="text-blue-300 text-xs mt-0.5">Ganado este mes</p>
+              <p className="text-brand-300 text-xs mt-0.5">Ganado este mes</p>
             </div>
             <div className="w-px bg-white/20 self-stretch" />
             <div className="text-center">
               <p className="text-2xl font-bold">{fmt(valorPipeline)}</p>
-              <p className="text-blue-300 text-xs mt-0.5">Pipeline activo</p>
+              <p className="text-brand-300 text-xs mt-0.5">Pipeline activo</p>
             </div>
             <div className="w-px bg-white/20 self-stretch" />
             <div className="text-center">
               <p className="text-2xl font-bold">{tasaCierre}%</p>
-              <p className="text-blue-300 text-xs mt-0.5">Tasa de cierre</p>
+              <p className="text-brand-300 text-xs mt-0.5">Tasa de cierre</p>
             </div>
           </div>
         </div>
@@ -317,26 +324,31 @@ export default async function DashboardPage() {
 
       {/* ══ KPI CARDS ══════════════════════════════════════════════════════ */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        {[
-          { label:"Empresas",         valor: empresas,             sub: "clientes registrados",    href:"/dashboard/cuentas",                    icon:"🏢", grad:"from-blue-500 to-blue-600",     ibg:"bg-blue-50" },
-          { label:"Contactos",        valor: contactos,            sub: "personas en tu red",      href:"/dashboard/contactos",                  icon:"👤", grad:"from-violet-500 to-violet-600", ibg:"bg-violet-50" },
-          { label:"Oportunidades",    valor: opActivas.length,     sub: "en el pipeline",          href:"/dashboard/pipeline",                   icon:"◈",  grad:"from-emerald-500 to-emerald-600",ibg:"bg-emerald-50" },
-          { label:"Tareas pendientes",valor: actividadesPendientes,sub: actividadesHoy.length>0?`${actividadesHoy.length} para hoy`:"sin actividades hoy", href:"/dashboard/agenda", icon:"📅", grad:"from-amber-500 to-orange-500", ibg:"bg-amber-50" },
-          { label:"Salud comercial",  valor: `${saludScore}/100`,  sub: saludScore>=75?"Excelente":saludScore>=50?"En proceso":"Necesita atención", href:"/dashboard/reportes", icon:"❤️", grad: saludScore>=75?"from-emerald-400 to-emerald-500":saludScore>=50?"from-amber-400 to-amber-500":"from-red-400 to-red-500", ibg:"bg-slate-50" },
-        ].map(k => (
+        {([
+          { label:"Empresas",         valor: empresas,             sub: "clientes registrados",    href:"/dashboard/cuentas",  icon: IconBuilding,        semantic: false },
+          { label:"Contactos",        valor: contactos,            sub: "personas en tu red",      href:"/dashboard/contactos",icon: IconUsers,           semantic: false },
+          { label:"Oportunidades",    valor: opActivas.length,     sub: "en el pipeline",          href:"/dashboard/pipeline", icon: IconChartFunnel,     semantic: false },
+          { label:"Tareas pendientes",valor: actividadesPendientes,sub: actividadesHoy.length>0?`${actividadesHoy.length} para hoy`:"sin actividades hoy", href:"/dashboard/agenda", icon: IconClipboardList, semantic: false },
+          { label:"Salud comercial",  valor: `${saludScore}/100`,  sub: saludScore>=75?"Excelente":saludScore>=50?"En proceso":"Necesita atención", href:"/dashboard/reportes", icon: IconActivityHeartbeat,
+            semantic: true, ibg: saludScore>=75?"bg-emerald-50":saludScore>=50?"bg-amber-50":"bg-red-50", itxt: saludScore>=75?"text-emerald-600":saludScore>=50?"text-amber-600":"text-red-500" },
+        ] as { label:string; valor:string|number; sub:string; href:string; icon:Icon; semantic:boolean; ibg?:string; itxt?:string }[]).map(k => {
+          const Icono = k.icon;
+          return (
           <Link key={k.href} href={k.href} className="group">
             <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 duration-200">
               <div className="flex items-start justify-between mb-3">
-                <div className={`w-9 h-9 ${k.ibg} rounded-xl flex items-center justify-center text-lg`}>{k.icon}</div>
-                <span className="text-slate-300 text-xs group-hover:text-blue-400 transition-colors">→</span>
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${k.semantic ? k.ibg : "bg-brand-50"}`}>
+                  <Icono size={18} stroke={1.75} className={k.semantic ? k.itxt : "text-brand-600"} />
+                </div>
+                <span className="text-slate-300 text-xs group-hover:text-brand-400 transition-colors">→</span>
               </div>
               <p className="text-2xl font-extrabold text-slate-900 leading-none">{k.valor}</p>
               <p className="text-xs font-semibold text-slate-700 mt-1">{k.label}</p>
               <p className="text-xs text-slate-400 mt-0.5">{k.sub}</p>
-              <div className={`h-1 bg-gradient-to-r ${k.grad} rounded-full mt-3`} />
             </div>
           </Link>
-        ))}
+          );
+        })}
       </div>
 
       {/* ══ FILA CENTRAL: Pipeline | Vendedores | Calientes ════════════════ */}
@@ -349,7 +361,7 @@ export default async function DashboardPage() {
               <h2 className="text-sm font-bold text-slate-900">Estado del pipeline</h2>
               <p className="text-xs text-slate-400 mt-0.5">{totalOp} oportunidades · {fmtFull(valorPipeline)} activos</p>
             </div>
-            <Link href="/dashboard/pipeline" className="text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg px-2.5 py-1 transition-colors">Ver kanban →</Link>
+            <Link href="/dashboard/pipeline" className="text-xs font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-lg px-2.5 py-1 transition-colors">Ver kanban →</Link>
           </div>
           <div className="flex flex-col gap-2">
             {ETAPAS_PIPELINE.map(etapa => {
@@ -378,7 +390,7 @@ export default async function DashboardPage() {
               <p className="text-xs text-slate-400">Perdidas</p>
             </div>
             <div>
-              <p className="text-lg font-bold text-blue-600">{tasaCierre}%</p>
+              <p className="text-lg font-bold text-brand-600">{tasaCierre}%</p>
               <p className="text-xs text-slate-400">Cierre</p>
             </div>
           </div>
@@ -397,14 +409,13 @@ export default async function DashboardPage() {
           ) : (
             <div className="flex flex-col gap-3">
               {rankingVendedores.map((v, i) => {
-                const medallon = i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉";
                 const maxGanado = Math.max(...rankingVendedores.map(x => x.ganadoMes), 1);
                 const pct = maxGanado > 0 ? (v.ganadoMes/maxGanado)*100 : 0;
                 const barColor = i === 0 ? "bg-amber-400" : i === 1 ? "bg-slate-300" : "bg-amber-700/50";
                 return (
                   <div key={v.id} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-base">{medallon}</span>
+                      <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${barColor}`}>{i+1}</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-800 truncate">{v.nombre.split(" ")[0]} {v.nombre.split(" ")[1] ?? ""}</p>
                         <p className="text-xs text-slate-400">{v.activas} activas · {v.tasa}% cierre</p>
@@ -437,21 +448,21 @@ export default async function DashboardPage() {
               <h2 className="text-sm font-bold text-slate-900">Oportunidades calientes</h2>
               <p className="text-xs text-slate-400 mt-0.5">Las 5 más valiosas en curso</p>
             </div>
-            <Link href="/dashboard/pipeline" className="text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg px-2.5 py-1 transition-colors">Ver todo →</Link>
+            <Link href="/dashboard/pipeline" className="text-xs font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-lg px-2.5 py-1 transition-colors">Ver todo →</Link>
           </div>
           {topOportunidades.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <span className="text-3xl mb-2">🎯</span>
+              <IconTarget size={28} stroke={1.5} className="text-slate-300 mb-2" />
               <p className="text-xs text-slate-500">Sin oportunidades activas</p>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
               {topOportunidades.map((o,i) => (
                 <Link key={o.id} href={`/dashboard/pipeline/${o.id}`}
-                  className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-blue-50 hover:border-blue-100 px-3 py-2.5 transition-colors group">
+                  className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-brand-50 hover:border-brand-100 px-3 py-2.5 transition-colors group">
                   <span className="text-xs font-bold text-slate-400 w-4 shrink-0">#{i+1}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-slate-800 truncate group-hover:text-blue-700">{o.empresa?.nombre ?? o.titulo}</p>
+                    <p className="text-xs font-semibold text-slate-800 truncate group-hover:text-brand-700">{o.empresa?.nombre ?? o.titulo}</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className={`inline-block w-1.5 h-1.5 rounded-full ${ETAPA_COLOR[o.etapa]}`} />
                       <span className="text-xs text-slate-400">{ETAPA_LABEL[o.etapa]} · {o.probabilidad ?? 50}%</span>
@@ -464,7 +475,7 @@ export default async function DashboardPage() {
           )}
           {ultimasGanadas.length > 0 && (
             <div className="mt-4 pt-4 border-t border-slate-100">
-              <p className="text-xs font-bold text-emerald-700 mb-2">🏆 Ganadas este mes</p>
+              <p className="text-xs font-bold text-emerald-700 mb-2 flex items-center gap-1.5"><IconTrophy size={14} stroke={1.75} />Ganadas este mes</p>
               <div className="flex flex-col gap-1">
                 {ultimasGanadas.slice(0,3).map(o => (
                   <div key={o.id} className="flex items-center gap-2">
@@ -484,7 +495,9 @@ export default async function DashboardPage() {
         {/* Alertas */}
         <div className={`rounded-2xl border p-5 ${hayAlertas ? "border-amber-200 bg-amber-50" : "border-emerald-200 bg-emerald-50"}`}>
           <div className="flex items-center gap-2 mb-4">
-            <span className="text-lg">{hayAlertas ? "⚠️" : "✅"}</span>
+            {hayAlertas
+              ? <IconAlertTriangle size={18} stroke={1.75} className="text-amber-500" />
+              : <IconCircleCheck size={18} stroke={1.75} className="text-emerald-500" />}
             <h2 className="text-sm font-bold text-slate-800">{hayAlertas ? "Requieren atención" : "Todo bajo control"}</h2>
           </div>
           {!hayAlertas ? (
@@ -493,7 +506,7 @@ export default async function DashboardPage() {
             <div className="flex flex-col gap-3">
               {terminosVencidos.length > 0 && (
                 <div>
-                  <p className="text-xs font-bold text-red-700 mb-1.5">⚖️ {terminosVencidos.length} plazo{terminosVencidos.length!==1?"s":""} procesal{terminosVencidos.length!==1?"es":""} vencido{terminosVencidos.length!==1?"s":""}</p>
+                  <p className="text-xs font-bold text-red-700 mb-1.5 flex items-center gap-1.5"><IconScale size={13} stroke={1.75} />{terminosVencidos.length} plazo{terminosVencidos.length!==1?"s":""} procesal{terminosVencidos.length!==1?"es":""} vencido{terminosVencidos.length!==1?"s":""}</p>
                   {terminosVencidos.slice(0,3).map(t => (
                     <Link key={t.id} href={`/dashboard/expedientes/${t.expediente.id}`} className="flex items-center gap-2 rounded-lg bg-white border border-red-100 px-2.5 py-1.5 mb-1 hover:border-red-300 transition-colors">
                       <span className="text-xs font-medium text-slate-800 truncate flex-1">{t.descripcion} · {t.expediente.numeroRadicado}</span>
@@ -504,7 +517,7 @@ export default async function DashboardPage() {
               )}
               {terminosPorVencer.length > 0 && (
                 <div>
-                  <p className="text-xs font-bold text-amber-700 mb-1.5">⚖️ {terminosPorVencer.length} plazo{terminosPorVencer.length!==1?"s":""} procesal{terminosPorVencer.length!==1?"es":""} próximo{terminosPorVencer.length!==1?"s":""} (7 días)</p>
+                  <p className="text-xs font-bold text-amber-700 mb-1.5 flex items-center gap-1.5"><IconScale size={13} stroke={1.75} />{terminosPorVencer.length} plazo{terminosPorVencer.length!==1?"s":""} procesal{terminosPorVencer.length!==1?"es":""} próximo{terminosPorVencer.length!==1?"s":""} (7 días)</p>
                   {terminosPorVencer.slice(0,3).map(t => (
                     <Link key={t.id} href={`/dashboard/expedientes/${t.expediente.id}`} className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-2.5 py-1.5 mb-1 hover:border-amber-300 transition-colors">
                       <span className="text-xs font-medium text-slate-800 truncate flex-1">{t.descripcion} · {t.expediente.numeroRadicado}</span>
@@ -515,7 +528,7 @@ export default async function DashboardPage() {
               )}
               {funcionesBajaOcupacion.length > 0 && (
                 <div>
-                  <p className="text-xs font-bold text-amber-700 mb-1.5">🎭 {funcionesBajaOcupacion.length} función{funcionesBajaOcupacion.length!==1?"es":""} con ocupación baja (5 días)</p>
+                  <p className="text-xs font-bold text-amber-700 mb-1.5 flex items-center gap-1.5"><IconTheater size={13} stroke={1.75} />{funcionesBajaOcupacion.length} función{funcionesBajaOcupacion.length!==1?"es":""} con ocupación baja (5 días)</p>
                   {funcionesBajaOcupacion.slice(0,3).map(f => {
                     const ocupacion = Math.round((f.sillasVendidas / f.sillasTotales) * 100);
                     return (
@@ -529,7 +542,7 @@ export default async function DashboardPage() {
               )}
               {actividadesVencidas.length > 0 && (
                 <div>
-                  <p className="text-xs font-bold text-red-700 mb-1.5">🔴 {actividadesVencidas.length} actividad{actividadesVencidas.length!==1?"es":""} vencida{actividadesVencidas.length!==1?"s":""}</p>
+                  <p className="text-xs font-bold text-red-700 mb-1.5 flex items-center gap-1.5"><IconAlertCircle size={13} stroke={1.75} />{actividadesVencidas.length} actividad{actividadesVencidas.length!==1?"es":""} vencida{actividadesVencidas.length!==1?"s":""}</p>
                   {actividadesVencidas.slice(0,3).map(a => (
                     <Link key={a.id} href="/dashboard/agenda" className="flex items-center gap-2 rounded-lg bg-white border border-red-100 px-2.5 py-1.5 mb-1 hover:border-red-300 transition-colors">
                       <span className="text-xs font-medium text-slate-800 truncate flex-1">{a.empresa?.nombre ?? a.titulo}</span>
@@ -540,7 +553,7 @@ export default async function DashboardPage() {
               )}
               {negociosEstancados.length > 0 && (
                 <div>
-                  <p className="text-xs font-bold text-amber-700 mb-1.5">🧊 {negociosEstancados.length} negocio{negociosEstancados.length!==1?"s":""} sin actividad +14 días</p>
+                  <p className="text-xs font-bold text-amber-700 mb-1.5 flex items-center gap-1.5"><IconSnowflake size={13} stroke={1.75} />{negociosEstancados.length} negocio{negociosEstancados.length!==1?"s":""} sin actividad +14 días</p>
                   {negociosEstancados.slice(0,2).map(o => (
                     <Link key={o.id} href={`/dashboard/pipeline/${o.id}`} className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-2.5 py-1.5 mb-1 hover:border-amber-300 transition-colors">
                       <span className="text-xs font-medium text-slate-800 truncate flex-1">{o.empresa?.nombre ?? o.titulo}</span>
@@ -551,7 +564,7 @@ export default async function DashboardPage() {
               )}
               {cierranEstaSemana.length > 0 && (
                 <div>
-                  <p className="text-xs font-bold text-amber-700 mb-1.5">🎯 {cierranEstaSemana.length} cierre{cierranEstaSemana.length!==1?"s":""} esta semana</p>
+                  <p className="text-xs font-bold text-amber-700 mb-1.5 flex items-center gap-1.5"><IconTarget size={13} stroke={1.75} />{cierranEstaSemana.length} cierre{cierranEstaSemana.length!==1?"s":""} esta semana</p>
                   {cierranEstaSemana.slice(0,2).map(o => (
                     <Link key={o.id} href={`/dashboard/pipeline/${o.id}`} className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-2.5 py-1.5 mb-1 hover:border-amber-300 transition-colors">
                       <span className="text-xs font-medium text-slate-800 truncate flex-1">{o.empresa?.nombre ?? o.titulo}</span>
@@ -562,7 +575,7 @@ export default async function DashboardPage() {
               )}
               {cotizacionesSinRespuesta.length > 0 && (
                 <div>
-                  <p className="text-xs font-bold text-amber-700 mb-1.5">✉️ {cotizacionesSinRespuesta.length} cotización{cotizacionesSinRespuesta.length!==1?"es":""} sin respuesta</p>
+                  <p className="text-xs font-bold text-amber-700 mb-1.5 flex items-center gap-1.5"><IconMail size={13} stroke={1.75} />{cotizacionesSinRespuesta.length} cotización{cotizacionesSinRespuesta.length!==1?"es":""} sin respuesta</p>
                   {cotizacionesSinRespuesta.slice(0,2).map(c => {
                     const dias = Math.floor((hoy.getTime()-new Date(c.creadoEn).getTime())/86_400_000);
                     return (
@@ -585,30 +598,33 @@ export default async function DashboardPage() {
               <h2 className="text-sm font-bold text-slate-900">Actividades de hoy</h2>
               <p className="text-xs text-slate-400 mt-0.5">{actividadesCompletadasHoy}/{totalActividadesHoy} completadas · {progresoDia}%</p>
             </div>
-            <Link href="/dashboard/agenda" className="text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg px-2.5 py-1 transition-colors">Agenda →</Link>
+            <Link href="/dashboard/agenda" className="text-xs font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-lg px-2.5 py-1 transition-colors">Agenda →</Link>
           </div>
           {totalActividadesHoy > 0 && (
             <div className="w-full h-1.5 bg-slate-100 rounded-full mb-3 overflow-hidden">
-              <div className="h-1.5 rounded-full bg-blue-500 transition-all duration-700" style={{width:`${progresoDia}%`}} />
+              <div className="h-1.5 rounded-full bg-brand-500 transition-all duration-700" style={{width:`${progresoDia}%`}} />
             </div>
           )}
           {actividadesHoy.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
-              <span className="text-3xl mb-2">🎉</span>
+              <IconMoodSmile size={28} stroke={1.5} className="text-slate-300 mb-2" />
               <p className="text-xs font-semibold text-slate-700">¡Sin pendientes hoy!</p>
             </div>
           ) : (
             <div className="flex flex-col gap-1.5">
-              {actividadesHoy.map(a => (
+              {actividadesHoy.map(a => {
+                const IconoTipo = TIPO_ICON[a.tipo] ?? IconPinned;
+                return (
                 <div key={a.id} className="flex items-center gap-2 rounded-xl bg-slate-50 border border-slate-100 px-3 py-2">
-                  <span className="text-sm shrink-0">{TIPO_ICON[a.tipo]??"📌"}</span>
+                  <IconoTipo size={16} stroke={1.75} className="text-brand-500 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-slate-800 truncate">{a.titulo}</p>
                     <p className="text-xs text-slate-400 truncate">{a.empresa?.nombre ?? a.contacto?.nombre ?? ""}</p>
                   </div>
                   <p className="text-xs text-slate-400 font-mono shrink-0">{new Date(a.fecha).toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"})}</p>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -618,22 +634,25 @@ export default async function DashboardPage() {
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 flex-1">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-bold text-slate-900">Próximos 7 días</h2>
-              <Link href="/dashboard/agenda" className="text-xs text-blue-600 hover:underline">Ver agenda →</Link>
+              <Link href="/dashboard/agenda" className="text-xs text-brand-600 hover:underline">Ver agenda →</Link>
             </div>
             {actividadesSemana.length === 0 ? (
               <p className="text-xs text-slate-400 py-4 text-center">Sin actividades programadas</p>
             ) : (
               <div className="flex flex-col gap-1.5">
-                {actividadesSemana.map(a => (
+                {actividadesSemana.map(a => {
+                  const IconoTipo = TIPO_ICON[a.tipo] ?? IconPinned;
+                  return (
                   <div key={a.id} className="flex items-center gap-2 rounded-xl bg-slate-50 border border-slate-100 px-3 py-1.5">
-                    <span className="text-sm shrink-0">{TIPO_ICON[a.tipo]??"📌"}</span>
+                    <IconoTipo size={15} stroke={1.75} className="text-brand-500 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-slate-800 truncate">{a.titulo}</p>
                       <p className="text-xs text-slate-400 truncate">{a.empresa?.nombre ?? ""}</p>
                     </div>
                     <p className="text-xs text-slate-400 shrink-0">{new Date(a.fecha).toLocaleDateString("es-CO",{weekday:"short",day:"2-digit"})}</p>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -667,7 +686,7 @@ export default async function DashboardPage() {
                 </div>
               )}
             </div>
-            <Link href="/dashboard/reportes" className="mt-3 flex items-center justify-center gap-1 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-medium text-white py-2 transition-colors">
+            <Link href="/dashboard/reportes" className="mt-3 flex items-center justify-center gap-1 rounded-xl bg-brand-600 hover:bg-brand-700 text-xs font-medium text-white py-2 transition-colors">
               Ver reportes completos →
             </Link>
           </div>
@@ -696,7 +715,9 @@ export default async function DashboardPage() {
                   { ok: cotizacionesSinMovimiento.length <= 2, txt: cotizacionesSinMovimiento.length <= 2 ? "Pipeline en movimiento" : `${cotizacionesSinMovimiento.length} sin respuesta 60d` },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-1">
-                    <span className={`text-sm ${item.ok ? "text-emerald-500" : "text-amber-500"}`}>{item.ok ? "✔" : "⚠"}</span>
+                    {item.ok
+                      ? <IconCheck size={14} stroke={2} className="text-emerald-500" />
+                      : <IconAlertTriangle size={14} stroke={2} className="text-amber-500" />}
                     <span className={`text-xs ${item.ok ? "text-slate-600" : "text-amber-700"}`}>{item.txt}</span>
                   </div>
                 ))}
@@ -706,17 +727,20 @@ export default async function DashboardPage() {
 
           {/* Accesos rápidos */}
           <div className="flex flex-wrap sm:flex-col gap-2 sm:w-44 shrink-0">
-            {[
-              { label:"Nueva oportunidad", href:"/dashboard/pipeline",                   emoji:"◈"  },
-              { label:"Nueva cotización",  href:"/dashboard/cotizaciones-formales/nueva", emoji:"📄" },
-              { label:"Nueva actividad",   href:"/dashboard/agenda",                     emoji:"📅" },
-              { label:"Ver reportes",      href:"/dashboard/reportes",                   emoji:"📊" },
-            ].map(l => (
+            {([
+              { label:"Nueva oportunidad", href:"/dashboard/pipeline",                    icon: IconChartFunnel },
+              { label:"Nueva cotización",  href:"/dashboard/cotizaciones-formales/nueva",  icon: IconFilePlus },
+              { label:"Nueva actividad",   href:"/dashboard/agenda",                       icon: IconCalendarPlus },
+              { label:"Ver reportes",      href:"/dashboard/reportes",                     icon: IconReportAnalytics },
+            ] as { label:string; href:string; icon:Icon }[]).map(l => {
+              const Icono = l.icon;
+              return (
               <Link key={l.href} href={l.href}
-                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 px-3 py-2 text-xs font-medium text-slate-700 transition-colors">
-                <span>{l.emoji}</span>{l.label}
+                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-brand-50 hover:border-brand-200 px-3 py-2 text-xs font-medium text-slate-700 transition-colors">
+                <Icono size={15} stroke={1.75} className="text-brand-600" />{l.label}
               </Link>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
