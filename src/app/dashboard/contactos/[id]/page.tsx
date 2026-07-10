@@ -128,7 +128,7 @@ export default function FichaContactoPage() {
                 required
                 value={form.nombre}
                 onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               />
             </div>
             <div>
@@ -137,7 +137,7 @@ export default function FichaContactoPage() {
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               />
             </div>
             <div>
@@ -145,7 +145,7 @@ export default function FichaContactoPage() {
               <input
                 value={form.telefono}
                 onChange={(e) => setForm({ ...form, telefono: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               />
             </div>
             <div>
@@ -153,7 +153,7 @@ export default function FichaContactoPage() {
               <input
                 value={form.cargo}
                 onChange={(e) => setForm({ ...form, cargo: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               />
             </div>
             <div>
@@ -161,7 +161,7 @@ export default function FichaContactoPage() {
               <select
                 value={form.empresaId}
                 onChange={(e) => setForm({ ...form, empresaId: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               >
                 <option value="">Sin empresa</option>
                 {empresas.map((emp) => (
@@ -175,14 +175,14 @@ export default function FichaContactoPage() {
                 value={form.notas}
                 onChange={(e) => setForm({ ...form, notas: e.target.value })}
                 rows={3}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               />
             </div>
             <div className="col-span-2">
               <button
                 type="submit"
                 disabled={guardando}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                className="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
               >
                 {guardando ? "Guardando..." : "Guardar cambios"}
               </button>

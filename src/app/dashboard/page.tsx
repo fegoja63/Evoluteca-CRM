@@ -390,7 +390,7 @@ export default async function DashboardPage() {
               <p className="text-xs text-slate-400">Perdidas</p>
             </div>
             <div>
-              <p className="text-lg font-bold text-brand-600">{tasaCierre}%</p>
+              <p className="text-lg font-bold text-accent-600">{tasaCierre}%</p>
               <p className="text-xs text-slate-400">Cierre</p>
             </div>
           </div>
@@ -602,7 +602,7 @@ export default async function DashboardPage() {
           </div>
           {totalActividadesHoy > 0 && (
             <div className="w-full h-1.5 bg-slate-100 rounded-full mb-3 overflow-hidden">
-              <div className="h-1.5 rounded-full bg-brand-500 transition-all duration-700" style={{width:`${progresoDia}%`}} />
+              <div className="h-1.5 rounded-full bg-accent-500 transition-all duration-700" style={{width:`${progresoDia}%`}} />
             </div>
           )}
           {actividadesHoy.length === 0 ? (
@@ -686,7 +686,7 @@ export default async function DashboardPage() {
                 </div>
               )}
             </div>
-            <Link href="/dashboard/reportes" className="mt-3 flex items-center justify-center gap-1 rounded-xl bg-brand-600 hover:bg-brand-700 text-xs font-medium text-white py-2 transition-colors">
+            <Link href="/dashboard/reportes" className="mt-3 flex items-center justify-center gap-1 rounded-xl bg-accent-600 hover:bg-accent-700 text-xs font-medium text-white py-2 transition-colors">
               Ver reportes completos →
             </Link>
           </div>

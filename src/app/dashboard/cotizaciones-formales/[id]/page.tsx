@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { IconLink, IconMail, IconCheck, IconBrandWhatsapp, IconStar, IconDownload, IconCopy, IconArrowLeft } from "@tabler/icons-react";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type Cotizacion = {
@@ -26,7 +27,7 @@ type Cotizacion = {
 
 const ESTADO_COLOR: Record<string, string> = {
   BORRADOR:  "bg-slate-100 text-slate-600 border-slate-200",
-  ENVIADA:   "bg-blue-50 text-blue-700 border-blue-200",
+  ENVIADA:   "bg-brand-50 text-brand-700 border-brand-200",
   ACEPTADA:  "bg-emerald-50 text-emerald-700 border-emerald-200",
   RECHAZADA: "bg-red-50 text-red-600 border-red-200",
 };
@@ -35,7 +36,7 @@ const ESTADO_LABEL: Record<string, string> = {
 };
 
 const TRANSICIONES: Record<string, { label: string; estado: string; color: string }[]> = {
-  BORRADOR:  [{ label: "Marcar enviada",   estado: "ENVIADA",   color: "bg-blue-600 hover:bg-blue-700" }],
+  BORRADOR:  [{ label: "Marcar enviada",   estado: "ENVIADA",   color: "bg-accent-600 hover:bg-accent-700" }],
   ENVIADA:   [
     { label: "Marcar aceptada",  estado: "ACEPTADA",  color: "bg-emerald-600 hover:bg-emerald-700" },
     { label: "Marcar rechazada", estado: "RECHAZADA", color: "bg-red-600 hover:bg-red-700" },
@@ -239,8 +240,8 @@ export default function CotizacionDetailPage() {
     <div className="max-w-3xl">
       {/* Breadcrumb */}
       <div className="mb-6 flex items-center gap-3">
-        <Link href="/dashboard/cotizaciones-formales" className="text-slate-400 hover:text-slate-700 text-sm">
-          ← Cotizaciones
+        <Link href="/dashboard/cotizaciones-formales" className="text-slate-400 hover:text-slate-700 text-sm inline-flex items-center gap-1">
+          <IconArrowLeft size={14} stroke={1.75} /> Cotizaciones
         </Link>
         <span className="text-slate-300">/</span>
         <span className="text-sm font-mono font-bold text-slate-600">
@@ -274,32 +275,32 @@ export default function CotizacionDetailPage() {
             </button>
           ))}
           <button onClick={generarLink}
-            className="rounded-xl border border-violet-200 px-3 py-2 text-xs font-medium text-violet-600 hover:bg-violet-50 transition-colors">
-            🔗 Link cliente
+            className="rounded-xl border border-violet-200 px-3 py-2 text-xs font-medium text-violet-600 hover:bg-violet-50 transition-colors inline-flex items-center gap-1.5">
+            <IconLink size={14} stroke={1.75} /> Link cliente
           </button>
           <button onClick={() => setMostrarEmailPanel(v => {
               const next = !v;
               if (next) setModoEmailPanel(emailDestino.trim() ? "confirmar" : "editar");
               return next;
             })} disabled={enviando || enviado}
-            className="rounded-xl border border-blue-200 px-3 py-2 text-xs font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 transition-colors">
-            {enviado ? "✓ Enviado" : enviando ? "Enviando..." : "✉ Enviar email"}
+            className="rounded-xl border border-brand-200 px-3 py-2 text-xs font-medium text-brand-600 hover:bg-brand-50 disabled:opacity-50 transition-colors inline-flex items-center gap-1.5">
+            {enviado ? <><IconCheck size={14} stroke={1.75} /> Enviado</> : enviando ? "Enviando..." : <><IconMail size={14} stroke={1.75} /> Enviar email</>}
           </button>
           <button onClick={() => setMostrarWhatsappPanel(v => !v)}
-            className="rounded-xl border border-emerald-200 px-3 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-50 transition-colors">
-            💬 WhatsApp
+            className="rounded-xl border border-emerald-200 px-3 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-50 transition-colors inline-flex items-center gap-1.5">
+            <IconBrandWhatsapp size={14} stroke={1.75} /> WhatsApp
           </button>
           <button onClick={duplicar} disabled={duplicando}
             className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors">
-            {duplicando ? "Duplicando..." : "⧉ Duplicar"}
+            {duplicando ? "Duplicando..." : "Duplicar"}
           </button>
           <button onClick={guardarComoPlantilla} disabled={guardandoPlantilla || plantillaGuardada}
-            className="rounded-xl border border-amber-200 px-3 py-2 text-xs font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-50 transition-colors">
-            {plantillaGuardada ? "✓ Plantilla guardada" : guardandoPlantilla ? "Guardando..." : "★ Guardar plantilla"}
+            className="rounded-xl border border-amber-200 px-3 py-2 text-xs font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-50 transition-colors inline-flex items-center gap-1.5">
+            {plantillaGuardada ? <><IconCheck size={14} stroke={1.75} /> Plantilla guardada</> : guardandoPlantilla ? "Guardando..." : <><IconStar size={14} stroke={1.75} /> Guardar plantilla</>}
           </button>
           <a href={`/api/cotizaciones/${cot.id}/pdf`} target="_blank" rel="noopener noreferrer"
             className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5">
-            ⬇ Descargar PDF
+            <IconDownload size={14} stroke={1.75} /> Descargar PDF
           </a>
           <button onClick={eliminar}
             className="rounded-xl border border-red-200 px-3 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors">
@@ -310,37 +311,37 @@ export default function CotizacionDetailPage() {
 
       {/* Panel enviar email */}
       {mostrarEmailPanel && (
-        <div className="mb-5 rounded-2xl border border-blue-200 bg-blue-50 p-4">
+        <div className="mb-5 rounded-2xl border border-brand-200 bg-brand-50 p-4">
           {modoEmailPanel === "confirmar" ? (
             <div className="flex items-center gap-3">
-              <span className="text-blue-500 text-lg">✉</span>
-              <p className="flex-1 text-sm text-blue-900">
+              <IconMail size={18} stroke={1.75} className="text-brand-500 shrink-0" />
+              <p className="flex-1 text-sm text-brand-900">
                 ¿Enviar la cotización al correo <strong>{emailDestino}</strong>?
               </p>
               <div className="flex gap-2 shrink-0">
                 <button onClick={() => setModoEmailPanel("editar")}
-                  className="rounded-lg border border-blue-300 bg-white px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">
+                  className="rounded-lg border border-brand-300 bg-white px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-100">
                   Cambiar correo
                 </button>
                 <button onClick={enviarEmail} disabled={enviando}
-                  className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                  className="rounded-lg bg-accent-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                   {enviando ? "Enviando..." : "Sí, enviar al actual"}
                 </button>
               </div>
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <span className="text-blue-500 text-lg">✉</span>
+              <IconMail size={18} stroke={1.75} className="text-brand-500 shrink-0" />
               <div className="flex-1">
-                <p className="text-xs font-semibold text-blue-700 mb-1">
+                <p className="text-xs font-semibold text-brand-700 mb-1">
                   {cot.contacto?.email || cot.empresa?.email ? "Enviar cotización a un correo distinto" : "¿A qué correo enviamos la cotización?"}
                 </p>
                 <input type="email" value={emailDestino} onChange={e => setEmailDestino(e.target.value)}
                   placeholder="correo@cliente.com" autoFocus
-                  className="w-full rounded-lg border border-blue-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500 bg-white" />
+                  className="w-full rounded-lg border border-brand-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500 bg-white" />
               </div>
               <button onClick={enviarEmail} disabled={enviando || !emailDestino.trim()}
-                className="shrink-0 rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                className="shrink-0 rounded-lg bg-accent-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                 {enviando ? "Enviando..." : "Enviar"}
               </button>
             </div>
@@ -352,7 +353,7 @@ export default function CotizacionDetailPage() {
       {mostrarWhatsappPanel && (
         <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
           <div className="flex items-start gap-3">
-            <span className="text-emerald-500 text-lg">💬</span>
+            <IconBrandWhatsapp size={18} stroke={1.75} className="text-emerald-500 shrink-0" />
             <div className="flex-1 flex flex-col gap-2">
               <div>
                 <p className="text-xs font-semibold text-emerald-700 mb-1">Número de WhatsApp</p>
@@ -369,8 +370,8 @@ export default function CotizacionDetailPage() {
               <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
                 onClick={() => setMostrarWhatsappPanel(false)}
                 aria-disabled={!telefonoLimpio}
-                className={`self-start rounded-lg px-4 py-1.5 text-xs font-medium text-white transition-colors ${telefonoLimpio ? "bg-emerald-600 hover:bg-emerald-700" : "bg-emerald-300 pointer-events-none"}`}>
-                💬 Abrir WhatsApp
+                className={`self-start rounded-lg px-4 py-1.5 text-xs font-medium text-white transition-colors inline-flex items-center gap-1.5 ${telefonoLimpio ? "bg-emerald-600 hover:bg-emerald-700" : "bg-emerald-300 pointer-events-none"}`}>
+                <IconBrandWhatsapp size={14} stroke={1.75} /> Abrir WhatsApp
               </a>
             </div>
           </div>
@@ -380,14 +381,14 @@ export default function CotizacionDetailPage() {
       {/* Panel link público */}
       {linkPublico && (
         <div className="mb-5 rounded-2xl border border-violet-200 bg-violet-50 p-4 flex items-center gap-3">
-          <span className="text-violet-500 text-lg">🔗</span>
+          <IconLink size={18} stroke={1.75} className="text-violet-500 shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-violet-700 mb-1">Link para el cliente</p>
             <p className="text-xs text-violet-600 truncate font-mono">{linkPublico}</p>
           </div>
           <button onClick={copiarLink}
-            className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${copiado ? "bg-emerald-100 text-emerald-700" : "bg-violet-200 text-violet-700 hover:bg-violet-300"}`}>
-            {copiado ? "✓ Copiado" : "Copiar"}
+            className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all inline-flex items-center gap-1.5 ${copiado ? "bg-emerald-100 text-emerald-700" : "bg-violet-200 text-violet-700 hover:bg-violet-300"}`}>
+            {copiado ? <><IconCheck size={13} stroke={1.75} /> Copiado</> : <><IconCopy size={13} stroke={1.75} /> Copiar</>}
           </button>
         </div>
       )}
@@ -479,30 +480,30 @@ export default function CotizacionDetailPage() {
                     <label className="block text-xs font-medium text-slate-600 mb-1">Impuesto</label>
                     <input type="text" value={impuestoNombre} onChange={e => setImpuestoNombre(e.target.value)}
                       placeholder="Ej: IVA"
-                      className="w-28 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                      className="w-28 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">%</label>
                     <input type="number" min={0} max={100} step="0.01" value={impuestoPorcentaje}
                       onChange={e => setImpuestoPorcentaje(e.target.value)}
-                      className="w-20 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                      className="w-20 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">2º impuesto</label>
                     <input type="text" value={impuesto2Nombre} onChange={e => setImpuesto2Nombre(e.target.value)}
                       placeholder="Ej: Retención"
-                      className="w-28 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                      className="w-28 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">%</label>
                     <input type="number" min={0} max={100} step="0.01" value={impuesto2Porcentaje}
                       onChange={e => setImpuesto2Porcentaje(e.target.value)}
-                      className="w-20 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                      className="w-20 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={guardarImpuesto} disabled={guardandoImpuesto}
-                    className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                    className="rounded-lg bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                     {guardandoImpuesto ? "Guardando..." : "Guardar"}
                   </button>
                   <button onClick={() => setEditImpuesto(false)}
@@ -512,7 +513,7 @@ export default function CotizacionDetailPage() {
                 </div>
               </div>
             ) : (
-              <button onClick={() => setEditImpuesto(true)} className="text-xs text-blue-600 hover:underline">
+              <button onClick={() => setEditImpuesto(true)} className="text-xs text-brand-600 hover:underline">
                 {pctImpuesto > 0 || pctImpuesto2 > 0 ? "Editar impuestos" : "+ Agregar impuesto"}
               </button>
             )}
@@ -525,7 +526,7 @@ export default function CotizacionDetailPage() {
             <h2 className="text-sm font-bold text-slate-700">Notas / Observaciones</h2>
             {!editNotas && (
               <button onClick={() => setEditNotas(true)}
-                className="text-xs text-blue-600 hover:underline">
+                className="text-xs text-brand-600 hover:underline">
                 Editar
               </button>
             )}
@@ -536,11 +537,11 @@ export default function CotizacionDetailPage() {
                 rows={4}
                 value={notas}
                 onChange={e => setNotas(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 resize-none mb-3"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 resize-none mb-3"
               />
               <div className="flex gap-2">
                 <button onClick={guardarNotas} disabled={guardando}
-                  className="rounded-xl bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+                  className="rounded-xl bg-accent-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-60">
                   {guardando ? "Guardando..." : "Guardar"}
                 </button>
                 <button onClick={() => { setEditNotas(false); setNotas(cot.notas ?? ""); }}

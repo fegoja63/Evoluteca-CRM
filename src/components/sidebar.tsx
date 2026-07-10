@@ -172,7 +172,7 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
                 activo
-                  ? "bg-brand-600 text-white font-medium"
+                  ? "bg-accent-600 text-white font-medium"
                   : "text-brand-200 hover:bg-white/5 hover:text-white"
               )}
             >
@@ -187,7 +187,7 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
         {nombreUsuario && (
           <Link href="/dashboard/perfil"
             className="flex items-center gap-2.5 rounded-lg px-2 py-2 hover:bg-white/5 transition-colors">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-500 text-xs font-bold text-white">
               {iniciales(nombreUsuario)}
             </div>
             <div className="flex-1 min-w-0">

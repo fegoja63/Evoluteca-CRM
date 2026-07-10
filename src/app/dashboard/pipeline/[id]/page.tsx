@@ -6,6 +6,10 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 import { NotasRapidas } from "@/components/notas-rapidas";
+import {
+  IconAlertTriangle, IconHistory, IconTarget, IconTrophy, IconX, IconArrowRight,
+  IconMoodSad,
+} from "@tabler/icons-react";
 
 type Oportunidad = {
   id: string;
@@ -167,7 +171,7 @@ export default function OportunidadDetallePage() {
   if (!op) return (
     <div className="flex items-center justify-center h-64">
       <div className="flex gap-1">{[0,1,2].map(i => (
-        <div key={i} className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />
+        <div key={i} className="w-2 h-2 rounded-full bg-brand-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />
       ))}</div>
     </div>
   );
@@ -191,7 +195,7 @@ export default function OportunidadDetallePage() {
     <div className="max-w-4xl">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-slate-400 mb-5">
-        <Link href="/dashboard/pipeline" className="hover:text-blue-600 transition-colors">← Pipeline</Link>
+        <Link href="/dashboard/pipeline" className="hover:text-brand-600 transition-colors">← Pipeline</Link>
         <span>/</span>
         <span className="text-slate-600 truncate max-w-xs">{op.titulo}</span>
       </div>
@@ -204,44 +208,44 @@ export default function OportunidadDetallePage() {
               <div className="col-span-2">
                 <label className="text-xs text-slate-500 mb-1 block">Título *</label>
                 <input required value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               </div>
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">Valor (COP)</label>
                 <input type="number" value={form.valor} onChange={e => setForm({...form, valor: e.target.value})}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               </div>
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">Etapa</label>
                 <select value={form.etapa} onChange={e => setForm({...form, etapa: e.target.value})}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white">
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
                   {ETAPAS.map(e => <option key={e.key} value={e.key}>{e.label}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">Fecha de cierre estimada</label>
                 <input type="date" value={form.fechaCierre} onChange={e => setForm({...form, fechaCierre: e.target.value})}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               </div>
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">
-                  Probabilidad: <span className="font-semibold text-blue-600">{form.probabilidad}%</span>
+                  Probabilidad: <span className="font-semibold text-brand-600">{form.probabilidad}%</span>
                 </label>
                 <input type="range" min="0" max="100" step="5" value={form.probabilidad}
                   onChange={e => setForm({...form, probabilidad: e.target.value})}
-                  className="w-full accent-blue-600 mt-2" />
+                  className="w-full accent-brand-600 mt-2" />
               </div>
               {moduloSalones && (
                 <div className="col-span-2">
                   <label className="text-xs text-slate-500 mb-1 block">Salón</label>
                   <select value={form.salonId} onChange={e => setForm({...form, salonId: e.target.value})}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white">
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
                     <option value="">— Sin salón del catálogo —</option>
                     {salones.map(s => <option key={s.id} value={s.id}>{s.nombre}{s.capacidad ? ` (${s.capacidad} pers.)` : ""}</option>)}
                   </select>
                   {disponibilidad && disponibilidad.aceptadas.length > 0 && (
                     <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                      <p className="font-semibold">⚠ Ese salón ya tiene una cotización aceptada ese día:</p>
+                      <p className="font-semibold flex items-center gap-1"><IconAlertTriangle size={13} stroke={1.75} />Ese salón ya tiene una cotización aceptada ese día:</p>
                       <ul className="mt-1 list-disc list-inside">
                         {disponibilidad.aceptadas.map(c => <li key={c.id}>{c.empresa?.nombre ?? "Sin empresa"}</li>)}
                       </ul>
@@ -258,34 +262,34 @@ export default function OportunidadDetallePage() {
                 <label className="text-xs text-slate-500 mb-1 block">Sede / Lugar</label>
                 <input value={form.sede} onChange={e => setForm({...form, sede: e.target.value})}
                   placeholder="Teatro Nacional, Sala A..."
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               </div>
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">Fecha del evento</label>
                 <input type="date" value={form.fechaEvento} onChange={e => setForm({...form, fechaEvento: e.target.value})}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               </div>
               {moduloSalones && form.salonId && (
                 <div>
                   <label className="text-xs text-slate-500 mb-1 block">Horario (opcional)</label>
                   <div className="flex items-center gap-2">
                     <input type="time" value={form.horaInicio} onChange={e => setForm({...form, horaInicio: e.target.value})}
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
                     <span className="text-slate-400 text-xs">a</span>
                     <input type="time" value={form.horaFin} onChange={e => setForm({...form, horaFin: e.target.value})}
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
                   </div>
                 </div>
               )}
               <div className="col-span-2">
                 <label className="text-xs text-slate-500 mb-1 block">Notas</label>
                 <textarea value={form.notas} onChange={e => setForm({...form, notas: e.target.value})}
-                  rows={3} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                  rows={3} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               </div>
             </div>
             <div className="flex gap-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                 {guardando ? "Guardando..." : "Guardar cambios"}
               </button>
               <button type="button" onClick={() => setEditando(false)}
@@ -325,7 +329,7 @@ export default function OportunidadDetallePage() {
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-xs text-slate-400 mb-1">Probabilidad</p>
-                <p className="text-lg font-bold text-blue-600">{op.probabilidad ?? 50}%</p>
+                <p className="text-lg font-bold text-brand-600">{op.probabilidad ?? 50}%</p>
               </div>
               <div className={`rounded-xl p-4 ${op.fechaCierre && new Date(op.fechaCierre) < new Date() && !["GANADA","PERDIDA"].includes(op.etapa) ? "bg-red-50" : "bg-slate-50"}`}>
                 <p className="text-xs text-slate-400 mb-1">Cierre estimado</p>
@@ -351,7 +355,7 @@ export default function OportunidadDetallePage() {
                   <button key={e.key} onClick={() => cambiarEtapa(e.key)}
                     className={`rounded-full px-3 py-1 text-xs font-semibold transition-all ${
                       op.etapa === e.key
-                        ? e.color + " ring-2 ring-offset-1 ring-blue-400"
+                        ? e.color + " ring-2 ring-offset-1 ring-brand-400"
                         : "bg-slate-100 text-slate-500 hover:bg-slate-200"
                     }`}>
                     {e.label}
@@ -383,7 +387,7 @@ export default function OportunidadDetallePage() {
           {op.empresa ? (
             <div className="space-y-1.5 text-sm">
               <Link href={`/dashboard/cuentas/${op.empresa.id}`}
-                className="font-semibold text-blue-600 hover:underline block">{op.empresa.nombre}</Link>
+                className="font-semibold text-brand-600 hover:underline block">{op.empresa.nombre}</Link>
               {op.empresa.sector && <p className="text-slate-500">{op.empresa.sector}</p>}
               {op.empresa.telefono && <p className="text-slate-500">{op.empresa.telefono}</p>}
             </div>
@@ -396,7 +400,7 @@ export default function OportunidadDetallePage() {
           {op.contacto ? (
             <div className="space-y-1.5 text-sm">
               <Link href={`/dashboard/contactos/${op.contacto.id}`}
-                className="font-semibold text-blue-600 hover:underline block">{op.contacto.nombre}</Link>
+                className="font-semibold text-brand-600 hover:underline block">{op.contacto.nombre}</Link>
               {op.contacto.cargo && <p className="text-slate-500">{op.contacto.cargo}</p>}
               {op.contacto.email && <p className="text-slate-500">{op.contacto.email}</p>}
               {op.contacto.telefono && <p className="text-slate-500">{op.contacto.telefono}</p>}
@@ -451,13 +455,15 @@ export default function OportunidadDetallePage() {
       {/* ── HISTORIAL DE ETAPAS ── */}
       {op.cambiosEtapa.length > 0 && (
         <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-5">
-          <h3 className="text-sm font-semibold text-slate-700 mb-4">🔄 Historial de etapas</h3>
+          <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-1.5"><IconHistory size={15} stroke={1.75} />Historial de etapas</h3>
           <div className="relative">
             <div className="absolute left-3.5 top-0 bottom-0 w-px bg-slate-100" />
             <div className="space-y-3">
               {/* Entrada original */}
               <div className="flex items-start gap-3 relative">
-                <div className="w-7 h-7 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center shrink-0 z-10 text-xs">🎯</div>
+                <div className="w-7 h-7 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center shrink-0 z-10">
+                  <IconTarget size={13} stroke={1.75} className="text-slate-500" />
+                </div>
                 <div className="flex-1 pt-0.5">
                   <p className="text-xs font-semibold text-slate-700">Creada como Prospecto</p>
                   <p className="text-xs text-slate-400">{new Date(op.creadoEn).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" })}</p>
@@ -468,14 +474,17 @@ export default function OportunidadDetallePage() {
                 const etapaNueva   = ETAPAS.find(e => e.key === c.etapaNueva);
                 const esGanada  = c.etapaNueva === "GANADA";
                 const esPerdida = c.etapaNueva === "PERDIDA";
-                const iconColor = esGanada ? "bg-emerald-100" : esPerdida ? "bg-red-100" : "bg-blue-100";
-                const icon = esGanada ? "🏆" : esPerdida ? "❌" : "→";
+                const iconBg   = esGanada ? "bg-emerald-100" : esPerdida ? "bg-red-100" : "bg-brand-100";
+                const iconTxt  = esGanada ? "text-emerald-600" : esPerdida ? "text-red-500" : "text-brand-600";
+                const IconoTransicion = esGanada ? IconTrophy : esPerdida ? IconX : IconArrowRight;
                 const diasDesdeAnterior = i === 0
                   ? Math.floor((new Date(c.creadoEn).getTime() - new Date(op.creadoEn).getTime()) / 86_400_000)
                   : Math.floor((new Date(c.creadoEn).getTime() - new Date(op.cambiosEtapa[i-1].creadoEn).getTime()) / 86_400_000);
                 return (
                   <div key={c.id} className="flex items-start gap-3 relative">
-                    <div className={`w-7 h-7 rounded-full ${iconColor} border-2 border-white flex items-center justify-center shrink-0 z-10 text-xs`}>{icon}</div>
+                    <div className={`w-7 h-7 rounded-full ${iconBg} border-2 border-white flex items-center justify-center shrink-0 z-10`}>
+                      <IconoTransicion size={13} stroke={1.75} className={iconTxt} />
+                    </div>
                     <div className="flex-1 pt-0.5">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`text-xs rounded-full px-2 py-0.5 font-medium ${etapaAnterior?.color ?? "bg-slate-100 text-slate-600"}`}>{etapaAnterior?.label ?? c.etapaAnterior}</span>
@@ -501,7 +510,7 @@ export default function OportunidadDetallePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl mx-4">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-lg">😔</div>
+              <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center"><IconMoodSad size={20} stroke={1.75} className="text-red-500" /></div>
               <div>
                 <h2 className="text-base font-semibold text-slate-800">¿Por qué se perdió este negocio?</h2>
                 <p className="text-xs text-slate-400">Esta información ayuda a mejorar futuros cierres</p>

@@ -26,11 +26,11 @@ export function MobileNav() {
           <Link key={item.href} href={item.href}
             className={cn(
               "flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-center transition-colors",
-              activo ? "text-white" : "text-brand-400 hover:text-brand-200"
+              activo ? "text-accent-400" : "text-brand-400 hover:text-brand-200"
             )}>
             <Icono size={20} stroke={1.75} />
             <span className="text-[9px] font-medium leading-none">{item.label}</span>
-            {activo && <span className="w-1 h-1 rounded-full bg-brand-400 mt-0.5" />}
+            {activo && <span className="w-1 h-1 rounded-full bg-accent-400 mt-0.5" />}
           </Link>
         );
       })}

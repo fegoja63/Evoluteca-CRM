@@ -3,6 +3,15 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { KpiCard } from "@/components/kpi-card";
+import {
+  IconPhone, IconUsers, IconCheck, IconMail, IconPinned,
+  IconChevronLeft, IconChevronRight, IconTrash, IconLayoutList, IconCalendar,
+  IconFileExport, IconFileSpreadsheet, IconPlus, IconBell, IconCircleCheck,
+  IconAlertTriangle,
+  type Icon,
+} from "@tabler/icons-react";
+
+const TIPO_ICON: Record<string, Icon> = { LLAMADA: IconPhone, REUNION: IconUsers, TAREA: IconCheck, EMAIL: IconMail };
 
 type Actividad = {
   id: string;
@@ -75,10 +84,14 @@ function CalendarioActividades({
         {/* Navegación mes */}
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => navMes(-1)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">← Ant.</button>
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-1">
+            <IconChevronLeft size={14} stroke={1.75} />Ant.
+          </button>
           <h2 className="text-sm font-bold text-slate-900">{MESES_NOMBRE[mes.mes]} {mes.anio}</h2>
           <button onClick={() => navMes(1)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">Sig. →</button>
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-1">
+            Sig.<IconChevronRight size={14} stroke={1.75} />
+          </button>
         </div>
 
         {/* Cabecera días */}
@@ -105,13 +118,13 @@ function CalendarioActividades({
             return (
               <button key={i} onClick={() => setDiaSeleccionado(esSeleccionado ? null : k)}
                 className={`rounded-xl p-1.5 min-h-[56px] flex flex-col items-center transition-all border ${
-                  esSeleccionado ? "border-blue-400 bg-blue-50" :
-                  esHoy ? "border-blue-200 bg-blue-50" :
-                  acts.length > 0 ? "border-slate-200 hover:border-blue-200 hover:bg-slate-50" :
+                  esSeleccionado ? "border-brand-400 bg-brand-50" :
+                  esHoy ? "border-brand-200 bg-brand-50" :
+                  acts.length > 0 ? "border-slate-200 hover:border-brand-200 hover:bg-slate-50" :
                   "border-transparent hover:bg-slate-50"
                 }`}>
                 <span className={`text-xs font-semibold mb-1 w-6 h-6 flex items-center justify-center rounded-full ${
-                  esHoy ? "bg-blue-600 text-white" : "text-slate-700"
+                  esHoy ? "bg-accent-600 text-white" : "text-slate-700"
                 }`}>{numDia}</span>
                 {/* Puntos de actividades (max 3) */}
                 {acts.length > 0 && (
@@ -146,7 +159,7 @@ function CalendarioActividades({
 
       {/* Panel del día seleccionado */}
       {diaSeleccionado && (
-        <div className="bg-white rounded-2xl border border-blue-200 p-5">
+        <div className="bg-white rounded-2xl border border-brand-200 p-5">
           <h3 className="text-sm font-bold text-slate-900 mb-3">
             {new Date(diaSeleccionado + "T12:00:00").toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" })}
             <span className="ml-2 text-xs text-slate-400 font-normal">{actsDia.length} actividad{actsDia.length !== 1 ? "es" : ""}</span>
@@ -169,8 +182,10 @@ function CalendarioActividades({
                       {a.empresa && ` · ${a.empresa.nombre}`}
                     </p>
                   </div>
-                  <button onClick={() => onEliminar(a.id)}
-                    className="text-slate-200 hover:text-red-500 text-base leading-none shrink-0">×</button>
+                  <button onClick={() => onEliminar(a.id)} title="Eliminar"
+                    className="text-slate-300 hover:text-red-500 shrink-0">
+                    <IconTrash size={14} stroke={1.75} />
+                  </button>
                 </div>
               ))}
             </div>
@@ -308,53 +323,53 @@ function AgendaContent() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <KpiCard label="Total actividades" valor={actividades.length} emoji="📅" color="bg-blue-500" />
-        <KpiCard label="Pendientes" valor={actividades.filter(a => !a.completada).length} emoji="⏳" color="bg-amber-500" />
-        <KpiCard label="Completadas" valor={actividades.filter(a => a.completada).length} emoji="✅" color="bg-emerald-500" />
+        <KpiCard label="Total actividades" valor={actividades.length} icon={IconCalendar} color="bg-brand-500" iconBg="bg-brand-50" iconColor="text-brand-600" />
+        <KpiCard label="Pendientes" valor={actividades.filter(a => !a.completada).length} icon={IconBell} color="bg-amber-500" iconBg="bg-amber-50" iconColor="text-amber-600" />
+        <KpiCard label="Completadas" valor={actividades.filter(a => a.completada).length} icon={IconCircleCheck} color="bg-emerald-500" iconBg="bg-emerald-50" iconColor="text-emerald-600" />
         <KpiCard
           label="Vencidas"
           valor={actividades.filter(a => !a.completada && new Date(a.fecha) < new Date()).length}
-          emoji="⚠️" color="bg-red-400"
+          icon={IconAlertTriangle} color="bg-red-400" iconBg="bg-red-50" iconColor="text-red-500"
           sub="Sin completar y pasadas"
         />
       </div>
 
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         {/* Toggle vista */}
-        <div className="flex rounded-xl border border-slate-200 overflow-hidden text-sm">
+        <div className="flex rounded-xl border border-slate-200 overflow-hidden text-sm w-fit">
           <button onClick={() => setVista("lista")}
-            className={`px-4 py-2 font-medium transition-colors ${vista === "lista" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}>
-            ☰ Lista
+            className={`px-4 py-2 font-medium transition-colors flex items-center gap-1.5 ${vista === "lista" ? "bg-accent-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}>
+            <IconLayoutList size={15} stroke={1.75} />Lista
           </button>
           <button onClick={() => setVista("calendario")}
-            className={`px-4 py-2 font-medium transition-colors ${vista === "calendario" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}>
-            📅 Calendario
+            className={`px-4 py-2 font-medium transition-colors flex items-center gap-1.5 ${vista === "calendario" ? "bg-accent-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}>
+            <IconCalendar size={15} stroke={1.75} />Calendario
           </button>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <a href="/api/exportar/actividades-ics"
             className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 flex items-center gap-1.5">
-            📅 iCal
+            <IconFileExport size={15} stroke={1.75} />iCal
           </a>
           <button onClick={exportarExcel} disabled={exportando}
-            className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
-            {exportando ? "Exportando..." : "⬇ Excel"}
+            className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 flex items-center gap-1.5">
+            {exportando ? "Exportando..." : (<><IconFileSpreadsheet size={15} stroke={1.75} />Excel</>)}
           </button>
           <button onClick={() => setMostrarForm(true)}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-            + Nueva actividad
+            className="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 flex items-center gap-1.5">
+            <IconPlus size={15} stroke={1.75} />Nueva actividad
           </button>
         </div>
       </div>
 
       {vista === "lista" && (
-        <div className="mb-4 flex gap-2">
+        <div className="mb-4 flex gap-2 flex-wrap">
           <button onClick={() => setFiltro("pendientes")}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "pendientes" ? "bg-blue-50 text-blue-700" : "text-neutral-500 hover:bg-neutral-100"}`}>
+            className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "pendientes" ? "bg-brand-50 text-brand-700" : "text-neutral-500 hover:bg-neutral-100"}`}>
             Pendientes
           </button>
           <button onClick={() => setFiltro("todas")}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "todas" ? "bg-blue-50 text-blue-700" : "text-neutral-500 hover:bg-neutral-100"}`}>
+            className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "todas" ? "bg-brand-50 text-brand-700" : "text-neutral-500 hover:bg-neutral-100"}`}>
             Todas
           </button>
           <button onClick={() => setFiltro("vencidas")}
@@ -374,7 +389,7 @@ function AgendaContent() {
                 required
                 value={form.titulo}
                 onChange={(e) => setForm({ ...form, titulo: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               />
             </div>
             <div>
@@ -382,7 +397,7 @@ function AgendaContent() {
               <select
                 value={form.tipo}
                 onChange={(e) => setForm({ ...form, tipo: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               >
                 {TIPOS.map((t) => (
                   <option key={t.key} value={t.key}>{t.label}</option>
@@ -396,7 +411,7 @@ function AgendaContent() {
                 type="datetime-local"
                 value={form.fecha}
                 onChange={(e) => setForm({ ...form, fecha: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               />
             </div>
             <div>
@@ -404,7 +419,7 @@ function AgendaContent() {
               <select
                 value={form.empresaId}
                 onChange={(e) => setForm({ ...form, empresaId: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               >
                 <option value="">Sin empresa</option>
                 {empresas.map((emp) => (
@@ -417,7 +432,7 @@ function AgendaContent() {
               <select
                 value={form.contactoId}
                 onChange={(e) => setForm({ ...form, contactoId: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               >
                 <option value="">Sin contacto</option>
                 {contactos.map((c) => (
@@ -430,7 +445,7 @@ function AgendaContent() {
               <select
                 value={form.oportunidadId}
                 onChange={(e) => setForm({ ...form, oportunidadId: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               >
                 <option value="">Sin oportunidad</option>
                 {oportunidades.map((o) => (
@@ -444,14 +459,14 @@ function AgendaContent() {
                 value={form.notas}
                 onChange={(e) => setForm({ ...form, notas: e.target.value })}
                 rows={3}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               />
             </div>
             <div className="col-span-2 flex gap-2">
               <button
                 type="submit"
                 disabled={guardando}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                className="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
               >
                 {guardando ? "Guardando..." : "Guardar"}
               </button>
@@ -488,12 +503,15 @@ function AgendaContent() {
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          {visibles.map((a) => (
+          {visibles.map((a) => {
+            const IconoTipo = TIPO_ICON[a.tipo] ?? IconPinned;
+            return (
             <div key={a.id}
               className="flex items-center gap-3 rounded-xl border border-neutral-200 p-3 text-sm hover:bg-neutral-50">
               <input type="checkbox" checked={a.completada}
                 onChange={(e) => toggleCompletada(a.id, e.target.checked)} className="h-4 w-4" />
-              <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
+              <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600 flex items-center gap-1">
+                <IconoTipo size={12} stroke={1.75} />
                 {TIPOS.find((t) => t.key === a.tipo)?.label}
               </span>
               <div className="flex-1">
@@ -510,13 +528,16 @@ function AgendaContent() {
               {!a.completada && new Date(a.fecha) < new Date() && (
                 <button onClick={() => enviarRecordatorio(a)} disabled={notificando === a.id}
                   className="text-amber-400 hover:text-amber-600 disabled:opacity-50" title="Enviarme recordatorio">
-                  {notifOk === a.id ? "✅" : notificando === a.id ? "..." : "🔔"}
+                  {notifOk === a.id ? <IconCircleCheck size={16} stroke={1.75} className="text-emerald-500" /> : notificando === a.id ? "..." : <IconBell size={16} stroke={1.75} />}
                 </button>
               )}
               <button onClick={() => eliminarActividad(a.id)}
-                className="text-neutral-300 hover:text-red-600" title="Eliminar">×</button>
+                className="text-neutral-300 hover:text-red-600" title="Eliminar">
+                <IconTrash size={15} stroke={1.75} />
+              </button>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -3,7 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { KpiCard } from "@/components/kpi-card";
+import {
+  IconSearch, IconX, IconPlus, IconLayoutKanban, IconTable, IconSelector,
+  IconArrowNarrowUp, IconArrowNarrowDown, IconCalendarEvent, IconTrash,
+  IconChartFunnel, IconTrendingUp, IconTrophy, IconTarget, IconBuildingPavilion,
+  IconAlertTriangle, type Icon,
+} from "@tabler/icons-react";
 
 type Oportunidad = {
   id: string;
@@ -271,8 +276,10 @@ export default function PipelinePage() {
     setOrden(prev => prev.col === col ? { col, dir: prev.dir === "asc" ? "desc" : "asc" } : { col, dir: "asc" });
   }
   function sortIcon(col: string) {
-    if (orden.col !== col) return <span className="text-slate-300 ml-1">↕</span>;
-    return <span className="text-blue-500 ml-1">{orden.dir === "asc" ? "↑" : "↓"}</span>;
+    if (orden.col !== col) return <IconSelector size={12} stroke={2} className="inline text-slate-300 ml-1" />;
+    return orden.dir === "asc"
+      ? <IconArrowNarrowUp size={12} stroke={2} className="inline text-brand-500 ml-1" />
+      : <IconArrowNarrowDown size={12} stroke={2} className="inline text-brand-500 ml-1" />;
   }
   const tablaOrdenada = [...filtradas].sort((a, b) => {
     const dir = orden.dir === "asc" ? 1 : -1;
@@ -305,33 +312,46 @@ export default function PipelinePage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
-        <KpiCard label="Pipeline activo" valor={fmtN(valorActivas)} emoji="🔄" color="bg-blue-500"
-          sub={`${activas.length} oportunidades`} />
-        <KpiCard label="Pronóstico ponderado" valor={fmtN(valorPonderado)} emoji="📊" color="bg-violet-500"
-          sub="valor × probabilidad" />
-        <KpiCard label="Valor ganado" valor={fmtN(valorGanadas)} emoji="💰" color="bg-emerald-500"
-          sub={`${ganadas.length} negocios cerrados`} />
-        <KpiCard label="Valor perdido" valor={fmtN(valorPerdidas)} emoji="❌" color="bg-red-400"
-          sub={`${perdidas.length} perdidos`} />
-        <KpiCard label="Tasa de cierre" valor={`${tasa}%`} emoji="🎯" color="bg-amber-500"
-          sub={`${ganadas.length} ganadas · ${perdidas.length} perdidas`} />
+        {([
+          { label: "Pipeline activo",        valor: fmtN(valorActivas),  sub: `${activas.length} oportunidades`,                         icon: IconChartFunnel, semantic: false },
+          { label: "Pronóstico ponderado",   valor: fmtN(valorPonderado), sub: "valor × probabilidad",                                     icon: IconTrendingUp,  semantic: false },
+          { label: "Valor ganado",           valor: fmtN(valorGanadas),  sub: `${ganadas.length} negocios cerrados`,                       icon: IconTrophy,      semantic: true, ibg: "bg-emerald-50", itxt: "text-emerald-600" },
+          { label: "Valor perdido",          valor: fmtN(valorPerdidas), sub: `${perdidas.length} perdidos`,                               icon: IconX,           semantic: true, ibg: "bg-red-50",     itxt: "text-red-500" },
+          { label: "Tasa de cierre",         valor: `${tasa}%`,          sub: `${ganadas.length} ganadas · ${perdidas.length} perdidas`,   icon: IconTarget,      semantic: false },
+        ] as { label: string; valor: string; sub: string; icon: Icon; semantic: boolean; ibg?: string; itxt?: string }[]).map(k => {
+          const Icono = k.icon;
+          return (
+            <div key={k.label} className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm">
+              <div className="flex items-start justify-between mb-3">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${k.semantic ? k.ibg : "bg-brand-50"}`}>
+                  <Icono size={18} stroke={1.75} className={k.semantic ? k.itxt : "text-brand-600"} />
+                </div>
+              </div>
+              <p className={`font-extrabold text-slate-900 leading-tight ${k.valor.length > 10 ? "text-lg" : "text-2xl"}`}>{k.valor}</p>
+              <p className="text-xs font-semibold text-slate-700 mt-1">{k.label}</p>
+              <p className="text-xs text-slate-400 mt-0.5">{k.sub}</p>
+            </div>
+          );
+        })}
       </div>
 
       {/* ── FILTROS + TOGGLE ── */}
       <div className="flex flex-wrap items-center gap-3 mb-5 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3">
         {/* Búsqueda */}
         <div className="relative flex-1 min-w-[200px]">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+          <IconSearch size={14} stroke={1.75} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder="Buscar cliente, evento o N° cotización..."
             value={busqueda}
             onChange={e => setBusqueda(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 pl-8 pr-8 py-2 text-sm outline-none focus:border-blue-500"
+            className="w-full rounded-xl border border-slate-200 pl-8 pr-8 py-2 text-sm outline-none focus:border-brand-500"
           />
           {busqueda && (
             <button onClick={() => setBusqueda("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-base leading-none">×</button>
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
+              <IconX size={14} stroke={2} />
+            </button>
           )}
         </div>
 
@@ -372,24 +392,26 @@ export default function PipelinePage() {
           <div className="flex items-center gap-3">
             <span className="text-xs text-slate-500">{filtradas.length} de {oportunidades.length}</span>
             <button onClick={() => { setBusqueda(""); setFiltroAnio(""); setFiltroMes(""); setFiltroEtapa(""); }}
-              className="text-xs text-blue-600 hover:underline">× Limpiar</button>
+              className="text-xs text-brand-600 hover:underline flex items-center gap-0.5">
+              <IconX size={12} stroke={2} />Limpiar
+            </button>
           </div>
         )}
 
         <button onClick={() => setMostrarForm(v => !v)}
-          className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700">
-          {mostrarForm ? "× Cancelar" : "+ Nueva oportunidad"}
+          className="rounded-xl bg-accent-600 px-3 py-2 text-xs font-medium text-white hover:bg-accent-700 flex items-center gap-1">
+          {mostrarForm ? <><IconX size={13} stroke={2} />Cancelar</> : <><IconPlus size={13} stroke={2} />Nueva oportunidad</>}
         </button>
 
         {/* Toggle vista */}
         <div className="ml-auto flex rounded-xl border border-slate-200 overflow-hidden bg-white">
           <button onClick={() => setVista("kanban")}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors ${vista === "kanban" ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"}`}>
-            ⊞ Kanban
+            className={`px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${vista === "kanban" ? "bg-accent-600 text-white" : "text-slate-500 hover:bg-slate-50"}`}>
+            <IconLayoutKanban size={14} stroke={1.75} />Kanban
           </button>
           <button onClick={() => setVista("tabla")}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors ${vista === "tabla" ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"}`}>
-            ☰ Tabla
+            className={`px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${vista === "tabla" ? "bg-accent-600 text-white" : "text-slate-500 hover:bg-slate-50"}`}>
+            <IconTable size={14} stroke={1.75} />Tabla
           </button>
         </div>
       </div>
@@ -399,23 +421,23 @@ export default function PipelinePage() {
         <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-slate-800">Nueva oportunidad</h2>
-            <button onClick={() => setMostrarForm(false)} className="text-slate-400 hover:text-slate-600 text-lg">×</button>
+            <button onClick={() => setMostrarForm(false)} className="text-slate-400 hover:text-slate-600"><IconX size={18} stroke={1.75} /></button>
           </div>
           <form onSubmit={handleGuardar} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Título *</label>
               <input required value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Valor estimado (COP)</label>
               <input type="number" value={form.valor} onChange={e => setForm({...form, valor: e.target.value})}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Etapa</label>
               <select value={form.etapa} onChange={e => setForm({...form, etapa: e.target.value})}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
                 {ETAPAS.map(et => <option key={et.key} value={et.key}>{et.label}</option>)}
               </select>
             </div>
@@ -424,36 +446,36 @@ export default function PipelinePage() {
                 <label className="block text-xs text-slate-500">Empresa</label>
                 <div className="flex gap-1">
                   <button type="button" onClick={() => setModoEmpresa("existente")}
-                    className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${modoEmpresa === "existente" ? "bg-blue-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
+                    className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${modoEmpresa === "existente" ? "bg-accent-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
                     Existente
                   </button>
                   <button type="button" onClick={() => setModoEmpresa("nueva")}
-                    className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${modoEmpresa === "nueva" ? "bg-blue-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
+                    className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${modoEmpresa === "nueva" ? "bg-accent-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
                     + Nueva
                   </button>
                 </div>
               </div>
               {modoEmpresa === "existente" ? (
                 <select value={form.empresaId} onChange={e => setForm({...form, empresaId: e.target.value})}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
                   <option value="">Sin empresa</option>
                   {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
                 </select>
               ) : (
-                <div className="rounded-lg border border-blue-200 bg-blue-50 p-2.5">
+                <div className="rounded-lg border border-brand-200 bg-brand-50 p-2.5">
                   <div className="flex flex-col gap-2">
                     <input type="text" placeholder="Nombre del cliente *" value={nuevaEmpresaForm.nombre}
                       onChange={e => setNuevaEmpresaForm(f => ({ ...f, nombre: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
                     <input type="email" placeholder="Email (opcional)" value={nuevaEmpresaForm.email}
                       onChange={e => setNuevaEmpresaForm(f => ({ ...f, email: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
                     <input type="text" placeholder="Teléfono (opcional)" value={nuevaEmpresaForm.telefono}
                       onChange={e => setNuevaEmpresaForm(f => ({ ...f, telefono: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
                     {creandoEmpresaError && <p className="text-xs text-red-600">{creandoEmpresaError}</p>}
                     <button type="button" onClick={crearEmpresaInline} disabled={creandoEmpresaLoading || !nuevaEmpresaForm.nombre.trim()}
-                      className="self-start rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                      className="self-start rounded-lg bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                       {creandoEmpresaLoading ? "Creando..." : "Crear cliente"}
                     </button>
                   </div>
@@ -465,36 +487,36 @@ export default function PipelinePage() {
                 <label className="block text-xs text-slate-500">Contacto</label>
                 <div className="flex gap-1">
                   <button type="button" onClick={() => setModoContacto("existente")}
-                    className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${modoContacto === "existente" ? "bg-blue-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
+                    className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${modoContacto === "existente" ? "bg-accent-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
                     Existente
                   </button>
                   <button type="button" onClick={() => setModoContacto("nuevo")}
-                    className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${modoContacto === "nuevo" ? "bg-blue-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
+                    className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${modoContacto === "nuevo" ? "bg-accent-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
                     + Nuevo
                   </button>
                 </div>
               </div>
               {modoContacto === "existente" ? (
                 <select value={form.contactoId} onChange={e => setForm({...form, contactoId: e.target.value})}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
                   <option value="">Sin contacto</option>
                   {contactos.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                 </select>
               ) : (
-                <div className="rounded-lg border border-blue-200 bg-blue-50 p-2.5">
+                <div className="rounded-lg border border-brand-200 bg-brand-50 p-2.5">
                   <div className="flex flex-col gap-2">
                     <input type="text" placeholder="Nombre del contacto *" value={nuevoContactoForm.nombre}
                       onChange={e => setNuevoContactoForm(f => ({ ...f, nombre: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
                     <input type="email" placeholder="Email (opcional)" value={nuevoContactoForm.email}
                       onChange={e => setNuevoContactoForm(f => ({ ...f, email: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
                     <input type="text" placeholder="Teléfono (opcional)" value={nuevoContactoForm.telefono}
                       onChange={e => setNuevoContactoForm(f => ({ ...f, telefono: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
                     {creandoContactoError && <p className="text-xs text-red-600">{creandoContactoError}</p>}
                     <button type="button" onClick={crearContactoInline} disabled={creandoContactoLoading || !nuevoContactoForm.nombre.trim()}
-                      className="self-start rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                      className="self-start rounded-lg bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                       {creandoContactoLoading ? "Creando..." : "Crear contacto"}
                     </button>
                   </div>
@@ -503,16 +525,16 @@ export default function PipelinePage() {
             </div>
             {moduloSalones && (
               <div className="col-span-2 pt-2 mt-1 border-t border-slate-200">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">🏛️ Salón (módulo Salones)</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1"><IconBuildingPavilion size={13} stroke={1.75} />Salón (módulo Salones)</p>
                 <label className="mb-1 block text-xs text-slate-500">Salón</label>
                 <select value={form.salonId} onChange={e => setForm({...form, salonId: e.target.value})}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
                   <option value="">— Sin salón del catálogo —</option>
                   {salones.map(s => <option key={s.id} value={s.id}>{s.nombre}{s.capacidad ? ` (${s.capacidad} pers.)` : ""}</option>)}
                 </select>
                 {disponibilidad && disponibilidad.aceptadas.length > 0 && (
                   <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                    <p className="font-semibold">⚠ Ese salón ya tiene una cotización aceptada ese día:</p>
+                    <p className="font-semibold flex items-center gap-1"><IconAlertTriangle size={13} stroke={1.75} />Ese salón ya tiene una cotización aceptada ese día:</p>
                     <ul className="mt-1 list-disc list-inside">
                       {disponibilidad.aceptadas.map(c => <li key={c.id}>{c.empresa?.nombre ?? "Sin empresa"}</li>)}
                     </ul>
@@ -529,46 +551,46 @@ export default function PipelinePage() {
               <label className="mb-1 block text-xs text-slate-500">Sede / Lugar</label>
               <input value={form.sede} onChange={e => setForm({...form, sede: e.target.value})}
                 placeholder="Teatro Nacional, Sala A..."
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Fecha del evento</label>
               <input type="date" value={form.fechaEvento} onChange={e => setForm({...form, fechaEvento: e.target.value})}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             {moduloSalones && form.salonId && (
               <div>
                 <label className="mb-1 block text-xs text-slate-500">Horario (opcional)</label>
                 <div className="flex items-center gap-2">
                   <input type="time" value={form.horaInicio} onChange={e => setForm({...form, horaInicio: e.target.value})}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
                   <span className="text-slate-400 text-xs">a</span>
                   <input type="time" value={form.horaFin} onChange={e => setForm({...form, horaFin: e.target.value})}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
                 </div>
               </div>
             )}
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">
-                Probabilidad de cierre: <span className="font-semibold text-blue-600">{form.probabilidad}%</span>
+                Probabilidad de cierre: <span className="font-semibold text-brand-600">{form.probabilidad}%</span>
               </label>
               <input type="range" min="0" max="100" step="5" value={form.probabilidad}
                 onChange={e => setForm({...form, probabilidad: e.target.value})}
-                className="w-full accent-blue-600" />
+                className="w-full accent-brand-600" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Fecha de cierre estimada</label>
               <input type="date" value={form.fechaCierre} onChange={e => setForm({...form, fechaCierre: e.target.value})}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({...form, notas: e.target.value})}
-                rows={2} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                rows={2} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div className="col-span-2 flex gap-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                 {guardando ? "Guardando..." : "Guardar"}
               </button>
               <button type="button" onClick={() => setMostrarForm(false)}
@@ -622,7 +644,7 @@ export default function PipelinePage() {
                   return (
                     <tr key={o.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3">
-                        <Link href={`/dashboard/pipeline/${o.id}`} className="font-medium text-slate-900 hover:text-blue-600 transition-colors">
+                        <Link href={`/dashboard/pipeline/${o.id}`} className="font-medium text-slate-900 hover:text-brand-600 transition-colors">
                           {o.titulo}
                         </Link>
                         {o.extras?.["COTIZACION NUMERO"] && (
@@ -640,12 +662,12 @@ export default function PipelinePage() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         {o.etapa !== "GANADA" && o.etapa !== "PERDIDA"
-                          ? <span className="text-xs font-bold text-blue-600">{o.probabilidad ?? 50}%</span>
+                          ? <span className="text-xs font-bold text-brand-600">{o.probabilidad ?? 50}%</span>
                           : <span className="text-slate-300">—</span>}
                       </td>
                       <td className="px-4 py-3">
                         {cb
-                          ? <span className={`text-xs rounded-full px-2 py-0.5 font-medium ${cb.color}`}>📅 {cb.label}</span>
+                          ? <span className={`text-xs rounded-full px-2 py-0.5 font-medium inline-flex items-center gap-1 ${cb.color}`}><IconCalendarEvent size={12} stroke={1.75} />{cb.label}</span>
                           : o.fechaCierre
                             ? <span className="text-xs text-slate-400">{new Date(o.fechaCierre).toLocaleDateString("es-CO",{timeZone:"UTC"})}</span>
                             : <span className="text-slate-300">—</span>}
@@ -656,7 +678,9 @@ export default function PipelinePage() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button onClick={() => eliminarOportunidad(o.id, o.titulo)} title="Eliminar oportunidad"
-                          className="text-slate-300 hover:text-red-500 text-sm leading-none">🗑</button>
+                          className="text-slate-300 hover:text-red-500 inline-flex">
+                          <IconTrash size={15} stroke={1.75} />
+                        </button>
                       </td>
                     </tr>
                   );
@@ -676,7 +700,7 @@ export default function PipelinePage() {
             return (
               <div key={etapa.key}
                 className={`rounded-xl border-2 border-t-4 border-slate-200 ${etapa.color} p-3 transition-colors ${
-                  isOver ? "bg-blue-50 border-blue-300" : "bg-slate-50"
+                  isOver ? "bg-brand-50 border-brand-300" : "bg-slate-50"
                 }`}
                 onDragOver={e => { e.preventDefault(); setDragOverEtapa(etapa.key); }}
                 onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverEtapa(null); }}
@@ -695,7 +719,7 @@ export default function PipelinePage() {
                 <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-0.5">
                   {items.length === 0 && (
                     <div className={`rounded-lg border-2 border-dashed py-6 text-center text-xs transition-colors ${
-                      isOver ? "border-blue-300 text-blue-400 bg-blue-50" : "border-slate-200 text-slate-400"
+                      isOver ? "border-brand-300 text-brand-400 bg-brand-50" : "border-slate-200 text-slate-400"
                     }`}>
                       {isOver ? "Soltar aquí" : "Sin registros"}
                     </div>
@@ -718,16 +742,18 @@ export default function PipelinePage() {
                     >
                       <div className="flex items-start justify-between gap-1 mb-1">
                         <Link href={`/dashboard/pipeline/${o.id}`}
-                          className="font-semibold text-slate-900 leading-snug hover:text-blue-600 transition-colors"
+                          className="font-semibold text-slate-900 leading-snug hover:text-brand-600 transition-colors"
                           onClick={e => { if (draggingId) e.preventDefault(); }}>
                           {o.titulo}
                         </Link>
                         <button onClick={() => eliminarOportunidad(o.id, o.titulo)} title="Eliminar oportunidad"
-                          className="text-slate-300 hover:text-red-500 shrink-0 leading-none text-sm">🗑</button>
+                          className="text-slate-300 hover:text-red-500 shrink-0">
+                          <IconTrash size={13} stroke={1.75} />
+                        </button>
                       </div>
                       {o.empresa && <p className="text-slate-500 mb-1">{o.empresa.nombre}</p>}
                       {(() => { const cb = cierreBadge(o.fechaCierre, o.etapa); return cb ? (
-                        <span className={`inline-block rounded-full px-1.5 py-0.5 text-xs font-semibold mb-1 ${cb.color}`}>📅 {cb.label}</span>
+                        <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-semibold mb-1 ${cb.color}`}><IconCalendarEvent size={11} stroke={1.75} />{cb.label}</span>
                       ) : null; })()}
                       {o.extras?.["COTIZACION NUMERO"] && (
                         <p className="text-slate-400 mb-1">{o.extras["COTIZACION NUMERO"]}</p>
@@ -744,7 +770,7 @@ export default function PipelinePage() {
                         }
                         <div className="flex items-center gap-1">
                           {(etapa.key !== "GANADA" && etapa.key !== "PERDIDA") && (
-                            <span className="rounded-full px-1.5 py-0.5 text-xs font-semibold bg-blue-50 text-blue-600">
+                            <span className="rounded-full px-1.5 py-0.5 text-xs font-semibold bg-brand-50 text-brand-600">
                               {o.probabilidad ?? 50}%
                             </span>
                           )}
@@ -760,7 +786,7 @@ export default function PipelinePage() {
                   })}
                   {/* Drop zone visible al final de columnas con items */}
                   {items.length > 0 && isOver && (
-                    <div className="rounded-lg border-2 border-dashed border-blue-300 py-3 text-center text-xs text-blue-400">
+                    <div className="rounded-lg border-2 border-dashed border-brand-300 py-3 text-center text-xs text-brand-400">
                       Soltar aquí
                     </div>
                   )}

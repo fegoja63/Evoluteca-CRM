@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import {
+  IconFilePlus, IconSearch, IconX, IconDownload, IconAlertTriangle, IconFileText,
+} from "@tabler/icons-react";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type Cotizacion = {
@@ -21,7 +24,7 @@ type Cotizacion = {
 
 const ESTADO_COLOR: Record<string, string> = {
   BORRADOR:  "bg-slate-100 text-slate-600",
-  ENVIADA:   "bg-blue-50 text-blue-700",
+  ENVIADA:   "bg-brand-50 text-brand-700",
   ACEPTADA:  "bg-emerald-50 text-emerald-700",
   RECHAZADA: "bg-red-50 text-red-600",
 };
@@ -100,19 +103,21 @@ export default function CotizacionesFormalesPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Cotizaciones formales</h1>
           <p className="text-slate-500 text-sm mt-1">Documentos con desglose de servicios y precios</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button onClick={exportarExcel} disabled={exportando}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
-            {exportando ? "Exportando..." : "⬇ Excel"}
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+            <IconDownload size={16} stroke={1.75} />
+            {exportando ? "Exportando..." : "Excel"}
           </button>
           <Link href="/dashboard/cotizaciones-formales/nueva"
-            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-            + Nueva cotización
+            className="flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
+            <IconFilePlus size={16} stroke={1.75} />
+            Nueva cotización
           </Link>
         </div>
       </div>
@@ -121,12 +126,12 @@ export default function CotizacionesFormalesPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Borradores",  key: "BORRADOR",  color: "bg-slate-500" },
-          { label: "Enviadas",    key: "ENVIADA",   color: "bg-blue-500" },
+          { label: "Enviadas",    key: "ENVIADA",   color: "bg-brand-500" },
           { label: "Aceptadas",   key: "ACEPTADA",  color: "bg-emerald-500" },
           { label: "Rechazadas",  key: "RECHAZADA", color: "bg-red-500" },
         ].map(k => (
           <button key={k.key} onClick={() => setFiltroEstado(filtroEstado === k.key ? "TODAS" : k.key)}
-            className={`rounded-2xl border p-4 text-left transition-all ${filtroEstado === k.key ? "border-blue-400 ring-2 ring-blue-200" : "border-slate-200 bg-white hover:border-slate-300"}`}>
+            className={`rounded-2xl border p-4 text-left transition-all ${filtroEstado === k.key ? "border-brand-400 ring-2 ring-brand-200" : "border-slate-200 bg-white hover:border-slate-300"}`}>
             <div className={`w-2 h-2 rounded-full ${k.color} mb-2`} />
             <p className="text-2xl font-bold text-slate-900">{conteos[k.key as keyof typeof conteos]}</p>
             <p className="text-xs text-slate-500">{k.label}</p>
@@ -137,32 +142,37 @@ export default function CotizacionesFormalesPage() {
       {/* Alerta vencidas */}
       {vencidas.length > 0 && (
         <div className="mb-5 rounded-2xl bg-red-50 border border-red-200 px-5 py-3 flex items-center gap-3">
-          <span className="text-lg">⚠️</span>
+          <IconAlertTriangle size={18} stroke={1.75} className="text-red-500 shrink-0" />
           <div className="flex-1">
             <p className="text-sm font-semibold text-red-800">
               {vencidas.length} cotización{vencidas.length !== 1 ? "es" : ""} vencida{vencidas.length !== 1 ? "s" : ""} o próxima{vencidas.length !== 1 ? "s" : ""} a vencer
             </p>
             <p className="text-xs text-red-600 mt-0.5">Revisa y actualiza la fecha de validez o cambia el estado.</p>
           </div>
-          <button onClick={() => setFiltroEstado("ENVIADA")} className="text-xs text-red-700 font-medium underline">Ver enviadas</button>
+          <button onClick={() => setFiltroEstado("ENVIADA")} className="text-xs text-red-700 font-medium underline shrink-0">Ver enviadas</button>
         </div>
       )}
 
       {/* Filtros */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="relative flex-1 max-w-sm">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+        <div className="relative w-full sm:max-w-sm">
+          <IconSearch size={15} stroke={1.75} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input type="text" placeholder="Buscar por cliente, N° cotización, sede..."
             value={busqueda} onChange={e => setBusqueda(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 pl-8 pr-8 py-2 text-sm outline-none focus:border-blue-500" />
+            className="w-full rounded-xl border border-slate-200 pl-8 pr-8 py-2 text-sm outline-none focus:border-brand-500" />
           {busqueda && (
             <button onClick={() => setBusqueda("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-base leading-none">×</button>
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
+              <IconX size={14} stroke={2} />
+            </button>
           )}
         </div>
         {(busqueda || filtroEstado !== "TODAS") && (
           <button onClick={() => { setBusqueda(""); setFiltroEstado("TODAS"); }}
-            className="text-xs text-blue-600 hover:underline">× Limpiar</button>
+            className="flex items-center gap-1 text-xs text-brand-600 hover:underline">
+            <IconX size={12} stroke={2.5} />
+            Limpiar
+          </button>
         )}
       </div>
 
@@ -171,11 +181,12 @@ export default function CotizacionesFormalesPage() {
         <p className="text-sm text-slate-400">Cargando...</p>
       ) : listado.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
-          <p className="text-2xl mb-3">📄</p>
+          <IconFileText size={28} stroke={1.5} className="text-slate-300 mx-auto mb-3" />
           <p className="text-sm text-slate-500 mb-4">No hay cotizaciones formales aún.</p>
           <Link href="/dashboard/cotizaciones-formales/nueva"
-            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-            + Nueva cotización
+            className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
+            <IconFilePlus size={16} stroke={1.75} />
+            Nueva cotización
           </Link>
         </div>
       ) : (
@@ -198,14 +209,14 @@ export default function CotizacionesFormalesPage() {
                 <tr key={c.id} className="hover:bg-slate-50 transition-colors group">
                   <td className="px-4 py-1">
                     <Link href={`/dashboard/cotizaciones-formales/${c.id}`}>
-                      <span className="font-mono text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg">
+                      <span className="font-mono text-xs font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-lg">
                         #{String(c.numero).padStart(4, "0")}
                       </span>
                     </Link>
                   </td>
                   <td className="px-4 py-1">
                     <Link href={`/dashboard/cotizaciones-formales/${c.id}`} className="block">
-                      <p className="font-medium text-slate-900 group-hover:text-blue-600">{c.empresa?.nombre ?? <span className="text-slate-400 italic text-xs">Sin cliente</span>}</p>
+                      <p className="font-medium text-slate-900 group-hover:text-brand-600">{c.empresa?.nombre ?? <span className="text-slate-400 italic text-xs">Sin cliente</span>}</p>
                       {c.contacto && <p className="text-xs text-slate-400">{c.contacto.nombre}</p>}
                     </Link>
                   </td>

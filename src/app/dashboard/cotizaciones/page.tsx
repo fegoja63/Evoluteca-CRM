@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { KpiCard } from "@/components/kpi-card";
+import {
+  IconFilePlus, IconSearch, IconX, IconDownload, IconChartFunnel,
+  IconTarget, IconCircleCheck, IconFileText, IconArrowsExchange,
+  type Icon,
+} from "@tabler/icons-react";
 
 type Oportunidad = {
   id: string;
@@ -232,29 +236,41 @@ export default function CotizacionesPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Cotizaciones activas</h1>
           <p className="text-slate-500 text-sm mt-1">Negocios en curso — todo lo que está por cerrar o perder</p>
         </div>
         <Link href="/dashboard/cotizaciones-formales/nueva"
-          className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-          + Nueva cotización
+          className="inline-flex items-center gap-1.5 self-start rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 sm:self-auto">
+          <IconFilePlus size={16} stroke={1.75} />
+          Nueva cotización
         </Link>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
-        <KpiCard label="En negociación" valor={activas.length} emoji="🔄" color="bg-blue-500"
-          sub={fmt(valorTotal) + " potencial"} />
-        <KpiCard label="Prospecto" valor={conteoEtapas.PROSPECTO} emoji="🎯" color="bg-slate-500"
-          sub={valorEtapas.PROSPECTO > 0 ? fmt(valorEtapas.PROSPECTO) : undefined} />
-        <KpiCard label="Calificado" valor={conteoEtapas.CALIFICADO} emoji="✅" color="bg-blue-400"
-          sub={valorEtapas.CALIFICADO > 0 ? fmt(valorEtapas.CALIFICADO) : undefined} />
-        <KpiCard label="Cotización" valor={conteoEtapas.PROPUESTA} emoji="📄" color="bg-violet-500"
-          sub={valorEtapas.PROPUESTA > 0 ? fmt(valorEtapas.PROPUESTA) : undefined} />
-        <KpiCard label="Negociación" valor={conteoEtapas.NEGOCIACION} emoji="🤝" color="bg-amber-500"
-          sub={valorEtapas.NEGOCIACION > 0 ? fmt(valorEtapas.NEGOCIACION) : undefined} />
+        {([
+          { label: "En negociación", valor: activas.length, sub: fmt(valorTotal) + " potencial", icon: IconChartFunnel, ibg: "bg-brand-50", itxt: "text-brand-600" },
+          { label: "Prospecto", valor: conteoEtapas.PROSPECTO, sub: valorEtapas.PROSPECTO > 0 ? fmt(valorEtapas.PROSPECTO) : undefined, icon: IconTarget, ibg: "bg-slate-100", itxt: "text-slate-600" },
+          { label: "Calificado", valor: conteoEtapas.CALIFICADO, sub: valorEtapas.CALIFICADO > 0 ? fmt(valorEtapas.CALIFICADO) : undefined, icon: IconCircleCheck, ibg: "bg-blue-50", itxt: "text-blue-600" },
+          { label: "Cotización", valor: conteoEtapas.PROPUESTA, sub: valorEtapas.PROPUESTA > 0 ? fmt(valorEtapas.PROPUESTA) : undefined, icon: IconFileText, ibg: "bg-violet-50", itxt: "text-violet-600" },
+          { label: "Negociación", valor: conteoEtapas.NEGOCIACION, sub: valorEtapas.NEGOCIACION > 0 ? fmt(valorEtapas.NEGOCIACION) : undefined, icon: IconArrowsExchange, ibg: "bg-amber-50", itxt: "text-amber-600" },
+        ] as { label: string; valor: number; sub?: string; icon: Icon; ibg: string; itxt: string }[]).map(k => {
+          const Icono = k.icon;
+          return (
+            <div key={k.label} className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm">
+              <div className="flex items-start justify-between mb-3">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${k.ibg}`}>
+                  <Icono size={18} stroke={1.75} className={k.itxt} />
+                </div>
+              </div>
+              <p className="text-2xl font-extrabold text-slate-900 leading-none">{k.valor}</p>
+              <p className="text-xs font-semibold text-slate-700 mt-1">{k.label}</p>
+              {k.sub && <p className="text-xs text-slate-400 mt-0.5">{k.sub}</p>}
+            </div>
+          );
+        })}
       </div>
 
       {/* ── Antigüedad de cotizaciones vigentes ── */}
@@ -265,8 +281,9 @@ export default function CotizacionesPage() {
             <p className="text-xs text-slate-400 mt-0.5">Solo incluye cotizaciones activas (excluye ganadas y perdidas)</p>
           </div>
           {filtroEdad !== "TODAS" && (
-            <button onClick={() => setFiltroEdad("TODAS")} className="text-xs text-blue-600 hover:underline">
-              × Limpiar filtro
+            <button onClick={() => setFiltroEdad("TODAS")} className="flex items-center gap-1 text-xs text-brand-600 hover:underline">
+              <IconX size={12} stroke={2.5} />
+              Limpiar filtro
             </button>
           )}
         </div>
@@ -282,12 +299,12 @@ export default function CotizacionesPage() {
                 key={b.key}
                 onClick={() => { setFiltroEdad(activo ? "TODAS" : b.key); setFiltroEtapa("TODAS"); }}
                 className={`text-left rounded-xl p-4 border-2 transition-all ${
-                  activo ? "border-blue-500 bg-blue-50" : "border-slate-100 hover:border-slate-300"
+                  activo ? "border-brand-500 bg-brand-50" : "border-slate-100 hover:border-slate-300"
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-semibold text-slate-500">{b.label}</span>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${activo ? "bg-blue-600 text-white" : b.colorPill}`}>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${activo ? "bg-accent-600 text-white" : b.colorPill}`}>
                     {n}
                   </span>
                 </div>
@@ -336,7 +353,9 @@ export default function CotizacionesPage() {
         <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-slate-800">Nueva cotización</h2>
-            <button onClick={() => setMostrarForm(false)} className="text-slate-400 hover:text-slate-600 text-lg leading-none">×</button>
+            <button onClick={() => setMostrarForm(false)} className="text-slate-400 hover:text-slate-600">
+              <IconX size={18} stroke={1.75} />
+            </button>
           </div>
           <form onSubmit={handleGuardar}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
@@ -345,13 +364,13 @@ export default function CotizacionesPage() {
                 <label className="mb-1 block text-xs text-slate-500">Tipo de evento / Negocio *</label>
                 <input required placeholder="Ej: Graduación Universidad Nacional" value={form.titulo}
                   onChange={e => setForm({ ...form, titulo: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               </div>
 
               <div>
                 <label className="mb-1 block text-xs text-slate-500">Empresa / Cliente</label>
                 <select value={form.empresaId} onChange={e => setForm({ ...form, empresaId: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
                   <option value="">Sin empresa</option>
                   {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
                 </select>
@@ -360,7 +379,7 @@ export default function CotizacionesPage() {
               <div>
                 <label className="mb-1 block text-xs text-slate-500">Contacto</label>
                 <select value={form.contactoId} onChange={e => setForm({ ...form, contactoId: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
                   <option value="">Sin contacto</option>
                   {contactos.map(c => <option key={c.id} value={c.id}>{c.nombre}{c.email ? ` — ${c.email}` : ""}</option>)}
                 </select>
@@ -369,26 +388,26 @@ export default function CotizacionesPage() {
               <div>
                 <label className="mb-1 block text-xs text-slate-500">Fecha del evento</label>
                 <input type="date" value={form.fechaEvento} onChange={e => setForm({ ...form, fechaEvento: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               </div>
 
               <div>
                 <label className="mb-1 block text-xs text-slate-500">Sede / Sala</label>
                 <input placeholder="Ej: Sala Principal" value={form.sede} onChange={e => setForm({ ...form, sede: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               </div>
 
               <div>
                 <label className="mb-1 block text-xs text-slate-500">Valor cotizado (COP)</label>
                 <input type="number" step="1000" placeholder="0" value={form.valor}
                   onChange={e => setForm({ ...form, valor: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               </div>
 
               <div>
                 <label className="mb-1 block text-xs text-slate-500">Etapa</label>
                 <select value={form.etapa} onChange={e => setForm({ ...form, etapa: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
                   {ETAPAS_ACTIVAS.map(e => <option key={e} value={e}>{ETAPA_LABEL[e]}</option>)}
                 </select>
               </div>
@@ -397,7 +416,7 @@ export default function CotizacionesPage() {
                 <label className="mb-1 block text-xs text-slate-500">Notas</label>
                 <input placeholder="Observaciones, condiciones, etc." value={form.notas}
                   onChange={e => setForm({ ...form, notas: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               </div>
             </div>
 
@@ -407,7 +426,7 @@ export default function CotizacionesPage() {
                 Cancelar
               </button>
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                 {guardando ? "Guardando..." : "Guardar cotización"}
               </button>
             </div>
@@ -448,41 +467,43 @@ export default function CotizacionesPage() {
         </div>
 
         {/* Búsqueda libre + Export */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 max-w-sm">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="relative w-full sm:max-w-sm">
+            <IconSearch size={15} stroke={1.75} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Buscar por cliente, evento, N° cotización, mes, año..."
               value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 pl-8 pr-8 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
+              className="w-full rounded-xl border border-slate-200 pl-8 pr-8 py-2 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-100"
             />
             {busqueda && (
               <button onClick={() => setBusqueda("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-base leading-none">
-                ×
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
+                <IconX size={14} stroke={2} />
               </button>
             )}
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500">
+          <div className="flex flex-wrap items-center gap-3">
             {(busqueda || filtroEtapa !== "TODAS") && (
-              <>
+              <div className="flex items-center gap-2 text-xs text-slate-500">
                 <span>{listado.length} de {cotizaciones.length}</span>
                 <button onClick={() => { setBusqueda(""); setFiltroEtapa("TODAS"); }}
-                  className="text-blue-600 hover:underline">
-                  × Limpiar todo
+                  className="flex items-center gap-1 text-brand-600 hover:underline">
+                  <IconX size={12} stroke={2.5} />
+                  Limpiar todo
                 </button>
-              </>
+              </div>
             )}
+            <button
+              onClick={exportarExcel}
+              disabled={exportando || cotizaciones.length === 0}
+              className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50 transition-colors"
+            >
+              <IconDownload size={16} stroke={1.75} />
+              {exportando ? "Generando..." : "Exportar Excel"}
+            </button>
           </div>
-          <button
-            onClick={exportarExcel}
-            disabled={exportando || cotizaciones.length === 0}
-            className="ml-auto flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50 transition-colors"
-          >
-            {exportando ? "Generando..." : "↓ Exportar Excel"}
-          </button>
         </div>
       </div>
 
@@ -493,8 +514,9 @@ export default function CotizacionesPage() {
         <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
           <p className="text-sm text-slate-500 mb-3">No hay cotizaciones activas en esta etapa.</p>
           <Link href="/dashboard/cotizaciones-formales/nueva"
-            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-            + Nueva cotización
+            className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
+            <IconFilePlus size={16} stroke={1.75} />
+            Nueva cotización
           </Link>
         </div>
       ) : (
@@ -517,13 +539,13 @@ export default function CotizacionesPage() {
                   <td className="px-4 py-1 whitespace-nowrap">
                     <Link href={`/dashboard/pipeline/${o.id}`} className="block">
                       {o.extras?.["COTIZACION NUMERO"]
-                        ? <span className="font-mono text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg">{o.extras["COTIZACION NUMERO"]}</span>
+                        ? <span className="font-mono text-xs font-semibold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-lg">{o.extras["COTIZACION NUMERO"]}</span>
                         : <span className="text-slate-400 text-xs">—</span>}
                     </Link>
                   </td>
                   <td className="px-4 py-1">
                     <Link href={`/dashboard/pipeline/${o.id}`} className="block">
-                      <p className="font-medium text-slate-900 group-hover:text-blue-600 transition-colors">
+                      <p className="font-medium text-slate-900 group-hover:text-brand-600 transition-colors">
                         {o.empresa?.nombre ?? <span className="text-slate-400 italic text-xs">Sin empresa</span>}
                       </p>
                       {o.contacto && <p className="text-xs text-slate-400 mt-0.5">{o.contacto.nombre}</p>}

@@ -35,7 +35,7 @@ export function Fab() {
       )}
       <button
         onClick={() => setAbierto(!abierto)}
-        className={`relative z-50 w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-200 ${abierto ? "bg-slate-700 text-white rotate-45" : "bg-brand-600 text-white hover:bg-brand-700"}`}>
+        className={`relative z-50 w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-200 ${abierto ? "bg-slate-700 text-white rotate-45" : "bg-accent-600 text-white hover:bg-accent-700"}`}>
         <IconPlus size={26} stroke={2} />
       </button>
     </div>

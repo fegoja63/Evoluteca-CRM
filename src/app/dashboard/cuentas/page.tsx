@@ -3,8 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { KpiCard } from "@/components/kpi-card";
 import { Pager } from "@/components/pager";
+import {
+  IconBuilding, IconUsers, IconAlertTriangle, IconLink, IconBuildingPlus, IconX,
+  type Icon,
+} from "@tabler/icons-react";
 
 const TAKE = 30;
 
@@ -118,10 +121,26 @@ export default function ClientesPage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <KpiCard label="Total clientes" valor={stats.total} emoji="🏢" color="bg-blue-500" />
-        <KpiCard label="Con contactos" valor={stats.conContactos} emoji="👤" color="bg-violet-500" />
-        <KpiCard label="Sin contactos" valor={stats.sinContactos} emoji="⚠️" color="bg-amber-500" sub="Requieren seguimiento" />
-        <KpiCard label="Contactos vinculados" valor={stats.contactosVinculados} emoji="🔗" color="bg-emerald-500" />
+        {([
+          { label: "Total clientes", valor: stats.total, icon: IconBuilding, semantic: false },
+          { label: "Con contactos", valor: stats.conContactos, icon: IconUsers, semantic: false },
+          { label: "Sin contactos", valor: stats.sinContactos, sub: "Requieren seguimiento", icon: IconAlertTriangle, semantic: true },
+          { label: "Contactos vinculados", valor: stats.contactosVinculados, icon: IconLink, semantic: false },
+        ] as { label: string; valor: number; sub?: string; icon: Icon; semantic: boolean }[]).map(k => {
+          const Icono = k.icon;
+          return (
+            <div key={k.label} className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm">
+              <div className="flex items-start justify-between mb-3">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${k.semantic ? "bg-amber-50" : "bg-brand-50"}`}>
+                  <Icono size={18} stroke={1.75} className={k.semantic ? "text-amber-600" : "text-brand-600"} />
+                </div>
+              </div>
+              <p className="text-2xl font-extrabold text-slate-900 leading-none">{k.valor}</p>
+              <p className="text-xs font-semibold text-slate-700 mt-1">{k.label}</p>
+              {k.sub && <p className="text-xs text-slate-400 mt-0.5">{k.sub}</p>}
+            </div>
+          );
+        })}
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
@@ -131,12 +150,12 @@ export default function ClientesPage() {
             placeholder="Buscar por nombre..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 pr-8 text-sm outline-none focus:border-blue-500"
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 pr-8 text-sm outline-none focus:border-brand-500"
           />
           {busqueda && (
             <button onClick={() => setBusqueda("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-lg leading-none">
-              ×
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
+              <IconX size={14} stroke={2} />
             </button>
           )}
         </div>
@@ -147,9 +166,10 @@ export default function ClientesPage() {
           </a>
           <button
             onClick={() => setMostrarForm(true)}
-            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 inline-flex items-center gap-1.5"
           >
-            + Nuevo cliente
+            <IconBuildingPlus size={16} stroke={1.75} />
+            Nuevo cliente
           </button>
         </div>
       </div>
@@ -162,14 +182,15 @@ export default function ClientesPage() {
           <div className="flex flex-wrap gap-1.5 mb-4">
             {todasEtiquetas.map(tag => (
               <button key={tag} onClick={() => setFiltroEtiqueta(filtroEtiqueta === tag ? "" : tag)}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${filtroEtiqueta === tag ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${filtroEtiqueta === tag ? "bg-brand-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
                 {tag}
               </button>
             ))}
             {filtroEtiqueta && (
               <button onClick={() => setFiltroEtiqueta("")}
-                className="rounded-full bg-red-100 text-red-600 border border-red-200 px-3 py-1 text-xs font-semibold hover:bg-red-200 transition-colors">
-                × Limpiar filtro
+                className="rounded-full bg-red-100 text-red-600 border border-red-200 px-3 py-1 text-xs font-semibold hover:bg-red-200 transition-colors inline-flex items-center gap-1">
+                <IconX size={12} stroke={2.5} />
+                Limpiar filtro
               </button>
             )}
           </div>
@@ -183,22 +204,22 @@ export default function ClientesPage() {
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Nombre *</label>
               <input required value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Email</label>
               <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Teléfono</label>
               <input value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Sector</label>
               <select value={form.sector} onChange={e => setForm({ ...form, sector: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white">
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
                 <option value="">Sin sector</option>
                 {SECTORES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -206,36 +227,36 @@ export default function ClientesPage() {
             <div>
               <label className="mb-1 block text-xs text-slate-500">Sitio web</label>
               <input value={form.sitioWeb} onChange={e => setForm({ ...form, sitioWeb: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })} rows={2}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
 
-            <div className="col-span-2 mt-1 rounded-lg border border-blue-200 bg-blue-50 p-3">
-              <p className="text-xs font-semibold text-blue-800 mb-2">Contacto de este cliente (opcional)</p>
+            <div className="col-span-2 mt-1 rounded-lg border border-brand-200 bg-brand-50 p-3">
+              <p className="text-xs font-semibold text-brand-800 mb-2">Contacto de este cliente (opcional)</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input type="text" placeholder="Nombre del contacto" value={nuevoContactoForm.nombre}
                   onChange={e => setNuevoContactoForm(f => ({ ...f, nombre: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500 bg-white" />
+                  className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500 bg-white" />
                 <input type="text" placeholder="Cargo" value={nuevoContactoForm.cargo}
                   onChange={e => setNuevoContactoForm(f => ({ ...f, cargo: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500 bg-white" />
+                  className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500 bg-white" />
                 <input type="email" placeholder="Email" value={nuevoContactoForm.email}
                   onChange={e => setNuevoContactoForm(f => ({ ...f, email: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500 bg-white" />
+                  className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500 bg-white" />
                 <input type="text" placeholder="Teléfono" value={nuevoContactoForm.telefono}
                   onChange={e => setNuevoContactoForm(f => ({ ...f, telefono: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500 bg-white" />
+                  className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500 bg-white" />
               </div>
               <p className="mt-2 text-[11px] text-slate-500">Si escribes un nombre, se creará automáticamente vinculado a este cliente al guardar. Puedes dejarlo en blanco.</p>
             </div>
 
             {duplicados.length > 0 && (
               <div className="col-span-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                <p className="font-semibold mb-1">⚠️ Posible duplicado detectado:</p>
+                <p className="font-semibold mb-1 flex items-center gap-1.5"><IconAlertTriangle size={13} stroke={1.75} />Posible duplicado detectado:</p>
                 <ul className="space-y-0.5">
                   {duplicados.map(d => (
                     <li key={d.id}>
@@ -250,7 +271,7 @@ export default function ClientesPage() {
             )}
             <div className="col-span-2 flex gap-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                 {guardando ? "Guardando..." : duplicados.length > 0 ? "Guardar de todas formas" : "Guardar"}
               </button>
               <button type="button" onClick={() => setMostrarForm(false)}
@@ -286,7 +307,7 @@ export default function ClientesPage() {
               {empresas.filter(e => !filtroEtiqueta || (e.etiquetas ?? []).includes(filtroEtiqueta)).map((e) => (
                 <tr key={e.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-1 font-medium text-slate-900">
-                    <Link href={`/dashboard/cuentas/${e.id}`} className="hover:text-blue-600 hover:underline">
+                    <Link href={`/dashboard/cuentas/${e.id}`} className="hover:text-brand-600 hover:underline">
                       {e.nombre}
                     </Link>
                   </td>

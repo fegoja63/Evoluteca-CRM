@@ -16,6 +16,7 @@ import { TimelineCliente } from "@/components/timeline-cliente";
 import { NotasRapidas } from "@/components/notas-rapidas";
 import { Etiquetas } from "@/components/etiquetas";
 import { WhatsAppBtn } from "@/components/whatsapp-btn";
+import { IconPhone, IconMail, IconUsers, type Icon } from "@tabler/icons-react";
 
 type Detalle = {
   id: string;
@@ -131,22 +132,22 @@ export default function FichaClientePage() {
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Nombre *</label>
               <input required value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Email</label>
               <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Teléfono</label>
               <input value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Sector</label>
               <select value={form.sector} onChange={e => setForm({ ...form, sector: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white">
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
                 <option value="">Sin sector</option>
                 {SECTORES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -154,16 +155,16 @@ export default function FichaClientePage() {
             <div>
               <label className="mb-1 block text-xs text-slate-500">Sitio web</label>
               <input value={form.sitioWeb} onChange={e => setForm({ ...form, sitioWeb: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })} rows={3}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div className="col-span-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                 {guardando ? "Guardando..." : "Guardar cambios"}
               </button>
             </div>
@@ -255,18 +256,21 @@ export default function FichaClientePage() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-slate-800">Actividades ({empresa.actividades.length})</h2>
             <div className="flex gap-1">
-              {[
-                { tipo: "LLAMADA", icon: "📞", label: "Llamada" },
-                { tipo: "EMAIL",   icon: "✉️",  label: "Email" },
-                { tipo: "REUNION", icon: "🤝", label: "Reunión" },
-              ].map(q => (
-                <button key={q.tipo}
-                  onClick={() => { setQuickTipo(q.tipo); setQuickKey(k => k + 1); }}
-                  title={`Registrar ${q.label}`}
-                  className="rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
-                  {q.icon}
-                </button>
-              ))}
+              {([
+                { tipo: "LLAMADA", icon: IconPhone, label: "Llamada" },
+                { tipo: "EMAIL",   icon: IconMail,  label: "Email" },
+                { tipo: "REUNION", icon: IconUsers, label: "Reunión" },
+              ] as { tipo: string; icon: Icon; label: string }[]).map(q => {
+                const Icono = q.icon;
+                return (
+                  <button key={q.tipo}
+                    onClick={() => { setQuickTipo(q.tipo); setQuickKey(k => k + 1); }}
+                    title={`Registrar ${q.label}`}
+                    className="rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:border-brand-400 hover:text-brand-600 hover:bg-brand-50 transition-colors">
+                    <Icono size={14} stroke={1.75} />
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div className="flex flex-col gap-1 text-sm mb-3">
@@ -297,7 +301,7 @@ export default function FichaClientePage() {
                 const total = c.items.reduce((acc, it) => acc + it.cantidad * Number(it.precioUnit), 0);
                 return (
                   <li key={c.id} className="text-slate-700">
-                    <Link href={`/dashboard/cotizaciones-formales/${c.id}`} className="hover:text-blue-600">
+                    <Link href={`/dashboard/cotizaciones-formales/${c.id}`} className="hover:text-brand-600">
                       #{c.numero}
                     </Link>
                     <span className="text-slate-400 text-xs ml-1">· {c.estado}</span>
