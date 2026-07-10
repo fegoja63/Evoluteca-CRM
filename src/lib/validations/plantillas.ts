@@ -13,6 +13,9 @@ export const crearPlantillaSchema = z.object({
   items: z.array(itemSchema).optional().default([]),
 });
 
-export const renombrarPlantillaSchema = z.object({
+// PATCH acepta un renombre solo (nombre) o una edición completa (nombre +
+// items, donde items reemplaza la lista entera de ítems de la plantilla).
+export const editarPlantillaSchema = z.object({
   nombre: nombreRequerido(2, 200),
+  items: z.array(itemSchema).optional(),
 });
