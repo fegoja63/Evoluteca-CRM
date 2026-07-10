@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { crearPlantillaSchema } from "@/lib/validations/plantillas";
+import { parseOrError } from "@/lib/validations/helpers";
 
 // GET — listar plantillas del tenant
 export async function GET() {
@@ -21,8 +23,10 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-  const { nombre, notas, items } = await req.json();
-  if (!nombre?.trim()) return NextResponse.json({ error: "Nombre requerido" }, { status: 400 });
+  const body = await req.json();
+  const { data, error } = parseOrError(crearPlantillaSchema, body);
+  if (error) return error;
+  const { nombre, notas, items } = data;
 
   const plantilla = await prisma.plantillaCotizacion.create({
     data: {
@@ -30,8 +34,8 @@ export async function POST(req: Request) {
       notas: notas?.trim() || null,
       tenantId: session.user.tenantId,
       items: {
-        create: (items ?? []).map((it: { descripcion: string; cantidad: number; precioUnit: number }) => ({
-          descripcion: it.descripcion,
+        create: items.map(it => ({
+          descripcion: it.descripcion.trim(),
           cantidad: it.cantidad ?? 1,
           precioUnit: it.precioUnit ?? 0,
         })),

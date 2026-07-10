@@ -19,6 +19,7 @@ const navBase = [
   { href: "/dashboard/cotizaciones", label: "Cotizaciones", emoji: "📄" },
   { href: "/dashboard/cotizaciones-formales", label: "Nueva cotización", emoji: "📋" },
   { href: "/dashboard/catalogo", label: "Catálogo", emoji: "📦" },
+  { href: "/dashboard/plantillas", label: "Plantillas", emoji: "📋" },
   { href: "/dashboard/reportes", label: "Reportes", emoji: "📊" },
   { href: "/dashboard/equipo", label: "Equipo", emoji: "👥" },
 ];

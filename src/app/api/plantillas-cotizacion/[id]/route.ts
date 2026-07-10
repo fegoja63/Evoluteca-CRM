@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
+import { renombrarPlantillaSchema } from "@/lib/validations/plantillas";
+import { parseOrError } from "@/lib/validations/helpers";
 
 // DELETE — eliminar plantilla
 export async function DELETE(
@@ -31,8 +33,10 @@ export async function PATCH(
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-  const { nombre } = await req.json();
-  if (!nombre?.trim()) return NextResponse.json({ error: "Nombre requerido" }, { status: 400 });
+  const body = await req.json();
+  const { data, error } = parseOrError(renombrarPlantillaSchema, body);
+  if (error) return error;
+  const { nombre } = data;
 
   const existente = await prisma.plantillaCotizacion.findFirst({
     where: { id: params.id, tenantId: session.user.tenantId },
