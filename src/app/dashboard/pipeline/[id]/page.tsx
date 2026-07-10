@@ -16,6 +16,7 @@ type Oportunidad = {
   titulo: string;
   valor: string | null;
   etapa: string;
+  motivoPerdida: string | null;
   notas: string | null;
   creadoEn: string;
   fechaCierre: string | null;
@@ -149,7 +150,7 @@ export default function OportunidadDetallePage() {
     await fetch(`/api/oportunidades/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ etapa: "PERDIDA", notas: motivo ? `[MOTIVO DE PÉRDIDA] ${motivo}${op?.notas ? `\n\n${op.notas}` : ""}` : op?.notas }),
+      body: JSON.stringify({ etapa: "PERDIDA", motivoPerdida: motivo || "" }),
     });
     setModalPerdida(false);
     setMotivoPerdida("");
@@ -308,6 +309,11 @@ export default function OportunidadDetallePage() {
                 <h1 className="text-xl font-bold text-slate-900">{op.titulo}</h1>
                 {op.extras?.["COTIZACION NUMERO"] && (
                   <p className="text-sm text-slate-400 mt-0.5">{op.extras["COTIZACION NUMERO"]}</p>
+                )}
+                {op.etapa === "PERDIDA" && op.motivoPerdida && (
+                  <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                    <IconMoodSad size={14} stroke={1.75} />Motivo: {op.motivoPerdida}
+                  </p>
                 )}
               </div>
               <div className="flex gap-2 shrink-0">

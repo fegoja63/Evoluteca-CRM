@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     prisma.contacto.count({ where: { tenantId } }),
     prisma.oportunidad.findMany({
       where: { tenantId, ...ownerFiltro, ...vendedorFiltro },
-      select: { etapa: true, valor: true, probabilidad: true, fechaCierre: true, fechaEvento: true, creadoEn: true, extras: true, creadoBy: true, empresa: { select: { nombre: true } } },
+      select: { etapa: true, valor: true, probabilidad: true, fechaCierre: true, fechaEvento: true, creadoEn: true, extras: true, creadoBy: true, motivoPerdida: true, empresa: { select: { nombre: true } } },
     }),
     prisma.actividad.count({ where: { tenantId, completada: false, ...ownerFiltro } }),
   ]);
@@ -142,6 +142,17 @@ export async function GET(request: Request) {
     .sort((a, b) => b.valorGanado - a.valorGanado)
     .slice(0, 5);
 
+  // ── Motivos de pérdida (del período filtrado) ──
+  const motivoMap = new Map<string, number>();
+  for (const o of oportunidades) {
+    if (o.etapa !== "PERDIDA") continue;
+    const motivo = o.motivoPerdida?.trim() || "Sin especificar";
+    motivoMap.set(motivo, (motivoMap.get(motivo) ?? 0) + 1);
+  }
+  const motivosPerdida = Array.from(motivoMap.entries())
+    .map(([motivo, cantidad]) => ({ motivo, cantidad }))
+    .sort((a, b) => b.cantidad - a.cantidad);
+
   return NextResponse.json({
     totalEmpresas,
     totalContactos,
@@ -161,6 +172,7 @@ export async function GET(request: Request) {
     porMes,
     anioParaMes,
     topClientes,
+    motivosPerdida,
     valorPonderado,
     forecastPorEtapa,
     filtro: { anio: anioFiltro, mes: mesFiltro, vendedor: vendedorParam },

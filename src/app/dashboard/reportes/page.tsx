@@ -19,6 +19,7 @@ type ResMes  = { ganadas: number; perdidas: number; valorGanado: number; total: 
 type Meta    = { id: string; anio: number; mes: number | null; valorObjetivo: string; calculada?: boolean; mesesConfigurados?: number };
 
 type TopCliente = { nombre: string; valorGanado: number; ganadas: number; total: number };
+type MotivoPerdida = { motivo: string; cantidad: number };
 
 type ForecastEtapa = { cantidad: number; valorBruto: number; valorPonderado: number; probPromedio: number };
 
@@ -41,6 +42,7 @@ type Reporte = {
   porMes: Record<number, ResMes>;
   anioParaMes: number;
   topClientes: TopCliente[];
+  motivosPerdida: MotivoPerdida[];
   valorPonderado: number;
   forecastPorEtapa: Record<string, ForecastEtapa>;
   filtro: { anio: number | null; mes: number | null; vendedor: string | null };
@@ -611,6 +613,32 @@ export default function ReportesPage() {
                   </div>
                   <div className="w-24 text-right shrink-0">
                     <span className="text-sm font-bold text-emerald-700">{fmtK(c.valorGanado)}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── MOTIVOS DE PÉRDIDA ── */}
+      {r.motivosPerdida.length > 0 && (
+        <div className="mt-6 bg-white rounded-2xl border border-slate-200 p-6">
+          <h2 className="text-base font-bold text-slate-900 mb-4">Motivos de pérdida</h2>
+          <div className="flex flex-col gap-2">
+            {r.motivosPerdida.map(m => {
+              const maxCant = r.motivosPerdida[0].cantidad || 1;
+              const pct = (m.cantidad / maxCant) * 100;
+              return (
+                <div key={m.motivo} className="flex items-center gap-4">
+                  <div className="w-48 shrink-0">
+                    <p className="text-sm font-medium text-slate-800 truncate">{m.motivo}</p>
+                  </div>
+                  <div className="flex-1 relative h-6 bg-slate-50 rounded-xl overflow-hidden">
+                    <div className="h-full rounded-xl bg-red-400" style={{ width: `${Math.max(pct, 3)}%`, opacity: 0.8 }} />
+                  </div>
+                  <div className="w-16 text-right shrink-0">
+                    <span className="text-sm font-bold text-red-600">{m.cantidad}</span>
                   </div>
                 </div>
               );

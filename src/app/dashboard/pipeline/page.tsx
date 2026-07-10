@@ -22,6 +22,7 @@ type Oportunidad = {
   contacto: { id: string; nombre: string } | null;
   extras: Record<string, string> | null;
   creadoBy: string | null;
+  motivoPerdida: string | null;
 };
 
 function diasDesde(fecha: string): number {
@@ -226,11 +227,17 @@ export default function PipelinePage() {
   }
 
   async function cambiarEtapa(id: string, etapa: string) {
-    setOportunidades(prev => prev.map(o => o.id === id ? { ...o, etapa } : o));
+    let motivoPerdida: string | undefined;
+    if (etapa === "PERDIDA") {
+      const motivo = prompt("¿Por qué se perdió esta oportunidad? (opcional)");
+      if (motivo === null) return; // canceló el prompt, no mover la tarjeta
+      motivoPerdida = motivo.trim();
+    }
+    setOportunidades(prev => prev.map(o => o.id === id ? { ...o, etapa, ...(motivoPerdida !== undefined ? { motivoPerdida } : {}) } : o));
     await fetch(`/api/oportunidades/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ etapa }),
+      body: JSON.stringify({ etapa, ...(motivoPerdida !== undefined ? { motivoPerdida } : {}) }),
     });
   }
 

@@ -168,6 +168,7 @@ model Oportunidad {
   valor         Decimal?          @db.Decimal(12, 2)
   costo         Decimal?          @db.Decimal(12, 2)
   etapa         EtapaOportunidad  @default(PROSPECTO)
+  motivoPerdida String?
   fechaEvento   DateTime?
   horaInicio    String?
   horaFin       String?
