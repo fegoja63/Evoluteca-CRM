@@ -62,6 +62,11 @@ export async function DELETE(
     return NextResponse.json({ error: "No tienes permiso para eliminar" }, { status: 403 });
   }
 
+  const tenant = await prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { modulos: true } });
+  if (!moduloActivo(tenant?.modulos, "expedientes")) {
+    return NextResponse.json({ error: "El módulo Expedientes no está activo" }, { status: 403 });
+  }
+
   const { eventoId } = await req.json();
   await prisma.eventoExpediente.deleteMany({
     where: { id: eventoId, tenantId: session.user.tenantId, expedienteId: params.id },
