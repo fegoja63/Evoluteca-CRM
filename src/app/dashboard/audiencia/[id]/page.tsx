@@ -116,7 +116,7 @@ export default function FichaEspectadorPage() {
   if (cargando) return (
     <div className="flex items-center justify-center h-64">
       <div className="flex gap-1">{[0,1,2].map(i => (
-        <div key={i} className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />
+        <div key={i} className="w-2 h-2 rounded-full bg-brand-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />
       ))}</div>
     </div>
   );
@@ -129,7 +129,7 @@ export default function FichaEspectadorPage() {
   return (
     <div className="max-w-3xl">
       <div className="flex items-center gap-2 text-sm text-slate-400 mb-5">
-        <Link href="/dashboard/audiencia" className="hover:text-blue-600 transition-colors">← Audiencia</Link>
+        <Link href="/dashboard/audiencia" className="hover:text-brand-600 transition-colors">← Audiencia</Link>
         <span>/</span>
         <span className="text-slate-600">{esp.nombre}</span>
       </div>
@@ -165,40 +165,40 @@ export default function FichaEspectadorPage() {
             <div className="col-span-2">
               <label className="text-xs text-slate-500 mb-1 block">Nombre *</label>
               <input required value={form.nombre} onChange={e => setForm({...form, nombre: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Email</label>
               <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Teléfono</label>
               <input value={form.telefono} onChange={e => setForm({...form, telefono: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Segmento</label>
               <select value={form.segmento} onChange={e => setForm({...form, segmento: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white">
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
                 {Object.entries(SEGMENTOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Club Belarte</label>
               <select value={form.nivelMembresia} onChange={e => setForm({...form, nivelMembresia: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white">
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
                 {MEMBRESIAS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
               </select>
             </div>
             <div className="col-span-2">
               <label className="text-xs text-slate-500 mb-1 block">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({...form, notas: e.target.value})} rows={2}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div className="col-span-2 flex gap-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                 {guardando ? "Guardando..." : "Guardar"}
               </button>
             </div>
@@ -247,7 +247,7 @@ export default function FichaEspectadorPage() {
             {esp.asistencias.map(a => (
               <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">
                 {a.funcion ? (
-                  <Link href={`/dashboard/funciones/${a.funcion.id}`} className="text-sm font-medium text-blue-600 hover:underline">
+                  <Link href={`/dashboard/funciones/${a.funcion.id}`} className="text-sm font-medium text-brand-600 hover:underline">
                     {a.funcion.titulo}
                   </Link>
                 ) : <span className="text-sm text-slate-400">Función eliminada</span>}
@@ -278,7 +278,7 @@ export default function FichaEspectadorPage() {
                     <div className="flex items-center gap-2 mb-0.5">
                       {n.funcion && (
                         <Link href={`/dashboard/funciones/${n.funcion.id}`}
-                          className="text-sm font-medium text-blue-600 hover:underline">{n.funcion.titulo}</Link>
+                          className="text-sm font-medium text-brand-600 hover:underline">{n.funcion.titulo}</Link>
                       )}
                       <span className="text-xs text-slate-400 ml-auto">
                         {n.funcion ? new Date(n.funcion.fecha).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" }) : ""}

@@ -2,6 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import {
+  IconBuilding,
+  IconRefresh,
+  IconCurrencyDollar,
+  IconTargetArrow,
+  IconTarget,
+  IconClock,
+  IconCircleCheck,
+  IconX,
+  type Icon,
+} from "@tabler/icons-react";
 
 type ResAnio = { ganadas: number; perdidas: number; activas: number; valorGanado: number; valorPerdido: number; valorActivo: number; total: number };
 type ResMes  = { ganadas: number; perdidas: number; valorGanado: number; total: number };
@@ -103,7 +114,7 @@ export default function ReportesPage() {
   if (!r) return (
     <div className="flex items-center justify-center h-64">
       <div className="flex gap-1">{[0,1,2].map(i => (
-        <div key={i} className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />
+        <div key={i} className="w-2 h-2 rounded-full bg-brand-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />
       ))}</div>
     </div>
   );
@@ -193,13 +204,13 @@ export default function ReportesPage() {
             <p className="text-xs text-slate-400 mt-0.5">Valor ganado vs. meta configurada por año</p>
           </div>
           <div className="flex items-center gap-4 text-xs text-slate-500">
-            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-blue-500 inline-block" /> Ganado</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-500 inline-block" /> Ganado</span>
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-slate-400 inline-block" /> Meta anual</span>
           </div>
         </div>
         {!hayMetas ? (
           <p className="text-sm text-slate-400 text-center py-8">
-            Configura una meta anual (deja el mes en blanco) desde &quot;🎯 Configurar metas&quot; arriba para ver el cumplimiento por año.
+            Configura una meta anual (deja el mes en blanco) desde &quot;Configurar metas&quot; arriba para ver el cumplimiento por año.
           </p>
         ) : (
           <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
@@ -217,7 +228,7 @@ export default function ReportesPage() {
               const pctY = Math.max(8, topOfGroup - 16);
               return (
                 <g key={a}>
-                  <rect x={xGroup} y={yGanado} width={barW} height={barHGanado} rx={3} fill="#3b82f6" opacity={0.9} />
+                  <rect x={xGroup} y={yGanado} width={barW} height={barHGanado} rx={3} fill="#10b981" opacity={0.9} />
                   {metaV !== null && (
                     <rect x={xMeta} y={yMeta} width={barW} height={barHMeta} rx={3} fill="#94a3b8" opacity={0.9} />
                   )}
@@ -228,7 +239,7 @@ export default function ReportesPage() {
                     </text>
                   )}
                   {v > 0 && (
-                    <text x={xGroup + barW / 2} y={yGanado - 4} textAnchor="middle" fontSize={7} fill="#1d4ed8" fontWeight="700">
+                    <text x={xGroup + barW / 2} y={yGanado - 4} textAnchor="middle" fontSize={7} fill="#059669" fontWeight="700">
                       {fmtK(v)}
                     </text>
                   )}
@@ -277,8 +288,8 @@ export default function ReportesPage() {
             <span className="flex items-center gap-1"><span className="w-8 border-t-2 border-dashed border-amber-400 inline-block" /> Meta</span>
             {esAdmin && (
               <button onClick={() => setEditMeta(v => !v)}
-                className="ml-2 text-xs text-amber-600 border border-amber-200 rounded-lg px-2 py-0.5 hover:bg-amber-50">
-                {editMeta ? "× Cerrar metas" : "🎯 Configurar metas"}
+                className="ml-2 flex items-center gap-1 text-xs text-amber-600 border border-amber-200 rounded-lg px-2 py-0.5 hover:bg-amber-50">
+                {editMeta ? <><IconX size={13} stroke={1.75} /> Cerrar metas</> : <><IconTarget size={13} stroke={1.75} /> Configurar metas</>}
               </button>
             )}
           </div>
@@ -386,20 +397,20 @@ export default function ReportesPage() {
     <div className="min-h-screen bg-slate-50 pb-8">
 
       {/* ── HEADER ── */}
-      <div className="bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-900 px-8 py-8 mb-8 rounded-2xl">
-        <div className="flex items-start justify-between mb-6">
+      <div className="bg-gradient-to-br from-brand-800 via-brand-900 to-brand-950 px-8 py-8 mb-8 rounded-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
           <div>
-            <p className="text-blue-300 text-xs font-semibold uppercase tracking-widest mb-1">
+            <p className="text-brand-300 text-xs font-semibold uppercase tracking-widest mb-1">
               {new Date().toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
             </p>
             <h1 className="text-3xl font-bold text-white mb-1">Reporte comercial</h1>
-            <p className="text-blue-300 text-sm">Período: <span className="text-white font-medium">{periodoLabel}</span></p>
+            <p className="text-brand-300 text-sm">Período: <span className="text-white font-medium">{periodoLabel}</span></p>
           </div>
 
           {/* ── FILTROS ── */}
-          <div className="flex items-center gap-2 bg-white/10 border border-white/20 rounded-2xl px-4 py-1.5">
+          <div className="flex flex-wrap items-center gap-2 bg-white/10 border border-white/20 rounded-2xl px-4 py-1.5 self-start">
             <div>
-              <p className="text-blue-300 text-xs mb-1">Año</p>
+              <p className="text-brand-300 text-xs mb-1">Año</p>
               <select value={anio} onChange={e => { setAnio(e.target.value); setMes(""); cargar(e.target.value, ""); }}
                 className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1.5 outline-none cursor-pointer">
                 <option value="">Todos</option>
@@ -407,7 +418,7 @@ export default function ReportesPage() {
               </select>
             </div>
             <div>
-              <p className="text-blue-300 text-xs mb-1">Mes</p>
+              <p className="text-brand-300 text-xs mb-1">Mes</p>
               <select value={mes} onChange={e => {
                 const newMes = e.target.value;
                 setMes(newMes);
@@ -426,7 +437,7 @@ export default function ReportesPage() {
             </div>
             {(anio || mes) && (
               <button onClick={() => { setAnio(""); setMes(""); cargar("", ""); }}
-                className="mt-4 text-blue-300 hover:text-white text-xs underline">
+                className="mt-4 text-brand-300 hover:text-white text-xs underline">
                 Limpiar
               </button>
             )}
@@ -436,20 +447,23 @@ export default function ReportesPage() {
         {/* KPIs hero */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { label: "Clientes",       valor: r.totalEmpresas,       emoji: "🏢", sub: `${r.totalContactos} contactos` },
-            { label: "En negociación", valor: r.cantidadActiva,      emoji: "🔄", sub: fmtK(r.valorActivo) + " potencial" },
-            { label: "Valor ganado",   valor: fmtK(r.valorGanado),   emoji: "💰", sub: `${r.ganadas} negocios cerrados` },
-            { label: "Tasa de cierre", valor: `${r.tasaCierre}%`,    emoji: "🎯", sub: `${r.ganadas} ganadas · ${r.perdidas} perdidas` },
-          ].map(k => (
-            <div key={k.label} className="rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">{k.emoji}</span>
-                <span className="text-xs text-blue-200 font-medium uppercase tracking-wide">{k.label}</span>
+            { label: "Clientes",       valor: r.totalEmpresas,       icon: IconBuilding,     sub: `${r.totalContactos} contactos`, destacado: false },
+            { label: "En negociación", valor: r.cantidadActiva,      icon: IconRefresh,      sub: fmtK(r.valorActivo) + " potencial", destacado: false },
+            { label: "Valor ganado",   valor: fmtK(r.valorGanado),   icon: IconCurrencyDollar, sub: `${r.ganadas} negocios cerrados`, destacado: false },
+            { label: "Tasa de cierre", valor: `${r.tasaCierre}%`,    icon: IconTargetArrow,  sub: `${r.ganadas} ganadas · ${r.perdidas} perdidas`, destacado: true },
+          ].map(k => {
+            const Icono: Icon = k.icon;
+            return (
+              <div key={k.label} className="rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Icono size={18} stroke={1.75} className="text-brand-200" />
+                  <span className="text-xs text-brand-200 font-medium uppercase tracking-wide">{k.label}</span>
+                </div>
+                <p className={`text-2xl font-bold ${k.destacado ? "text-accent-400" : "text-white"}`}>{k.valor}</p>
+                <p className="text-xs text-brand-300 mt-1">{k.sub}</p>
               </div>
-              <p className="text-2xl font-bold text-white">{k.valor}</p>
-              <p className="text-xs text-blue-300 mt-1">{k.sub}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -491,7 +505,7 @@ export default function ReportesPage() {
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Valor del negocio</p>
             {[
               { label: "Ganado",   valor: r.valorGanado,  color: "bg-emerald-500", text: "text-emerald-700" },
-              { label: "En juego", valor: r.valorActivo,  color: "bg-blue-500",    text: "text-blue-700" },
+              { label: "En juego", valor: r.valorActivo,  color: "bg-brand-500",   text: "text-brand-700" },
               { label: "Perdido",  valor: r.valorPerdido, color: "bg-red-400",     text: "text-red-600" },
             ].map(item => {
               const total = r.valorGanado + r.valorActivo + r.valorPerdido;
@@ -544,7 +558,9 @@ export default function ReportesPage() {
 
           {/* Tareas */}
           <div className={`rounded-2xl border p-4 flex items-center gap-3 ${r.actividadesPendientes > 0 ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200"}`}>
-            <span className="text-2xl">{r.actividadesPendientes > 0 ? "⏳" : "✅"}</span>
+            {r.actividadesPendientes > 0
+              ? <IconClock size={22} stroke={1.75} className="text-amber-600" />
+              : <IconCircleCheck size={22} stroke={1.75} className="text-emerald-600" />}
             <div>
               <p className="text-sm font-bold text-slate-800">{r.actividadesPendientes} tarea{r.actividadesPendientes !== 1 ? "s" : ""} pendiente{r.actividadesPendientes !== 1 ? "s" : ""}</p>
               <p className="text-xs text-slate-500">{r.actividadesPendientes === 0 ? "¡Todo al día!" : "Requieren atención"}</p>
@@ -590,7 +606,7 @@ export default function ReportesPage() {
               <p className="text-xs text-slate-400 mt-0.5">Valor ponderado por probabilidad de cierre</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-violet-600">{fmtK(r.valorPonderado)}</p>
+              <p className="text-2xl font-bold text-accent-600">{fmtK(r.valorPonderado)}</p>
               <p className="text-xs text-slate-400 mt-0.5">pronóstico esperado</p>
             </div>
           </div>
@@ -602,14 +618,14 @@ export default function ReportesPage() {
               <span className="font-semibold text-slate-700">{fmtK(r.valorActivo)}</span>
             </div>
             <div className="h-3 bg-slate-100 rounded-full overflow-hidden mb-2">
-              <div className="h-3 rounded-full bg-blue-400" style={{ width: "100%" }} />
+              <div className="h-3 rounded-full bg-brand-400" style={{ width: "100%" }} />
             </div>
             <div className="flex justify-between text-xs text-slate-500 mb-1">
               <span>Pronóstico ponderado</span>
-              <span className="font-semibold text-violet-600">{fmtK(r.valorPonderado)}</span>
+              <span className="font-semibold text-accent-600">{fmtK(r.valorPonderado)}</span>
             </div>
             <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-3 rounded-full bg-violet-500"
+              <div className="h-3 rounded-full bg-accent-500"
                 style={{ width: `${r.valorActivo > 0 ? Math.round((r.valorPonderado / r.valorActivo) * 100) : 0}%` }} />
             </div>
             <p className="text-xs text-slate-400 mt-1.5">
@@ -657,7 +673,7 @@ export default function ReportesPage() {
       {/* ── PANEL METAS ── */}
       {(editMeta || metas.length > 0) && (
         <div className="mt-4 bg-white rounded-2xl border border-amber-200 p-5">
-          <h2 className="text-sm font-bold text-slate-900 mb-4">🎯 Metas de ventas</h2>
+          <h2 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-1.5"><IconTarget size={16} stroke={1.75} className="text-amber-600" /> Metas de ventas</h2>
           {editMeta && (
             <>
             <div className="flex gap-3 items-end mb-5">
@@ -745,9 +761,9 @@ export default function ReportesPage() {
 
           <div className="grid grid-cols-2 gap-x-10 gap-y-6">
             <GraficaAnios metrica={v => v.ganadas}     titulo="Negocios ganados"  color="#10b981" />
-            <GraficaAnios metrica={v => v.valorGanado} titulo="Valor ganado (COP)" color="#3b82f6" />
+            <GraficaAnios metrica={v => v.valorGanado} titulo="Valor ganado (COP)" color="#2f8ab0" />
             <GraficaAnios metrica={v => v.perdidas}    titulo="Negocios perdidos" color="#f87171" subirEsBueno={false} />
-            <GraficaAnios metrica={v => v.total}       titulo="Total oportunidades" color="#8b5cf6" />
+            <GraficaAnios metrica={v => v.total}       titulo="Total oportunidades" color="#d97328" />
           </div>
 
           {/* Leyenda de años con sus colores en la tabla */}
@@ -773,12 +789,12 @@ export default function ReportesPage() {
                     const tasa = cerr > 0 ? Math.round((d.ganadas / cerr) * 100) : 0;
                     const esActivo = anio === String(a);
                     return (
-                      <tr key={a} className={`${esActivo ? "bg-blue-50" : "hover:bg-slate-50"} transition-colors`}>
+                      <tr key={a} className={`${esActivo ? "bg-brand-50" : "hover:bg-slate-50"} transition-colors`}>
                         <td className="py-2.5">
                           <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORES_ANIO[i % COLORES_ANIO.length] }} />
                             <span className="font-semibold text-slate-800">{a}</span>
-                            {esActivo && <span className="text-xs bg-blue-600 text-white px-1.5 py-0.5 rounded-full">Filtrado</span>}
+                            {esActivo && <span className="text-xs bg-accent-600 text-white px-1.5 py-0.5 rounded-full">Filtrado</span>}
                           </div>
                         </td>
                         <td className="py-2.5 text-right text-slate-600">{d.total}</td>

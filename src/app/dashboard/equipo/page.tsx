@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { RendimientoEquipo } from "@/components/rendimiento-equipo";
+import { IconDownload, IconUserPlus, IconEdit, IconCircleCheck } from "@tabler/icons-react";
 
 type Usuario = {
   id: string;
@@ -151,22 +152,22 @@ export default function EquipoPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-lg font-medium text-neutral-900">Equipo</h1>
           <p className="text-sm text-neutral-500">Usuarios con acceso a este CRM</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button onClick={exportarExcel} disabled={exportando}
-            className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
-            {exportando ? "Exportando..." : "⬇ Excel"}
+            className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+            <IconDownload size={15} stroke={1.75} /> {exportando ? "Exportando..." : "Excel"}
           </button>
           {esAdmin && (
             <button
               onClick={() => setMostrarForm(true)}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="flex items-center gap-1.5 rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700"
             >
-              + Invitar usuario
+              <IconUserPlus size={15} stroke={1.75} /> Invitar usuario
             </button>
           )}
         </div>
@@ -191,7 +192,7 @@ export default function EquipoPage() {
                 required
                 value={form.nombre}
                 onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               />
             </div>
             <div>
@@ -201,7 +202,7 @@ export default function EquipoPage() {
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               />
             </div>
             <div>
@@ -212,7 +213,7 @@ export default function EquipoPage() {
                 minLength={8}
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               />
               <p className="mt-1 text-xs text-neutral-400">Mínimo 8 caracteres. Compártesela por un canal seguro.</p>
             </div>
@@ -221,7 +222,7 @@ export default function EquipoPage() {
               <select
                 value={form.rol}
                 onChange={(e) => setForm({ ...form, rol: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               >
                 {ROLES.map((r) => (
                   <option key={r.key} value={r.key}>{r.label}</option>
@@ -232,7 +233,7 @@ export default function EquipoPage() {
               <button
                 type="submit"
                 disabled={guardando}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                className="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
               >
                 {guardando ? "Invitando..." : "Invitar"}
               </button>
@@ -275,10 +276,10 @@ export default function EquipoPage() {
                             value={editNombreValor}
                             onChange={e => setEditNombreValor(e.target.value)}
                             onKeyDown={e => { if (e.key === "Enter") guardarNombre(u.id); if (e.key === "Escape") setEditNombreId(null); }}
-                            className="rounded border border-blue-300 px-2 py-0.5 text-sm outline-none focus:border-blue-500"
+                            className="rounded border border-brand-300 px-2 py-0.5 text-sm outline-none focus:border-brand-500"
                           />
                           <button onClick={() => guardarNombre(u.id)} disabled={guardandoNombre || !editNombreValor.trim()}
-                            className="text-xs text-blue-600 hover:underline disabled:opacity-50">
+                            className="text-xs text-brand-600 hover:underline disabled:opacity-50">
                             {guardandoNombre ? "..." : "Guardar"}
                           </button>
                           <button onClick={() => setEditNombreId(null)} className="text-xs text-neutral-400 hover:underline">
@@ -290,9 +291,9 @@ export default function EquipoPage() {
                           {u.nombre} {esUnoMismo && <span className="text-xs text-neutral-400">(tú)</span>}
                           {esAdmin && !esUnoMismo && (
                             <button onClick={() => { setEditNombreId(u.id); setEditNombreValor(u.nombre); }}
-                              className="text-neutral-300 hover:text-blue-500 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="text-neutral-300 hover:text-brand-500 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                               title="Editar nombre">
-                              ✏️
+                              <IconEdit size={13} stroke={1.75} />
                             </button>
                           )}
                         </span>
@@ -337,7 +338,7 @@ export default function EquipoPage() {
                         {!esUnoMismo && (
                           <button
                             onClick={() => { setResetId(u.id); setResetNombre(u.nombre); setResetPass(""); setResetOk(false); }}
-                            className="text-xs text-blue-600 hover:underline"
+                            className="text-xs text-brand-600 hover:underline"
                           >
                             Resetear contraseña
                           </button>
@@ -386,11 +387,13 @@ export default function EquipoPage() {
             </button>
           </div>
           {reasignarResultado && (
-            <div className="mt-3 rounded-xl bg-white border border-amber-200 px-4 py-3 text-sm text-amber-900">
-              ✅ Asignados: <strong>{reasignarResultado.empresas}</strong> clientes · <strong>{reasignarResultado.oportunidades}</strong> oportunidades · <strong>{reasignarResultado.actividades}</strong> actividades
+            <div className="mt-3 rounded-xl bg-white border border-amber-200 px-4 py-3 text-sm text-amber-900 flex items-start gap-1.5">
+              <IconCircleCheck size={16} stroke={1.75} className="text-emerald-500 shrink-0 mt-0.5" />
+              <span>Asignados: <strong>{reasignarResultado.empresas}</strong> clientes · <strong>{reasignarResultado.oportunidades}</strong> oportunidades · <strong>{reasignarResultado.actividades}</strong> actividades
               {(reasignarResultado.expedientes > 0 || reasignarResultado.terminos > 0) && (
                 <> · <strong>{reasignarResultado.expedientes}</strong> expedientes · <strong>{reasignarResultado.terminos}</strong> términos</>
               )}
+              </span>
             </div>
           )}
         </div>
@@ -402,7 +405,7 @@ export default function EquipoPage() {
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
             {resetOk ? (
               <div className="text-center py-4">
-                <div className="text-3xl mb-2">✅</div>
+                <IconCircleCheck size={30} stroke={1.75} className="text-emerald-500 mx-auto mb-2" />
                 <p className="text-sm font-medium text-slate-800">Contraseña actualizada</p>
               </div>
             ) : (
@@ -414,14 +417,14 @@ export default function EquipoPage() {
                   value={resetPass}
                   onChange={e => setResetPass(e.target.value)}
                   placeholder="Mínimo 6 caracteres"
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 mb-4"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 mb-4"
                 />
                 <p className="text-xs text-slate-400 mb-4">Comparte esta contraseña con el usuario por un canal seguro (WhatsApp, llamada). El usuario puede cambiarla después.</p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => resetearPassword(resetId)}
                     disabled={reseteando || resetPass.length < 6}
-                    className="flex-1 rounded-xl bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                    className="flex-1 rounded-xl bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
                   >
                     {reseteando ? "Guardando..." : "Guardar"}
                   </button>

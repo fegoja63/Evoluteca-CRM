@@ -170,7 +170,7 @@ export default function FichaFuncionPage() {
   if (cargando) return (
     <div className="flex items-center justify-center h-64">
       <div className="flex gap-1">{[0,1,2].map(i => (
-        <div key={i} className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />
+        <div key={i} className="w-2 h-2 rounded-full bg-brand-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />
       ))}</div>
     </div>
   );
@@ -186,7 +186,7 @@ export default function FichaFuncionPage() {
   return (
     <div className="max-w-4xl">
       <div className="flex items-center gap-2 text-sm text-slate-400 mb-5">
-        <Link href="/dashboard/funciones" className="hover:text-blue-600 transition-colors">← Funciones</Link>
+        <Link href="/dashboard/funciones" className="hover:text-brand-600 transition-colors">← Funciones</Link>
         <span>/</span>
         <span className="text-slate-600 truncate max-w-xs">{fn.titulo}</span>
       </div>
@@ -198,43 +198,43 @@ export default function FichaFuncionPage() {
             <div className="col-span-2">
               <label className="text-xs text-slate-500 mb-1 block">Título *</label>
               <input required value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Fecha y hora</label>
               <input type="datetime-local" value={form.fecha} onChange={e => setForm({...form, fecha: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Canal</label>
               <select value={form.canal} onChange={e => setForm({...form, canal: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white">
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
                 {Object.entries(CANALES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Sillas totales</label>
               <input type="number" value={form.sillasTotales} onChange={e => setForm({...form, sillasTotales: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Sillas vendidas</label>
               <input type="number" value={form.sillasVendidas} onChange={e => setForm({...form, sillasVendidas: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Ingreso estimado (COP)</label>
               <input type="number" value={form.ingresoEstimado} onChange={e => setForm({...form, ingresoEstimado: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div className="col-span-2">
               <label className="text-xs text-slate-500 mb-1 block">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({...form, notas: e.target.value})} rows={2}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div className="col-span-2 flex gap-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                 {guardando ? "Guardando..." : "Guardar"}
               </button>
               <button type="button" onClick={() => setEditando(false)}
@@ -269,10 +269,10 @@ export default function FichaFuncionPage() {
             <div className="grid grid-cols-5 gap-3">
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-xs text-slate-400 mb-1">Ocupación</p>
-                <p className="text-2xl font-bold text-blue-700">{ocupacion}%</p>
+                <p className={`text-2xl font-bold ${ocupacion >= 70 ? "text-emerald-700" : ocupacion >= 40 ? "text-amber-600" : "text-red-600"}`}>{ocupacion}%</p>
                 <p className="text-xs text-slate-400 mt-0.5">{fn.sillasVendidas} / {fn.sillasTotales} sillas</p>
                 <div className="mt-2 h-1.5 rounded-full bg-slate-200">
-                  <div className="h-1.5 rounded-full bg-blue-500 transition-all" style={{ width: `${ocupacion}%` }} />
+                  <div className={`h-1.5 rounded-full transition-all ${ocupacion >= 70 ? "bg-emerald-500" : ocupacion >= 40 ? "bg-amber-400" : "bg-red-400"}`} style={{ width: `${ocupacion}%` }} />
                 </div>
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
@@ -321,7 +321,7 @@ export default function FichaFuncionPage() {
               <select
                 value={asistForm.espectadorId}
                 onChange={e => setAsistForm({ ...asistForm, espectadorId: e.target.value, nombre: "", telefono: "" })}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white"
               >
                 <option value="">— Seleccionar —</option>
                 {espectadores.map(e => (
@@ -337,7 +337,7 @@ export default function FichaFuncionPage() {
                     value={asistForm.nombre}
                     onChange={e => setAsistForm({ ...asistForm, nombre: e.target.value })}
                     placeholder="Nombre del espectador"
-                    className="w-48 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                    className="w-48 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
                   />
                 </div>
                 <div>
@@ -346,13 +346,13 @@ export default function FichaFuncionPage() {
                     value={asistForm.telefono}
                     onChange={e => setAsistForm({ ...asistForm, telefono: e.target.value })}
                     placeholder="WhatsApp"
-                    className="w-40 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                    className="w-40 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
                   />
                 </div>
               </>
             )}
             <button type="submit" disabled={guardandoAsist || (!asistForm.espectadorId && !asistForm.nombre.trim())}
-              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 shrink-0">
+              className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 shrink-0">
               {guardandoAsist ? "Guardando..." : "+ Registrar asistencia"}
             </button>
           </div>
@@ -367,10 +367,10 @@ export default function FichaFuncionPage() {
               const esRecurrente = a.espectador._count.asistencias > 1;
               return (
                 <div key={a.id} className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 pl-3 pr-1.5 py-1">
-                  <Link href={`/dashboard/audiencia/${a.espectador.id}`} className="text-sm text-slate-700 hover:text-blue-600 hover:underline">
+                  <Link href={`/dashboard/audiencia/${a.espectador.id}`} className="text-sm text-slate-700 hover:text-brand-600 hover:underline">
                     {a.espectador.nombre}
                   </Link>
-                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${esRecurrente ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"}`}>
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${esRecurrente ? "bg-emerald-100 text-emerald-700" : "bg-brand-100 text-brand-700"}`}>
                     {esRecurrente ? "recurrente" : "nuevo"}
                   </span>
                   <button onClick={() => handleEliminarAsistente(a.id)}
@@ -398,7 +398,7 @@ export default function FichaFuncionPage() {
                 value={npsForm.puntuacion}
                 onChange={e => setNpsForm({...npsForm, puntuacion: e.target.value})}
                 placeholder="Ej: 9"
-                className="w-24 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-24 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
               />
             </div>
             <div className="w-48">
@@ -406,7 +406,7 @@ export default function FichaFuncionPage() {
               <select
                 value={npsForm.espectadorId}
                 onChange={e => setNpsForm({...npsForm, espectadorId: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white"
               >
                 <option value="">— Anónimo —</option>
                 {espectadores.map(e => (
@@ -420,11 +420,11 @@ export default function FichaFuncionPage() {
                 value={npsForm.comentario}
                 onChange={e => setNpsForm({...npsForm, comentario: e.target.value})}
                 placeholder="¿Qué le pareció la función?"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
               />
             </div>
             <button type="submit" disabled={enviandoNps}
-              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 shrink-0">
+              className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 shrink-0">
               {enviandoNps ? "Enviando..." : "+ Registrar"}
             </button>
           </div>
@@ -447,7 +447,7 @@ export default function FichaFuncionPage() {
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cat.color}`}>{cat.label}</span>
                       {n.espectador && (
                         <Link href={`/dashboard/audiencia/${n.espectador.id}`}
-                          className="text-xs text-blue-600 hover:underline">{n.espectador.nombre}</Link>
+                          className="text-xs text-brand-600 hover:underline">{n.espectador.nombre}</Link>
                       )}
                       <span className="text-xs text-slate-400 ml-auto">
                         {new Date(n.creadoEn).toLocaleDateString("es-CO", { day:"2-digit", month:"short" })}

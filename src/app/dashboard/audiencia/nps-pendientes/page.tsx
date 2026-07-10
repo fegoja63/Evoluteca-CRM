@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { WhatsAppBtn } from "@/components/whatsapp-btn";
+import { IconConfetti } from "@tabler/icons-react";
 
 type Pendiente = {
   id: string;
@@ -39,7 +40,7 @@ export default function NpsPendientesPage() {
   return (
     <div className="max-w-3xl">
       <div className="flex items-center gap-2 text-sm text-slate-400 mb-5">
-        <Link href="/dashboard/audiencia" className="hover:text-blue-600 transition-colors">← Audiencia</Link>
+        <Link href="/dashboard/audiencia" className="hover:text-brand-600 transition-colors">← Audiencia</Link>
         <span>/</span>
         <span className="text-slate-600">Cola de NPS pendiente</span>
       </div>
@@ -55,7 +56,8 @@ export default function NpsPendientesPage() {
         <p className="text-sm text-slate-400">Cargando...</p>
       ) : pendientes.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-          <p className="text-sm text-slate-500">🎉 Sin pendientes. Todos los asistentes recientes ya recibieron su encuesta.</p>
+          <IconConfetti size={24} stroke={1.5} className="mx-auto mb-2 text-emerald-500" />
+          <p className="text-sm text-slate-500">Sin pendientes. Todos los asistentes recientes ya recibieron su encuesta.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-2">

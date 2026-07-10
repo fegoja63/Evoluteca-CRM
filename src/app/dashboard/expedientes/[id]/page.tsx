@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { BitacoraExpediente } from "@/components/bitacora-expediente";
 import { plazoVencido, plazoProximo } from "@/lib/plazo-legal";
+import { IconAlertTriangle } from "@tabler/icons-react";
 
 type Termino = {
   id: string;
@@ -265,34 +266,34 @@ export default function DetalleExpedientePage() {
             <div>
               <label className="mb-1 block text-xs text-slate-500">Número de radicado *</label>
               <input required value={form.numeroRadicado} onChange={e => setForm({ ...form, numeroRadicado: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Estado</label>
               <select value={form.estado} onChange={e => setForm({ ...form, estado: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white">
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
                 {ESTADOS.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Juzgado</label>
               <input value={form.juzgado} onChange={e => setForm({ ...form, juzgado: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Tipo de proceso</label>
               <input value={form.tipoProceso} onChange={e => setForm({ ...form, tipoProceso: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Contraparte *</label>
               <input required value={form.contraparte} onChange={e => setForm({ ...form, contraparte: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })} rows={3}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             {error && (
               <div className="col-span-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
@@ -301,7 +302,7 @@ export default function DetalleExpedientePage() {
             )}
             <div className="col-span-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                 {guardando ? "Guardando..." : "Guardar cambios"}
               </button>
             </div>
@@ -326,7 +327,7 @@ export default function DetalleExpedientePage() {
             </div>
             {conflicto && (conflicto.empresas.length > 0 || conflicto.contactos.length > 0) && (
               <div className="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                <p className="font-semibold mb-1">⚠️ Posible conflicto de interés:</p>
+                <p className="font-semibold mb-1 flex items-center gap-1.5"><IconAlertTriangle size={14} stroke={1.75} />Posible conflicto de interés:</p>
                 <p>La contraparte coincide con registros existentes de tu CRM:</p>
                 <ul className="mt-1 list-disc list-inside">
                   {conflicto.empresas.map(e => <li key={e.id}>{e.nombre} (cliente)</li>)}
@@ -357,17 +358,17 @@ export default function DetalleExpedientePage() {
               <label className="mb-1 block text-xs text-slate-500">Descripción *</label>
               <input required value={formTermino.descripcion} onChange={e => setFormTermino({ ...formTermino, descripcion: e.target.value })}
                 placeholder="Ej: Contestar demanda, Presentar recurso de apelación..."
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Fecha límite *</label>
               <input required type="date" value={formTermino.fechaLimite} onChange={e => setFormTermino({ ...formTermino, fechaLimite: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Notas</label>
               <input value={formTermino.notas} onChange={e => setFormTermino({ ...formTermino, notas: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             {errorTermino && (
               <div className="col-span-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
@@ -376,7 +377,7 @@ export default function DetalleExpedientePage() {
             )}
             <div className="col-span-2">
               <button type="submit" disabled={guardandoTermino}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                 {guardandoTermino ? "Guardando..." : "Crear plazo"}
               </button>
             </div>
@@ -444,17 +445,17 @@ export default function DetalleExpedientePage() {
             <div>
               <label className="mb-1 block text-xs text-slate-500">Fecha *</label>
               <input required type="date" value={formHoras.fecha} onChange={e => setFormHoras({ ...formHoras, fecha: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Horas *</label>
               <input required type="number" step="0.25" min="0.25" value={formHoras.horas} onChange={e => setFormHoras({ ...formHoras, horas: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Descripción</label>
               <input value={formHoras.descripcion} onChange={e => setFormHoras({ ...formHoras, descripcion: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             {errorHoras && (
               <div className="col-span-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
@@ -463,7 +464,7 @@ export default function DetalleExpedientePage() {
             )}
             <div className="col-span-3">
               <button type="submit" disabled={guardandoHoras}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                 {guardandoHoras ? "Guardando..." : "Registrar"}
               </button>
             </div>

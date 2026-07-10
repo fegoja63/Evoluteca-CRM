@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { IconRestore, IconTrash, IconInboxOff } from "@tabler/icons-react";
 
 type Item = { id: string; nombre: string; email: string | null; eliminadoEn: string };
 type ItemEmpresa = Item & { sector: string | null };
@@ -65,6 +66,7 @@ export default function PapeleraPage() {
             <h2 className="text-sm font-semibold text-slate-700 mb-3">Clientes eliminados ({empresas.length})</h2>
             {empresas.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+                <IconInboxOff size={24} stroke={1.5} className="mx-auto mb-2 text-slate-300" />
                 <p className="text-sm text-slate-500">No hay clientes en la papelera.</p>
               </div>
             ) : (
@@ -91,16 +93,18 @@ export default function PapeleraPage() {
                             <button
                               disabled={procesando === e.id}
                               onClick={() => restaurar("empresa", e.id)}
-                              className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
+                              className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
                             >
+                              <IconRestore size={13} stroke={1.75} />
                               Restaurar
                             </button>
                             {esAdministrador && (
                               <button
                                 disabled={procesando === e.id}
                                 onClick={() => borrarDefinitivo("empresa", e.id, e.nombre)}
-                                className="rounded-lg border border-red-100 px-2.5 py-1 text-xs text-red-500 hover:bg-red-50 disabled:opacity-50"
+                                className="inline-flex items-center gap-1 rounded-lg border border-red-100 px-2.5 py-1 text-xs text-red-500 hover:bg-red-50 disabled:opacity-50"
                               >
+                                <IconTrash size={13} stroke={1.75} />
                                 Borrar definitivamente
                               </button>
                             )}
@@ -118,6 +122,7 @@ export default function PapeleraPage() {
             <h2 className="text-sm font-semibold text-slate-700 mb-3">Contactos eliminados ({contactos.length})</h2>
             {contactos.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+                <IconInboxOff size={24} stroke={1.5} className="mx-auto mb-2 text-slate-300" />
                 <p className="text-sm text-slate-500">No hay contactos en la papelera.</p>
               </div>
             ) : (
@@ -144,16 +149,18 @@ export default function PapeleraPage() {
                             <button
                               disabled={procesando === c.id}
                               onClick={() => restaurar("contacto", c.id)}
-                              className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
+                              className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
                             >
+                              <IconRestore size={13} stroke={1.75} />
                               Restaurar
                             </button>
                             {esAdministrador && (
                               <button
                                 disabled={procesando === c.id}
                                 onClick={() => borrarDefinitivo("contacto", c.id, c.nombre)}
-                                className="rounded-lg border border-red-100 px-2.5 py-1 text-xs text-red-500 hover:bg-red-50 disabled:opacity-50"
+                                className="inline-flex items-center gap-1 rounded-lg border border-red-100 px-2.5 py-1 text-xs text-red-500 hover:bg-red-50 disabled:opacity-50"
                               >
+                                <IconTrash size={13} stroke={1.75} />
                                 Borrar definitivamente
                               </button>
                             )}

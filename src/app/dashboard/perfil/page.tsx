@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { IconCircleCheck } from "@tabler/icons-react";
 
 const ROL_LABEL: Record<string, string> = {
   ADMINISTRADOR: "Administrador",
@@ -84,13 +85,13 @@ export default function PerfilPage() {
 
       {/* Avatar */}
       <div className="flex items-center gap-4 mb-8 p-5 bg-white rounded-2xl border border-slate-200">
-        <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center text-white text-2xl font-bold shrink-0">
+        <div className="w-14 h-14 rounded-2xl bg-accent-500 flex items-center justify-center text-white text-2xl font-bold shrink-0">
           {(session?.user?.name ?? "?")[0].toUpperCase()}
         </div>
         <div>
           <p className="font-semibold text-slate-900">{session?.user?.name}</p>
           <p className="text-sm text-slate-500">{session?.user?.email}</p>
-          <span className="inline-block mt-1 text-xs font-medium bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+          <span className="inline-block mt-1 text-xs font-medium bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full">
             {ROL_LABEL[session?.user?.rol ?? ""] ?? session?.user?.rol}
           </span>
         </div>
@@ -105,12 +106,12 @@ export default function PerfilPage() {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Nombre completo</label>
               <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} required
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Correo electrónico</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100" />
             </div>
           </div>
         </div>
@@ -124,28 +125,32 @@ export default function PerfilPage() {
               <label className="block text-xs font-medium text-slate-600 mb-1">Contraseña actual</label>
               <input type="password" value={passwordActual} onChange={e => setPasswordActual(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Nueva contraseña</label>
               <input type="password" value={nuevaPassword} onChange={e => setNuevaPassword(e.target.value)}
                 placeholder="Mínimo 8 caracteres"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Confirmar nueva contraseña</label>
               <input type="password" value={confirmar} onChange={e => setConfirmar(e.target.value)}
                 placeholder="Repite la contraseña"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100" />
             </div>
           </div>
         </div>
 
         {error && <p className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3">{error}</p>}
-        {exito && <p className="text-sm text-emerald-600 bg-emerald-50 rounded-xl px-4 py-3">✔ {exito}</p>}
+        {exito && (
+          <p className="flex items-center gap-1.5 text-sm text-emerald-600 bg-emerald-50 rounded-xl px-4 py-3">
+            <IconCircleCheck size={16} stroke={1.75} /> {exito}
+          </p>
+        )}
 
         <button type="submit" disabled={guardando}
-          className="w-full rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors">
+          className="w-full rounded-xl bg-accent-600 py-2.5 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50 transition-colors">
           {guardando ? "Guardando..." : "Guardar cambios"}
         </button>
       </form>

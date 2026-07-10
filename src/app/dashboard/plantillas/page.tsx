@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { IconPlus, IconX, IconClipboardText, IconStar } from "@tabler/icons-react";
 
 type ItemPlantilla = { id: string; descripcion: string; cantidad: string | number; precioUnit: string | number };
 type Plantilla = { id: string; nombre: string; notas: string | null; creadoEn: string; items: ItemPlantilla[] };
@@ -31,13 +32,13 @@ function LineasEditor({ lineas, onChange }: { lineas: Linea[]; onChange: (lineas
           <div key={i} className="grid grid-cols-[1fr_90px_130px_auto] gap-2 items-center">
             <input type="text" placeholder="Ej: Iluminación escénica" value={linea.descripcion}
               onChange={e => updateLinea(i, "descripcion", e.target.value)}
-              className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+              className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             <input type="number" min={1} value={linea.cantidad}
               onChange={e => updateLinea(i, "cantidad", e.target.value)}
-              className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 text-center" />
+              className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 text-center" />
             <input type="number" min={0} placeholder="0" value={linea.precioUnit}
               onChange={e => updateLinea(i, "precioUnit", e.target.value)}
-              className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 text-right" />
+              className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 text-right" />
             <button type="button" onClick={() => removeLinea(i)} disabled={lineas.length === 1}
               className="text-slate-300 hover:text-red-500 disabled:opacity-30 text-lg font-bold leading-none">
               ×
@@ -45,8 +46,8 @@ function LineasEditor({ lineas, onChange }: { lineas: Linea[]; onChange: (lineas
           </div>
         ))}
       </div>
-      <button type="button" onClick={addLinea} className="mt-3 text-sm text-blue-600 hover:underline">
-        + Línea vacía
+      <button type="button" onClick={addLinea} className="mt-3 inline-flex items-center gap-1 text-sm text-brand-600 hover:underline">
+        <IconPlus size={14} stroke={2} /> Línea vacía
       </button>
     </div>
   );
@@ -149,16 +150,17 @@ export default function PlantillasPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Plantillas de cotización</h1>
           <p className="text-slate-500 text-sm mt-1">Guarda combinaciones de ítems que usas seguido para armar cotizaciones más rápido</p>
         </div>
         <button
           onClick={() => { setModo(modo === "nuevo" ? "lista" : "nuevo"); setNombre(""); setLineas([{ ...LINEA_VACIA }]); setError(""); setEditandoId(null); }}
-          className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 self-start sm:self-auto"
         >
-          {modo === "nuevo" ? "× Cancelar" : "+ Nueva plantilla"}
+          {modo === "nuevo" ? <IconX size={16} stroke={1.75} /> : <IconPlus size={16} stroke={1.75} />}
+          {modo === "nuevo" ? "Cancelar" : "Nueva plantilla"}
         </button>
       </div>
 
@@ -175,14 +177,14 @@ export default function PlantillasPage() {
             <label className="block text-xs font-medium text-slate-600 mb-1">Nombre de la plantilla *</label>
             <input type="text" value={nombre} onChange={e => setNombre(e.target.value)}
               placeholder="Ej: Evento corporativo estándar"
-              className="w-full max-w-md rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+              className="w-full max-w-md rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
           </div>
 
           <LineasEditor lineas={lineas} onChange={setLineas} />
 
           <div className="mt-5 flex gap-2">
             <button onClick={crear} disabled={guardando || !nombre.trim()}
-              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+              className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
               {guardando ? "Guardando..." : "Guardar plantilla"}
             </button>
           </div>
@@ -193,9 +195,11 @@ export default function PlantillasPage() {
         <p className="text-sm text-slate-400">Cargando...</p>
       ) : lista.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-12 text-center">
-          <p className="text-3xl mb-3">📋</p>
+          <IconClipboardText size={32} stroke={1.5} className="mx-auto mb-3 text-slate-300" />
           <p className="text-sm text-slate-500 mb-1">Aún no tienes plantillas guardadas.</p>
-          <p className="text-xs text-slate-400">También puedes crear una desde el botón "★ Guardar plantilla" al ver una cotización.</p>
+          <p className="text-xs text-slate-400 inline-flex items-center gap-1 flex-wrap justify-center">
+            También puedes crear una desde el botón <span className="inline-flex items-center gap-0.5 font-medium text-slate-500"><IconStar size={12} stroke={1.75} />Guardar plantilla</span> al ver una cotización.
+          </p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -206,12 +210,12 @@ export default function PlantillasPage() {
                   <div className="mb-4">
                     <label className="block text-xs font-medium text-slate-600 mb-1">Nombre de la plantilla *</label>
                     <input autoFocus type="text" value={nombreEdit} onChange={e => setNombreEdit(e.target.value)}
-                      className="w-full max-w-md rounded-xl border border-blue-300 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                      className="w-full max-w-md rounded-xl border border-brand-300 px-3 py-2 text-sm outline-none focus:border-brand-500" />
                   </div>
                   <LineasEditor lineas={lineasEdit} onChange={setLineasEdit} />
                   <div className="mt-5 flex gap-2">
                     <button onClick={() => guardarEdicion(p.id)} disabled={guardando || !nombreEdit.trim()}
-                      className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                      className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                       {guardando ? "Guardando..." : "Guardar cambios"}
                     </button>
                     <button onClick={() => setEditandoId(null)}
@@ -230,7 +234,7 @@ export default function PlantillasPage() {
                       </button>
                     </div>
                     <div className="flex gap-3 shrink-0">
-                      <button onClick={() => iniciarEdicion(p)} className="text-xs text-blue-600 hover:underline">Editar</button>
+                      <button onClick={() => iniciarEdicion(p)} className="text-xs text-brand-600 hover:underline">Editar</button>
                       <button onClick={() => eliminar(p.id, p.nombre)} className="text-xs text-red-400 hover:underline">Eliminar</button>
                     </div>
                   </div>

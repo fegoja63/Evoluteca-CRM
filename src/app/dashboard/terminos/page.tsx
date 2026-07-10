@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { IconAlertTriangle } from "@tabler/icons-react";
 
 const VERSION = "1.0";
 
@@ -21,18 +22,19 @@ export default function TerminosPage() {
       <div className="w-full max-w-3xl">
 
         {/* Cabecera */}
-        <div className="bg-blue-950 rounded-2xl px-8 py-6 mb-6 text-center">
-          <p className="text-blue-300 text-xs font-semibold uppercase tracking-widest mb-1">Evoluteca CRM</p>
+        <div className="bg-brand-950 rounded-2xl px-8 py-6 mb-6 text-center">
+          <p className="text-brand-300 text-xs font-semibold uppercase tracking-widest mb-1">Evoluteca CRM</p>
           <h1 className="text-white text-2xl font-bold">Acuerdo de Licencia de Uso</h1>
-          <p className="text-blue-300 text-sm mt-1">Versión {VERSION} — Debes aceptar para continuar</p>
+          <p className="text-brand-300 text-sm mt-1">Versión {VERSION} — Debes aceptar para continuar</p>
         </div>
 
         {/* Contrato */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
           <div className="h-[560px] overflow-y-auto px-8 py-6 text-sm text-slate-700 leading-relaxed space-y-4">
 
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 font-medium">
-              ⚠️ LEA ESTE ACUERDO DETENIDAMENTE. AL ACEPTARLO, QUEDA VINCULADO LEGALMENTE A ESTOS TÉRMINOS.
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 font-medium flex items-center gap-2">
+              <IconAlertTriangle size={16} stroke={1.75} className="shrink-0" />
+              LEA ESTE ACUERDO DETENIDAMENTE. AL ACEPTARLO, QUEDA VINCULADO LEGALMENTE A ESTOS TÉRMINOS.
             </div>
 
             <Section title="1. Identificación de las Partes">
@@ -146,7 +148,7 @@ export default function TerminosPage() {
               type="checkbox"
               checked={acepto}
               onChange={e => setAcepto(e.target.checked)}
-              className="mt-0.5 w-4 h-4 accent-blue-600 cursor-pointer"
+              className="mt-0.5 w-4 h-4 accent-accent-600 cursor-pointer"
             />
             <span className="text-sm text-slate-700">
               He leído y entendido el <strong>Acuerdo de Licencia de Uso versión {VERSION}</strong> en su totalidad, tengo capacidad legal para aceptarlo, y acepto quedar vinculado por todos sus términos y condiciones.
@@ -157,7 +159,7 @@ export default function TerminosPage() {
         <button
           onClick={handleAceptar}
           disabled={!acepto || enviando}
-          className="w-full rounded-2xl bg-blue-600 px-6 py-4 text-base font-semibold text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="w-full rounded-2xl bg-accent-600 px-6 py-4 text-base font-semibold text-white hover:bg-accent-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {enviando ? "Registrando aceptación..." : "Acepto los términos y condiciones — Ingresar al CRM"}
         </button>
@@ -181,8 +183,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function InfoBox({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 mt-2">
-      <p className="text-xs font-semibold text-blue-700 mb-0.5">{label}</p>
+    <div className="bg-brand-50 border border-brand-100 rounded-lg px-4 py-3 mt-2">
+      <p className="text-xs font-semibold text-brand-700 mb-0.5">{label}</p>
       <p className="text-slate-700 text-xs">{children}</p>
     </div>
   );

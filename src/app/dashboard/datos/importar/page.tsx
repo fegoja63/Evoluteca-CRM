@@ -2,6 +2,10 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import {
+  IconBuilding, IconUser, IconChartFunnel, IconUsers,
+  IconCircleCheck, IconAlertTriangle, IconUpload, type Icon,
+} from "@tabler/icons-react";
 
 type Preview = {
   hojas: string[];
@@ -45,11 +49,11 @@ const CAMPOS_CRM: Record<string, { key: string; label: string }[]> = {
   ],
 };
 
-const MODULOS = [
-  { key: "empresas", label: "Empresas / Cuentas", emoji: "🏢" },
-  { key: "contactos", label: "Contactos", emoji: "👤" },
-  { key: "oportunidades", label: "Pipeline / Oportunidades", emoji: "◈" },
-  { key: "espectadores", label: "Audiencia / Espectadores", emoji: "🎪" },
+const MODULOS: { key: string; label: string; icon: Icon }[] = [
+  { key: "empresas", label: "Empresas / Cuentas", icon: IconBuilding },
+  { key: "contactos", label: "Contactos", icon: IconUser },
+  { key: "oportunidades", label: "Pipeline / Oportunidades", icon: IconChartFunnel },
+  { key: "espectadores", label: "Audiencia / Espectadores", icon: IconUsers },
 ];
 
 export default function ImportarAvanzadoPage() {
@@ -148,7 +152,7 @@ export default function ImportarAvanzadoPage() {
         ].map((p, i) => (
           <div key={p.n} className="flex items-center gap-2">
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-              paso >= p.n ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-400"
+              paso >= p.n ? "bg-accent-600 text-white" : "bg-slate-100 text-slate-400"
             }`}>{p.n}</div>
             <span className={`text-sm ${paso >= p.n ? "text-slate-800 font-medium" : "text-slate-400"}`}>{p.label}</span>
             {i < 2 && <div className="w-8 h-px bg-slate-200 mx-1" />}
@@ -161,24 +165,27 @@ export default function ImportarAvanzadoPage() {
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
           <h2 className="text-sm font-semibold text-slate-800 mb-4">¿A qué módulo quieres importar?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-            {MODULOS.map((m) => (
+            {MODULOS.map((m) => {
+              const Icono = m.icon;
+              return (
               <button key={m.key} onClick={() => setModulo(m.key)}
                 className={`flex items-center gap-3 rounded-xl border p-4 text-left transition-colors ${
-                  modulo === m.key ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:bg-slate-50"
+                  modulo === m.key ? "border-brand-500 bg-brand-50" : "border-slate-200 hover:bg-slate-50"
                 }`}>
-                <span className="text-2xl">{m.emoji}</span>
+                <Icono size={22} stroke={1.5} className="text-brand-600" />
                 <span className="text-sm font-medium text-slate-800">{m.label}</span>
               </button>
-            ))}
+              );
+            })}
           </div>
 
           <h2 className="text-sm font-semibold text-slate-800 mb-2">Sube tu archivo Excel</h2>
           <p className="text-xs text-slate-400 mb-3">Sube tu propio formato — en el siguiente paso verás todas tus columnas y decidirás qué hacer con cada una.</p>
           <input ref={fileRef} type="file" accept=".xlsx,.xls"
-            className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 mb-5" />
+            className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 mb-5" />
 
           <button onClick={handlePrevisualizar} disabled={!modulo || cargando}
-            className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+            className="rounded-xl bg-accent-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
             {cargando ? "Leyendo archivo..." : "Continuar →"}
           </button>
         </div>
@@ -199,7 +206,7 @@ export default function ImportarAvanzadoPage() {
 
           {/* Leyenda */}
           <div className="flex gap-4 mb-5 text-xs text-slate-500">
-            <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-blue-500 inline-block" /> Campo del CRM</div>
+            <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-brand-500 inline-block" /> Campo del CRM</div>
             <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-emerald-500 inline-block" /> Guardar como dato extra</div>
             <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-slate-200 inline-block" /> Ignorar</div>
           </div>
@@ -212,7 +219,7 @@ export default function ImportarAvanzadoPage() {
                 <div key={col} className={`flex items-center gap-4 rounded-xl border p-3 ${
                   valor === "__ignorar__" ? "border-slate-100 bg-slate-50 opacity-60" :
                   valor === "__extra__" ? "border-emerald-100 bg-emerald-50" :
-                  "border-blue-100 bg-blue-50"
+                  "border-brand-100 bg-brand-50"
                 }`}>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-800 truncate">{col}</p>
@@ -223,10 +230,10 @@ export default function ImportarAvanzadoPage() {
                   <select
                     value={valor}
                     onChange={(e) => setMapeo({ ...mapeo, [col]: e.target.value })}
-                    className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs outline-none focus:border-blue-500 min-w-[200px]"
+                    className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs outline-none focus:border-brand-500 min-w-[200px]"
                   >
-                    <option value="__extra__">💾 Guardar como dato extra</option>
-                    <option value="__ignorar__">✕ Ignorar esta columna</option>
+                    <option value="__extra__">Guardar como dato extra</option>
+                    <option value="__ignorar__">Ignorar esta columna</option>
                     <optgroup label="─── Campo del CRM ───">
                       {campos.map((c) => (
                         <option key={c.key} value={c.key}>{c.label}</option>
@@ -245,8 +252,8 @@ export default function ImportarAvanzadoPage() {
               {Object.values(mapeo).filter(v => v === "__ignorar__").length} ignoradas
             </p>
             <button onClick={handleImportar} disabled={cargando}
-              className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
-              {cargando ? "Importando..." : `↑ Importar ${preview.totalFilas} registros`}
+              className="rounded-xl bg-accent-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 flex items-center gap-1.5">
+              <IconUpload size={14} stroke={1.75} />{cargando ? "Importando..." : `Importar ${preview.totalFilas} registros`}
             </button>
           </div>
         </div>
@@ -255,10 +262,12 @@ export default function ImportarAvanzadoPage() {
       {/* PASO 3 */}
       {paso === 3 && resultado && (
         <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
-          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 ${
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 ${
             resultado.errores === 0 ? "bg-emerald-50" : "bg-amber-50"
           }`}>
-            {resultado.errores === 0 ? "✅" : "⚠️"}
+            {resultado.errores === 0
+              ? <IconCircleCheck size={28} stroke={1.5} className="text-emerald-600" />
+              : <IconAlertTriangle size={28} stroke={1.5} className="text-amber-600" />}
           </div>
           <h2 className="text-lg font-semibold text-slate-900 mb-1">
             {resultado.errores === 0 ? "Importación exitosa" : "Importación con advertencias"}
@@ -274,7 +283,7 @@ export default function ImportarAvanzadoPage() {
               ← Volver a Datos
             </Link>
             <button onClick={() => { setPaso(1); setResultado(null); setPreview(null); setMapeo({}); }}
-              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+              className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
               Importar otro archivo
             </button>
           </div>

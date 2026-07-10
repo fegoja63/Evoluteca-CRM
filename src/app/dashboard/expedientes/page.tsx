@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { KpiCard } from "@/components/kpi-card";
+import { IconScale, IconGavel, IconCircleCheck, IconX, IconPlus } from "@tabler/icons-react";
 
 type Expediente = {
   id: string;
@@ -55,20 +56,20 @@ export default function ExpedientesPage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <KpiCard label="Total expedientes" valor={expedientes.length} emoji="⚖️" color="bg-blue-500" />
-        <KpiCard label="Activos" valor={activos} emoji="🟦" color="bg-violet-500" />
-        <KpiCard label="Ganados" valor={expedientes.filter(e => e.estado === "GANADO").length} emoji="✔" color="bg-emerald-500" />
-        <KpiCard label="Perdidos" valor={expedientes.filter(e => e.estado === "PERDIDO").length} emoji="✖" color="bg-red-500" />
+        <KpiCard label="Total expedientes" valor={expedientes.length} icon={IconScale} color="bg-brand-500" iconBg="bg-brand-50" iconColor="text-brand-600" />
+        <KpiCard label="Activos" valor={activos} icon={IconGavel} color="bg-brand-500" iconBg="bg-brand-50" iconColor="text-brand-600" />
+        <KpiCard label="Ganados" valor={expedientes.filter(e => e.estado === "GANADO").length} icon={IconCircleCheck} color="bg-emerald-500" iconBg="bg-emerald-50" iconColor="text-emerald-600" />
+        <KpiCard label="Perdidos" valor={expedientes.filter(e => e.estado === "PERDIDO").length} icon={IconX} color="bg-red-500" iconBg="bg-red-50" iconColor="text-red-500" />
       </div>
 
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
         <div className="relative">
           <input
             type="text"
             placeholder="Buscar por radicado, contraparte o cliente..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-80 rounded-xl border border-slate-200 px-3 py-2 pr-8 text-sm outline-none focus:border-blue-500"
+            className="w-80 rounded-xl border border-slate-200 px-3 py-2 pr-8 text-sm outline-none focus:border-brand-500"
           />
           {busqueda && (
             <button onClick={() => setBusqueda("")}
@@ -79,9 +80,9 @@ export default function ExpedientesPage() {
         </div>
         <Link
           href="/dashboard/expedientes/nuevo"
-          className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700"
         >
-          + Nuevo expediente
+          <IconPlus size={16} stroke={2} />Nuevo expediente
         </Link>
       </div>
 
@@ -109,7 +110,7 @@ export default function ExpedientesPage() {
               {filtrados.map((e) => (
                 <tr key={e.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-1 font-medium text-slate-900">
-                    <Link href={`/dashboard/expedientes/${e.id}`} className="hover:text-blue-600 hover:underline">
+                    <Link href={`/dashboard/expedientes/${e.id}`} className="hover:text-brand-600 hover:underline">
                       {e.numeroRadicado}
                     </Link>
                   </td>

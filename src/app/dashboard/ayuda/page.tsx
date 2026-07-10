@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { IconBug, IconBulb, IconQuestionMark, IconPinned, IconCircleCheck, type Icon } from "@tabler/icons-react";
 
-const TIPOS = [
-  { value: "error",   label: "Error / Bug",            emoji: "🐛", desc: "Algo no funciona como debería" },
-  { value: "mejora",  label: "Sugerencia de mejora",   emoji: "💡", desc: "Una idea para mejorar la app" },
-  { value: "duda",    label: "Duda o consulta",         emoji: "❓", desc: "No entiendo cómo funciona algo" },
-  { value: "otro",    label: "Otro",                   emoji: "📌", desc: "Cualquier otro comentario" },
+const TIPOS: { value: string; label: string; icon: Icon; desc: string }[] = [
+  { value: "error",   label: "Error / Bug",            icon: IconBug,          desc: "Algo no funciona como debería" },
+  { value: "mejora",  label: "Sugerencia de mejora",   icon: IconBulb,         desc: "Una idea para mejorar la app" },
+  { value: "duda",    label: "Duda o consulta",         icon: IconQuestionMark, desc: "No entiendo cómo funciona algo" },
+  { value: "otro",    label: "Otro",                   icon: IconPinned,       desc: "Cualquier otro comentario" },
 ];
 
 export default function AyudaPage() {
@@ -47,7 +48,7 @@ export default function AyudaPage() {
 
       {enviado ? (
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center">
-          <div className="text-4xl mb-3">✅</div>
+          <IconCircleCheck size={40} stroke={1.5} className="mx-auto mb-3 text-emerald-500" />
           <h2 className="text-lg font-semibold text-emerald-800 mb-1">¡Mensaje enviado!</h2>
           <p className="text-sm text-emerald-700 mb-4">
             Recibimos tu reporte. Nos pondremos en contacto pronto.
@@ -64,22 +65,27 @@ export default function AyudaPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-6">
             <h2 className="text-sm font-semibold text-slate-700 mb-4">¿De qué se trata?</h2>
             <div className="grid grid-cols-2 gap-3">
-              {TIPOS.map(t => (
-                <button
-                  key={t.value}
-                  type="button"
-                  onClick={() => setTipo(t.value)}
-                  className={`text-left rounded-xl border-2 p-4 transition-all ${
-                    tipo === t.value
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-slate-100 hover:border-slate-300"
-                  }`}
-                >
-                  <span className="text-2xl mb-2 block">{t.emoji}</span>
-                  <p className="text-sm font-semibold text-slate-800">{t.label}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{t.desc}</p>
-                </button>
-              ))}
+              {TIPOS.map(t => {
+                const Icono = t.icon;
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setTipo(t.value)}
+                    className={`text-left rounded-xl border-2 p-4 transition-all ${
+                      tipo === t.value
+                        ? "border-accent-500 bg-accent-50"
+                        : "border-slate-100 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2 ${tipo === t.value ? "bg-accent-100" : "bg-brand-50"}`}>
+                      <Icono size={18} stroke={1.75} className={tipo === t.value ? "text-accent-600" : "text-brand-600"} />
+                    </div>
+                    <p className="text-sm font-semibold text-slate-800">{t.label}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{t.desc}</p>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -92,7 +98,7 @@ export default function AyudaPage() {
               onChange={e => setDescripcion(e.target.value)}
               rows={6}
               placeholder="Cuéntanos qué pasó, en qué página ocurrió, qué pasos seguiste y qué esperabas que sucediera..."
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-blue-500 resize-none"
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-brand-500 resize-none"
               required
             />
             <p className="text-xs text-slate-400 mt-1">{descripcion.length} caracteres</p>
@@ -105,7 +111,7 @@ export default function AyudaPage() {
           <button
             type="submit"
             disabled={!tipo || !descripcion.trim() || enviando}
-            className="w-full rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="w-full rounded-xl bg-accent-600 px-6 py-3 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             {enviando ? "Enviando..." : "Enviar reporte"}
           </button>

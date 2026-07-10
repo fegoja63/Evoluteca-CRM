@@ -2,6 +2,12 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import {
+  IconBuilding, IconUser, IconChartFunnel, IconTag, IconCoin, IconCash,
+  IconCalendarEvent, IconCalendarDue, IconMapPin, IconTarget, IconUsers,
+  IconMail, IconPhone, IconBriefcase, IconRepeat, IconCircleCheck,
+  IconAlertTriangle, IconCheck, IconUpload, type Icon,
+} from "@tabler/icons-react";
 
 type Preview = {
   columnas: string[];
@@ -23,22 +29,22 @@ type Resultado = {
   };
 };
 
-const CAMPOS = [
-  { key: "empresa",           label: "Empresa / Cliente",      emoji: "🏢", desc: "Nombre de la empresa o cliente", requerido: true },
-  { key: "contacto",          label: "Contacto / Persona",      emoji: "👤", desc: "Nombre de la persona de contacto", requerido: true },
-  { key: "tituloOportunidad", label: "Tipo de negocio / evento",emoji: "◈",  desc: "Tipo de evento o nombre del negocio", requerido: true },
-  { key: "etapaOportunidad",  label: "Estado / Etapa",          emoji: "🏷️", desc: "HECHO, DESCARTADO, EN PROCESO…", requerido: false },
-  { key: "valorOportunidad",  label: "Valor cotizado",          emoji: "💰", desc: "Solo números (sin símbolos)", requerido: false },
-  { key: "costoOportunidad",  label: "Costo del evento",        emoji: "💸", desc: "Costo interno", requerido: false },
-  { key: "fechaEvento",       label: "Fecha del evento",        emoji: "📅", desc: "Fecha en que ocurre el evento", requerido: false },
-  { key: "fechaCierre",       label: "Fecha de cierre",         emoji: "📆", desc: "Fecha de cierre del negocio", requerido: false },
-  { key: "sede",              label: "Sede / Sala",             emoji: "📍", desc: "Lugar del evento", requerido: false },
-  { key: "origenLead",        label: "Origen del lead",         emoji: "🎯", desc: "Cómo llegó este cliente", requerido: false },
-  { key: "segmento",          label: "Segmento",                emoji: "👥", desc: "Tipo de cliente", requerido: false },
-  { key: "emailContacto",     label: "Email del contacto",      emoji: "✉️", desc: "", requerido: false },
-  { key: "telefonoContacto",  label: "Teléfono del contacto",   emoji: "📞", desc: "", requerido: false },
-  { key: "cargoContacto",     label: "Cargo del contacto",      emoji: "💼", desc: "", requerido: false },
-  { key: "recurrente",        label: "Recurrente",              emoji: "🔁", desc: "SI / NO", requerido: false },
+const CAMPOS: { key: string; label: string; icon: Icon; desc: string; requerido: boolean }[] = [
+  { key: "empresa",           label: "Empresa / Cliente",       icon: IconBuilding,      desc: "Nombre de la empresa o cliente", requerido: true },
+  { key: "contacto",          label: "Contacto / Persona",      icon: IconUser,          desc: "Nombre de la persona de contacto", requerido: true },
+  { key: "tituloOportunidad", label: "Tipo de negocio / evento",icon: IconChartFunnel,   desc: "Tipo de evento o nombre del negocio", requerido: true },
+  { key: "etapaOportunidad",  label: "Estado / Etapa",          icon: IconTag,           desc: "HECHO, DESCARTADO, EN PROCESO…", requerido: false },
+  { key: "valorOportunidad",  label: "Valor cotizado",          icon: IconCoin,          desc: "Solo números (sin símbolos)", requerido: false },
+  { key: "costoOportunidad",  label: "Costo del evento",        icon: IconCash,          desc: "Costo interno", requerido: false },
+  { key: "fechaEvento",       label: "Fecha del evento",        icon: IconCalendarEvent, desc: "Fecha en que ocurre el evento", requerido: false },
+  { key: "fechaCierre",       label: "Fecha de cierre",         icon: IconCalendarDue,   desc: "Fecha de cierre del negocio", requerido: false },
+  { key: "sede",              label: "Sede / Sala",             icon: IconMapPin,        desc: "Lugar del evento", requerido: false },
+  { key: "origenLead",        label: "Origen del lead",         icon: IconTarget,        desc: "Cómo llegó este cliente", requerido: false },
+  { key: "segmento",          label: "Segmento",                icon: IconUsers,         desc: "Tipo de cliente", requerido: false },
+  { key: "emailContacto",     label: "Email del contacto",      icon: IconMail,          desc: "", requerido: false },
+  { key: "telefonoContacto",  label: "Teléfono del contacto",   icon: IconPhone,         desc: "", requerido: false },
+  { key: "cargoContacto",     label: "Cargo del contacto",      icon: IconBriefcase,     desc: "", requerido: false },
+  { key: "recurrente",        label: "Recurrente",              icon: IconRepeat,        desc: "SI / NO", requerido: false },
 ];
 
 export default function ImportarCompletoPage() {
@@ -150,7 +156,7 @@ export default function ImportarCompletoPage() {
         <h1 className="text-xl font-semibold text-slate-900">Importación completa</h1>
       </div>
 
-      <div className="mb-6 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800">
+      <div className="mb-6 rounded-2xl border border-brand-100 bg-brand-50 p-4 text-sm text-brand-800">
         <strong>Importación inteligente:</strong> desde un solo Excel crea automáticamente las Empresas, Contactos y Oportunidades del Pipeline — todos vinculados entre sí.
       </div>
 
@@ -158,7 +164,7 @@ export default function ImportarCompletoPage() {
       <div className="flex items-center gap-2 mb-8">
         {[{ n: 1, label: "Subir archivo" }, { n: 2, label: "Asignar columnas" }, { n: 3, label: "Resultado" }].map((p, i) => (
           <div key={p.n} className="flex items-center gap-2">
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${paso >= p.n ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-400"}`}>{p.n}</div>
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${paso >= p.n ? "bg-accent-600 text-white" : "bg-slate-100 text-slate-400"}`}>{p.n}</div>
             <span className={`text-sm ${paso >= p.n ? "text-slate-800 font-medium" : "text-slate-400"}`}>{p.label}</span>
             {i < 2 && <div className="w-8 h-px bg-slate-200 mx-1" />}
           </div>
@@ -171,9 +177,9 @@ export default function ImportarCompletoPage() {
           <h2 className="text-sm font-semibold text-slate-800 mb-1">Sube tu archivo Excel</h2>
           <p className="text-xs text-slate-400 mb-4">Puede tener cualquier formato de columnas. En el siguiente paso verás los datos y asignarás cada columna al campo del CRM.</p>
           <input ref={fileRef} type="file" accept=".xlsx,.xls"
-            className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 mb-5" />
+            className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 mb-5" />
           <button onClick={handlePrevisualizar} disabled={cargando}
-            className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+            className="rounded-xl bg-accent-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
             {cargando ? "Leyendo archivo..." : "Continuar →"}
           </button>
         </div>
@@ -195,23 +201,24 @@ export default function ImportarCompletoPage() {
                   const campo = CAMPOS.find(c => mapeo[c.key] === col);
                   const mapeada = !!campo;
                   const activa = colDetalle === col;
+                  const CampoIcono = campo?.icon;
                   return (
                     <button
                       key={col}
                       onClick={() => setColDetalle(activa ? null : col)}
-                      className={`w-full text-left rounded-lg px-3 py-2 text-xs transition-all ${activa ? "bg-blue-600 text-white" : mapeada ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-slate-50 text-slate-600 hover:bg-slate-100"}`}
+                      className={`w-full text-left rounded-lg px-3 py-2 text-xs transition-all ${activa ? "bg-accent-600 text-white" : mapeada ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-slate-50 text-slate-600 hover:bg-slate-100"}`}
                     >
                       <div className="flex items-center justify-between gap-1">
                         <span className="font-medium truncate">{col}</span>
-                        {mapeada && !activa && <span className="shrink-0 text-emerald-600">✓</span>}
+                        {mapeada && !activa && <IconCheck size={13} stroke={2} className="shrink-0 text-emerald-600" />}
                       </div>
-                      {mapeada && !activa && (
-                        <p className="text-xs text-emerald-600 truncate">→ {campo!.emoji} {campo!.label}</p>
+                      {mapeada && !activa && CampoIcono && (
+                        <p className="text-xs text-emerald-600 truncate flex items-center gap-1">→ <CampoIcono size={12} stroke={1.75} className="shrink-0" /> {campo!.label}</p>
                       )}
                       {activa && (
                         <div className="mt-1 space-y-0.5">
                           {muestrasDeCol(col).map((v, i) => (
-                            <p key={i} className="text-blue-100 truncate">{v}</p>
+                            <p key={i} className="text-white/80 truncate">{v}</p>
                           ))}
                         </div>
                       )}
@@ -251,14 +258,19 @@ export default function ImportarCompletoPage() {
                     const mapeado = !!mapeo[campo.key];
                     const autoDetectado = autoDetectados.has(campo.key);
                     const muestras = mapeado ? muestrasDeCol(mapeo[campo.key]) : [];
+                    const CampoIcono = campo.icon;
                     return (
                       <div key={campo.key} className={`rounded-xl border p-3 ${!mapeado ? "border-red-300 bg-red-50" : "border-emerald-200 bg-emerald-50"}`}>
                         <div className="flex items-center justify-between mb-2">
-                          <label className="text-sm font-semibold text-slate-800">
-                            {campo.emoji} {campo.label} <span className="text-red-500">*</span>
+                          <label className="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
+                            <CampoIcono size={15} stroke={1.75} className="text-slate-500" />{campo.label} <span className="text-red-500">*</span>
                           </label>
                           <div className="flex items-center gap-2">
-                            {autoDetectado && mapeado && <span className="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded-full">✓ Auto</span>}
+                            {autoDetectado && mapeado && (
+                              <span className="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                                <IconCheck size={11} stroke={2.5} />Auto
+                              </span>
+                            )}
                           </div>
                         </div>
                         {campo.desc && <p className="text-xs text-slate-500 mb-2">{campo.desc}</p>}
@@ -270,14 +282,18 @@ export default function ImportarCompletoPage() {
                             else delete nueva[campo.key];
                             setMapeo(nueva);
                           }}
-                          className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white ${!mapeado ? "border-red-300" : "border-emerald-300"}`}
+                          className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white ${!mapeado ? "border-red-300" : "border-emerald-300"}`}
                         >
                           <option value="">— Seleccionar columna —</option>
                           {preview.columnas.map(c => (
                             <option key={c} value={c}>{c}</option>
                           ))}
                         </select>
-                        {!mapeado && <p className="text-xs text-red-600 mt-1">⚠ Este campo es obligatorio para importar</p>}
+                        {!mapeado && (
+                          <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                            <IconAlertTriangle size={12} stroke={1.75} />Este campo es obligatorio para importar
+                          </p>
+                        )}
                         {muestras.length > 0 && (
                           <div className="mt-2 flex flex-wrap gap-1">
                             <span className="text-xs text-slate-400">Datos reales:</span>
@@ -299,9 +315,10 @@ export default function ImportarCompletoPage() {
                   {CAMPOS.filter(c => !c.requerido).map(campo => {
                     const mapeado = !!mapeo[campo.key];
                     const muestras = mapeado ? muestrasDeCol(mapeo[campo.key]) : [];
+                    const CampoIcono = campo.icon;
                     return (
                       <div key={campo.key} className={`rounded-xl border p-2.5 ${mapeado ? "border-emerald-200 bg-emerald-50" : "border-slate-100 bg-slate-50"}`}>
-                        <label className="text-xs font-medium text-slate-700 block mb-1.5">{campo.emoji} {campo.label}</label>
+                        <label className="text-xs font-medium text-slate-700 flex items-center gap-1.5 mb-1.5"><CampoIcono size={13} stroke={1.75} className="text-slate-500" />{campo.label}</label>
                         <select
                           value={mapeo[campo.key] ?? ""}
                           onChange={e => {
@@ -310,7 +327,7 @@ export default function ImportarCompletoPage() {
                             else delete nueva[campo.key];
                             setMapeo(nueva);
                           }}
-                          className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs outline-none focus:border-blue-500 bg-white"
+                          className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs outline-none focus:border-brand-500 bg-white"
                         >
                           <option value="">— No mapear —</option>
                           {preview.columnas.map(c => (
@@ -338,7 +355,7 @@ export default function ImportarCompletoPage() {
                 </div>
               ) : (
                 <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 mb-3">
-                  <p className="text-sm font-semibold text-emerald-700 mb-1">✓ Todo listo para importar</p>
+                  <p className="text-sm font-semibold text-emerald-700 mb-1 flex items-center gap-1.5"><IconCircleCheck size={15} stroke={1.75} />Todo listo para importar</p>
                   <p className="text-xs text-emerald-600">
                     Se crearán empresas, contactos y oportunidades a partir de <strong>{preview.totalFilas} filas</strong>.
                     Las columnas no mapeadas se guardan como datos extras.
@@ -348,9 +365,9 @@ export default function ImportarCompletoPage() {
               <button
                 onClick={handleImportar}
                 disabled={cargando || faltanRequeridos.length > 0}
-                className="w-full rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-xl bg-accent-600 px-5 py-3 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
               >
-                {cargando ? "Importando... esto puede tomar unos segundos" : `↑ Importar ${preview.totalFilas} filas al CRM`}
+                <IconUpload size={15} stroke={1.75} />{cargando ? "Importando... esto puede tomar unos segundos" : `Importar ${preview.totalFilas} filas al CRM`}
               </button>
             </div>
           </div>
@@ -360,12 +377,14 @@ export default function ImportarCompletoPage() {
       {/* ── PASO 3 ── */}
       {paso === 3 && resultado && (
         <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 bg-emerald-50">✅</div>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-emerald-50">
+            <IconCircleCheck size={28} stroke={1.5} className="text-emerald-600" />
+          </div>
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Importación completada</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 max-w-sm mx-auto">
-            <div className="rounded-xl bg-blue-50 p-3">
-              <p className="text-2xl font-bold text-blue-700">{resultado.empresasCreadas}</p>
-              <p className="text-xs text-blue-500 mt-0.5">Cuentas nuevas</p>
+            <div className="rounded-xl bg-brand-50 p-3">
+              <p className="text-2xl font-bold text-brand-700">{resultado.empresasCreadas}</p>
+              <p className="text-xs text-brand-500 mt-0.5">Cuentas nuevas</p>
             </div>
             <div className="rounded-xl bg-violet-50 p-3">
               <p className="text-2xl font-bold text-violet-700">{resultado.contactosCreados}</p>
@@ -388,7 +407,7 @@ export default function ImportarCompletoPage() {
             </p>
           )}
           <div className="flex gap-3 justify-center">
-            <Link href="/dashboard/cuentas" className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Ver Cuentas →</Link>
+            <Link href="/dashboard/cuentas" className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">Ver Cuentas →</Link>
             <button onClick={() => { setPaso(1); setResultado(null); setPreview(null); setMapeo({}); }}
               className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
               Importar otro archivo

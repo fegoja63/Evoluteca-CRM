@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { KpiCard } from "@/components/kpi-card";
+import {
+  IconUsers, IconRefresh, IconMail, IconStar, IconBuilding, IconMessageCircle,
+  IconDownload, IconPlus, IconX,
+} from "@tabler/icons-react";
 
 type Espectador = {
   id: string;
@@ -179,51 +183,56 @@ export default function AudienciaPage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-8">
-        <KpiCard label="Total espectadores" valor={espectadores.length} emoji="👥" color="bg-blue-500" />
-        <KpiCard label="Tasa de recompra" valor={`${tasaRecompra}%`} emoji="🔁" color={tasaRecompra >= 25 ? "bg-emerald-500" : "bg-red-500"}
+        <KpiCard label="Total espectadores" valor={espectadores.length} icon={IconUsers} color="bg-brand-500" iconBg="bg-brand-50" iconColor="text-brand-600" />
+        <KpiCard label="Tasa de recompra" valor={`${tasaRecompra}%`} icon={IconRefresh}
+          color={tasaRecompra >= 25 ? "bg-emerald-500" : "bg-red-500"}
+          iconBg={tasaRecompra >= 25 ? "bg-emerald-50" : "bg-red-50"}
+          iconColor={tasaRecompra >= 25 ? "text-emerald-600" : "text-red-500"}
           sub="2+ visitas en 90 días · meta ≥25%" />
-        <KpiCard label="Con email" valor={conEmail} emoji="✉️" color="bg-emerald-500" sub="Alcanzables por campaña" />
-        <KpiCard label="Con NPS registrado" valor={conNps} emoji="⭐" color="bg-violet-500" />
+        <KpiCard label="Con email" valor={conEmail} icon={IconMail} color="bg-brand-500" iconBg="bg-brand-50" iconColor="text-brand-600" sub="Alcanzables por campaña" />
+        <KpiCard label="Con NPS registrado" valor={conNps} icon={IconStar} color="bg-brand-500" iconBg="bg-brand-50" iconColor="text-brand-600" />
         <KpiCard label="Empresas / Colegios" valor={espectadores.filter(e => e.segmento === "EMPRESA" || e.segmento === "COLEGIO").length}
-          emoji="🏢" color="bg-amber-500" sub="Potencial B2B" />
+          icon={IconBuilding} color="bg-brand-500" iconBg="bg-brand-50" iconColor="text-brand-600" sub="Potencial B2B" />
       </div>
 
       <div className="flex gap-1.5 mb-4">
         {(["TODOS", "A", "B", "C"] as const).map(r => (
           <button key={r} onClick={() => setFiltroRecencia(r)}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              filtroRecencia === r ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              filtroRecencia === r ? "bg-accent-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}>
             {r === "TODOS" ? "Todos" : RECENCIA_LABEL[r]}
           </button>
         ))}
       </div>
 
-      <div className="flex items-center justify-between mb-4 gap-3">
+      <div className="flex flex-wrap items-center justify-between mb-4 gap-3">
         <div className="relative">
           <input type="text" placeholder="Buscar espectador..."
             value={busqueda} onChange={e => setBusqueda(e.target.value)}
-            className="w-72 rounded-xl border border-slate-200 px-3 py-2 pr-8 text-sm outline-none focus:border-blue-500" />
+            className="w-72 rounded-xl border border-slate-200 px-3 py-2 pr-8 text-sm outline-none focus:border-brand-500" />
           {busqueda && (
             <button onClick={() => setBusqueda("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-lg leading-none">×</button>
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
+              <IconX size={16} stroke={1.75} />
+            </button>
           )}
         </div>
         <div className="flex gap-2">
           <Link href="/dashboard/audiencia/nps-pendientes"
             className="relative flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
-            💬 Cola de NPS
+            <IconMessageCircle size={16} stroke={1.75} />Cola de NPS
             {npsPendientesCount > 0 && (
               <span className="rounded-full bg-amber-500 text-white text-xs font-bold px-1.5 py-0.5 leading-none">{npsPendientesCount}</span>
             )}
           </Link>
           <button onClick={exportar} disabled={exportando || espectadores.length === 0}
             className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50">
-            {exportando ? "Generando..." : "↓ Exportar Excel"}
+            <IconDownload size={16} stroke={1.75} />{exportando ? "Generando..." : "Exportar Excel"}
           </button>
           <button onClick={() => setMostrarForm(true)}
-            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-            + Nuevo espectador
+            className="flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
+            <IconPlus size={16} stroke={2} />Nuevo espectador
           </button>
         </div>
       </div>
@@ -235,33 +244,33 @@ export default function AudienciaPage() {
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Nombre *</label>
               <input required value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Email</label>
               <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Teléfono</label>
               <input value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Segmento</label>
               <select value={form.segmento} onChange={e => setForm({ ...form, segmento: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
                 {SEGMENTOS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
               </select>
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Notas</label>
               <input value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div className="col-span-2 flex gap-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                 {guardando ? "Guardando..." : "Guardar"}
               </button>
               <button type="button" onClick={() => setMostrarForm(false)}
@@ -297,41 +306,41 @@ export default function AudienciaPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {espectadoresFiltrados.map(e => editandoId === e.id ? (
-                <tr key={e.id} className="bg-blue-50">
+                <tr key={e.id} className="bg-brand-50">
                   <td className="px-2 py-2">
                     <input value={editForm.nombre} onChange={ev => setEditForm({ ...editForm, nombre: ev.target.value })}
-                      className="w-full rounded-lg border border-blue-300 px-2 py-1 text-sm outline-none" />
+                      className="w-full rounded-lg border border-brand-300 px-2 py-1 text-sm outline-none" />
                   </td>
                   <td className="px-2 py-2">
                     <select value={editForm.segmento} onChange={ev => setEditForm({ ...editForm, segmento: ev.target.value })}
-                      className="w-full rounded-lg border border-blue-300 px-2 py-1 text-sm outline-none">
+                      className="w-full rounded-lg border border-brand-300 px-2 py-1 text-sm outline-none">
                       {SEGMENTOS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                     </select>
                   </td>
                   <td className="px-2 py-2">
                     <select value={editForm.nivelMembresia} onChange={ev => setEditForm({ ...editForm, nivelMembresia: ev.target.value })}
-                      className="w-full rounded-lg border border-blue-300 px-2 py-1 text-sm outline-none">
+                      className="w-full rounded-lg border border-brand-300 px-2 py-1 text-sm outline-none">
                       {MEMBRESIAS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
                     </select>
                   </td>
                   <td className="px-2 py-2">
                     <input type="email" value={editForm.email} onChange={ev => setEditForm({ ...editForm, email: ev.target.value })}
-                      className="w-full rounded-lg border border-blue-300 px-2 py-1 text-sm outline-none" />
+                      className="w-full rounded-lg border border-brand-300 px-2 py-1 text-sm outline-none" />
                   </td>
                   <td className="px-2 py-2">
                     <input value={editForm.telefono} onChange={ev => setEditForm({ ...editForm, telefono: ev.target.value })}
-                      className="w-full rounded-lg border border-blue-300 px-2 py-1 text-sm outline-none" />
+                      className="w-full rounded-lg border border-brand-300 px-2 py-1 text-sm outline-none" />
                   </td>
                   <td className="px-2 py-2">
                     <input value={editForm.notas} onChange={ev => setEditForm({ ...editForm, notas: ev.target.value })}
-                      className="w-full rounded-lg border border-blue-300 px-2 py-1 text-sm outline-none" />
+                      className="w-full rounded-lg border border-brand-300 px-2 py-1 text-sm outline-none" />
                   </td>
                   <td className="px-2 py-2 text-slate-400">{e._count.npsList > 0 ? `${e._count.npsList} resp.` : "—"}</td>
                   <td className="px-2 py-2 text-slate-400">—</td>
                   <td className="px-2 py-2">
                     <div className="flex gap-1">
                       <button onClick={() => handleGuardarEdicion(e.id)} disabled={guardando}
-                        className="rounded-lg bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                        className="rounded-lg bg-accent-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                         Guardar
                       </button>
                       <button onClick={() => setEditandoId(null)}
@@ -344,7 +353,7 @@ export default function AudienciaPage() {
               ) : (
                 <tr key={e.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-1 font-medium text-slate-900">
-                    <a href={`/dashboard/audiencia/${e.id}`} className="hover:text-blue-600 hover:underline">{e.nombre}</a>
+                    <a href={`/dashboard/audiencia/${e.id}`} className="hover:text-brand-600 hover:underline">{e.nombre}</a>
                   </td>
                   <td className="px-4 py-1">
                     <span className={`rounded-lg px-2 py-0.5 text-xs font-medium ${SEG_COLOR[e.segmento]}`}>

@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import {
+  IconTheater, IconTicket, IconScale, IconBuildingPavilion,
+  IconBuilding, IconUsers, IconChartFunnel, IconCalendar, IconFileText,
+  IconReportAnalytics, IconUsersGroup, IconDownload, IconTrash, IconCheck,
+  type Icon,
+} from "@tabler/icons-react";
 
 type Modulos = {
   funciones?: boolean;
@@ -10,31 +16,41 @@ type Modulos = {
   salones?: boolean;
 };
 
-const MODULOS_DISPONIBLES = [
+const MODULOS_DISPONIBLES: { key: string; titulo: string; descripcion: string; icon: Icon }[] = [
   {
     key: "funciones",
     titulo: "Módulo Funciones / Eventos",
     descripcion: "Registra cada función, obra o evento: fecha, ocupación de sillas, canal de venta e ingresos estimados. Ideal para teatros, auditorios, salones de eventos y academias.",
-    emoji: "🎭",
+    icon: IconTheater,
   },
   {
     key: "audiencia",
     titulo: "Módulo Audiencia (B2C)",
     descripcion: "Gestiona tu público: espectadores individuales, grupos, colegios y empresas. Incluye captura de NPS post-función para medir satisfacción y retención.",
-    emoji: "👥",
+    icon: IconTicket,
   },
   {
     key: "expedientes",
     titulo: "Módulo Expedientes (jurídico)",
     descripcion: "Gestiona casos jurídicos: radicado, juzgado, contraparte, plazos procesales con alertas, bitácora de actuaciones y registro de horas por abogado. Ideal para despachos de abogados.",
-    emoji: "⚖️",
+    icon: IconScale,
   },
   {
     key: "salones",
     titulo: "Módulo Salones (alquiler de espacios)",
     descripcion: "Catálogo de salones con capacidad y descripción, selector de salón en cada cotización, calendario mensual de reservas y aviso de choque de fechas cuando dos cotizaciones apuntan al mismo salón el mismo día. Ideal para negocios con varios espacios en alquiler.",
-    emoji: "🏛️",
+    icon: IconBuildingPavilion,
   },
+];
+
+const MODULOS_ESTANDAR: { titulo: string; icon: Icon; desc: string }[] = [
+  { titulo: "Clientes", icon: IconBuilding, desc: "Empresas y organizaciones B2B" },
+  { titulo: "Contactos", icon: IconUsers, desc: "Personas de tus clientes" },
+  { titulo: "Pipeline", icon: IconChartFunnel, desc: "Oportunidades de venta" },
+  { titulo: "Agenda", icon: IconCalendar, desc: "Tareas, llamadas y reuniones" },
+  { titulo: "Cotizaciones", icon: IconFileText, desc: "Cotizaciones activas" },
+  { titulo: "Reportes", icon: IconReportAnalytics, desc: "KPIs y métricas del negocio" },
+  { titulo: "Equipo", icon: IconUsersGroup, desc: "Usuarios y roles" },
 ];
 
 export default function ConfiguracionPage() {
@@ -167,18 +183,22 @@ export default function ConfiguracionPage() {
               accept="image/*"
               onChange={handleLogoFile}
               disabled={!esAdmin}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 disabled:opacity-50 mb-2 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-700 hover:file:bg-slate-200"
+              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 disabled:opacity-50 mb-2 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-700 hover:file:bg-slate-200"
             />
             {logoError && <p className="text-xs text-red-600 mb-2">{logoError}</p>}
             <div className="flex items-center gap-2">
               <button
                 onClick={guardarLogo}
                 disabled={!esAdmin || guardandoLogo || logoInput === logoUrl}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 transition-colors"
               >
                 {guardandoLogo ? "Guardando..." : "Guardar logo"}
               </button>
-              {logoOk && <span className="text-xs text-emerald-600">✅ Logo guardado</span>}
+              {logoOk && (
+                <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                  <IconCheck size={14} stroke={2} /> Logo guardado
+                </span>
+              )}
               {(logoInput || logoUrl) && (
                 <button
                   onClick={() => { setLogoInput(""); setLogoError(""); }}
@@ -197,26 +217,23 @@ export default function ConfiguracionPage() {
         <h2 className="text-sm font-semibold text-slate-700 mb-1">Módulos estándar</h2>
         <p className="text-xs text-slate-400 mb-4">Siempre activos para todos los tipos de negocio.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {[
-            { titulo: "Clientes", emoji: "🏢", desc: "Empresas y organizaciones B2B" },
-            { titulo: "Contactos", emoji: "👤", desc: "Personas de tus clientes" },
-            { titulo: "Pipeline", emoji: "◈", desc: "Oportunidades de venta" },
-            { titulo: "Agenda", emoji: "📅", desc: "Tareas, llamadas y reuniones" },
-            { titulo: "Cotizaciones", emoji: "📄", desc: "Cotizaciones activas" },
-            { titulo: "Reportes", emoji: "📊", desc: "KPIs y métricas del negocio" },
-            { titulo: "Equipo", emoji: "👥", desc: "Usuarios y roles" },
-          ].map((m) => (
-            <div key={m.titulo} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4">
-              <div className="flex items-center gap-3">
-                <span className="text-xl">{m.emoji}</span>
-                <div>
-                  <p className="text-sm font-medium text-slate-800">{m.titulo}</p>
-                  <p className="text-xs text-slate-400">{m.desc}</p>
+          {MODULOS_ESTANDAR.map((m) => {
+            const Icono = m.icon;
+            return (
+              <div key={m.titulo} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-brand-50 flex items-center justify-center shrink-0">
+                    <Icono size={18} stroke={1.75} className="text-brand-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-800">{m.titulo}</p>
+                    <p className="text-xs text-slate-400">{m.desc}</p>
+                  </div>
                 </div>
+                <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Activo</span>
               </div>
-              <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Activo</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -229,10 +246,13 @@ export default function ConfiguracionPage() {
           <div className="flex flex-col gap-3">
             {MODULOS_DISPONIBLES.map((m) => {
               const activo = !!(modulos as Record<string, boolean>)[m.key];
+              const Icono = m.icon;
               return (
                 <div key={m.key} className="flex items-start justify-between rounded-2xl border border-slate-200 bg-white p-5">
                   <div className="flex items-start gap-4">
-                    <span className="text-2xl mt-0.5">{m.emoji}</span>
+                    <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center shrink-0 mt-0.5">
+                      <Icono size={20} stroke={1.75} className="text-brand-600" />
+                    </div>
                     <div>
                       <p className="text-sm font-semibold text-slate-800">{m.titulo}</p>
                       <p className="text-xs text-slate-500 mt-1 max-w-lg">{m.descripcion}</p>
@@ -240,12 +260,16 @@ export default function ConfiguracionPage() {
                   </div>
                   <div className="flex items-center gap-3 ml-4 shrink-0">
                     {guardando && <span className="text-xs text-slate-400">Guardando...</span>}
-                    {guardado && <span className="text-xs text-emerald-600">✓ Guardado</span>}
+                    {guardado && (
+                      <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                        <IconCheck size={14} stroke={2} /> Guardado
+                      </span>
+                    )}
                     <button
                       disabled={!esAdmin}
                       onClick={() => toggleModulo(m.key, !activo)}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        activo ? "bg-blue-600" : "bg-slate-200"
+                        activo ? "bg-accent-600" : "bg-slate-200"
                       } ${!esAdmin ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                     >
                       <span
@@ -274,7 +298,7 @@ export default function ConfiguracionPage() {
             disabled={!esAdmin || guardandoEmails}
             onClick={() => toggleEmails(!emailsActivos)}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              emailsActivos ? "bg-blue-600" : "bg-slate-200"
+              emailsActivos ? "bg-accent-600" : "bg-slate-200"
             } ${!esAdmin ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
           >
             <span
@@ -302,7 +326,7 @@ export default function ConfiguracionPage() {
           href="/api/exportar/completo"
           className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
         >
-          ⬇ Descargar Excel completo
+          <IconDownload size={16} stroke={1.75} /> Descargar Excel completo
         </a>
       </div>
 
@@ -315,9 +339,10 @@ export default function ConfiguracionPage() {
           <button
             onClick={handleLimpiar}
             disabled={limpiando}
-            className="rounded-xl border border-red-400 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-red-400 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
           >
-            {limpiando ? "Limpiando..." : "🗑️ Limpiar todos los datos de prueba"}
+            <IconTrash size={16} stroke={1.75} />
+            {limpiando ? "Limpiando..." : "Limpiar todos los datos de prueba"}
           </button>
         </div>
       )}

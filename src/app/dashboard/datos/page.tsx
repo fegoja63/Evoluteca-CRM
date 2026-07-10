@@ -2,23 +2,28 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import {
+  IconBuilding, IconUser, IconUsers, IconChartFunnel, IconCalendarEvent,
+  IconFileText, IconTheater, IconRocket, IconDownload, IconUpload,
+  IconCircleCheck, IconAlertTriangle, type Icon,
+} from "@tabler/icons-react";
 
 type Resultado = { creados: number; errores: number; total: number } | null;
 
-const MODULOS_EXPORT = [
-  { key: "empresas", label: "Empresas / Cuentas", emoji: "🏢" },
-  { key: "contactos", label: "Contactos", emoji: "👤" },
-  { key: "pipeline", label: "Pipeline", emoji: "◈" },
-  { key: "agenda", label: "Agenda", emoji: "📅" },
-  { key: "cotizaciones", label: "Cotizaciones", emoji: "📄" },
-  { key: "espectadores", label: "Audiencia", emoji: "🎪" },
-  { key: "funciones", label: "Funciones", emoji: "🎭" },
+const MODULOS_EXPORT: { key: string; label: string; icon: Icon }[] = [
+  { key: "empresas", label: "Empresas / Cuentas", icon: IconBuilding },
+  { key: "contactos", label: "Contactos", icon: IconUser },
+  { key: "pipeline", label: "Pipeline", icon: IconChartFunnel },
+  { key: "agenda", label: "Agenda", icon: IconCalendarEvent },
+  { key: "cotizaciones", label: "Cotizaciones", icon: IconFileText },
+  { key: "espectadores", label: "Audiencia", icon: IconUsers },
+  { key: "funciones", label: "Funciones", icon: IconTheater },
 ];
 
-const MODULOS_IMPORT = [
-  { key: "empresas", label: "Empresas / Cuentas", emoji: "🏢" },
-  { key: "contactos", label: "Contactos", emoji: "👤" },
-  { key: "espectadores", label: "Audiencia", emoji: "🎪" },
+const MODULOS_IMPORT: { key: string; label: string; icon: Icon }[] = [
+  { key: "empresas", label: "Empresas / Cuentas", icon: IconBuilding },
+  { key: "contactos", label: "Contactos", icon: IconUser },
+  { key: "espectadores", label: "Audiencia", icon: IconUsers },
 ];
 
 export default function DatosPage() {
@@ -57,9 +62,12 @@ export default function DatosPage() {
 
       {/* IMPORTACION COMPLETA */}
       <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 flex items-center justify-between">
-        <div>
-          <p className="text-sm font-semibold text-emerald-900">🚀 Importación completa desde un solo Excel</p>
-          <p className="text-xs text-emerald-700 mt-1">Crea Cuentas, Contactos y Pipeline vinculados en una sola operación.</p>
+        <div className="flex items-center gap-2">
+          <IconRocket size={18} stroke={1.75} className="text-emerald-600 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-emerald-900">Importación completa desde un solo Excel</p>
+            <p className="text-xs text-emerald-700 mt-1">Crea Cuentas, Contactos y Pipeline vinculados en una sola operación.</p>
+          </div>
         </div>
         <Link href="/dashboard/datos/importar-completo"
           className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 shrink-0 ml-4">
@@ -68,13 +76,13 @@ export default function DatosPage() {
       </div>
 
       {/* IMPORTACION AVANZADA */}
-      <div className="mb-8 rounded-2xl border border-blue-200 bg-blue-50 p-5 flex items-center justify-between">
+      <div className="mb-8 rounded-2xl border border-brand-200 bg-brand-50 p-5 flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold text-blue-900">¿Quieres importar un módulo específico?</p>
-          <p className="text-xs text-blue-600 mt-1">Sube tu archivo y mapea tus columnas a los campos del CRM.</p>
+          <p className="text-sm font-semibold text-brand-900">¿Quieres importar un módulo específico?</p>
+          <p className="text-xs text-brand-600 mt-1">Sube tu archivo y mapea tus columnas a los campos del CRM.</p>
         </div>
         <Link href="/dashboard/datos/importar"
-          className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 shrink-0 ml-4">
+          className="rounded-xl bg-accent-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-700 shrink-0 ml-4">
           Importar un módulo →
         </Link>
       </div>
@@ -84,20 +92,25 @@ export default function DatosPage() {
         <h2 className="text-sm font-semibold text-slate-700 mb-1">Exportar a Excel</h2>
         <p className="text-xs text-slate-400 mb-4">Descarga los datos actuales de cada módulo en un archivo .xlsx listo para usar.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {MODULOS_EXPORT.map((m) => (
+          {MODULOS_EXPORT.map((m) => {
+            const Icono = m.icon;
+            return (
             <div key={m.key} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4">
               <div className="flex items-center gap-3">
-                <span className="text-xl">{m.emoji}</span>
+                <div className="w-8 h-8 rounded-xl bg-brand-50 flex items-center justify-center shrink-0">
+                  <Icono size={16} stroke={1.75} className="text-brand-600" />
+                </div>
                 <p className="text-sm font-medium text-slate-800">{m.label}</p>
               </div>
               <button
                 onClick={() => descargar(`/api/exportar/${m.key}`, `${m.key}.xlsx`)}
-                className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700"
+                className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 flex items-center gap-1"
               >
-                ↓ Exportar
+                <IconDownload size={13} stroke={1.75} />Exportar
               </button>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -106,10 +119,14 @@ export default function DatosPage() {
         <h2 className="text-sm font-semibold text-slate-700 mb-1">Descargar plantillas</h2>
         <p className="text-xs text-slate-400 mb-4">Descarga una plantilla vacía con el formato correcto, llénala con tus datos y luego impórtala.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {MODULOS_IMPORT.map((m) => (
+          {MODULOS_IMPORT.map((m) => {
+            const Icono = m.icon;
+            return (
             <div key={m.key} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4">
               <div className="flex items-center gap-3">
-                <span className="text-xl">{m.emoji}</span>
+                <div className="w-8 h-8 rounded-xl bg-brand-50 flex items-center justify-center shrink-0">
+                  <Icono size={16} stroke={1.75} className="text-brand-600" />
+                </div>
                 <div>
                   <p className="text-sm font-medium text-slate-800">{m.label}</p>
                   <p className="text-xs text-slate-400">Incluye fila de ejemplo</p>
@@ -117,12 +134,13 @@ export default function DatosPage() {
               </div>
               <button
                 onClick={() => descargar(`/api/plantilla/${m.key}`, `plantilla_${m.key}.xlsx`)}
-                className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                className="rounded-xl bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700 flex items-center gap-1"
               >
-                ↓ Plantilla
+                <IconDownload size={13} stroke={1.75} />Plantilla
               </button>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -135,19 +153,22 @@ export default function DatosPage() {
           <div className="mb-5">
             <label className="block text-xs font-medium text-slate-600 mb-2">1. Selecciona el módulo a importar</label>
             <div className="flex flex-wrap gap-2">
-              {MODULOS_IMPORT.map((m) => (
+              {MODULOS_IMPORT.map((m) => {
+                const Icono = m.icon;
+                return (
                 <button
                   key={m.key}
                   onClick={() => { setModuloActivo(m.key); setResultado(null); }}
                   className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors ${
                     moduloActivo === m.key
-                      ? "bg-blue-600 text-white font-medium"
+                      ? "bg-accent-600 text-white font-medium"
                       : "border border-slate-200 text-slate-600 hover:bg-slate-50"
                   }`}
                 >
-                  <span>{m.emoji}</span> {m.label}
+                  <Icono size={15} stroke={1.75} /> {m.label}
                 </button>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -159,24 +180,26 @@ export default function DatosPage() {
                   ref={fileRef}
                   type="file"
                   accept=".xlsx"
-                  className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
+                  className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100"
                 />
               </div>
 
               <button
                 onClick={() => handleImportar(moduloActivo)}
                 disabled={!!importando}
-                className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                className="rounded-xl bg-accent-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 flex items-center gap-1.5"
               >
-                {importando ? "Importando..." : "↑ Importar ahora"}
+                <IconUpload size={14} stroke={1.75} />{importando ? "Importando..." : "Importar ahora"}
               </button>
             </>
           )}
 
           {resultado && (
             <div className={`mt-5 rounded-2xl p-4 ${resultado.errores === 0 ? "bg-emerald-50 border border-emerald-200" : "bg-amber-50 border border-amber-200"}`}>
-              <p className={`text-sm font-semibold ${resultado.errores === 0 ? "text-emerald-700" : "text-amber-700"}`}>
-                {resultado.errores === 0 ? "✓ Importación exitosa" : "⚠ Importación con advertencias"}
+              <p className={`text-sm font-semibold flex items-center gap-1.5 ${resultado.errores === 0 ? "text-emerald-700" : "text-amber-700"}`}>
+                {resultado.errores === 0
+                  ? <><IconCircleCheck size={15} stroke={1.75} />Importación exitosa</>
+                  : <><IconAlertTriangle size={15} stroke={1.75} />Importación con advertencias</>}
               </p>
               <p className="text-sm text-slate-600 mt-1">
                 {resultado.creados} registros importados correctamente

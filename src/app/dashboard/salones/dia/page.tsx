@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { IconBuildingPavilion, IconCircleCheck } from "@tabler/icons-react";
 
 type Salon = { id: string; nombre: string; capacidad: number | null };
 type Cotizacion = {
@@ -68,15 +69,15 @@ export default function TablaDiaSalonesPage() {
 
       {salones.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-12 text-center">
-          <p className="text-3xl mb-3">🏛️</p>
+          <IconBuildingPavilion size={32} stroke={1.5} className="text-slate-300 mx-auto mb-3" />
           <p className="text-sm text-slate-500 mb-4">Aún no tienes salones registrados.</p>
-          <Link href="/dashboard/salones" className="text-sm text-blue-600 hover:underline">Agregar salón →</Link>
+          <Link href="/dashboard/salones" className="text-sm text-brand-600 hover:underline">Agregar salón →</Link>
         </div>
       ) : (
         <>
           <div className="mb-4 flex flex-wrap items-center gap-3">
             <input type="date" value={fecha} onChange={e => setFecha(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500" />
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500" />
             <span className="text-sm text-slate-500 capitalize">{fechaFormateada}</span>
           </div>
 
@@ -99,7 +100,7 @@ export default function TablaDiaSalonesPage() {
                       </td>
                       <td className="px-4 py-3">
                         {reservas.length === 0 ? (
-                          <span className="text-xs text-emerald-600">✓ Disponible todo el día</span>
+                          <span className="text-xs text-emerald-600 flex items-center gap-1 w-fit"><IconCircleCheck size={13} stroke={1.75} />Disponible todo el día</span>
                         ) : (
                           <div className="flex flex-col gap-1.5">
                             {reservas.map(r => (

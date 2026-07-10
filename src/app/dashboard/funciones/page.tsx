@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { KpiCard } from "@/components/kpi-card";
 import { Pager } from "@/components/pager";
+import {
+  IconTheater, IconArmchair, IconCoin, IconStar, IconDownload, IconPlus,
+  IconAlertTriangle,
+} from "@tabler/icons-react";
 
 const TAKE = 30;
 
@@ -145,22 +149,25 @@ export default function FuncionesPage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <KpiCard label="Total funciones" valor={stats.total} emoji="🎭" color="bg-blue-500" />
-        <KpiCard label="Ocupación promedio" valor={`${stats.promOcupacion}%`} emoji="💺" color="bg-emerald-500" />
-        <KpiCard label="Ingresos registrados" valor={fmt(String(stats.totalIngreso))} emoji="💰" color="bg-violet-500" />
-        <KpiCard label="Respuestas NPS" valor={stats.npsTotal} emoji="⭐" color="bg-amber-500" />
+        <KpiCard label="Total funciones" valor={stats.total} icon={IconTheater} color="bg-brand-500" iconBg="bg-brand-50" iconColor="text-brand-600" />
+        <KpiCard label="Ocupación promedio" valor={`${stats.promOcupacion}%`} icon={IconArmchair}
+          color={stats.promOcupacion >= 70 ? "bg-emerald-500" : stats.promOcupacion >= 40 ? "bg-amber-500" : "bg-red-500"}
+          iconBg={stats.promOcupacion >= 70 ? "bg-emerald-50" : stats.promOcupacion >= 40 ? "bg-amber-50" : "bg-red-50"}
+          iconColor={stats.promOcupacion >= 70 ? "text-emerald-600" : stats.promOcupacion >= 40 ? "text-amber-600" : "text-red-500"} />
+        <KpiCard label="Ingresos registrados" valor={fmt(String(stats.totalIngreso))} icon={IconCoin} color="bg-brand-500" iconBg="bg-brand-50" iconColor="text-brand-600" />
+        <KpiCard label="Respuestas NPS" valor={stats.npsTotal} icon={IconStar} color="bg-brand-500" iconBg="bg-brand-50" iconColor="text-brand-600" />
       </div>
 
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="text-xs text-slate-400">{totalCount} funciones registradas</div>
         <div className="flex gap-2">
           <button onClick={exportar} disabled={exportando || totalCount === 0}
             className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50">
-            {exportando ? "Generando..." : "↓ Exportar Excel"}
+            <IconDownload size={16} stroke={1.75} />{exportando ? "Generando..." : "Exportar Excel"}
           </button>
           <button onClick={() => setMostrarForm(true)}
-            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-            + Registrar función
+            className="flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
+            <IconPlus size={16} stroke={2} />Registrar función
           </button>
         </div>
       </div>
@@ -172,43 +179,43 @@ export default function FuncionesPage() {
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Título / Obra *</label>
               <input required value={form.titulo} onChange={e => setForm({ ...form, titulo: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Fecha y hora *</label>
               <input required type="datetime-local" value={form.fecha} onChange={e => setForm({ ...form, fecha: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Canal de venta</label>
               <select value={form.canal} onChange={e => setForm({ ...form, canal: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500">
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
                 {CANALES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
               </select>
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Sillas totales</label>
               <input type="number" value={form.sillasTotales} onChange={e => setForm({ ...form, sillasTotales: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Sillas vendidas</label>
               <input type="number" value={form.sillasVendidas} onChange={e => setForm({ ...form, sillasVendidas: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Ingreso estimado (COP)</label>
               <input type="number" value={form.ingresoEstimado} onChange={e => setForm({ ...form, ingresoEstimado: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })} rows={2}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div className="col-span-2 flex gap-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                 {guardando ? "Guardando..." : "Guardar"}
               </button>
               <button type="button" onClick={() => setMostrarForm(false)}
@@ -243,46 +250,46 @@ export default function FuncionesPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {funciones.map(f => editandoId === f.id ? (
-                <tr key={f.id} className="bg-blue-50">
+                <tr key={f.id} className="bg-brand-50">
                   <td className="px-2 py-2">
                     <input value={editForm.titulo} onChange={e => setEditForm({ ...editForm, titulo: e.target.value })}
-                      className="w-full rounded-lg border border-blue-300 px-2 py-1 text-sm outline-none" />
+                      className="w-full rounded-lg border border-brand-300 px-2 py-1 text-sm outline-none" />
                   </td>
                   <td className="px-2 py-2">
                     <input type="datetime-local" value={editForm.fecha} onChange={e => setEditForm({ ...editForm, fecha: e.target.value })}
-                      className="w-full rounded-lg border border-blue-300 px-2 py-1 text-sm outline-none" />
+                      className="w-full rounded-lg border border-brand-300 px-2 py-1 text-sm outline-none" />
                   </td>
                   <td className="px-2 py-2">
                     <div className="flex gap-1">
                       <input type="number" placeholder="Vendidas" value={editForm.sillasVendidas}
                         onChange={e => setEditForm({ ...editForm, sillasVendidas: e.target.value })}
-                        className="w-16 rounded-lg border border-blue-300 px-2 py-1 text-sm outline-none" />
+                        className="w-16 rounded-lg border border-brand-300 px-2 py-1 text-sm outline-none" />
                       <span className="text-slate-400 text-xs self-center">/</span>
                       <input type="number" placeholder="Total" value={editForm.sillasTotales}
                         onChange={e => setEditForm({ ...editForm, sillasTotales: e.target.value })}
-                        className="w-16 rounded-lg border border-blue-300 px-2 py-1 text-sm outline-none" />
+                        className="w-16 rounded-lg border border-brand-300 px-2 py-1 text-sm outline-none" />
                     </div>
                   </td>
                   <td className="px-2 py-2">
                     <select value={editForm.canal} onChange={e => setEditForm({ ...editForm, canal: e.target.value })}
-                      className="w-full rounded-lg border border-blue-300 px-2 py-1 text-sm outline-none">
+                      className="w-full rounded-lg border border-brand-300 px-2 py-1 text-sm outline-none">
                       {CANALES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
                     </select>
                   </td>
                   <td className="px-2 py-2">
                     <input type="number" value={editForm.ingresoEstimado}
                       onChange={e => setEditForm({ ...editForm, ingresoEstimado: e.target.value })}
-                      className="w-full rounded-lg border border-blue-300 px-2 py-1 text-sm outline-none" />
+                      className="w-full rounded-lg border border-brand-300 px-2 py-1 text-sm outline-none" />
                   </td>
                   <td className="px-2 py-2 text-slate-400">{f._count.npsList > 0 ? `${f._count.npsList} resp.` : "—"}</td>
                   <td className="px-2 py-2">
                     <input value={editForm.notas} onChange={e => setEditForm({ ...editForm, notas: e.target.value })}
-                      className="w-full rounded-lg border border-blue-300 px-2 py-1 text-sm outline-none" />
+                      className="w-full rounded-lg border border-brand-300 px-2 py-1 text-sm outline-none" />
                   </td>
                   <td className="px-2 py-2">
                     <div className="flex gap-1">
                       <button onClick={() => handleGuardarEdicion(f.id)} disabled={guardando}
-                        className="rounded-lg bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                        className="rounded-lg bg-accent-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                         Guardar
                       </button>
                       <button onClick={() => setEditandoId(null)}
@@ -295,10 +302,10 @@ export default function FuncionesPage() {
               ) : (
                 <tr key={f.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-1 font-medium text-slate-900">
-                    <a href={`/dashboard/funciones/${f.id}`} className="hover:text-blue-600 hover:underline">{f.titulo}</a>
+                    <a href={`/dashboard/funciones/${f.id}`} className="hover:text-brand-600 hover:underline">{f.titulo}</a>
                     {necesitaUrgencia(f) && (
-                      <span title="Ocupación baja a menos de 5 días" className="ml-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
-                        ⚠ urgente
+                      <span title="Ocupación baja a menos de 5 días" className="ml-1.5 inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                        <IconAlertTriangle size={10} stroke={2} />urgente
                       </span>
                     )}
                   </td>
