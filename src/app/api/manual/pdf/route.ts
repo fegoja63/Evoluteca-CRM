@@ -228,12 +228,11 @@ export async function GET() {
             "3. Pipeline de ventas",
             "4. Agenda y actividades",
             "5. Cotizaciones formales",
-            "6. Catálogo de servicios",
-            "7. Importación de datos desde Excel",
-            "8. Reportes y metas",
-            "9. Dashboard — alertas, salud comercial y productividad",
-            "10. Configuración, equipo y perfiles",
-            "11. Preguntas frecuentes",
+            "6. Importación de datos desde Excel",
+            "7. Reportes y metas",
+            "8. Dashboard — alertas, salud comercial y productividad",
+            "9. Configuración, equipo y perfiles",
+            "10. Preguntas frecuentes",
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
@@ -618,10 +617,10 @@ export async function GET() {
     React.createElement(Page, { size: "A4", style: s.page },
       React.createElement(PageHeader, null),
       React.createElement(Footer, { numero: 9 }),
-      React.createElement(H1, null, "9. Dashboard — Tablero gerencial One Page"),
+      React.createElement(H1, null, "8. Dashboard — Tablero gerencial One Page"),
       React.createElement(P, null, "El Dashboard es la pantalla principal del CRM. Funciona como un tablero de control gerencial que concentra en una sola página el estado completo de la operación comercial: meta del mes, KPIs clave, ranking de vendedores, oportunidades calientes y alertas de salud comercial."),
 
-      React.createElement(H2, null, "9.1 Meta del mes y meta del año — Gauges circulares"),
+      React.createElement(H2, null, "8.1 Meta del mes y meta del año — Gauges circulares"),
       React.createElement(P, null, "En la parte superior del Dashboard hay dos medidores circulares (gauges): Meta del mes y Meta del año. Cada uno muestra el porcentaje alcanzado de su meta respectiva, calculado sobre los negocios cerrados como GANADOS versus el valor objetivo configurado en COP. Solo aparecen si tienes una meta configurada de ese tipo (mensual o anual) para el período correspondiente."),
       React.createElement(LI, null, "Rojo: menos del 60% de la meta alcanzada"),
       React.createElement(LI, null, "Ámbar: entre 60% y 99%"),
@@ -629,7 +628,7 @@ export async function GET() {
       React.createElement(P, null, "Debajo de cada gauge, en la tarjeta 'Resumen del año', también puedes ver el valor exacto ganado y la meta en pesos."),
       React.createElement(Tip, null, "Configura la meta mensual o anual desde el módulo Reportes, botón Configurar metas. Deja el campo Mes en blanco para que sea una meta anual. Sin meta configurada, el gauge correspondiente no aparece."),
 
-      React.createElement(H2, null, "9.2 KPIs principales"),
+      React.createElement(H2, null, "8.2 KPIs principales"),
       React.createElement(View, { style: { paddingHorizontal: 40 } },
         React.createElement(View, { style: s.tabla },
           React.createElement(View, { style: s.tablaHead },
@@ -649,17 +648,17 @@ export async function GET() {
         ),
       ),
 
-      React.createElement(H2, null, "9.3 Ranking de vendedores"),
+      React.createElement(H2, null, "8.3 Ranking de vendedores"),
       React.createElement(P, null, "Muestra el top de vendedores del equipo ordenados por el valor total de sus oportunidades activas en el Pipeline. Incluye para cada vendedor: nombre, número de oportunidades activas, valor total en pipeline y valor ganado en el mes."),
       React.createElement(Tip, null, "El ranking es útil para la reunión de ventas semanal: identifica quién tiene más oportunidades en juego y quién va más avanzado hacia su meta mensual."),
 
-      React.createElement(H2, null, "9.4 Oportunidades calientes"),
+      React.createElement(H2, null, "8.4 Oportunidades calientes"),
       React.createElement(P, null, "Lista las 5 oportunidades de mayor valor actualmente activas (no cerradas). Son los negocios de mayor impacto potencial si se cierran en el mes. Se muestran con empresa, etapa y valor."),
 
-      React.createElement(H2, null, "9.5 Últimas ganadas"),
+      React.createElement(H2, null, "8.5 Últimas ganadas"),
       React.createElement(P, null, "Registro de los negocios cerrados como GANADOS en el mes actual. Buen indicador del momentum del equipo y del ritmo de cierre."),
 
-      React.createElement(H2, null, "9.6 Salud comercial"),
+      React.createElement(H2, null, "8.6 Salud comercial"),
       React.createElement(P, null, "Panel con alertas de actividad: actividades vencidas, actividades de hoy y de esta semana. Permite identificar de un vistazo si el equipo está al día con sus compromisos. Las actividades vencidas aparecen en rojo como prioridad inmediata."),
       React.createElement(Tip, null, "El objetivo diario es llegar al Dashboard sin alertas en rojo. Cuando todas las actividades vencidas están completadas y las de hoy están al día, el semáforo está en verde."),
     ),
@@ -668,14 +667,14 @@ export async function GET() {
     React.createElement(Page, { size: "A4", style: s.page },
       React.createElement(PageHeader, null),
       React.createElement(Footer, { numero: 10 }),
-      React.createElement(H1, null, "10. Configuración, equipo y perfiles"),
+      React.createElement(H1, null, "9. Configuración, equipo y perfiles"),
 
-      React.createElement(H2, null, "10.1 Configuración general"),
+      React.createElement(H2, null, "9.1 Configuración general"),
       React.createElement(P, null, 'Ve a Configuración. Desde allí puedes cambiar el nombre de tu empresa (aparece en el sidebar y en los PDFs de cotizaciones).'),
       React.createElement(P, null, "También puedes configurar el logo de tu empresa: en la sección \"Logo de la empresa\" haz clic para elegir un archivo de imagen (PNG o JPG) desde tu computador — no necesitas subirlo a ningún sitio externo ni tener una URL pública. El logo aparecerá automáticamente en el encabezado de todas tus cotizaciones en PDF en lugar del ícono genérico."),
       React.createElement(Tip, null, "El archivo de logo debe pesar máximo 2MB. Si tu imagen es más pesada, redúcela antes de subirla (herramientas de compresión de imágenes en línea funcionan bien para esto)."),
 
-      React.createElement(H2, null, "10.1.1 Notificaciones automáticas por email"),
+      React.createElement(H2, null, "9.1.1 Notificaciones automáticas por email"),
       React.createElement(P, null, "En Configuración encontrarás el toggle 'Notificaciones automáticas por email'. Cuando está activo (azul), el CRM envía cada mañana correos automáticos a cada usuario del equipo con:"),
       React.createElement(LI, null, "Actividades vencidas sin completar"),
       React.createElement(LI, null, "Negocios estancados (sin actividad por más de 14 días)"),
@@ -683,13 +682,13 @@ export async function GET() {
       React.createElement(P, null, "Al desactivar el toggle, ningún usuario de la empresa recibe estos correos. Solo el ADMINISTRADOR puede cambiar esta configuración."),
       React.createElement(Nota, null, "Recomendamos mantener los emails activos. Son el recordatorio diario que evita que los negocios se pierdan por falta de seguimiento."),
 
-      React.createElement(H2, null, "10.2 Módulos opcionales"),
+      React.createElement(H2, null, "9.2 Módulos opcionales"),
       React.createElement(P, null, "Algunos módulos están desactivados por defecto ya que son específicos para ciertos tipos de negocio:"),
       React.createElement(LI, null, "Funciones: para empresas de teatro o espectáculos. Gestiona funciones con aforo, boletería y NPS de asistentes"),
       React.createElement(LI, null, "Audiencia: gestión de espectadores con segmentación por tipo (individual, grupo, empresa, colegio)"),
       React.createElement(P, null, "Activa o desactiva estos módulos según tu tipo de negocio desde la sección Configuración > Módulos."),
 
-      React.createElement(H2, null, "10.3 Gestión del equipo y roles"),
+      React.createElement(H2, null, "9.3 Gestión del equipo y roles"),
       React.createElement(P, null, 'Ve a Equipo para ver los usuarios de tu organización. El Administrador puede crear nuevos miembros y asignarles uno de tres roles. Esto es lo que puede hacer cada uno:'),
       React.createElement(MatrizRoles, { filas: [
         ["Ver y gestionar sus propios clientes, oportunidades y actividades", true, true, true],
@@ -707,9 +706,9 @@ export async function GET() {
       React.createElement(LI, null, "Crear nuevos usuarios con nombre, correo y contraseña inicial"),
       React.createElement(LI, null, "Ver el rol y estado de cada miembro"),
       React.createElement(LI, null, "Restablecer la contraseña de cualquier usuario"),
-      React.createElement(LI, null, "Asignar registros importados sin dueño a un vendedor (ver 10.3.1)"),
+      React.createElement(LI, null, "Asignar registros importados sin dueño a un vendedor (ver 9.3.1)"),
 
-      React.createElement(H3, null, "10.3.1 Asignar registros importados a un vendedor"),
+      React.createElement(H3, null, "9.3.1 Asignar registros importados a un vendedor"),
       React.createElement(P, null, "Cuando importas datos desde Excel, los registros no tienen un vendedor asignado. Un usuario con rol COMERCIAL no podrá verlos hasta que le sean asignados."),
       React.createElement(P, null, "El Administrador ve al final de la página Equipo un panel ámbar 'Asignar registros sin dueño'. Pasos:"),
       React.createElement(Paso, { n: 1, titulo: "Seleccionar vendedor", desc: "En el selector desplegable elige el usuario al que quieres asignar los registros importados." }),
@@ -717,7 +716,7 @@ export async function GET() {
       React.createElement(Paso, { n: 3, titulo: "Confirmar resultado", desc: "Aparece un resumen: 'Asignados: X clientes, Y oportunidades, Z actividades'." }),
       React.createElement(Nota, null, "Solo se reasignan registros sin dueño (importados). Los registros ya asignados a otro vendedor NO se modifican."),
 
-      React.createElement(H2, null, "10.4 Mi perfil"),
+      React.createElement(H2, null, "9.4 Mi perfil"),
       React.createElement(P, null, 'Cada usuario puede actualizar su propia información en Mi perfil (al final del menú lateral):'),
       React.createElement(LI, null, "Cambiar nombre y correo electrónico"),
       React.createElement(LI, null, "Cambiar contraseña (requiere ingresar la contraseña actual como verificación)"),
@@ -725,7 +724,7 @@ export async function GET() {
 
       React.createElement(Sep, null),
 
-      React.createElement(H1, null, "11. Preguntas frecuentes"),
+      React.createElement(H1, null, "10. Preguntas frecuentes"),
 
       React.createElement(H2, null, "¿Puedo importar el mismo archivo dos veces?"),
       React.createElement(P, null, "Sí, pero creará duplicados. Si el cliente ya existe con el mismo nombre, el sistema lo reutiliza, pero si el nombre varía (mayúsculas, espacios extra) creará uno nuevo. Limpia los datos antes de importar."),
