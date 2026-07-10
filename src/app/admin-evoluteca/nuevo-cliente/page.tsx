@@ -137,6 +137,9 @@ export default function NuevoClienteInternoPage() {
         <p className="text-center text-xs text-slate-600 mt-6">
           Esta página no está enlazada en el menú ni indexada — guarda la URL en un lugar seguro.
         </p>
+        <p className="text-center text-xs mt-2">
+          <a href="/admin-evoluteca/clientes" className="text-blue-400 hover:underline">Ver clientes existentes →</a>
+        </p>
       </div>
     </div>
   );
