@@ -43,8 +43,10 @@ type Reporte = {
   topClientes: TopCliente[];
   valorPonderado: number;
   forecastPorEtapa: Record<string, ForecastEtapa>;
-  filtro: { anio: number | null; mes: number | null };
+  filtro: { anio: number | null; mes: number | null; vendedor: string | null };
 };
+
+type Vendedor = { id: string; nombre: string };
 
 const ETAPAS = [
   { key: "PROSPECTO",   label: "Prospecto",   colorBar: "#94a3b8" },
@@ -65,15 +67,24 @@ export default function ReportesPage() {
   const [r, setR] = useState<Reporte | null>(null);
   const [anio, setAnio] = useState<string>("");
   const [mes, setMes] = useState<string>("");
+  const [vendedor, setVendedor] = useState<string>("");
+  const [vendedores, setVendedores] = useState<Vendedor[]>([]);
   const [metas, setMetas] = useState<Meta[]>([]);
   const [editMeta, setEditMeta] = useState(false);
   const [metaForm, setMetaForm] = useState({ anio: new Date().getFullYear(), mes: "", valorObjetivo: "" });
 
-  function cargar(a = anio, m = mes) {
+  function cargar(a = anio, m = mes, v = vendedor) {
     const params = new URLSearchParams();
     if (a) params.set("anio", a);
     if (m) params.set("mes", m);
+    if (v) params.set("vendedor", v);
     fetch(`/api/reportes?${params}`).then(res => res.json()).then(setR);
+  }
+
+  function cargarVendedores() {
+    fetch("/api/usuarios").then(res => res.json()).then(usuarios => {
+      setVendedores(Array.isArray(usuarios) ? usuarios.map((u: { id: string; nombre: string }) => ({ id: u.id, nombre: u.nombre })) : []);
+    });
   }
 
   function cargarMetas() {
@@ -101,6 +112,7 @@ export default function ReportesPage() {
   }
 
   useEffect(() => { cargar(); cargarMetas(); }, []);
+  useEffect(() => { if (session?.user?.rol && session.user.rol !== "COMERCIAL") cargarVendedores(); }, [session?.user?.rol]);
 
   function fmt(v: number) {
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
@@ -435,8 +447,18 @@ export default function ReportesPage() {
                 {MESES.map((m, i) => <option key={i+1} value={String(i+1)}>{m}</option>)}
               </select>
             </div>
-            {(anio || mes) && (
-              <button onClick={() => { setAnio(""); setMes(""); cargar("", ""); }}
+            {vendedores.length > 0 && (
+              <div>
+                <p className="text-brand-300 text-xs mb-1">Vendedor</p>
+                <select value={vendedor} onChange={e => { setVendedor(e.target.value); cargar(anio, mes, e.target.value); }}
+                  className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1.5 outline-none cursor-pointer">
+                  <option value="">Todos</option>
+                  {vendedores.map(v => <option key={v.id} value={v.id}>{v.nombre}</option>)}
+                </select>
+              </div>
+            )}
+            {(anio || mes || vendedor) && (
+              <button onClick={() => { setAnio(""); setMes(""); setVendedor(""); cargar("", "", ""); }}
                 className="mt-4 text-brand-300 hover:text-white text-xs underline">
                 Limpiar
               </button>

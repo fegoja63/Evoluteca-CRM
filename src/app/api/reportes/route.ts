@@ -23,18 +23,23 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const anioFiltro = searchParams.get("anio") ? Number(searchParams.get("anio")) : null;
   const mesFiltro  = searchParams.get("mes")  ? Number(searchParams.get("mes"))  : null;
+  const vendedorParam = searchParams.get("vendedor");
 
   // Igual que el resto del CRM (Dashboard, Pipeline, Agenda): un COMERCIAL solo
   // ve sus propios registros, no los de todo el equipo.
   const ownerFiltro = filtroOwner(session.user.rol, session.user.id);
+
+  // El filtro de vendedor solo aplica para roles con visión de equipo (COMERCIAL
+  // ya está restringido a lo suyo vía ownerFiltro, así que ignoramos el param si lo manda).
+  const vendedorFiltro = vendedorParam && session.user.rol !== "COMERCIAL" ? { creadoBy: vendedorParam } : {};
 
   // ── Traer todas las oportunidades con extras ──
   const [totalEmpresas, totalContactos, todasOps, actividadesPendientes] = await Promise.all([
     prisma.empresa.count({ where: { tenantId, ...ownerFiltro } }),
     prisma.contacto.count({ where: { tenantId } }),
     prisma.oportunidad.findMany({
-      where: { tenantId, ...ownerFiltro },
-      select: { etapa: true, valor: true, probabilidad: true, fechaCierre: true, fechaEvento: true, creadoEn: true, extras: true, empresa: { select: { nombre: true } } },
+      where: { tenantId, ...ownerFiltro, ...vendedorFiltro },
+      select: { etapa: true, valor: true, probabilidad: true, fechaCierre: true, fechaEvento: true, creadoEn: true, extras: true, creadoBy: true, empresa: { select: { nombre: true } } },
     }),
     prisma.actividad.count({ where: { tenantId, completada: false, ...ownerFiltro } }),
   ]);
@@ -158,6 +163,6 @@ export async function GET(request: Request) {
     topClientes,
     valorPonderado,
     forecastPorEtapa,
-    filtro: { anio: anioFiltro, mes: mesFiltro },
+    filtro: { anio: anioFiltro, mes: mesFiltro, vendedor: vendedorParam },
   });
 }

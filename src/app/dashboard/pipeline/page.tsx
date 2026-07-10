@@ -21,6 +21,7 @@ type Oportunidad = {
   empresa: { id: string; nombre: string } | null;
   contacto: { id: string; nombre: string } | null;
   extras: Record<string, string> | null;
+  creadoBy: string | null;
 };
 
 function diasDesde(fecha: string): number {
@@ -57,6 +58,7 @@ function urgenciaBadgeColor(dias: number): string {
 
 type Empresa = { id: string; nombre: string };
 type Contacto = { id: string; nombre: string };
+type UsuarioVendedor = { id: string; nombre: string };
 type Salon = { id: string; nombre: string; capacidad: number | null };
 type Disponibilidad = { aceptadas: { id: string; empresa: { nombre: string } | null }[]; pendientes: { id: string; empresa: { nombre: string } | null }[] };
 
@@ -83,6 +85,7 @@ export default function PipelinePage() {
   const [oportunidades, setOportunidades] = useState<Oportunidad[]>([]);
   const [empresas, setEmpresas]   = useState<Empresa[]>([]);
   const [contactos, setContactos] = useState<Contacto[]>([]);
+  const [vendedores, setVendedores] = useState<UsuarioVendedor[]>([]);
   const [cargando, setCargando]   = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -92,6 +95,7 @@ export default function PipelinePage() {
   const [filtroAnio, setFiltroAnio] = useState("");
   const [filtroMes, setFiltroMes]   = useState("");
   const [filtroEtapa, setFiltroEtapa] = useState("");
+  const [filtroVendedor, setFiltroVendedor] = useState("");
   const [vista, setVista] = useState<"kanban" | "tabla">("kanban");
   const [orden, setOrden] = useState<{ col: string; dir: "asc" | "desc" }>({ col: "creadoEn", dir: "desc" });
   const [form, setForm] = useState({
@@ -119,9 +123,11 @@ export default function PipelinePage() {
   }
 
   async function cargarRelaciones() {
-    const [resEmp, resCon, resConfig] = await Promise.all([fetch("/api/empresas"), fetch("/api/contactos"), fetch("/api/configuracion")]);
+    const [resEmp, resCon, resConfig, resUsu] = await Promise.all([fetch("/api/empresas"), fetch("/api/contactos"), fetch("/api/configuracion"), fetch("/api/usuarios")]);
     setEmpresas(await resEmp.json());
     setContactos(await resCon.json());
+    const usuarios = await resUsu.json();
+    setVendedores(Array.isArray(usuarios) ? usuarios.map((u: { id: string; nombre: string }) => ({ id: u.id, nombre: u.nombre })) : []);
     const config = await resConfig.json();
     const salonesActivo = !!config?.modulos?.salones;
     setModuloSalones(salonesActivo);
@@ -260,6 +266,7 @@ export default function PipelinePage() {
     if (filtroAnio && (!o.fechaCierre || o.fechaCierre.substring(0, 4) !== filtroAnio)) return false;
     if (filtroMes  && (!o.fechaCierre || String(Number(o.fechaCierre.substring(5, 7))) !== filtroMes)) return false;
     if (filtroEtapa && o.etapa !== filtroEtapa) return false;
+    if (filtroVendedor && o.creadoBy !== filtroVendedor) return false;
     if (busqueda) {
       const q = busqueda.toLowerCase();
       if (!o.titulo.toLowerCase().includes(q) &&
@@ -269,7 +276,7 @@ export default function PipelinePage() {
     return true;
   });
 
-  const hayFiltro = busqueda || filtroAnio || filtroMes || filtroEtapa;
+  const hayFiltro = busqueda || filtroAnio || filtroMes || filtroEtapa || filtroVendedor;
 
   // ── Ordenamiento para vista tabla ──
   function ordenar(col: string) {
@@ -387,11 +394,23 @@ export default function PipelinePage() {
           </div>
         )}
 
+        {/* Vendedor (solo roles con visión de equipo) */}
+        {session?.user?.rol !== "COMERCIAL" && vendedores.length > 0 && (
+          <div className="flex items-center gap-1.5">
+            <label className="text-xs font-medium text-slate-500">Vendedor:</label>
+            <select value={filtroVendedor} onChange={e => setFiltroVendedor(e.target.value)}
+              className="rounded-lg border border-slate-200 bg-white text-slate-900 text-sm px-2 py-2 outline-none cursor-pointer">
+              <option value="">Todos</option>
+              {vendedores.map(v => <option key={v.id} value={v.id}>{v.nombre}</option>)}
+            </select>
+          </div>
+        )}
+
         {/* Contador + limpiar */}
         {hayFiltro && (
           <div className="flex items-center gap-3">
             <span className="text-xs text-slate-500">{filtradas.length} de {oportunidades.length}</span>
-            <button onClick={() => { setBusqueda(""); setFiltroAnio(""); setFiltroMes(""); setFiltroEtapa(""); }}
+            <button onClick={() => { setBusqueda(""); setFiltroAnio(""); setFiltroMes(""); setFiltroEtapa(""); setFiltroVendedor(""); }}
               className="text-xs text-brand-600 hover:underline flex items-center gap-0.5">
               <IconX size={12} stroke={2} />Limpiar
             </button>
