@@ -27,19 +27,19 @@ const config: Config = {
           900: "#122e3d",
           950: "#0b1c26",
         },
-        // Acento cálido (terracota) — usado sobre el navy (brand-950/900) para
-        // estado activo, CTAs, cifras destacadas y barras de progreso.
+        // Acento cálido (rojo ladrillo) — usado sobre el navy (brand-950/900)
+        // para estado activo, CTAs, cifras destacadas y barras de progreso.
         accent: {
-          50:  "#fdf4ec",
-          100: "#fae3ce",
-          200: "#f3c69c",
-          300: "#eba468",
-          400: "#e28840",
-          500: "#d97328",
-          600: "#c05f1e",
-          700: "#9c4b18",
-          800: "#7a3b14",
-          900: "#5c2d10",
+          50:  "#fdece9",
+          100: "#fad0c9",
+          200: "#f4a999",
+          300: "#ea8068",
+          400: "#de5c3f",
+          500: "#cf4326",
+          600: "#b53419",
+          700: "#922912",
+          800: "#71200e",
+          900: "#54170a",
         },
       },
     },
