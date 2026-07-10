@@ -102,8 +102,9 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
   return (
     <nav className="flex h-screen w-56 flex-col bg-brand-950 text-white">
       <div className="px-5 py-6 border-b border-white/10 relative">
-        <div className="flex items-center justify-center">
-          <img src="/Logo Evoluteca.png" alt="Evoluteca" className="h-7 w-auto object-contain" />
+        <div className="flex items-center justify-center gap-2">
+          <img src="/Logo Evoluteca.png" alt="Evoluteca" className="h-6 w-auto object-contain" />
+          <span className="text-white font-bold text-base tracking-wide leading-none">CRM</span>
         </div>
         {onClose && (
           <button onClick={onClose} className="absolute top-4 right-4 text-brand-300 hover:text-white text-xl leading-none">
@@ -111,6 +112,14 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
           </button>
         )}
         <div className="text-xs text-brand-300 mt-2 text-center font-medium">{tenantNombre}</div>
+        <a
+          href="https://www.felipegomezjaramillo.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[11px] text-brand-400 hover:text-accent-400 transition-colors text-center block mt-0.5"
+        >
+          felipegomezjaramillo.com
+        </a>
       </div>
 
       {/* Búsqueda global */}
