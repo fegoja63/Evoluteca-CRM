@@ -104,7 +104,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.11"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.12"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -236,7 +236,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.11 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.12 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -361,6 +361,14 @@ export async function GET() {
       React.createElement(LI, null, "Eliminar definitivamente — borra el registro de forma permanente y no se puede deshacer"),
       React.createElement(Nota, null, "Solo Administrador y Gerente pueden eliminar y restaurar registros (mismo permiso que elimina hoy clientes u oportunidades). La Papelera es por organización: cada empresa ve únicamente lo que ella misma eliminó."),
       React.createElement(Tip, null, "Si eliminaste un cliente por error, ve a Papelera antes de eliminarlo definitivamente — restaurarlo desde ahí es inmediato y no requiere volver a crearlo ni perder su historial."),
+
+      React.createElement(H2, null, "2.9 Archivos adjuntos"),
+      React.createElement(P, null, "En la ficha de un Cliente, un Contacto o una Oportunidad encontrarás la sección \"Archivos adjuntos\", donde puedes subir contratos, cédulas, fotos del evento, cotizaciones firmadas o cualquier otro documento relacionado, directamente desde tu computador."),
+      React.createElement(LI, null, "Subir — botón \"+ Subir archivo\", elige el archivo desde tu equipo (máximo 5MB por archivo)"),
+      React.createElement(LI, null, "Descargar — ícono de descarga junto a cada archivo de la lista"),
+      React.createElement(LI, null, "Eliminar — ícono de papelera junto a cada archivo; pide confirmación antes de borrar"),
+      React.createElement(P, null, "Cada archivo queda vinculado a un único registro (el cliente, contacto u oportunidad desde donde lo subiste) — no es necesario elegir dónde guardarlo ni organizarlo en carpetas."),
+      React.createElement(Nota, null, "Los archivos se guardan de forma segura dentro del CRM, no en un servicio externo. No se comparten entre organizaciones distintas."),
     ),
 
     // ── CAPÍTULO 3: PIPELINE ──
@@ -390,6 +398,7 @@ export async function GET() {
           )),
         ),
       ),
+      React.createElement(Tip, null, "El nombre visible de cada etapa se puede personalizar (y el orden de las columnas, reordenar) desde Configuración > Etapas del pipeline — ver 9.5. El significado de fondo (activa, ganada o perdida) no cambia, solo cómo se ve en pantalla."),
 
       React.createElement(H2, null, "3.2 Crear una oportunidad"),
       React.createElement(P, null, 'Las oportunidades se crean desde la ficha de un cliente (pestaña Oportunidades), al vincular una cotización formal a un negocio, o con el botón "+ Nueva" del campo Oportunidad vinculada en Nueva cotización. El pipeline es la vista de gestión: arrastra las tarjetas entre etapas para actualizar el avance.'),
@@ -408,15 +417,16 @@ export async function GET() {
       React.createElement(P, null, "Arrastra cualquier tarjeta de una columna a otra para cambiar su etapa. El cambio se guarda automáticamente. También puedes cambiar la etapa desde la ficha de la oportunidad."),
 
       React.createElement(H2, null, "3.5 Motivo de pérdida"),
-      React.createElement(P, null, "Cuando muevas una oportunidad a la etapa Perdida, el sistema mostrará automáticamente un modal para registrar el motivo. Opciones disponibles:"),
+      React.createElement(P, null, "Cuando muevas una oportunidad a la etapa Perdida — ya sea arrastrando la tarjeta en el kanban o cambiando la etapa desde la ficha de la oportunidad — el sistema muestra automáticamente un modal para registrar el motivo antes de completar el cambio. Opciones disponibles:"),
       React.createElement(LI, null, "Precio muy alto"),
       React.createElement(LI, null, "Eligió a la competencia"),
       React.createElement(LI, null, "El evento fue cancelado"),
       React.createElement(LI, null, "Sin respuesta del cliente"),
       React.createElement(LI, null, "Presupuesto insuficiente"),
       React.createElement(LI, null, "Fuera de fechas disponibles"),
-      React.createElement(LI, null, "Otro"),
-      React.createElement(P, null, "El motivo queda registrado en las notas de la oportunidad y aparece en el timeline. Este dato es clave para analizar patrones de pérdida en los reportes."),
+      React.createElement(LI, null, "Otro — permite escribir un motivo personalizado"),
+      React.createElement(P, null, "El motivo queda guardado como un dato propio de la oportunidad (no como texto dentro de las notas) y se muestra en rojo bajo el título en la ficha de la oportunidad, y junto a la oportunidad en la lista de \"Oportunidades\" de la ficha del cliente y del contacto. Este dato alimenta el desglose \"Motivos de pérdida\" en Reportes (ver 7.8) para analizar patrones de pérdida por período."),
+      React.createElement(Nota, null, "Si cancelas el modal sin elegir un motivo, la oportunidad no se mueve a Perdida — el cambio de etapa solo se confirma junto con el motivo."),
 
       React.createElement(H2, null, "3.6 Ficha de oportunidad"),
       React.createElement(P, null, "Haz clic en el título de una oportunidad para abrir su ficha. Desde allí puedes:"),
@@ -440,6 +450,13 @@ export async function GET() {
       React.createElement(LI, null, "Días que estuvo en la etapa anterior"),
       React.createElement(LI, null, "Usuario que realizó el cambio"),
       React.createElement(Tip, null, "El historial de etapas es automático — no requiere ninguna acción del usuario. Se registra cada vez que se cambia la etapa, ya sea desde el kanban o desde la ficha."),
+
+      React.createElement(H2, null, "3.9 Filtro por vendedor"),
+      React.createElement(P, null, "Administrador y Gerente ven en la barra de filtros del Pipeline un selector adicional \"Vendedor\" que no aparece para el rol Comercial (que ya está limitado a ver únicamente sus propios negocios). Al elegir un vendedor, tanto el kanban como la vista de tabla se filtran para mostrar solo las oportunidades creadas por esa persona."),
+      React.createElement(Tip, null, "Úsalo en la reunión de ventas semanal para revisar el pipeline de un vendedor específico sin que las tarjetas de todo el equipo se mezclen."),
+
+      React.createElement(H2, null, "3.10 Archivos adjuntos"),
+      React.createElement(P, null, "En la ficha de cualquier oportunidad (y también en la de Clientes y Contactos) hay una sección \"Archivos adjuntos\" para subir contratos, cotizaciones firmadas, fotos u otros documentos relacionados con ese negocio. Ver el detalle completo en 2.9."),
     ),
 
     // ── CAPÍTULO 4: AGENDA ──
@@ -581,9 +598,10 @@ export async function GET() {
       React.createElement(LI, null, "Valor ganado: suma total de oportunidades en etapa GANADA"),
       React.createElement(LI, null, "Tasa de cierre: % de negocios ganados vs total cerrados (ganados + perdidos)"),
 
-      React.createElement(H2, null, "7.2 Filtros de período"),
+      React.createElement(H2, null, "7.2 Filtros de período y vendedor"),
       React.createElement(P, null, "Puedes filtrar todos los reportes por año y/o mes. Si seleccionas un mes sin haber elegido un año, el sistema automáticamente usa el año más reciente disponible."),
-      React.createElement(Tip, null, "El embudo de conversión y el top de clientes se actualizan con el filtro activo. Úsalos para analizar períodos específicos."),
+      React.createElement(P, null, "Administrador y Gerente ven además un filtro \"Vendedor\" para consolidar los reportes de una sola persona del equipo (no visible para el rol Comercial, que ya solo ve sus propios datos)."),
+      React.createElement(Tip, null, "El embudo de conversión y el top de clientes se actualizan con los filtros activos. Combínalos para analizar el desempeño de un vendedor en un período específico."),
 
       React.createElement(H2, null, "7.3 Gráfica mensual"),
       React.createElement(P, null, "La gráfica de barras muestra el valor ganado por mes del año seleccionado (o el más reciente). Las barras verdes indican valor ganado; los indicadores rojos pequeños muestran negocios perdidos en ese mes."),
@@ -611,6 +629,10 @@ export async function GET() {
       React.createElement(LI, null, "Color de la barra: ámbar menos de 60%, azul entre 60% y 99%, verde 100% o más"),
       React.createElement(P, null, "El ADMINISTRADOR puede editar la meta de cada vendedor directamente en esa pantalla: haz clic en el ícono de lápiz junto al nombre del vendedor, ingresa el valor en COP y guarda."),
       React.createElement(Tip, null, "Las metas son por mes: asigna la meta de julio y podrás ver el progreso en tiempo real durante ese mes. Al siguiente mes la barra se reinicia."),
+
+      React.createElement(H2, null, "7.8 Motivos de pérdida"),
+      React.createElement(P, null, "Este panel muestra, para el período filtrado, cuántas oportunidades se perdieron por cada motivo (ver 3.5), ordenadas de mayor a menor con una barra proporcional. Las oportunidades perdidas antes de que existiera este campo, o marcadas sin elegir un motivo, se agrupan como \"Sin especificar\"."),
+      React.createElement(Tip, null, "Si un motivo domina claramente el listado (por ejemplo, \"Precio muy alto\"), es una señal para revisar la estrategia de precios o el argumentario de ventas de ese período."),
     ),
 
     // ── CAPÍTULO 8: DASHBOARD ──
@@ -721,6 +743,22 @@ export async function GET() {
       React.createElement(LI, null, "Cambiar nombre y correo electrónico"),
       React.createElement(LI, null, "Cambiar contraseña (requiere ingresar la contraseña actual como verificación)"),
       React.createElement(Nota, null, "Cada usuario pertenece exclusivamente a su organización. Los datos de diferentes organizaciones están completamente aislados entre sí."),
+
+      React.createElement(H2, null, "9.5 Etapas del pipeline"),
+      React.createElement(P, null, "En Configuración, sección \"Etapas del pipeline\", el Administrador puede personalizar cómo se ven las 6 etapas del Pipeline (ver 3.1) sin afectar los datos ya guardados:"),
+      React.createElement(LI, null, "Renombrar — haz clic en el nombre de cualquier etapa y edítalo directamente (por ejemplo, cambiar \"Cotización\" por \"Propuesta enviada\")"),
+      React.createElement(LI, null, "Reordenar — arrastra cada etapa (ícono de puntos a la izquierda) para cambiar el orden de las columnas en el kanban"),
+      React.createElement(LI, null, "Ocultar — el ícono de ojo oculta una etapa del Pipeline y de Reportes cuando tu proceso de venta no la usa"),
+      React.createElement(P, null, "Las etapas \"Ganada\" y \"Perdida\" nunca se pueden ocultar, porque el Dashboard, los Reportes y las alertas automáticas por correo dependen de que siempre existan. Las demás etapas solo se pueden ocultar si no tienen ninguna oportunidad asignada en ese momento — si lo intentas con oportunidades dentro, el sistema te avisa cuántas hay y no permite ocultarla."),
+      React.createElement(Tip, null, "Ocultar una etapa no borra ni mueve ninguna oportunidad — solo deja de mostrarse esa columna mientras esté vacía. Puedes volver a mostrarla en cualquier momento con el mismo ícono de ojo."),
+
+      React.createElement(H2, null, "9.6 Captura externa de leads (API)"),
+      React.createElement(P, null, "En Configuración, sección \"Captura externa de leads\", el Administrador puede conectar un formulario web, WhatsApp Business o una campaña de anuncios (Meta/Google Ads) para que cada nuevo contacto interesado cree automáticamente un Cliente, un Contacto y una Oportunidad en el Pipeline (etapa Prospecto), sin que nadie tenga que digitarlo manualmente en el CRM."),
+      React.createElement(Paso, { n: 1, titulo: "Generar la clave", desc: "Haz clic en \"Generar clave\". El sistema crea una clave única para tu organización y la muestra en pantalla con un botón para copiarla." }),
+      React.createElement(Paso, { n: 2, titulo: "Entregar la clave a quien configure la integración", desc: "La persona que arma el formulario web o la automatización de WhatsApp/Ads necesita esa clave y la dirección del servicio (mostrada en la misma pantalla) para conectar el envío de leads." }),
+      React.createElement(Paso, { n: 3, titulo: "Verificar en el Pipeline", desc: "Cada lead recibido aparece de inmediato como una oportunidad nueva en la columna Prospecto, con el cliente y contacto ya creados." }),
+      React.createElement(Nota, null, "Rotar la clave (botón \"Rotar clave\") invalida la anterior de inmediato. Cualquier formulario o automatización que siga usando la clave vieja dejará de funcionar hasta que se actualice con la nueva — úsalo solo si sospechas que la clave se filtró."),
+      React.createElement(Tip, null, "Si el mismo correo de cliente ya existe en tu CRM, el sistema reutiliza ese cliente en vez de duplicarlo — así un mismo lead que llena el formulario dos veces no genera registros repetidos."),
 
       React.createElement(Sep, null),
 
