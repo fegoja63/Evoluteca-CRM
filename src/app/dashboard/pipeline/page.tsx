@@ -7,8 +7,18 @@ import {
   IconSearch, IconX, IconPlus, IconLayoutKanban, IconTable, IconSelector,
   IconArrowNarrowUp, IconArrowNarrowDown, IconCalendarEvent, IconTrash,
   IconChartFunnel, IconTrendingUp, IconTrophy, IconTarget, IconBuildingPavilion,
-  IconAlertTriangle, type Icon,
+  IconAlertTriangle, IconMoodSad, type Icon,
 } from "@tabler/icons-react";
+
+const MOTIVOS_PERDIDA = [
+  "Precio muy alto",
+  "Eligió a la competencia",
+  "El evento fue cancelado",
+  "Sin respuesta del cliente",
+  "Presupuesto insuficiente",
+  "Fuera de fechas disponibles",
+  "Otro",
+];
 
 type Oportunidad = {
   id: string;
@@ -107,6 +117,9 @@ export default function PipelinePage() {
   const [guardando, setGuardando] = useState(false);
   const [draggingId, setDraggingId]     = useState<string | null>(null);
   const [dragOverEtapa, setDragOverEtapa] = useState<string | null>(null);
+  const [modalPerdidaId, setModalPerdidaId] = useState<string | null>(null);
+  const [motivoPerdidaSel, setMotivoPerdidaSel] = useState("");
+  const [otroMotivoPerdida, setOtroMotivoPerdida] = useState("");
   const [busqueda, setBusqueda]   = useState("");
   const [filtroAnio, setFiltroAnio] = useState("");
   const [filtroMes, setFiltroMes]   = useState("");
@@ -249,17 +262,30 @@ export default function PipelinePage() {
   }
 
   async function cambiarEtapa(id: string, etapa: string) {
-    let motivoPerdida: string | undefined;
     if (etapa === "PERDIDA") {
-      const motivo = prompt("¿Por qué se perdió esta oportunidad? (opcional)");
-      if (motivo === null) return; // canceló el prompt, no mover la tarjeta
-      motivoPerdida = motivo.trim();
+      setMotivoPerdidaSel("");
+      setOtroMotivoPerdida("");
+      setModalPerdidaId(id);
+      return; // espera a que se elija un motivo en el modal antes de mover la tarjeta
     }
-    setOportunidades(prev => prev.map(o => o.id === id ? { ...o, etapa, ...(motivoPerdida !== undefined ? { motivoPerdida } : {}) } : o));
+    setOportunidades(prev => prev.map(o => o.id === id ? { ...o, etapa } : o));
     await fetch(`/api/oportunidades/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ etapa, ...(motivoPerdida !== undefined ? { motivoPerdida } : {}) }),
+      body: JSON.stringify({ etapa }),
+    });
+  }
+
+  async function confirmarPerdida() {
+    if (!modalPerdidaId) return;
+    const id = modalPerdidaId;
+    const motivoPerdida = motivoPerdidaSel === "Otro" ? otroMotivoPerdida.trim() : motivoPerdidaSel;
+    setOportunidades(prev => prev.map(o => o.id === id ? { ...o, etapa: "PERDIDA", motivoPerdida } : o));
+    setModalPerdidaId(null);
+    await fetch(`/api/oportunidades/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ etapa: "PERDIDA", motivoPerdida }),
     });
   }
 
@@ -842,6 +868,56 @@ export default function PipelinePage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Modal motivo de pérdida */}
+      {modalPerdidaId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center"><IconMoodSad size={20} stroke={1.75} className="text-red-500" /></div>
+              <div>
+                <h2 className="text-base font-semibold text-slate-800">¿Por qué se perdió este negocio?</h2>
+                <p className="text-xs text-slate-400">Esta información ayuda a mejorar futuros cierres</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {MOTIVOS_PERDIDA.map(m => (
+                <button key={m} onClick={() => setMotivoPerdidaSel(m)}
+                  className={`text-left rounded-xl border px-3 py-2.5 text-xs font-medium transition-all ${
+                    motivoPerdidaSel === m
+                      ? "border-red-400 bg-red-50 text-red-700"
+                      : "border-slate-200 text-slate-600 hover:border-slate-300"
+                  }`}>
+                  {m}
+                </button>
+              ))}
+            </div>
+
+            {motivoPerdidaSel === "Otro" && (
+              <input
+                type="text"
+                value={otroMotivoPerdida}
+                onChange={e => setOtroMotivoPerdida(e.target.value)}
+                placeholder="Describe el motivo..."
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-red-400 mb-4"
+                autoFocus
+              />
+            )}
+
+            <div className="flex gap-2 mt-2">
+              <button onClick={confirmarPerdida} disabled={!motivoPerdidaSel || (motivoPerdidaSel === "Otro" && !otroMotivoPerdida.trim())}
+                className="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-40">
+                Marcar como perdida
+              </button>
+              <button onClick={() => setModalPerdidaId(null)}
+                className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm text-slate-600 hover:bg-slate-50">
+                Cancelar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
