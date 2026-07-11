@@ -76,6 +76,32 @@ export async function POST(request: Request) {
     contactoId = contacto.id;
   }
 
+  // Asignación automática por carga: reparte los leads entrantes entre los
+  // vendedores activos del tenant, priorizando a quien tenga menos oportunidades
+  // asignadas en este momento — evita que un lead externo quede "huérfano"
+  // (sin dueño) hasta que un administrador lo reasigne a mano.
+  const vendedores = await prisma.usuario.findMany({
+    where: { tenantId, rol: "COMERCIAL", activo: true },
+    select: { id: true },
+    orderBy: { creadoEn: "asc" },
+  });
+  let vendedorAsignado: string | null = null;
+  if (vendedores.length > 0) {
+    const conteos = await prisma.oportunidad.groupBy({
+      by: ["creadoBy"],
+      where: { tenantId, creadoBy: { in: vendedores.map(v => v.id) } },
+      _count: { _all: true },
+    });
+    const conteoPorVendedor = new Map(vendedores.map(v => [v.id, 0]));
+    for (const c of conteos) {
+      if (c.creadoBy) conteoPorVendedor.set(c.creadoBy, c._count._all);
+    }
+    vendedorAsignado = vendedores.reduce(
+      (minId, v) => (conteoPorVendedor.get(v.id) ?? 0) < (conteoPorVendedor.get(minId) ?? 0) ? v.id : minId,
+      vendedores[0].id,
+    );
+  }
+
   const oportunidad = await prisma.oportunidad.create({
     data: {
       titulo: parsed.oportunidadTitulo?.trim() || `Lead — ${parsed.empresaNombre.trim()}`,
@@ -86,6 +112,7 @@ export async function POST(request: Request) {
       empresaId,
       contactoId,
       tenantId,
+      creadoBy: vendedorAsignado,
     },
   });
 
