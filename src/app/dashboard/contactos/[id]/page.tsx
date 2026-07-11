@@ -20,7 +20,7 @@ type Detalle = {
   notas: string | null;
   extras: Record<string, string> | null;
   empresa: Empresa | null;
-  oportunidades: { id: string; titulo: string; etapa: string; valor: string | null }[];
+  oportunidades: { id: string; titulo: string; etapa: string; valor: string | null; motivoPerdida: string | null }[];
   actividades: { id: string; titulo: string; fecha: string; completada: boolean }[];
 };
 
@@ -229,6 +229,9 @@ export default function FichaContactoPage() {
                 <li key={o.id} className="text-neutral-700">
                   {o.titulo} <span className="text-neutral-400">· {o.etapa}</span>
                   {o.valor && <span className="text-green-700"> · {formatoMoneda(o.valor)}</span>}
+                  {o.etapa === "PERDIDA" && o.motivoPerdida && (
+                    <span className="text-red-400 italic"> ({o.motivoPerdida})</span>
+                  )}
                 </li>
               ))}
             </ul>

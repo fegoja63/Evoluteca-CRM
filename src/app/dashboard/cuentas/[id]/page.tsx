@@ -30,7 +30,7 @@ type Detalle = {
   notas: string | null;
   etiquetas: string[];
   contactos: { id: string; nombre: string; cargo: string | null; telefono: string | null }[];
-  oportunidades: { id: string; titulo: string; etapa: string; valor: string | null }[];
+  oportunidades: { id: string; titulo: string; etapa: string; valor: string | null; motivoPerdida: string | null }[];
   actividades: { id: string; titulo: string; fecha: string; completada: boolean }[];
   cotizaciones: { id: string; numero: number; estado: string; items: { cantidad: number; precioUnit: string }[] }[];
 };
@@ -250,6 +250,9 @@ export default function FichaClientePage() {
                   {o.titulo}
                   <span className={`ml-1.5 text-xs font-medium ${ETAPA_COLOR[o.etapa] ?? "text-slate-400"}`}>· {o.etapa}</span>
                   {o.valor && <span className="ml-1.5 text-xs font-semibold text-emerald-700">{fmt(o.valor)}</span>}
+                  {o.etapa === "PERDIDA" && o.motivoPerdida && (
+                    <span className="ml-1.5 text-xs text-red-400 italic">({o.motivoPerdida})</span>
+                  )}
                 </li>
               ))}
             </ul>
