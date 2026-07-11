@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import {
   IconDatabaseImport, IconBuilding, IconChartFunnel, IconUsers, IconFileText,
   IconCalendar, IconReportAnalytics, IconBooks, IconTheater, IconBuildingPavilion,
-  IconFlask, IconDownload, IconCircleCheck, type Icon,
+  IconFlask, IconDownload, IconCircleCheck, IconApi, type Icon,
 } from "@tabler/icons-react";
 
 export default function BienvenidaPage() {
@@ -57,6 +57,16 @@ export default function BienvenidaPage() {
       href: "/dashboard/pipeline",
       color: "border-emerald-200 bg-emerald-50",
       btnColor: "bg-emerald-600 hover:bg-emerald-700",
+    },
+    {
+      num: 4,
+      icon: IconApi,
+      titulo: "Conecta la captura externa de leads (opcional)",
+      desc: "¿Recibes leads desde un formulario web, WhatsApp Business o campañas de anuncios (Meta/Google Ads)? Genera una clave desde Configuración para que cada lead cree automáticamente un cliente, contacto y oportunidad en tu Pipeline, sin que nadie tenga que digitarlo a mano. Es la función más técnica del CRM: necesitas compartir la clave y la dirección del servicio con quien configure tu formulario o automatización — el manual de usuario explica el paso a paso completo.",
+      accion: "Ir a Configuración",
+      href: "/dashboard/configuracion",
+      color: "border-amber-200 bg-amber-50",
+      btnColor: "bg-amber-600 hover:bg-amber-700",
     },
   ];
 
