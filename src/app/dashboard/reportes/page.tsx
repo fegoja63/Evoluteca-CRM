@@ -404,12 +404,14 @@ export default function ReportesPage() {
   }
 
   // ── Donut de motivos de pérdida ──
-  // Paleta cálida (rojos/naranjas/rosas/tierras) para no chocar con los
-  // colores que ya tienen un significado fijo en esta misma página
-  // (azul = Calificado, morado = Cotización, verde = Ganada).
+  // Paleta amplia con saltos fuertes de tono y luminosidad entre colores
+  // consecutivos, para que cada motivo se distinga a simple vista incluso
+  // en segmentos delgados del donut. Evita los colores que ya tienen un
+  // significado fijo en esta misma página (azul = Calificado, morado =
+  // Propuesta, verde = Ganada, ámbar claro = Negociación).
   const COLORES_MOTIVOS = [
-    "#dc2626", "#f97316", "#f59e0b", "#e11d48", "#be123c",
-    "#c2410c", "#a16207", "#9f1239", "#78350f", "#78716c",
+    "#dc2626", "#f97316", "#db2777", "#78350f", "#64748b",
+    "#b91c1c", "#c2410c", "#9d174d", "#a8a29e", "#7c2d12",
   ];
   const DONUT_GAP = 2.5; // separación visual entre segmentos, en unidades de circunferencia
 
