@@ -60,7 +60,7 @@ export default async function DashboardPage() {
     prisma.empresa.count({ where: { tenantId, eliminadoEn: null, ...ownerFiltro } }),
     prisma.contacto.count({ where: { tenantId, eliminadoEn: null } }),
     prisma.oportunidad.findMany({
-      where: { tenantId, ...ownerFiltro },
+      where: { tenantId, eliminadoEn: null, ...ownerFiltro },
       select: { etapa: true, valor: true, creadoEn: true, fechaCierre: true, fechaEvento: true, extras: true, creadoBy: true },
     }),
     prisma.actividad.count({ where: { tenantId, completada: false, ...ownerFiltro } }),
@@ -89,18 +89,18 @@ export default async function DashboardPage() {
     prisma.actividad.count({ where: { tenantId, completada: true, fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro } }),
     prisma.actividad.count({ where: { tenantId, fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro } }),
     prisma.oportunidad.findMany({
-      where: { tenantId, etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] }, creadoEn: { lt: hace60dias }, ...ownerFiltro },
+      where: { tenantId, eliminadoEn: null, etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] }, creadoEn: { lt: hace60dias }, ...ownerFiltro },
       select: { id: true, titulo: true, etapa: true, empresa: { select: { nombre: true } } },
       take: 5,
     }),
     prisma.cotizacion.findMany({
-      where: { tenantId, estado: "ENVIADA", creadoEn: { lt: hace3dias } },
+      where: { tenantId, eliminadoEn: null, estado: "ENVIADA", creadoEn: { lt: hace3dias } },
       select: { id: true, numero: true, creadoEn: true, empresa: { select: { nombre: true } } },
       orderBy: { creadoEn: "asc" },
       take: 5,
     }),
     prisma.cotizacion.findMany({
-      where: { tenantId, estado: { in: ["BORRADOR","ENVIADA"] }, fechaValidez: { lte: new Date(Date.now() + 7 * 86_400_000) } },
+      where: { tenantId, eliminadoEn: null, estado: { in: ["BORRADOR","ENVIADA"] }, fechaValidez: { lte: new Date(Date.now() + 7 * 86_400_000) } },
       select: { id: true, numero: true, fechaValidez: true, empresa: { select: { nombre: true } } },
       orderBy: { fechaValidez: "asc" },
       take: 5,
@@ -120,25 +120,25 @@ export default async function DashboardPage() {
       select: { id: true, nombre: true },
     }),
     prisma.oportunidad.findMany({
-      where: { tenantId, etapa: { in: ["PROPUESTA","NEGOCIACION","CALIFICADO"] }, ...ownerFiltro },
+      where: { tenantId, eliminadoEn: null, etapa: { in: ["PROPUESTA","NEGOCIACION","CALIFICADO"] }, ...ownerFiltro },
       orderBy: { valor: "desc" },
       take: 5,
       select: { id: true, titulo: true, valor: true, etapa: true, probabilidad: true, empresa: { select: { nombre: true } }, fechaCierre: true },
     }),
     prisma.oportunidad.findMany({
-      where: { tenantId, etapa: "GANADA", fechaCierre: { gte: inicioMes, lt: finMes }, ...ownerFiltro },
+      where: { tenantId, eliminadoEn: null, etapa: "GANADA", fechaCierre: { gte: inicioMes, lt: finMes }, ...ownerFiltro },
       orderBy: { fechaCierre: "desc" },
       take: 5,
       select: { id: true, titulo: true, valor: true, creadoBy: true, empresa: { select: { nombre: true } } },
     }),
     prisma.oportunidad.findMany({
-      where: { tenantId, etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] }, fechaCierre: { gte: hoy, lte: fin7dias }, ...ownerFiltro },
+      where: { tenantId, eliminadoEn: null, etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] }, fechaCierre: { gte: hoy, lte: fin7dias }, ...ownerFiltro },
       select: { id: true, titulo: true, fechaCierre: true, empresa: { select: { nombre: true } } },
       orderBy: { fechaCierre: "asc" },
       take: 5,
     }),
     prisma.oportunidad.findMany({
-      where: { tenantId, etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] }, ...ownerFiltro },
+      where: { tenantId, eliminadoEn: null, etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] }, ...ownerFiltro },
       select: { id: true, titulo: true, etapa: true, empresa: { select: { nombre: true } }, creadoBy: true, actividades: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } } },
     }),
     prisma.actividad.findFirst({ where: { tenantId, completada: true, ...ownerFiltro }, orderBy: { fecha: "desc" }, select: { fecha: true } }),
@@ -396,49 +396,42 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Ranking vendedores */}
+        {/* Actividades de hoy */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-sm font-bold text-slate-900">Rendimiento del equipo</h2>
-              <p className="text-xs text-slate-400 mt-0.5">Mes actual · {rankingVendedores.length} vendedores</p>
+              <h2 className="text-sm font-bold text-slate-900">Actividades de hoy</h2>
+              <p className="text-xs text-slate-400 mt-0.5">{actividadesCompletadasHoy}/{totalActividadesHoy} completadas · {progresoDia}%</p>
             </div>
+            <Link href="/dashboard/agenda" className="text-xs font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-lg px-2.5 py-1 transition-colors">Agenda →</Link>
           </div>
-          {rankingVendedores.length === 0 ? (
-            <p className="text-xs text-slate-400 py-6 text-center">No hay vendedores registrados.</p>
+          {totalActividadesHoy > 0 && (
+            <div className="w-full h-1.5 bg-slate-100 rounded-full mb-3 overflow-hidden">
+              <div className="h-1.5 rounded-full bg-accent-500 transition-all duration-700" style={{width:`${progresoDia}%`}} />
+            </div>
+          )}
+          {actividadesHoy.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <IconMoodSmile size={28} stroke={1.5} className="text-slate-300 mb-2" />
+              <p className="text-xs font-semibold text-slate-700">¡Sin pendientes hoy!</p>
+            </div>
           ) : (
-            <div className="flex flex-col gap-3">
-              {rankingVendedores.map((v, i) => {
-                const maxGanado = Math.max(...rankingVendedores.map(x => x.ganadoMes), 1);
-                const pct = maxGanado > 0 ? (v.ganadoMes/maxGanado)*100 : 0;
-                const barColor = i === 0 ? "bg-amber-400" : i === 1 ? "bg-slate-300" : "bg-amber-700/50";
+            <div className="flex flex-col gap-1.5">
+              {actividadesHoy.map(a => {
+                const IconoTipo = TIPO_ICON[a.tipo] ?? IconPinned;
                 return (
-                  <div key={v.id} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${barColor}`}>{i+1}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-slate-800 truncate">{v.nombre.split(" ")[0]} {v.nombre.split(" ")[1] ?? ""}</p>
-                        <p className="text-xs text-slate-400">{v.activas} activas · {v.tasa}% cierre</p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-extrabold text-emerald-600">{fmt(v.ganadoMes)}</p>
-                        <p className="text-xs text-slate-400">ganado mes</p>
-                      </div>
-                    </div>
-                    <div className="w-full h-1.5 bg-white rounded-full overflow-hidden">
-                      <div className={`h-1.5 rounded-full ${barColor} transition-all duration-500`} style={{width:`${Math.max(pct,v.ganadoMes>0?4:0)}%`}} />
-                    </div>
-                    <p className="text-xs text-slate-400 mt-1">Pipeline: {fmt(v.pipeline)}</p>
+                <div key={a.id} className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-100 px-3 py-2">
+                  <IconoTipo size={16} stroke={1.75} className="text-red-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-red-700 truncate">{a.titulo}</p>
+                    <p className="text-xs text-red-400 truncate">{a.empresa?.nombre ?? a.contacto?.nombre ?? ""}</p>
                   </div>
+                  <p className="text-xs text-red-400 font-mono shrink-0">{new Date(a.fecha).toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"})}</p>
+                </div>
                 );
               })}
             </div>
           )}
-          <div className="mt-4 pt-4 border-t border-slate-100 text-center">
-            <p className="text-xs text-slate-500">Total ganado este mes</p>
-            <p className="text-xl font-extrabold text-emerald-600 mt-0.5">{fmtFull(valorGanadoMes)}</p>
-            {metaValor > 0 && <p className="text-xs text-slate-400 mt-0.5">de {fmtFull(metaValor)} meta · <span className={metaColorText}>{metaPct}% cumplido</span></p>}
-          </div>
         </div>
 
         {/* Oportunidades calientes */}
@@ -591,42 +584,49 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* Actividades de hoy */}
+        {/* Ranking vendedores */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-sm font-bold text-slate-900">Actividades de hoy</h2>
-              <p className="text-xs text-slate-400 mt-0.5">{actividadesCompletadasHoy}/{totalActividadesHoy} completadas · {progresoDia}%</p>
+              <h2 className="text-sm font-bold text-slate-900">Rendimiento del equipo</h2>
+              <p className="text-xs text-slate-400 mt-0.5">Mes actual · {rankingVendedores.length} vendedores</p>
             </div>
-            <Link href="/dashboard/agenda" className="text-xs font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-lg px-2.5 py-1 transition-colors">Agenda →</Link>
           </div>
-          {totalActividadesHoy > 0 && (
-            <div className="w-full h-1.5 bg-slate-100 rounded-full mb-3 overflow-hidden">
-              <div className="h-1.5 rounded-full bg-accent-500 transition-all duration-700" style={{width:`${progresoDia}%`}} />
-            </div>
-          )}
-          {actividadesHoy.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <IconMoodSmile size={28} stroke={1.5} className="text-slate-300 mb-2" />
-              <p className="text-xs font-semibold text-slate-700">¡Sin pendientes hoy!</p>
-            </div>
+          {rankingVendedores.length === 0 ? (
+            <p className="text-xs text-slate-400 py-6 text-center">No hay vendedores registrados.</p>
           ) : (
-            <div className="flex flex-col gap-1.5">
-              {actividadesHoy.map(a => {
-                const IconoTipo = TIPO_ICON[a.tipo] ?? IconPinned;
+            <div className="flex flex-col gap-3">
+              {rankingVendedores.map((v, i) => {
+                const maxGanado = Math.max(...rankingVendedores.map(x => x.ganadoMes), 1);
+                const pct = maxGanado > 0 ? (v.ganadoMes/maxGanado)*100 : 0;
+                const barColor = i === 0 ? "bg-amber-400" : i === 1 ? "bg-slate-300" : "bg-amber-700/50";
                 return (
-                <div key={a.id} className="flex items-center gap-2 rounded-xl bg-slate-50 border border-slate-100 px-3 py-2">
-                  <IconoTipo size={16} stroke={1.75} className="text-brand-500 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-slate-800 truncate">{a.titulo}</p>
-                    <p className="text-xs text-slate-400 truncate">{a.empresa?.nombre ?? a.contacto?.nombre ?? ""}</p>
+                  <div key={v.id} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${barColor}`}>{i+1}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-slate-800 truncate">{v.nombre.split(" ")[0]} {v.nombre.split(" ")[1] ?? ""}</p>
+                        <p className="text-xs text-slate-400">{v.activas} activas · {v.tasa}% cierre</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-extrabold text-emerald-600">{fmt(v.ganadoMes)}</p>
+                        <p className="text-xs text-slate-400">ganado mes</p>
+                      </div>
+                    </div>
+                    <div className="w-full h-1.5 bg-white rounded-full overflow-hidden">
+                      <div className={`h-1.5 rounded-full ${barColor} transition-all duration-500`} style={{width:`${Math.max(pct,v.ganadoMes>0?4:0)}%`}} />
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">Pipeline: {fmt(v.pipeline)}</p>
                   </div>
-                  <p className="text-xs text-slate-400 font-mono shrink-0">{new Date(a.fecha).toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"})}</p>
-                </div>
                 );
               })}
             </div>
           )}
+          <div className="mt-4 pt-4 border-t border-slate-100 text-center">
+            <p className="text-xs text-slate-500">Total ganado este mes</p>
+            <p className="text-xl font-extrabold text-emerald-600 mt-0.5">{fmtFull(valorGanadoMes)}</p>
+            {metaValor > 0 && <p className="text-xs text-slate-400 mt-0.5">de {fmtFull(metaValor)} meta · <span className={metaColorText}>{metaPct}% cumplido</span></p>}
+          </div>
         </div>
 
         {/* Esta semana + resumen financiero */}
