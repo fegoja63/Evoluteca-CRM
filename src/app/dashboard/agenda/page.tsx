@@ -505,20 +505,28 @@ function AgendaContent() {
         <div className="flex flex-col gap-2">
           {visibles.map((a) => {
             const IconoTipo = TIPO_ICON[a.tipo] ?? IconPinned;
+            // "Hoy" se resalta en rojo aunque aún no esté vencida — es la alerta
+            // del día, para que no se pierda entre el resto de la lista.
+            const esHoy = !a.completada && new Date(a.fecha).toDateString() === new Date().toDateString();
             return (
             <div key={a.id}
-              className="flex items-center gap-3 rounded-xl border border-neutral-200 p-3 text-sm hover:bg-neutral-50">
+              className={`flex items-center gap-3 rounded-xl border p-3 text-sm hover:bg-neutral-50 ${esHoy ? "border-red-200 bg-red-50" : "border-neutral-200"}`}>
               <input type="checkbox" checked={a.completada}
                 onChange={(e) => toggleCompletada(a.id, e.target.checked)} className="h-4 w-4" />
               <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600 flex items-center gap-1">
                 <IconoTipo size={12} stroke={1.75} />
                 {TIPOS.find((t) => t.key === a.tipo)?.label}
               </span>
+              {esHoy && (
+                <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+                  Hoy
+                </span>
+              )}
               <div className="flex-1">
-                <p className={a.completada ? "text-neutral-400 line-through" : "font-medium text-neutral-900"}>
+                <p className={a.completada ? "text-neutral-400 line-through" : esHoy ? "font-semibold text-red-700" : "font-medium text-neutral-900"}>
                   {a.titulo}
                 </p>
-                <p className="text-xs text-neutral-500">
+                <p className={`text-xs ${esHoy ? "text-red-500" : "text-neutral-500"}`}>
                   {formatoFecha(a.fecha)}
                   {a.empresa && ` · ${a.empresa.nombre}`}
                   {a.contacto && ` · ${a.contacto.nombre}`}
