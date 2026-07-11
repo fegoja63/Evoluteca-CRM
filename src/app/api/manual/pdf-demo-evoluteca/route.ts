@@ -212,7 +212,7 @@ export async function GET() {
     React.createElement(Page, { size: "A4", style: s.page },
       React.createElement(PageHeader, null),
       React.createElement(Footer, null),
-      React.createElement(H1, null, "3. Recorrido guiado — CRM general (≈10 min)"),
+      React.createElement(H1, null, "3. Recorrido guiado — CRM general (aprox. 10 min)"),
       React.createElement(P, null, "Este recorrido cubre lo mismo que usaría cualquier negocio B2B: gestión de clientes, pipeline de ventas, cotizaciones, agenda y reportes."),
 
       React.createElement(Paso, { n: 1, titulo: "Dashboard", desc: "Al entrar verás el tablero principal: meta del mes, pipeline activo, ranking de vendedores y el panel de Alertas con actividades vencidas y negocios estancados." }),
@@ -228,7 +228,7 @@ export async function GET() {
     React.createElement(Page, { size: "A4", style: s.page },
       React.createElement(PageHeader, null),
       React.createElement(Footer, null),
-      React.createElement(H1, null, "4. Recorrido guiado — Novedades recientes (≈10 min)"),
+      React.createElement(H1, null, "4. Recorrido guiado — Novedades recientes (aprox. 10 min)"),
       React.createElement(P, null, "Esta cuenta se dejó preparada a propósito con ejemplos reales de las 5 funciones más recientes del CRM, para que las veas en acción con datos concretos, no solo leerlas."),
 
       React.createElement(Paso, { n: 7, titulo: "Filtro por vendedor", desc: "Ve a Pipeline o Reportes (con el usuario Administrador o Gerente). En la barra de filtros verás un selector 'Vendedor' — elige 'Sofía Restrepo' o 'Andrés Castillo' para ver solo el pipeline de esa persona." }),

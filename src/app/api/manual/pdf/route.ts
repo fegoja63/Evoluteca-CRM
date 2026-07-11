@@ -360,7 +360,7 @@ export async function GET() {
       React.createElement(Tip, null, "Usa las notas rápidas para registrar contexto importante sobre el cliente o negocio: preferencias, restricciones de presupuesto, fechas clave, contactos adicionales."),
 
       React.createElement(H2, null, "2.8 Papelera"),
-      React.createElement(P, null, 'Al eliminar un Cliente, Contacto, Oportunidad o Cotización, el registro no se borra de inmediato: se mueve a la Papelera (ícono 🗑️ en el menú lateral), donde queda disponible para restaurarlo o eliminarlo definitivamente. La Papelera tiene una sección separada para cada uno de los cuatro tipos de registro.'),
+      React.createElement(P, null, 'Al eliminar un Cliente, Contacto, Oportunidad o Cotización, el registro no se borra de inmediato: se mueve a la Papelera (en el menú lateral), donde queda disponible para restaurarlo o eliminarlo definitivamente. La Papelera tiene una sección separada para cada uno de los cuatro tipos de registro.'),
       React.createElement(LI, null, "Restaurar — el registro vuelve a aparecer en su listado normal (Clientes, Contactos, Pipeline o Cotizaciones), con todos sus datos e historial intactos"),
       React.createElement(LI, null, "Eliminar definitivamente — borra el registro de forma permanente y no se puede deshacer"),
       React.createElement(Nota, null, "Solo Administrador y Gerente pueden eliminar y restaurar registros; el borrado definitivo es exclusivo del Administrador. La Papelera es por organización: cada empresa ve únicamente lo que ella misma eliminó."),
@@ -551,8 +551,8 @@ export async function GET() {
       React.createElement(Tip, null, "El PDF se genera automáticamente con el estado actual de la cotización. Si haces cambios, descarga de nuevo para obtener la versión actualizada."),
 
       React.createElement(H2, null, "5.6 Enviar la cotización por email"),
-      React.createElement(P, null, 'Desde el detalle de la cotización, haz clic en "✉ Enviar email" para abrir un panel con un campo de correo editable. Viene pre-llenado con el email del contacto vinculado (si tiene), pero puedes cambiarlo por cualquier otra dirección antes de enviar — útil cuando quien recibe la cotización no es el contacto principal registrado en el CRM.'),
-      React.createElement(P, null, "El correo incluye el PDF de la cotización como adjunto. También puedes generar un \"🔗 Link cliente\" — una URL pública de solo lectura que puedes compartir por cualquier canal (WhatsApp, mensaje directo) sin necesidad de enviar un correo."),
+      React.createElement(P, null, 'Desde el detalle de la cotización, haz clic en "Enviar email" para abrir un panel con un campo de correo editable. Viene pre-llenado con el email del contacto vinculado (si tiene), pero puedes cambiarlo por cualquier otra dirección antes de enviar — útil cuando quien recibe la cotización no es el contacto principal registrado en el CRM.'),
+      React.createElement(P, null, "El correo incluye el PDF de la cotización como adjunto. También puedes generar un \"Link cliente\" — una URL pública de solo lectura que puedes compartir por cualquier canal (WhatsApp, mensaje directo) sin necesidad de enviar un correo."),
 
       React.createElement(H2, null, "5.7 Catálogo de servicios"),
       React.createElement(P, null, 'Ve a Catálogo para crear servicios reutilizables con nombre, descripción y precio base. Al crear una cotización, aparece el selector "Agregar servicio del catálogo" que carga los datos automáticamente en una nueva línea.'),
@@ -570,7 +570,7 @@ export async function GET() {
       React.createElement(P, null, 'Ve a Plantillas para guardar combinaciones completas de ítems que usas seguido (por ejemplo, un paquete de servicios para un tipo de evento) y reutilizarlas en segundos al armar una cotización nueva.'),
       React.createElement(Paso, { n: 1, titulo: "Crear una plantilla", desc: 'En Plantillas, botón "+ Nueva plantilla". Dale un nombre y agrega tantas líneas como necesites (descripción, cantidad, precio unitario) — igual que en el formulario de una cotización.' }),
       React.createElement(Paso, { n: 2, titulo: "Editar una plantilla", desc: 'Botón "Editar" sobre cualquier plantilla de la lista. Puedes cambiar el nombre y modificar, agregar o quitar cualquier línea de ítems — no solo renombrarla. Al guardar, la lista de ítems de la plantilla se reemplaza por completo con lo que dejaste en el formulario.' }),
-      React.createElement(Paso, { n: 3, titulo: "Usar una plantilla en una cotización", desc: 'Desde una cotización existente, el botón "★ Guardar plantilla" también te permite crear una plantilla nueva a partir de los ítems que ya cargaste.' }),
+      React.createElement(Paso, { n: 3, titulo: "Usar una plantilla en una cotización", desc: 'Desde una cotización existente, el botón "Guardar plantilla" también te permite crear una plantilla nueva a partir de los ítems que ya cargaste.' }),
       React.createElement(Nota, null, "Editar o eliminar una plantilla no afecta las cotizaciones que ya se crearon a partir de ella — cada cotización guarda su propia copia de los ítems al momento de crearse."),
     ),
 
@@ -650,7 +650,7 @@ export async function GET() {
       React.createElement(P, null, "En la tarjeta \"Negocios cerrados\" aparece el promedio de días que tardan tus oportunidades en pasar de creadas a Ganadas, para el período filtrado. Se calcula desde la fecha real en que cada negocio cambió a la etapa Ganada (no desde una fecha estimada), así que refleja tu ciclo de venta real."),
 
       React.createElement(H2, null, "7.10 Comparación mes contra mes anterior"),
-      React.createElement(P, null, "Junto a la gráfica \"Actividad mensual\" aparece un indicador con la variación del valor ganado del mes más reciente contra el mes inmediatamente anterior (por ejemplo, ▲ 20% vs Jun). La comparación puede cruzar de un año a otro — enero se compara contra diciembre del año anterior."),
+      React.createElement(P, null, "Junto a la gráfica \"Actividad mensual\" aparece un indicador con la variación del valor ganado del mes más reciente contra el mes inmediatamente anterior (por ejemplo, +20% vs Jun). La comparación puede cruzar de un año a otro — enero se compara contra diciembre del año anterior."),
 
       React.createElement(H2, null, "7.11 Filtro por segmento y sede"),
       React.createElement(P, null, "Si tu base de datos tiene información de segmento o sede/zona (por ejemplo, cargada por importación de Excel), en la barra de filtros de Reportes aparecen selectores adicionales \"Segmento\" y \"Sede\" para acotar todos los reportes a esa información. Si ningún registro tiene esos datos, los selectores simplemente no aparecen."),

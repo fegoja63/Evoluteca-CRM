@@ -242,10 +242,10 @@ export async function GET() {
       React.createElement(PageHeader, null),
       React.createElement(Footer, null),
       React.createElement(H1, null, "5. Calendario de reservas"),
-      React.createElement(P, null, "Ve a Salones y haz clic en \"📅 Calendario\" para ver un calendario mensual de reservas de un salón específico. Solo se muestran las cotizaciones en estado ACEPTADA — las reservas confirmadas."),
+      React.createElement(P, null, "Ve a Salones y haz clic en \"Calendario\" para ver un calendario mensual de reservas de un salón específico. Solo se muestran las cotizaciones en estado ACEPTADA — las reservas confirmadas."),
 
       React.createElement(H2, null, "5.1 Navegar el calendario"),
-      React.createElement(P, null, "Elige el salón en el selector superior y navega entre meses con las flechas ← →. Cada día con reservas se resalta y muestra el nombre del cliente (y la hora de inicio, si el evento tiene horario definido)."),
+      React.createElement(P, null, "Elige el salón en el selector superior y navega entre meses con las flechas de \"anterior\" y \"siguiente\". Cada día con reservas se resalta y muestra el nombre del cliente (y la hora de inicio, si el evento tiene horario definido)."),
 
       React.createElement(H2, null, "5.2 Mover una reserva arrastrando"),
       React.createElement(Paso, { n: 1, titulo: "Arrastrar la reserva", desc: "Haz clic sostenido sobre el nombre del cliente en el día actual y arrástralo hasta el nuevo día deseado." }),
@@ -260,10 +260,10 @@ export async function GET() {
       React.createElement(PageHeader, null),
       React.createElement(Footer, null),
       React.createElement(H1, null, "6. Alquileres por día"),
-      React.createElement(P, null, "Ve a Salones y haz clic en \"📋 Ver por día\" para ver, en una sola tabla, todos los salones de tu catálogo con sus reservas confirmadas (estado ACEPTADA) para una fecha específica."),
+      React.createElement(P, null, "Ve a Salones y haz clic en \"Ver por día\" para ver, en una sola tabla, todos los salones de tu catálogo con sus reservas confirmadas (estado ACEPTADA) para una fecha específica."),
       React.createElement(H2, null, "6.1 Cómo usarla"),
       React.createElement(Paso, { n: 1, titulo: "Elegir la fecha", desc: "Usa el selector de fecha en la parte superior. Por defecto muestra el día de hoy." }),
-      React.createElement(Paso, { n: 2, titulo: "Leer la tabla", desc: "Cada fila es un salón. Si no tiene reservas ese día, se marca \"✓ Disponible todo el día\" en verde. Si tiene una o más, se listan con su horario (o \"Todo el día\" si no tiene horario definido) y el nombre del cliente." }),
+      React.createElement(Paso, { n: 2, titulo: "Leer la tabla", desc: "Cada fila es un salón. Si no tiene reservas ese día, se marca \"Disponible todo el día\" en verde. Si tiene una o más, se listan con su horario (o \"Todo el día\" si no tiene horario definido) y el nombre del cliente." }),
       React.createElement(Paso, { n: 3, titulo: "Ir al detalle", desc: "Haz clic en cualquier reserva de la tabla para abrir directamente el detalle de esa cotización." }),
       React.createElement(Tip, null, "Es la vista más rápida para responder por teléfono \"¿tienen algún salón libre el [fecha]?\" sin tener que revisar salón por salón en el calendario."),
 
