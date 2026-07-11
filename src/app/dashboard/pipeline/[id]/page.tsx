@@ -161,10 +161,15 @@ export default function OportunidadDetallePage() {
       setModalPerdida(true);
       return;
     }
+    let cotizacionNumero: string | undefined;
+    if (op && (op.etapa === "PROSPECTO" || op.etapa === "CALIFICADO") && etapa !== op.etapa) {
+      const cot = prompt("Número de cotización (opcional):");
+      if (cot && cot.trim()) cotizacionNumero = cot.trim();
+    }
     await fetch(`/api/oportunidades/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ etapa }),
+      body: JSON.stringify({ etapa, ...(cotizacionNumero ? { cotizacionNumero } : {}) }),
     });
     cargar();
   }

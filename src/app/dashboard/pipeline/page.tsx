@@ -272,11 +272,21 @@ export default function PipelinePage() {
       setModalPerdidaId(id);
       return; // espera a que se elija un motivo en el modal antes de mover la tarjeta
     }
-    setOportunidades(prev => prev.map(o => o.id === id ? { ...o, etapa } : o));
+    const actual = oportunidades.find(o => o.id === id);
+    let cotizacionNumero: string | undefined;
+    if (actual && (actual.etapa === "PROSPECTO" || actual.etapa === "CALIFICADO") && etapa !== actual.etapa) {
+      const cot = prompt("Número de cotización (opcional):");
+      if (cot && cot.trim()) cotizacionNumero = cot.trim();
+    }
+    setOportunidades(prev => prev.map(o => o.id === id ? {
+      ...o,
+      etapa,
+      ...(cotizacionNumero ? { extras: { ...(o.extras || {}), "COTIZACION NUMERO": cotizacionNumero } } : {}),
+    } : o));
     await fetch(`/api/oportunidades/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ etapa }),
+      body: JSON.stringify({ etapa, ...(cotizacionNumero ? { cotizacionNumero } : {}) }),
     });
   }
 

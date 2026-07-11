@@ -8,6 +8,7 @@ export const crearOportunidadSchema = z.object({
   valor: montoOpcional().nullable(),
   etapa: z.enum(ETAPAS, { error: "Etapa inválida" }).optional(),
   motivoPerdida: textoOpcional(300),
+  cotizacionNumero: textoOpcional(100),
   notas: textoOpcional(2000),
   empresaId: idOpcional,
   contactoId: idOpcional,

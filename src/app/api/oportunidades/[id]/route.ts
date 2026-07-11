@@ -35,7 +35,7 @@ export async function PATCH(
   const body = await request.json();
   const { data: parsed, error } = parseOrError(editarOportunidadSchema, body);
   if (error) return error;
-  const { titulo, valor, etapa, motivoPerdida, notas, empresaId, contactoId, probabilidad, fechaCierre, salonId, sede, fechaEvento, horaInicio, horaFin } = parsed;
+  const { titulo, valor, etapa, motivoPerdida, cotizacionNumero, notas, empresaId, contactoId, probabilidad, fechaCierre, salonId, sede, fechaEvento, horaInicio, horaFin } = parsed;
 
   const oportunidad = await prisma.oportunidad.findFirst({
     where: { id: params.id, tenantId: session.user.tenantId },
@@ -61,6 +61,12 @@ export async function PATCH(
   if (motivoPerdida !== undefined) data.motivoPerdida = motivoPerdida?.trim() || null;
   // Si la etapa cambia a algo distinto de PERDIDA, el motivo ya no aplica.
   if (etapa !== undefined && etapa !== "PERDIDA" && motivoPerdida === undefined) data.motivoPerdida = null;
+  // Se combina con los "extras" ya guardados (ej. de una importación) en vez de
+  // reemplazarlos, para no perder otros datos adicionales de la oportunidad.
+  if (cotizacionNumero?.trim()) {
+    const extrasActuales = (oportunidad.extras as Record<string, string> | null) ?? {};
+    data.extras = { ...extrasActuales, "COTIZACION NUMERO": cotizacionNumero.trim() };
+  }
   if (notas !== undefined) data.notas = notas?.trim() || null;
   if (empresaId !== undefined) data.empresaId = empresaId || null;
   if (contactoId !== undefined) data.contactoId = contactoId || null;
