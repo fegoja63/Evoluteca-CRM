@@ -19,7 +19,7 @@ type ResMes  = { ganadas: number; perdidas: number; valorGanado: number; total: 
 type Meta    = { id: string; anio: number; mes: number | null; valorObjetivo: string; calculada?: boolean; mesesConfigurados?: number };
 
 type TopCliente = { nombre: string; valorGanado: number; ganadas: number; total: number };
-type MotivoPerdida = { motivo: string; cantidad: number };
+type MotivoPerdida = { motivo: string; cantidad: number; valorTotal: number };
 
 type ForecastEtapa = { cantidad: number; valorBruto: number; valorPonderado: number; probPromedio: number };
 
@@ -404,59 +404,91 @@ export default function ReportesPage() {
   }
 
   // ── Donut de motivos de pérdida ──
-  const COLORES_MOTIVOS = ["#ef4444", "#f97316", "#f59e0b", "#fb7185", "#c026d3"];
-  const COLOR_OTROS = "#94a3b8";
-  const TOP_N_MOTIVOS = 4;
+  // Paleta cálida (rojos/naranjas/rosas/tierras) para no chocar con los
+  // colores que ya tienen un significado fijo en esta misma página
+  // (azul = Calificado, morado = Cotización, verde = Ganada).
+  const COLORES_MOTIVOS = [
+    "#dc2626", "#f97316", "#f59e0b", "#e11d48", "#be123c",
+    "#c2410c", "#a16207", "#9f1239", "#78350f", "#78716c",
+  ];
+  const DONUT_GAP = 2.5; // separación visual entre segmentos, en unidades de circunferencia
 
   function MotivosPerdidaDonut() {
     const ordenados = [...r!.motivosPerdida].sort((a, b) => b.cantidad - a.cantidad);
     const total = ordenados.reduce((acc, m) => acc + m.cantidad, 0);
     if (total === 0) return null;
 
-    const agrupar = ordenados.length > TOP_N_MOTIVOS + 1;
-    const principales = agrupar ? ordenados.slice(0, TOP_N_MOTIVOS) : ordenados;
-    const otros = agrupar ? ordenados.slice(TOP_N_MOTIVOS) : [];
-    const otrosTotal = otros.reduce((acc, m) => acc + m.cantidad, 0);
-    const colorPorMotivo = new Map<string, string>(principales.map((m, i) => [m.motivo, COLORES_MOTIVOS[i]]));
+    const colorPorMotivo = new Map<string, string>(ordenados.map((m, i) => [m.motivo, COLORES_MOTIVOS[i % COLORES_MOTIVOS.length]]));
 
-    const r_ = 40, C = 2 * Math.PI * r_;
+    const r_ = 42, C = 2 * Math.PI * r_;
     let acumulado = 0;
-    const segmentos = agrupar
-      ? [...principales, { motivo: "Otros", cantidad: otrosTotal }]
-      : principales;
 
     return (
       <div className="flex flex-col sm:flex-row items-center gap-8">
-        <div className="relative w-40 h-40 shrink-0">
-          <svg viewBox="0 0 100 100" className="w-40 h-40 -rotate-90">
-            <circle cx="50" cy="50" r={r_} fill="none" stroke="#f1f5f9" strokeWidth="14" />
-            {segmentos.map(s => {
-              const pct = s.cantidad / total;
-              const dash = pct * C;
+        <div className="relative w-52 h-52 shrink-0">
+          <svg viewBox="0 0 100 100" className="w-52 h-52 -rotate-90" style={{ filter: "drop-shadow(0 4px 10px rgba(220,38,38,0.18))" }}>
+            <circle cx="50" cy="50" r={r_} fill="none" stroke="#f1f5f9" strokeWidth="18" />
+            {ordenados.map(m => {
+              const pct = m.cantidad / total;
+              const dashFull = pct * C;
+              const dash = Math.max(0, dashFull - DONUT_GAP);
               const dashoffset = -acumulado;
-              acumulado += dash;
-              const color = s.motivo === "Otros" ? COLOR_OTROS : (colorPorMotivo.get(s.motivo) ?? COLOR_OTROS);
+              acumulado += dashFull;
               return (
-                <circle key={s.motivo} cx="50" cy="50" r={r_} fill="none" stroke={color} strokeWidth="14"
-                  strokeDasharray={`${dash} ${C - dash}`} strokeDashoffset={dashoffset} />
+                <circle key={m.motivo} cx="50" cy="50" r={r_} fill="none" stroke={colorPorMotivo.get(m.motivo)} strokeWidth="18"
+                  strokeLinecap="round" strokeDasharray={`${dash} ${C - dash}`} strokeDashoffset={dashoffset} />
               );
             })}
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold text-slate-800">{total}</span>
-            <span className="text-xs text-slate-400">perdidos</span>
+            <span className="text-3xl font-extrabold text-slate-800">{total}</span>
+            <span className="text-xs text-slate-400 uppercase tracking-wide">perdidos</span>
           </div>
         </div>
         <div className="flex-1 w-full flex flex-col gap-2">
           {ordenados.map(m => {
             const pct = Math.round((m.cantidad / total) * 100);
-            const color = colorPorMotivo.get(m.motivo) ?? COLOR_OTROS;
             return (
               <div key={m.motivo} className="flex items-center gap-3">
-                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: colorPorMotivo.get(m.motivo) }} />
                 <span className="text-sm text-slate-700 flex-1 truncate">{m.motivo}</span>
                 <span className="text-xs text-slate-400 w-9 text-right">{pct}%</span>
                 <span className="text-sm font-bold text-red-600 w-6 text-right">{m.cantidad}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Valor perdido por motivo (complementa el donut: cuánto dinero, no solo cuántos negocios) ──
+  function ValorPerdidoPorMotivo() {
+    const ordenados = [...r!.motivosPerdida].filter(m => m.valorTotal > 0).sort((a, b) => b.valorTotal - a.valorTotal);
+    if (ordenados.length === 0) return null;
+    const colorPorMotivo = new Map<string, string>(
+      [...r!.motivosPerdida].sort((a, b) => b.cantidad - a.cantidad).map((m, i) => [m.motivo, COLORES_MOTIVOS[i % COLORES_MOTIVOS.length]])
+    );
+    const maxVal = ordenados[0].valorTotal || 1;
+
+    return (
+      <div className="mt-6 pt-5 border-t border-slate-100">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Valor perdido por motivo</p>
+        <div className="flex flex-col gap-2">
+          {ordenados.map(m => {
+            const pct = (m.valorTotal / maxVal) * 100;
+            return (
+              <div key={m.motivo} className="flex items-center gap-4">
+                <div className="w-40 shrink-0 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: colorPorMotivo.get(m.motivo) }} />
+                  <span className="text-xs text-slate-600 truncate">{m.motivo}</span>
+                </div>
+                <div className="flex-1 relative h-5 bg-slate-50 rounded-lg overflow-hidden">
+                  <div className="h-full rounded-lg" style={{ width: `${Math.max(pct, 3)}%`, backgroundColor: colorPorMotivo.get(m.motivo), opacity: 0.85 }} />
+                </div>
+                <div className="w-20 text-right shrink-0">
+                  <span className="text-xs font-bold text-slate-700">{fmtK(m.valorTotal)}</span>
+                </div>
               </div>
             );
           })}
@@ -753,6 +785,7 @@ export default function ReportesPage() {
         <div className="mt-6 bg-white rounded-2xl border border-slate-200 p-6">
           <h2 className="text-base font-bold text-slate-900 mb-4">Motivos de pérdida</h2>
           <MotivosPerdidaDonut />
+          <ValorPerdidoPorMotivo />
         </div>
       )}
 

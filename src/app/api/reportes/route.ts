@@ -203,14 +203,17 @@ export async function GET(request: Request) {
     .slice(0, 5);
 
   // ── Motivos de pérdida (del período filtrado) ──
-  const motivoMap = new Map<string, number>();
+  const motivoMap = new Map<string, { cantidad: number; valorTotal: number }>();
   for (const o of oportunidades) {
     if (o.etapa !== "PERDIDA") continue;
     const motivo = o.motivoPerdida?.trim() || "Sin especificar";
-    motivoMap.set(motivo, (motivoMap.get(motivo) ?? 0) + 1);
+    const entry = motivoMap.get(motivo) ?? { cantidad: 0, valorTotal: 0 };
+    entry.cantidad++;
+    entry.valorTotal += Number(o.valor ?? 0);
+    motivoMap.set(motivo, entry);
   }
   const motivosPerdida = Array.from(motivoMap.entries())
-    .map(([motivo, cantidad]) => ({ motivo, cantidad }))
+    .map(([motivo, v]) => ({ motivo, cantidad: v.cantidad, valorTotal: v.valorTotal }))
     .sort((a, b) => b.cantidad - a.cantidad);
 
   return NextResponse.json({
