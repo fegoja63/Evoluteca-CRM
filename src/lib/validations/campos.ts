@@ -15,7 +15,12 @@ export const emailOpcional = z.union([z.string().trim().email("Ingresa un correo
 
 export const emailRequerido = z.string().trim().email("Ingresa un correo válido").max(200);
 
-export const telefonoOpcional = z.union([z.string().trim().max(30, "Máximo 30 caracteres"), z.literal("")]).optional();
+// Regex permisivo: dígitos, espacios, +, -, () y . — cubre formatos locales
+// e internacionales sin forzar un formato específico de país.
+export const telefonoOpcional = z.union([
+  z.string().trim().max(30, "Máximo 30 caracteres").regex(/^[+]?[\d\s\-().]{7,30}$/, "Ingresa un teléfono válido"),
+  z.literal(""),
+]).optional();
 
 export const urlOpcional = z.union([z.string().trim().max(300, "Máximo 300 caracteres"), z.literal("")]).optional();
 

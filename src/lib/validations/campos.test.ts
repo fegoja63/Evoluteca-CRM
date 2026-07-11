@@ -63,6 +63,17 @@ describe("telefonoOpcional", () => {
   it("rechaza más de 30 caracteres", () => {
     expect(() => telefonoOpcional.parse("1".repeat(31))).toThrow();
   });
+  it("acepta formatos válidos comunes", () => {
+    expect(telefonoOpcional.parse("3001234567")).toBe("3001234567");
+    expect(telefonoOpcional.parse("+57 300 123 4567")).toBe("+57 300 123 4567");
+    expect(telefonoOpcional.parse("(601) 234-5678")).toBe("(601) 234-5678");
+  });
+  it("rechaza texto que no es un teléfono", () => {
+    expect(() => telefonoOpcional.parse("no es un telefono")).toThrow();
+  });
+  it("rechaza menos de 7 caracteres", () => {
+    expect(() => telefonoOpcional.parse("123")).toThrow();
+  });
 });
 
 describe("idOpcional", () => {
