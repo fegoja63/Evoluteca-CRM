@@ -441,7 +441,7 @@ export default function ReportesPage() {
     let acumulado = 0;
 
     return (
-      <div className="flex flex-col sm:flex-row items-center gap-8">
+      <div className="flex flex-col xl:flex-row items-center gap-8">
         <div className="relative w-52 h-52 shrink-0">
           <svg viewBox="0 0 100 100" className="w-52 h-52 -rotate-90" style={{ filter: "drop-shadow(0 4px 10px rgba(220,38,38,0.18))" }}>
             <circle cx="50" cy="50" r={r_} fill="none" stroke="#f1f5f9" strokeWidth="18" />
@@ -462,13 +462,13 @@ export default function ReportesPage() {
             <span className="text-xs text-slate-400 uppercase tracking-wide">perdidos</span>
           </div>
         </div>
-        <div className="flex-1 w-full flex flex-col gap-2">
+        <div className="flex-1 w-full min-w-0 flex flex-col gap-2">
           {ordenados.map((m, i) => (
-            <div key={m.motivo} className="flex items-center gap-3">
+            <div key={m.motivo} className="flex items-center gap-3 min-w-0">
               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: colorPorMotivo.get(m.motivo) }} />
-              <span className="text-sm text-slate-700 flex-1 truncate">{m.motivo}</span>
-              <span className="text-sm font-bold text-red-600 w-10 text-right">{porcentajes[i]}%</span>
-              <span className="text-xs text-slate-400 w-14 text-right">{m.cantidad} neg.</span>
+              <span className="text-sm text-slate-700 flex-1 min-w-0 truncate">{m.motivo}</span>
+              <span className="text-sm font-bold text-red-600 w-10 text-right shrink-0">{porcentajes[i]}%</span>
+              <span className="text-xs text-slate-400 w-14 text-right shrink-0">{m.cantidad} neg.</span>
             </div>
           ))}
         </div>
@@ -491,7 +491,7 @@ export default function ReportesPage() {
     const porcentajesValor = porcentajesEnteros(ordenados.map(m => m.valorTotal));
 
     return (
-      <div className="mt-6 pt-5 border-t border-slate-100">
+      <div>
         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Valor perdido por motivo</p>
         <p className="text-xs text-slate-400 mb-3">% sobre el total de dinero perdido — compáralo con el % de negocios de arriba</p>
         <div className="flex flex-col gap-2">
@@ -807,8 +807,14 @@ export default function ReportesPage() {
       {r.motivosPerdida.length > 0 && (
         <div className="mt-6 bg-white rounded-2xl border border-slate-200 p-6">
           <h2 className="text-base font-bold text-slate-900 mb-4">Motivos de pérdida</h2>
-          <MotivosPerdidaDonut />
-          <ValorPerdidoPorMotivo />
+          <div className="flex flex-col lg:flex-row gap-8">
+            <div className="lg:flex-1 lg:min-w-0">
+              <MotivosPerdidaDonut />
+            </div>
+            <div className="lg:flex-1 lg:min-w-0 lg:pl-8 lg:border-l lg:border-slate-100">
+              <ValorPerdidoPorMotivo />
+            </div>
+          </div>
         </div>
       )}
 
