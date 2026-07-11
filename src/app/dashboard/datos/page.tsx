@@ -114,40 +114,10 @@ export default function DatosPage() {
         </div>
       </div>
 
-      {/* PLANTILLAS */}
-      <div className="mb-10">
-        <h2 className="text-sm font-semibold text-slate-700 mb-1">Descargar plantillas</h2>
-        <p className="text-xs text-slate-400 mb-4">Descarga una plantilla vacía con el formato correcto, llénala con tus datos y luego impórtala.</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {MODULOS_IMPORT.map((m) => {
-            const Icono = m.icon;
-            return (
-            <div key={m.key} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-brand-50 flex items-center justify-center shrink-0">
-                  <Icono size={16} stroke={1.75} className="text-brand-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-800">{m.label}</p>
-                  <p className="text-xs text-slate-400">Incluye fila de ejemplo</p>
-                </div>
-              </div>
-              <button
-                onClick={() => descargar(`/api/plantilla/${m.key}`, `plantilla_${m.key}.xlsx`)}
-                className="rounded-xl bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700 flex items-center gap-1"
-              >
-                <IconDownload size={13} stroke={1.75} />Plantilla
-              </button>
-            </div>
-            );
-          })}
-        </div>
-      </div>
-
       {/* IMPORTAR */}
       <div>
         <h2 className="text-sm font-semibold text-slate-700 mb-1">Importar desde Excel</h2>
-        <p className="text-xs text-slate-400 mb-4">Sube un archivo .xlsx con tus datos. Usa la plantilla de arriba para asegurarte del formato correcto.</p>
+        <p className="text-xs text-slate-400 mb-4">Sube un archivo .xlsx con tus datos. En el siguiente paso podrás mapear cada columna a los campos del CRM.</p>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <div className="mb-5">
