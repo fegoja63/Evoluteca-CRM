@@ -57,8 +57,8 @@ export default function FichaClientePage() {
   const [quickTipo, setQuickTipo] = useState<string | undefined>(undefined);
   const [quickKey, setQuickKey] = useState(0);
 
-  async function cargar() {
-    setCargando(true);
+  async function cargar(silencioso = false) {
+    if (!silencioso) setCargando(true);
     const res = await fetch(`/api/empresas/${id}`);
     if (res.ok) {
       const data = await res.json();
@@ -72,10 +72,26 @@ export default function FichaClientePage() {
         notas: data.notas ?? "",
       });
     }
-    setCargando(false);
+    if (!silencioso) setCargando(false);
   }
 
   useEffect(() => { cargar(); }, [id]);
+
+  // Al volver a esta pestaña (ej. después de editar el mismo cliente o uno de
+  // sus contactos en otra pestaña), refresca en silencio — sin el "Cargando..."
+  // de pantalla completa — para no mostrar datos desactualizados. Se omite
+  // mientras hay una edición en curso para no pisar cambios sin guardar.
+  useEffect(() => {
+    function revalidar() {
+      if (document.visibilityState === "visible" && !editando) cargar(true);
+    }
+    window.addEventListener("focus", revalidar);
+    document.addEventListener("visibilitychange", revalidar);
+    return () => {
+      window.removeEventListener("focus", revalidar);
+      document.removeEventListener("visibilitychange", revalidar);
+    };
+  }, [editando, id]);
 
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();

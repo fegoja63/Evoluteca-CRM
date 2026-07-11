@@ -36,8 +36,8 @@ export default function FichaContactoPage() {
   const [guardando, setGuardando] = useState(false);
   const [form, setForm] = useState({ nombre: "", email: "", telefono: "", cargo: "", notas: "", empresaId: "" });
 
-  async function cargar() {
-    setCargando(true);
+  async function cargar(silencioso = false) {
+    if (!silencioso) setCargando(true);
     const res = await fetch(`/api/contactos/${id}`);
     if (res.ok) {
       const data = await res.json();
@@ -51,7 +51,7 @@ export default function FichaContactoPage() {
         empresaId: data.empresa?.id ?? "",
       });
     }
-    setCargando(false);
+    if (!silencioso) setCargando(false);
   }
 
   async function cargarEmpresas() {
@@ -60,6 +60,22 @@ export default function FichaContactoPage() {
   }
 
   useEffect(() => { cargar(); cargarEmpresas(); }, [id]);
+
+  // Al volver a esta pestaña (ej. después de editar el mismo contacto o su
+  // empresa en otra pestaña), refresca en silencio — sin el "Cargando..." de
+  // pantalla completa — para no mostrar datos desactualizados. Se omite
+  // mientras hay una edición en curso para no pisar cambios sin guardar.
+  useEffect(() => {
+    function revalidar() {
+      if (document.visibilityState === "visible" && !editando) cargar(true);
+    }
+    window.addEventListener("focus", revalidar);
+    document.addEventListener("visibilitychange", revalidar);
+    return () => {
+      window.removeEventListener("focus", revalidar);
+      document.removeEventListener("visibilitychange", revalidar);
+    };
+  }, [editando, id]);
 
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
