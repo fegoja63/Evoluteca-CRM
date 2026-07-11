@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { IconBug, IconBulb, IconQuestionMark, IconPinned, IconCircleCheck, type Icon } from "@tabler/icons-react";
+import { useMemo, useState } from "react";
+import { IconBug, IconBulb, IconQuestionMark, IconPinned, IconCircleCheck, IconSearch, IconChevronDown, type Icon } from "@tabler/icons-react";
+import { FAQS } from "@/lib/faq-data";
 
 const TIPOS: { value: string; label: string; icon: Icon; desc: string }[] = [
   { value: "error",   label: "Error / Bug",            icon: IconBug,          desc: "Algo no funciona como debería" },
@@ -9,6 +10,99 @@ const TIPOS: { value: string; label: string; icon: Icon; desc: string }[] = [
   { value: "duda",    label: "Duda o consulta",         icon: IconQuestionMark, desc: "No entiendo cómo funciona algo" },
   { value: "otro",    label: "Otro",                   icon: IconPinned,       desc: "Cualquier otro comentario" },
 ];
+
+// Sin acentos y en minúsculas, para que buscar "configuracion" encuentre
+// "Configuración" sin obligar al usuario a escribir el acento.
+const DIACRITICOS = new RegExp("[̀-ͯ]", "g");
+function normalizar(s: string) {
+  return s.normalize("NFD").replace(DIACRITICOS, "").toLowerCase();
+}
+
+function BaseDeAyuda() {
+  const [busqueda, setBusqueda] = useState("");
+  const [abiertas, setAbiertas] = useState<Set<number>>(new Set());
+
+  const resultados = useMemo(() => {
+    const q = normalizar(busqueda.trim());
+    if (!q) return FAQS.map((f, i) => ({ ...f, idx: i }));
+    return FAQS.map((f, i) => ({ ...f, idx: i }))
+      .filter(f => normalizar(f.pregunta).includes(q) || normalizar(f.respuesta).includes(q) || normalizar(f.categoria).includes(q));
+  }, [busqueda]);
+
+  const porCategoria = useMemo(() => {
+    const map = new Map<string, typeof resultados>();
+    for (const f of resultados) {
+      const lista = map.get(f.categoria) ?? [];
+      lista.push(f);
+      map.set(f.categoria, lista);
+    }
+    return Array.from(map.entries());
+  }, [resultados]);
+
+  function toggle(idx: number) {
+    setAbiertas(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx); else next.add(idx);
+      return next;
+    });
+  }
+
+  return (
+    <div className="mb-10">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-slate-900">Base de ayuda</h1>
+        <p className="text-slate-500 text-sm mt-1">Busca cómo hacer algo en el CRM. Si no lo encuentras aquí, escríbenos más abajo.</p>
+      </div>
+
+      <div className="relative mb-6">
+        <IconSearch size={18} stroke={1.75} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+        <input
+          type="text"
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
+          placeholder="Ej: cómo cambio el nombre de una etapa del pipeline..."
+          className="w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-brand-500"
+        />
+      </div>
+
+      {resultados.length === 0 ? (
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
+          <p className="text-sm text-slate-500">No encontramos nada para &quot;{busqueda}&quot;. Prueba con otra palabra, o cuéntanos tu duda en el formulario de abajo.</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {porCategoria.map(([categoria, items]) => (
+            <div key={categoria}>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">{categoria}</p>
+              <div className="rounded-2xl border border-slate-200 bg-white divide-y divide-slate-100 overflow-hidden">
+                {items.map(f => {
+                  const abierta = abiertas.has(f.idx);
+                  return (
+                    <div key={f.idx}>
+                      <button
+                        type="button"
+                        onClick={() => toggle(f.idx)}
+                        className="w-full flex items-center justify-between gap-3 text-left px-5 py-3.5 hover:bg-slate-50"
+                      >
+                        <span className="text-sm font-medium text-slate-800">{f.pregunta}</span>
+                        <IconChevronDown size={16} stroke={1.75} className={`shrink-0 text-slate-400 transition-transform ${abierta ? "rotate-180" : ""}`} />
+                      </button>
+                      {abierta && (
+                        <div className="px-5 pb-4 -mt-1">
+                          <p className="text-sm text-slate-600 leading-relaxed">{f.respuesta}</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AyudaPage() {
   const [tipo, setTipo]               = useState("");
@@ -41,9 +135,11 @@ export default function AyudaPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-slate-900">Ayuda y soporte</h1>
-        <p className="text-slate-500 text-sm mt-1">¿Encontraste un problema o tienes una sugerencia? Escríbenos.</p>
+      <BaseDeAyuda />
+
+      <div className="mb-8 pt-2 border-t border-slate-100">
+        <h1 className="text-lg font-semibold text-slate-900 mt-6">¿No encontraste lo que buscabas?</h1>
+        <p className="text-slate-500 text-sm mt-1">Reporta un error o envíanos una sugerencia y te contactamos.</p>
       </div>
 
       {enviado ? (
