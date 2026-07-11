@@ -13,6 +13,7 @@ export default function BienvenidaPage() {
   const [esTeatro, setEsTeatro] = useState(false);
   const [esSalones, setEsSalones] = useState(false);
   const [esDemoTeatro, setEsDemoTeatro] = useState(false);
+  const [esDemoEvoluteca, setEsDemoEvoluteca] = useState(false);
 
   useEffect(() => {
     fetch("/api/configuracion")
@@ -22,6 +23,7 @@ export default function BienvenidaPage() {
         setEsTeatro(!!d.modulos?.funciones || !!d.modulos?.audiencia);
         setEsSalones(!!d.modulos?.salones);
         setEsDemoTeatro(d.tenantNombre === "Demo Teatro");
+        setEsDemoEvoluteca(d.tenantNombre === "Demo Evoluteca");
       });
   }, []);
 
@@ -208,6 +210,29 @@ export default function BienvenidaPage() {
               </p>
               <div className="flex gap-3">
                 <a href="/api/manual/pdf-demo-teatro" target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition-colors">
+                  <IconDownload size={16} stroke={1.75} /> Descargar manual de pruebas
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manual de pruebas — solo visible en la cuenta demo genérica de Evoluteca */}
+      {esDemoEvoluteca && (
+        <div className="bg-white rounded-2xl border border-amber-200 p-5 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+              <IconFlask size={22} stroke={1.75} className="text-amber-600" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-sm font-bold text-slate-900 mb-1">Manual de pruebas — Cuenta Demo</h2>
+              <p className="text-xs text-slate-500 mb-4">
+                Recorrido guiado paso a paso por esta cuenta de demostración: CRM comercial general y las 5 novedades recientes (filtro por vendedor, motivo de pérdida, archivos adjuntos, captura externa de leads y etapas de pipeline configurables), con las credenciales de los roles.
+              </p>
+              <div className="flex gap-3">
+                <a href="/api/manual/pdf-demo-evoluteca" target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition-colors">
                   <IconDownload size={16} stroke={1.75} /> Descargar manual de pruebas
                 </a>
