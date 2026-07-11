@@ -50,13 +50,24 @@ type Reporte = {
 
 type Vendedor = { id: string; nombre: string };
 
-const ETAPAS = [
-  { key: "PROSPECTO",   label: "Prospecto",   colorBar: "#94a3b8" },
-  { key: "CALIFICADO",  label: "Calificado",  colorBar: "#60a5fa" },
-  { key: "PROPUESTA",   label: "Cotización",  colorBar: "#8b5cf6" },
-  { key: "NEGOCIACION", label: "Negociación", colorBar: "#fbbf24" },
-  { key: "GANADA",      label: "Ganada",      colorBar: "#10b981" },
-  { key: "PERDIDA",     label: "Perdida",     colorBar: "#f87171" },
+// El nombre visible de cada etapa es configurable por tenant (Configuración →
+// Etapas del pipeline); el "key" y el color de la barra quedan fijos en código.
+const ETAPA_COLOR_BAR: Record<string, string> = {
+  PROSPECTO:   "#94a3b8",
+  CALIFICADO:  "#60a5fa",
+  PROPUESTA:   "#8b5cf6",
+  NEGOCIACION: "#fbbf24",
+  GANADA:      "#10b981",
+  PERDIDA:     "#f87171",
+};
+
+const ETAPAS_DEFECTO = [
+  { key: "PROSPECTO",   label: "Prospecto" },
+  { key: "CALIFICADO",  label: "Calificado" },
+  { key: "PROPUESTA",   label: "Cotización" },
+  { key: "NEGOCIACION", label: "Negociación" },
+  { key: "GANADA",      label: "Ganada" },
+  { key: "PERDIDA",     label: "Perdida" },
 ];
 
 const MESES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
@@ -67,6 +78,7 @@ export default function ReportesPage() {
   const { data: session } = useSession();
   const esAdmin = session?.user?.rol === "ADMINISTRADOR";
   const [r, setR] = useState<Reporte | null>(null);
+  const [ETAPAS, setETAPAS] = useState(ETAPAS_DEFECTO.map(e => ({ ...e, colorBar: ETAPA_COLOR_BAR[e.key] })));
   const [anio, setAnio] = useState<string>("");
   const [mes, setMes] = useState<string>("");
   const [vendedor, setVendedor] = useState<string>("");
@@ -114,6 +126,13 @@ export default function ReportesPage() {
   }
 
   useEffect(() => { cargar(); cargarMetas(); }, []);
+
+  useEffect(() => {
+    fetch("/api/etapas-pipeline").then(r => r.json()).then(data => {
+      if (!Array.isArray(data) || data.length === 0) return;
+      setETAPAS(data.map((e: { key: string; nombre: string }) => ({ key: e.key, label: e.nombre, colorBar: ETAPA_COLOR_BAR[e.key] })));
+    });
+  }, []);
   useEffect(() => { if (session?.user?.rol && session.user.rol !== "COMERCIAL") cargarVendedores(); }, [session?.user?.rol]);
 
   function fmt(v: number) {

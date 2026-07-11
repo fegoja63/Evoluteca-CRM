@@ -63,13 +63,25 @@ type UsuarioVendedor = { id: string; nombre: string };
 type Salon = { id: string; nombre: string; capacidad: number | null };
 type Disponibilidad = { aceptadas: { id: string; empresa: { nombre: string } | null }[]; pendientes: { id: string; empresa: { nombre: string } | null }[] };
 
-const ETAPAS = [
-  { key: "PROSPECTO",   label: "Prospecto",   color: "border-t-slate-400",   badge: "bg-slate-100 text-slate-600" },
-  { key: "CALIFICADO",  label: "Calificado",  color: "border-t-blue-400",    badge: "bg-blue-50 text-blue-700" },
-  { key: "PROPUESTA",   label: "Cotización",  color: "border-t-violet-400",  badge: "bg-violet-50 text-violet-700" },
-  { key: "NEGOCIACION", label: "Negociación", color: "border-t-amber-400",   badge: "bg-amber-50 text-amber-700" },
-  { key: "GANADA",      label: "Ganada",      color: "border-t-emerald-400", badge: "bg-emerald-50 text-emerald-700" },
-  { key: "PERDIDA",     label: "Perdida",     color: "border-t-red-400",     badge: "bg-red-50 text-red-600" },
+// El nombre visible y el orden de cada etapa son configurables por tenant
+// (Configuración → Etapas del pipeline), pero el "key" (usado como valor de
+// Oportunidad.etapa) y su color/badge quedan fijos en código.
+const ETAPA_ESTILO: Record<string, { color: string; badge: string }> = {
+  PROSPECTO:   { color: "border-t-slate-400",   badge: "bg-slate-100 text-slate-600" },
+  CALIFICADO:  { color: "border-t-blue-400",    badge: "bg-blue-50 text-blue-700" },
+  PROPUESTA:   { color: "border-t-violet-400",  badge: "bg-violet-50 text-violet-700" },
+  NEGOCIACION: { color: "border-t-amber-400",   badge: "bg-amber-50 text-amber-700" },
+  GANADA:      { color: "border-t-emerald-400", badge: "bg-emerald-50 text-emerald-700" },
+  PERDIDA:     { color: "border-t-red-400",     badge: "bg-red-50 text-red-600" },
+};
+
+const ETAPAS_DEFECTO = [
+  { key: "PROSPECTO",   label: "Prospecto" },
+  { key: "CALIFICADO",  label: "Calificado" },
+  { key: "PROPUESTA",   label: "Cotización" },
+  { key: "NEGOCIACION", label: "Negociación" },
+  { key: "GANADA",      label: "Ganada" },
+  { key: "PERDIDA",     label: "Perdida" },
 ];
 
 const MESES_LABEL: Record<string, number> = {
@@ -87,6 +99,9 @@ export default function PipelinePage() {
   const [empresas, setEmpresas]   = useState<Empresa[]>([]);
   const [contactos, setContactos] = useState<Contacto[]>([]);
   const [vendedores, setVendedores] = useState<UsuarioVendedor[]>([]);
+  const [ETAPAS, setETAPAS] = useState(
+    ETAPAS_DEFECTO.map(e => ({ ...e, ...ETAPA_ESTILO[e.key] }))
+  );
   const [cargando, setCargando]   = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -138,6 +153,13 @@ export default function PipelinePage() {
   }
 
   useEffect(() => { cargar(); cargarRelaciones(); }, []);
+
+  useEffect(() => {
+    fetch("/api/etapas-pipeline").then(r => r.json()).then(data => {
+      if (!Array.isArray(data) || data.length === 0) return;
+      setETAPAS(data.map((e: { key: string; nombre: string }) => ({ key: e.key, label: e.nombre, ...ETAPA_ESTILO[e.key] })));
+    });
+  }, []);
 
   useEffect(() => {
     if (!form.salonId || !form.fechaEvento) { setDisponibilidad(null); return; }

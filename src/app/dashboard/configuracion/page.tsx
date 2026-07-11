@@ -6,8 +6,11 @@ import {
   IconTheater, IconTicket, IconScale, IconBuildingPavilion,
   IconBuilding, IconUsers, IconChartFunnel, IconCalendar, IconFileText,
   IconReportAnalytics, IconUsersGroup, IconDownload, IconTrash, IconCheck,
+  IconKey, IconCopy, IconRefresh, IconGripVertical,
   type Icon,
 } from "@tabler/icons-react";
+
+type EtapaPipeline = { id: string; key: string; nombre: string; orden: number };
 
 type Modulos = {
   funciones?: boolean;
@@ -90,6 +93,61 @@ export default function ConfiguracionPage() {
 
   const esAdmin = session?.user?.rol === "ADMINISTRADOR";
   const [limpiando, setLimpiando] = useState(false);
+  const [apiKeyLeads, setApiKeyLeads] = useState<string | null>(null);
+  const [generandoKey, setGenerandoKey] = useState(false);
+  const [keyCopiada, setKeyCopiada] = useState(false);
+  const [etapas, setEtapas] = useState<EtapaPipeline[]>([]);
+  const [guardandoEtapas, setGuardandoEtapas] = useState(false);
+  const [etapasOk, setEtapasOk] = useState(false);
+  const [draggingEtapaId, setDraggingEtapaId] = useState<string | null>(null);
+
+  function cargarEtapas() {
+    fetch("/api/etapas-pipeline").then(res => res.json()).then(data => setEtapas(Array.isArray(data) ? data : []));
+  }
+
+  async function guardarEtapas(nuevasEtapas: EtapaPipeline[]) {
+    setGuardandoEtapas(true);
+    await fetch("/api/etapas-pipeline", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ etapas: nuevasEtapas.map((e, i) => ({ id: e.id, nombre: e.nombre, orden: i + 1 })) }),
+    });
+    setGuardandoEtapas(false);
+    setEtapasOk(true);
+    setTimeout(() => setEtapasOk(false), 2000);
+  }
+
+  function renombrarEtapa(id: string, nombre: string) {
+    setEtapas(prev => prev.map(e => e.id === id ? { ...e, nombre } : e));
+  }
+
+  function onDropEtapa(idDestino: string) {
+    if (!draggingEtapaId || draggingEtapaId === idDestino) { setDraggingEtapaId(null); return; }
+    const nuevas = [...etapas];
+    const origenIdx = nuevas.findIndex(e => e.id === draggingEtapaId);
+    const destinoIdx = nuevas.findIndex(e => e.id === idDestino);
+    const [movida] = nuevas.splice(origenIdx, 1);
+    nuevas.splice(destinoIdx, 0, movida);
+    setDraggingEtapaId(null);
+    setEtapas(nuevas);
+    guardarEtapas(nuevas);
+  }
+
+  async function generarApiKey() {
+    if (apiKeyLeads && !confirm("¿Rotar la clave? Cualquier integración que use la clave actual dejará de funcionar de inmediato.")) return;
+    setGenerandoKey(true);
+    const res = await fetch("/api/configuracion/api-key", { method: "POST" });
+    const data = await res.json();
+    setApiKeyLeads(data.apiKeyLeads ?? null);
+    setGenerandoKey(false);
+  }
+
+  function copiarApiKey() {
+    if (!apiKeyLeads) return;
+    navigator.clipboard.writeText(apiKeyLeads);
+    setKeyCopiada(true);
+    setTimeout(() => setKeyCopiada(false), 2000);
+  }
 
   async function handleLimpiar() {
     if (!confirm("¿Estás seguro? Esto borrará TODAS las empresas, contactos, oportunidades, actividades, cotizaciones, funciones y espectadores. Tu usuario y configuración se conservan.")) return;
@@ -111,6 +169,15 @@ export default function ConfiguracionPage() {
         setCargando(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (session?.user?.rol !== "ADMINISTRADOR") return;
+    fetch("/api/configuracion/api-key")
+      .then(res => res.json())
+      .then(data => setApiKeyLeads(data.apiKeyLeads ?? null));
+  }, [session?.user?.rol]);
+
+  useEffect(() => { cargarEtapas(); }, []);
 
   async function guardarLogo() {
     setGuardandoLogo(true);
@@ -329,6 +396,71 @@ export default function ConfiguracionPage() {
           <IconDownload size={16} stroke={1.75} /> Descargar Excel completo
         </a>
       </div>
+
+      {esAdmin && etapas.length > 0 && (
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+              <IconChartFunnel size={16} stroke={1.75} />Etapas del pipeline
+            </h2>
+            {etapasOk && <span className="text-xs text-emerald-600 font-medium">✓ Guardado</span>}
+          </div>
+          <p className="text-xs text-slate-400 mb-4">
+            Cambia el nombre visible de cada etapa y arrástralas para reordenarlas. El orden y los nombres se reflejan en el Pipeline y en Reportes.
+          </p>
+          <div className="flex flex-col gap-1.5">
+            {etapas.map(e => (
+              <div key={e.id}
+                draggable
+                onDragStart={() => setDraggingEtapaId(e.id)}
+                onDragOver={ev => ev.preventDefault()}
+                onDrop={() => onDropEtapa(e.id)}
+                onDragEnd={() => setDraggingEtapaId(null)}
+                className={`flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 bg-white cursor-grab active:cursor-grabbing ${draggingEtapaId === e.id ? "opacity-40" : ""}`}>
+                <IconGripVertical size={16} stroke={1.75} className="text-slate-300 shrink-0" />
+                <input
+                  value={e.nombre}
+                  onChange={ev => renombrarEtapa(e.id, ev.target.value)}
+                  onBlur={() => guardarEtapas(etapas)}
+                  className="flex-1 text-sm text-slate-800 outline-none border-b border-transparent focus:border-brand-400 py-0.5"
+                />
+              </div>
+            ))}
+          </div>
+          {guardandoEtapas && <p className="text-xs text-slate-400 mt-2">Guardando...</p>}
+        </div>
+      )}
+
+      {esAdmin && (
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+          <h2 className="text-sm font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+            <IconKey size={16} stroke={1.75} />Captura externa de leads
+          </h2>
+          <p className="text-xs text-slate-400 mb-4">
+            Conecta un formulario web, WhatsApp Business o una campaña de ads para crear leads (cliente + contacto + oportunidad) directo en el Pipeline, sin acceso al CRM. Envía un <code className="bg-slate-100 rounded px-1">POST</code> a{" "}
+            <code className="bg-slate-100 rounded px-1 break-all">{typeof window !== "undefined" ? window.location.origin : ""}/api/publico/leads</code>{" "}
+            con el header <code className="bg-slate-100 rounded px-1">x-api-key</code> y un body JSON (mínimo <code className="bg-slate-100 rounded px-1">empresaNombre</code>).
+          </p>
+
+          {apiKeyLeads ? (
+            <div className="flex items-center gap-2 mb-3">
+              <code className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 break-all">{apiKeyLeads}</code>
+              <button onClick={copiarApiKey}
+                className="shrink-0 rounded-xl border border-slate-200 p-2 text-slate-500 hover:bg-slate-50" title="Copiar">
+                {keyCopiada ? <IconCheck size={16} stroke={1.75} className="text-emerald-600" /> : <IconCopy size={16} stroke={1.75} />}
+              </button>
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400 mb-3 italic">Todavía no has generado una clave.</p>
+          )}
+
+          <button onClick={generarApiKey} disabled={generandoKey}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+            <IconRefresh size={16} stroke={1.75} />
+            {generandoKey ? "Generando..." : apiKeyLeads ? "Rotar clave" : "Generar clave"}
+          </button>
+        </div>
+      )}
 
       {esAdmin && (
         <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5">

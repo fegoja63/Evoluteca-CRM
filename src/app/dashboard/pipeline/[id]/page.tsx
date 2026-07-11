@@ -32,13 +32,24 @@ type Oportunidad = {
   cambiosEtapa: { id: string; etapaAnterior: string; etapaNueva: string; creadoEn: string; creadoByNombre: string | null }[];
 };
 
-const ETAPAS = [
-  { key: "PROSPECTO",   label: "Prospecto",   color: "bg-slate-100 text-slate-700" },
-  { key: "CALIFICADO",  label: "Calificado",  color: "bg-blue-100 text-blue-700" },
-  { key: "PROPUESTA",   label: "Cotización",  color: "bg-violet-100 text-violet-700" },
-  { key: "NEGOCIACION", label: "Negociación", color: "bg-amber-100 text-amber-700" },
-  { key: "GANADA",      label: "Ganada",      color: "bg-emerald-100 text-emerald-700" },
-  { key: "PERDIDA",     label: "Perdida",     color: "bg-red-100 text-red-600" },
+// El nombre visible de cada etapa es configurable por tenant (Configuración →
+// Etapas del pipeline); el "key" y el color quedan fijos en código.
+const ETAPA_COLOR: Record<string, string> = {
+  PROSPECTO:   "bg-slate-100 text-slate-700",
+  CALIFICADO:  "bg-blue-100 text-blue-700",
+  PROPUESTA:   "bg-violet-100 text-violet-700",
+  NEGOCIACION: "bg-amber-100 text-amber-700",
+  GANADA:      "bg-emerald-100 text-emerald-700",
+  PERDIDA:     "bg-red-100 text-red-600",
+};
+
+const ETAPAS_DEFECTO = [
+  { key: "PROSPECTO",   label: "Prospecto" },
+  { key: "CALIFICADO",  label: "Calificado" },
+  { key: "PROPUESTA",   label: "Cotización" },
+  { key: "NEGOCIACION", label: "Negociación" },
+  { key: "GANADA",      label: "Ganada" },
+  { key: "PERDIDA",     label: "Perdida" },
 ];
 
 const ETAPA_ORDEN = ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION","GANADA","PERDIDA"];
@@ -54,6 +65,7 @@ export default function OportunidadDetallePage() {
   const esAdministrador = session?.user?.rol === "ADMINISTRADOR";
 
   const [op, setOp] = useState<Oportunidad | null>(null);
+  const [ETAPAS, setETAPAS] = useState(ETAPAS_DEFECTO.map(e => ({ ...e, color: ETAPA_COLOR[e.key] })));
   const [editando, setEditando] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [form, setForm] = useState({ titulo: "", valor: "", etapa: "", notas: "", fechaCierre: "", probabilidad: "", salonId: "", sede: "", fechaEvento: "", horaInicio: "", horaFin: "" });
@@ -90,6 +102,13 @@ export default function OportunidadDetallePage() {
   }
 
   useEffect(() => { cargar(); }, [id]);
+
+  useEffect(() => {
+    fetch("/api/etapas-pipeline").then(r => r.json()).then(data => {
+      if (!Array.isArray(data) || data.length === 0) return;
+      setETAPAS(data.map((e: { key: string; nombre: string }) => ({ key: e.key, label: e.nombre, color: ETAPA_COLOR[e.key] })));
+    });
+  }, []);
 
   useEffect(() => {
     fetch("/api/configuracion").then(r => r.json()).then(config => {
