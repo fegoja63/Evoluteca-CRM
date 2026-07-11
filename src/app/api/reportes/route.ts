@@ -24,6 +24,8 @@ export async function GET(request: Request) {
   const anioFiltro = searchParams.get("anio") ? Number(searchParams.get("anio")) : null;
   const mesFiltro  = searchParams.get("mes")  ? Number(searchParams.get("mes"))  : null;
   const vendedorParam = searchParams.get("vendedor");
+  const segmentoFiltro = searchParams.get("segmento");
+  const sedeFiltro = searchParams.get("sede");
 
   // Igual que el resto del CRM (Dashboard, Pipeline, Agenda): un COMERCIAL solo
   // ve sus propios registros, no los de todo el equipo.
@@ -34,15 +36,27 @@ export async function GET(request: Request) {
   const vendedorFiltro = vendedorParam && session.user.rol !== "COMERCIAL" ? { creadoBy: vendedorParam } : {};
 
   // ── Traer todas las oportunidades con extras ──
-  const [totalEmpresas, totalContactos, todasOps, actividadesPendientes] = await Promise.all([
+  const [totalEmpresas, totalContactos, todasOps, actividadesPendientes, cambiosGanada] = await Promise.all([
     prisma.empresa.count({ where: { tenantId, ...ownerFiltro } }),
     prisma.contacto.count({ where: { tenantId } }),
     prisma.oportunidad.findMany({
       where: { tenantId, ...ownerFiltro, ...vendedorFiltro },
-      select: { etapa: true, valor: true, probabilidad: true, fechaCierre: true, fechaEvento: true, creadoEn: true, extras: true, creadoBy: true, motivoPerdida: true, empresa: { select: { nombre: true } } },
+      select: { id: true, etapa: true, valor: true, probabilidad: true, fechaCierre: true, fechaEvento: true, creadoEn: true, extras: true, creadoBy: true, motivoPerdida: true, sede: true, segmento: true, empresa: { select: { nombre: true } } },
     }),
     prisma.actividad.count({ where: { tenantId, completada: false, ...ownerFiltro } }),
+    // Fecha real en que cada oportunidad pasó a GANADA (para el tiempo promedio
+    // de cierre) — más confiable que fechaCierre, que es editable a mano y puede
+    // quedar vacía o representar una fecha esperada distinta a la real.
+    prisma.cambioEtapa.findMany({
+      where: { etapaNueva: "GANADA", oportunidad: { tenantId } },
+      select: { oportunidadId: true, creadoEn: true },
+      orderBy: { creadoEn: "desc" },
+    }),
   ]);
+  const fechaGanadaMap = new Map<string, Date>();
+  for (const c of cambiosGanada) {
+    if (!fechaGanadaMap.has(c.oportunidadId)) fechaGanadaMap.set(c.oportunidadId, c.creadoEn);
+  }
 
   // ── Años disponibles (desde extras.AÑO) ──
   const aniosSet = new Set<number>();
@@ -52,10 +66,22 @@ export async function GET(request: Request) {
   }
   const aniosDisponibles = Array.from(aniosSet).sort();
 
-  // ── Filtrar oportunidades por año/mes seleccionado ──
+  // ── Segmentos y sedes disponibles (valores libres, poblados por import o edición manual) ──
+  const segmentosSet = new Set<string>();
+  const sedesSet = new Set<string>();
+  for (const o of todasOps) {
+    if (o.segmento?.trim()) segmentosSet.add(o.segmento.trim());
+    if (o.sede?.trim()) sedesSet.add(o.sede.trim());
+  }
+  const segmentosDisponibles = Array.from(segmentosSet).sort();
+  const sedesDisponibles = Array.from(sedesSet).sort();
+
+  // ── Filtrar oportunidades por año/mes/segmento/sede seleccionados ──
   const oportunidades = todasOps.filter(o => {
     if (anioFiltro && getAnio(o) !== anioFiltro) return false;
     if (mesFiltro  && getMes(o)  !== mesFiltro)  return false;
+    if (segmentoFiltro && o.segmento?.trim() !== segmentoFiltro) return false;
+    if (sedeFiltro && o.sede?.trim() !== sedeFiltro) return false;
     return true;
   });
 
@@ -71,6 +97,19 @@ export async function GET(request: Request) {
   const perdidas = oportunidadesPorEtapa["PERDIDA"] ?? 0;
   const cerradas = ganadas + perdidas;
   const tasaCierre = cerradas > 0 ? Math.round((ganadas / cerradas) * 100) : 0;
+
+  // ── Tiempo promedio de cierre (días desde creación hasta que pasó a GANADA) ──
+  const diasCierreArr: number[] = [];
+  for (const o of oportunidades) {
+    if (o.etapa !== "GANADA") continue;
+    const fechaGanada = fechaGanadaMap.get(o.id) ?? o.fechaCierre;
+    if (!fechaGanada) continue;
+    const dias = Math.round((fechaGanada.getTime() - o.creadoEn.getTime()) / (1000 * 60 * 60 * 24));
+    if (dias >= 0) diasCierreArr.push(dias);
+  }
+  const diasPromedioCierre = diasCierreArr.length > 0
+    ? Math.round(diasCierreArr.reduce((a, b) => a + b, 0) / diasCierreArr.length)
+    : null;
   const etapasActivas = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];
   const valorActivo    = etapasActivas.reduce((acc, e) => acc + (valorPorEtapa[e] ?? 0), 0);
   const cantidadActiva = etapasActivas.reduce((acc, e) => acc + (oportunidadesPorEtapa[e] ?? 0), 0);
@@ -129,6 +168,27 @@ export async function GET(request: Request) {
     if (o.etapa === "PERDIDA") { porMes[m].perdidas++; }
   }
 
+  // ── Comparación mes actual vs. mes anterior (puede cruzar de año, ej. Ene vs Dic) ──
+  function valorGanadoDeMes(a: number, m: number): number {
+    let total = 0;
+    for (const o of todasOps) {
+      if (getAnio(o) !== a || getMes(o) !== m || o.etapa !== "GANADA") continue;
+      total += Number(o.valor ?? 0);
+    }
+    return total;
+  }
+  const mesesConDatos = Object.entries(porMes).filter(([, v]) => v.total > 0).map(([k]) => Number(k));
+  const mesComparativo = mesFiltro ?? (mesesConDatos.length > 0 ? Math.max(...mesesConDatos) : new Date().getMonth() + 1);
+  const mesAnteriorNum = mesComparativo === 1 ? 12 : mesComparativo - 1;
+  const anioMesAnterior = mesComparativo === 1 ? anioParaMes - 1 : anioParaMes;
+  const valorMesActual = valorGanadoDeMes(anioParaMes, mesComparativo);
+  const valorMesAnterior = valorGanadoDeMes(anioMesAnterior, mesAnteriorNum);
+  const comparativaMes = {
+    mesActual: mesComparativo, anioActual: anioParaMes, valorActual: valorMesActual,
+    mesAnterior: mesAnteriorNum, anioAnterior: anioMesAnterior, valorAnterior: valorMesAnterior,
+    deltaPct: valorMesAnterior > 0 ? Math.round(((valorMesActual - valorMesAnterior) / valorMesAnterior) * 100) : null,
+  };
+
   // ── Top 5 clientes por valor ganado ──
   const clienteMap = new Map<string, { nombre: string; valorGanado: number; ganadas: number; total: number }>();
   for (const o of oportunidades) {
@@ -164,17 +224,21 @@ export async function GET(request: Request) {
     ganadas,
     perdidas,
     tasaCierre,
+    diasPromedioCierre,
     oportunidadesPorEtapa,
     valorPorEtapa,
     actividadesPendientes,
     aniosDisponibles,
+    segmentosDisponibles,
+    sedesDisponibles,
     porAnio,
     porMes,
     anioParaMes,
+    comparativaMes,
     topClientes,
     motivosPerdida,
     valorPonderado,
     forecastPorEtapa,
-    filtro: { anio: anioFiltro, mes: mesFiltro, vendedor: vendedorParam },
+    filtro: { anio: anioFiltro, mes: mesFiltro, vendedor: vendedorParam, segmento: segmentoFiltro, sede: sedeFiltro },
   });
 }

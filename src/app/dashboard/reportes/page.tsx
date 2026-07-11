@@ -23,6 +23,12 @@ type MotivoPerdida = { motivo: string; cantidad: number };
 
 type ForecastEtapa = { cantidad: number; valorBruto: number; valorPonderado: number; probPromedio: number };
 
+type ComparativaMes = {
+  mesActual: number; anioActual: number; valorActual: number;
+  mesAnterior: number; anioAnterior: number; valorAnterior: number;
+  deltaPct: number | null;
+};
+
 type Reporte = {
   totalEmpresas: number;
   totalContactos: number;
@@ -34,18 +40,22 @@ type Reporte = {
   ganadas: number;
   perdidas: number;
   tasaCierre: number;
+  diasPromedioCierre: number | null;
   oportunidadesPorEtapa: Record<string, number>;
   valorPorEtapa: Record<string, number>;
   actividadesPendientes: number;
   aniosDisponibles: number[];
+  segmentosDisponibles: string[];
+  sedesDisponibles: string[];
   porAnio: Record<number, ResAnio>;
   porMes: Record<number, ResMes>;
   anioParaMes: number;
+  comparativaMes: ComparativaMes;
   topClientes: TopCliente[];
   motivosPerdida: MotivoPerdida[];
   valorPonderado: number;
   forecastPorEtapa: Record<string, ForecastEtapa>;
-  filtro: { anio: number | null; mes: number | null; vendedor: string | null };
+  filtro: { anio: number | null; mes: number | null; vendedor: string | null; segmento: string | null; sede: string | null };
 };
 
 type Vendedor = { id: string; nombre: string };
@@ -82,16 +92,20 @@ export default function ReportesPage() {
   const [anio, setAnio] = useState<string>("");
   const [mes, setMes] = useState<string>("");
   const [vendedor, setVendedor] = useState<string>("");
+  const [segmento, setSegmento] = useState<string>("");
+  const [sede, setSede] = useState<string>("");
   const [vendedores, setVendedores] = useState<Vendedor[]>([]);
   const [metas, setMetas] = useState<Meta[]>([]);
   const [editMeta, setEditMeta] = useState(false);
   const [metaForm, setMetaForm] = useState({ anio: new Date().getFullYear(), mes: "", valorObjetivo: "" });
 
-  function cargar(a = anio, m = mes, v = vendedor) {
+  function cargar(a = anio, m = mes, v = vendedor, seg = segmento, sd = sede) {
     const params = new URLSearchParams();
     if (a) params.set("anio", a);
     if (m) params.set("mes", m);
     if (v) params.set("vendedor", v);
+    if (seg) params.set("segmento", seg);
+    if (sd) params.set("sede", sd);
     fetch(`/api/reportes?${params}`).then(res => res.json()).then(setR);
   }
 
@@ -318,6 +332,11 @@ export default function ReportesPage() {
           <div>
             <p className="text-sm font-bold text-slate-900">Actividad mensual — {r!.anioParaMes}</p>
             <p className="text-xs text-slate-400 mt-0.5">Valor ganado · negocios cerrados por mes</p>
+            {r!.comparativaMes.deltaPct !== null && (
+              <span className={`inline-flex items-center gap-1 text-xs font-bold rounded-full px-2 py-0.5 mt-1.5 ${r!.comparativaMes.deltaPct >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
+                {r!.comparativaMes.deltaPct >= 0 ? "▲" : "▼"} {Math.abs(r!.comparativaMes.deltaPct)}% vs {MESES[r!.comparativaMes.mesAnterior - 1]}{r!.comparativaMes.anioAnterior !== r!.comparativaMes.anioActual ? ` ${r!.comparativaMes.anioAnterior}` : ""}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-4 text-xs text-slate-500">
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-500 inline-block" /> Ganado</span>
@@ -482,8 +501,28 @@ export default function ReportesPage() {
                 </select>
               </div>
             )}
-            {(anio || mes || vendedor) && (
-              <button onClick={() => { setAnio(""); setMes(""); setVendedor(""); cargar("", "", ""); }}
+            {r.segmentosDisponibles.length > 0 && (
+              <div>
+                <p className="text-brand-300 text-xs mb-1">Segmento</p>
+                <select value={segmento} onChange={e => { setSegmento(e.target.value); cargar(anio, mes, vendedor, e.target.value, sede); }}
+                  className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1.5 outline-none cursor-pointer">
+                  <option value="">Todos</option>
+                  {r.segmentosDisponibles.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            )}
+            {r.sedesDisponibles.length > 0 && (
+              <div>
+                <p className="text-brand-300 text-xs mb-1">Sede</p>
+                <select value={sede} onChange={e => { setSede(e.target.value); cargar(anio, mes, vendedor, segmento, e.target.value); }}
+                  className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1.5 outline-none cursor-pointer">
+                  <option value="">Todas</option>
+                  {r.sedesDisponibles.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            )}
+            {(anio || mes || vendedor || segmento || sede) && (
+              <button onClick={() => { setAnio(""); setMes(""); setVendedor(""); setSegmento(""); setSede(""); cargar("", "", "", "", ""); }}
                 className="mt-4 text-brand-300 hover:text-white text-xs underline">
                 Limpiar
               </button>
@@ -596,6 +635,9 @@ export default function ReportesPage() {
               </div>
             )}
             <p className="text-xs text-center font-semibold text-emerald-600 mt-1">{r.tasaCierre}% tasa de cierre</p>
+            {r.diasPromedioCierre !== null && (
+              <p className="text-xs text-center text-slate-400 mt-1">Cierra en {r.diasPromedioCierre} día{r.diasPromedioCierre !== 1 ? "s" : ""} en promedio</p>
+            )}
           </div>
 
           {/* Funnel */}
