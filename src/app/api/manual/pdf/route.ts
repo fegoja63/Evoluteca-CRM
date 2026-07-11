@@ -104,7 +104,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.12"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.13"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -236,7 +236,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.12 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.13 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -273,6 +273,10 @@ export async function GET() {
       React.createElement(LI, null, "Botón flotante + (azul, esquina inferior derecha) — abre un menú con acciones rápidas: nueva actividad, nuevo cliente, nueva cotización y ver pipeline"),
       React.createElement(LI, null, "Contenido con margen inferior para que la barra no tape el contenido"),
       React.createElement(Tip, null, "El botón + se convierte en × al abrirse. Toca fuera del menú o toca × para cerrarlo sin navegar."),
+
+      React.createElement(H2, null, "1.5 Base de ayuda dentro del sistema"),
+      React.createElement(P, null, "Ve a Ayuda / Soporte en el menú lateral. La página abre con un buscador de preguntas frecuentes agrupadas por módulo (Primeros pasos, Pipeline, Cotizaciones, Reportes, Configuración, etc.) — escribe cualquier palabra clave, con o sin tildes, y haz clic en una pregunta para desplegar la respuesta."),
+      React.createElement(Tip, null, "Si tu duda no está en la base de ayuda, debajo del buscador sigue disponible el formulario para reportar un error o enviar una sugerencia directamente al equipo de Evoluteca."),
 
       React.createElement(View, { style: { paddingHorizontal: 40 } },
         React.createElement(View, { style: s.tabla },
@@ -355,12 +359,12 @@ export async function GET() {
       React.createElement(LI, null, "Las notas son internas — no se muestran al cliente"),
       React.createElement(Tip, null, "Usa las notas rápidas para registrar contexto importante sobre el cliente o negocio: preferencias, restricciones de presupuesto, fechas clave, contactos adicionales."),
 
-      React.createElement(H2, null, "2.8 Papelera de clientes y contactos"),
-      React.createElement(P, null, 'Al eliminar un cliente o un contacto, el registro no se borra de inmediato: se mueve a la Papelera (ícono 🗑️ en el menú lateral), donde queda disponible para restaurarlo o eliminarlo definitivamente.'),
-      React.createElement(LI, null, "Restaurar — el cliente o contacto vuelve a aparecer en su listado normal, con todos sus datos e historial intactos"),
+      React.createElement(H2, null, "2.8 Papelera"),
+      React.createElement(P, null, 'Al eliminar un Cliente, Contacto, Oportunidad o Cotización, el registro no se borra de inmediato: se mueve a la Papelera (ícono 🗑️ en el menú lateral), donde queda disponible para restaurarlo o eliminarlo definitivamente. La Papelera tiene una sección separada para cada uno de los cuatro tipos de registro.'),
+      React.createElement(LI, null, "Restaurar — el registro vuelve a aparecer en su listado normal (Clientes, Contactos, Pipeline o Cotizaciones), con todos sus datos e historial intactos"),
       React.createElement(LI, null, "Eliminar definitivamente — borra el registro de forma permanente y no se puede deshacer"),
-      React.createElement(Nota, null, "Solo Administrador y Gerente pueden eliminar y restaurar registros (mismo permiso que elimina hoy clientes u oportunidades). La Papelera es por organización: cada empresa ve únicamente lo que ella misma eliminó."),
-      React.createElement(Tip, null, "Si eliminaste un cliente por error, ve a Papelera antes de eliminarlo definitivamente — restaurarlo desde ahí es inmediato y no requiere volver a crearlo ni perder su historial."),
+      React.createElement(Nota, null, "Solo Administrador y Gerente pueden eliminar y restaurar registros; el borrado definitivo es exclusivo del Administrador. La Papelera es por organización: cada empresa ve únicamente lo que ella misma eliminó."),
+      React.createElement(Tip, null, "Si eliminaste algo por error, ve a Papelera antes de eliminarlo definitivamente — restaurarlo desde ahí es inmediato y no requiere volver a crearlo ni perder su historial."),
 
       React.createElement(H2, null, "2.9 Archivos adjuntos"),
       React.createElement(P, null, "En la ficha de un Cliente, un Contacto o una Oportunidad encontrarás la sección \"Archivos adjuntos\", donde puedes subir contratos, cédulas, fotos del evento, cotizaciones firmadas o cualquier otro documento relacionado, directamente desde tu computador."),
@@ -457,6 +461,10 @@ export async function GET() {
 
       React.createElement(H2, null, "3.10 Archivos adjuntos"),
       React.createElement(P, null, "En la ficha de cualquier oportunidad (y también en la de Clientes y Contactos) hay una sección \"Archivos adjuntos\" para subir contratos, cotizaciones firmadas, fotos u otros documentos relacionados con ese negocio. Ver el detalle completo en 2.9."),
+
+      React.createElement(H2, null, "3.11 Número de cotización al avanzar de etapa"),
+      React.createElement(P, null, "Al mover una oportunidad desde Prospecto o Calificado hacia cualquier otra etapa (excepto Perdida) — ya sea arrastrando la tarjeta o cambiando la etapa desde la ficha — el sistema pregunta opcionalmente el número de cotización asociado a ese negocio."),
+      React.createElement(Nota, null, "Es completamente opcional: si dejas el campo vacío o cancelas, la oportunidad avanza de etapa igual. El número, si lo ingresas, queda guardado junto con los demás datos adicionales de la oportunidad y se puede consultar y buscar más adelante."),
     ),
 
     // ── CAPÍTULO 4: AGENDA ──
@@ -496,6 +504,9 @@ export async function GET() {
       React.createElement(LI, null, "Microsoft Outlook, Archivo > Abrir e importar"),
       React.createElement(P, null, "Cada actividad se exporta con título, tipo, fecha y hora, nombre del cliente y oportunidad vinculada. La duración por defecto es 1 hora."),
       React.createElement(Tip, null, "Descarga el .ics cada vez que quieras sincronizar — no es una sincronización automática en tiempo real, es una fotografía de tus actividades pendientes en ese momento."),
+
+      React.createElement(H2, null, "4.7 Actividades de hoy resaltadas en rojo"),
+      React.createElement(P, null, "En la vista de lista de la Agenda, cualquier actividad pendiente cuya fecha sea el día de hoy se resalta con fondo y borde rojo y una etiqueta \"Hoy\", para que no se pierda entre el resto de actividades pasadas o futuras. El mismo resaltado se usa en la tarjeta \"Actividades de hoy\" del Dashboard (ver 8.7)."),
     ),
 
     // ── CAPÍTULO 5: COTIZACIONES ──
@@ -631,8 +642,18 @@ export async function GET() {
       React.createElement(Tip, null, "Las metas son por mes: asigna la meta de julio y podrás ver el progreso en tiempo real durante ese mes. Al siguiente mes la barra se reinicia."),
 
       React.createElement(H2, null, "7.8 Motivos de pérdida"),
-      React.createElement(P, null, "Este panel muestra, para el período filtrado, cuántas oportunidades se perdieron por cada motivo (ver 3.5), ordenadas de mayor a menor con una barra proporcional. Las oportunidades perdidas antes de que existiera este campo, o marcadas sin elegir un motivo, se agrupan como \"Sin especificar\"."),
-      React.createElement(Tip, null, "Si un motivo domina claramente el listado (por ejemplo, \"Precio muy alto\"), es una señal para revisar la estrategia de precios o el argumentario de ventas de ese período."),
+      React.createElement(P, null, "Este panel muestra, para el período filtrado, una gráfica de donut con la proporción de oportunidades perdidas por cada motivo (ver 3.5), acompañada de una leyenda con el porcentaje y la cantidad de negocios de cada motivo. Las oportunidades perdidas antes de que existiera este campo, o marcadas sin elegir un motivo, se agrupan como \"Sin especificar\"."),
+      React.createElement(P, null, "Debajo del donut, la sección \"Valor perdido por motivo\" muestra lo mismo pero en dinero: qué porcentaje del total de pesos perdidos corresponde a cada motivo. Comparar ambas secciones te dice si el motivo que más negocios te quita es también el que más dinero te cuesta, o si son motivos distintos."),
+      React.createElement(Tip, null, "Si un motivo domina claramente el listado (por ejemplo, \"Presupuesto insuficiente\"), es una señal para revisar la estrategia de precios o el argumentario de ventas de ese período."),
+
+      React.createElement(H2, null, "7.9 Tiempo promedio de cierre"),
+      React.createElement(P, null, "En la tarjeta \"Negocios cerrados\" aparece el promedio de días que tardan tus oportunidades en pasar de creadas a Ganadas, para el período filtrado. Se calcula desde la fecha real en que cada negocio cambió a la etapa Ganada (no desde una fecha estimada), así que refleja tu ciclo de venta real."),
+
+      React.createElement(H2, null, "7.10 Comparación mes contra mes anterior"),
+      React.createElement(P, null, "Junto a la gráfica \"Actividad mensual\" aparece un indicador con la variación del valor ganado del mes más reciente contra el mes inmediatamente anterior (por ejemplo, ▲ 20% vs Jun). La comparación puede cruzar de un año a otro — enero se compara contra diciembre del año anterior."),
+
+      React.createElement(H2, null, "7.11 Filtro por segmento y sede"),
+      React.createElement(P, null, "Si tu base de datos tiene información de segmento o sede/zona (por ejemplo, cargada por importación de Excel), en la barra de filtros de Reportes aparecen selectores adicionales \"Segmento\" y \"Sede\" para acotar todos los reportes a esa información. Si ningún registro tiene esos datos, los selectores simplemente no aparecen."),
     ),
 
     // ── CAPÍTULO 8: DASHBOARD ──
@@ -683,6 +704,9 @@ export async function GET() {
       React.createElement(H2, null, "8.6 Salud comercial"),
       React.createElement(P, null, "Panel con alertas de actividad: actividades vencidas, actividades de hoy y de esta semana. Permite identificar de un vistazo si el equipo está al día con sus compromisos. Las actividades vencidas aparecen en rojo como prioridad inmediata."),
       React.createElement(Tip, null, "El objetivo diario es llegar al Dashboard sin alertas en rojo. Cuando todas las actividades vencidas están completadas y las de hoy están al día, el semáforo está en verde."),
+
+      React.createElement(H2, null, "8.7 Actividades de hoy"),
+      React.createElement(P, null, "La tarjeta \"Actividades de hoy\" está en la primera fila del Dashboard, junto a Pipeline y Oportunidades calientes, para que lo más urgente del día quede visible de inmediato al entrar. Cada actividad pendiente de hoy se muestra resaltada en rojo, igual que en la Agenda (ver 4.7). El Ranking de vendedores (ver 8.3) pasa a la segunda fila."),
     ),
 
     // ── CAPÍTULO 9: CONFIGURACIÓN ──
@@ -716,14 +740,14 @@ export async function GET() {
         ["Ver y gestionar sus propios clientes, oportunidades y actividades", true, true, true],
         ["Ver clientes, oportunidades y actividades de todo el equipo",        false, true, true],
         ["Ver reportes y forecast consolidado del equipo",                    false, true, true],
-        ["Eliminar clientes, contactos u oportunidades",                      false, true, true],
+        ["Eliminar clientes, contactos, oportunidades o cotizaciones",        false, true, true],
         ["Editar metas de vendedores",                                       false, true, true],
         ["Configurar el CRM (logo, módulos opcionales, emails automáticos)",  false, false, true],
         ["Invitar y editar usuarios del equipo",                             false, false, true],
         ["Reasignar registros importados sin dueño",                        false, false, true],
         ["Limpiar datos de prueba (zona de peligro)",                       false, false, true],
       ] }),
-      React.createElement(Nota, null, "Eliminar un cliente o contacto no lo borra al instante: lo envía a la Papelera (ver 2.8), desde donde Administrador o Gerente pueden restaurarlo o eliminarlo definitivamente."),
+      React.createElement(Nota, null, "Eliminar un cliente, contacto, oportunidad o cotización no lo borra al instante: lo envía a la Papelera (ver 2.8), desde donde Administrador o Gerente pueden restaurarlo, o el Administrador eliminarlo definitivamente."),
       React.createElement(P, null, "Desde el panel de Equipo el Administrador puede:"),
       React.createElement(LI, null, "Crear nuevos usuarios con nombre, correo y contraseña inicial"),
       React.createElement(LI, null, "Ver el rol y estado de cada miembro"),
