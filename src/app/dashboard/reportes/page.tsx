@@ -413,10 +413,27 @@ export default function ReportesPage() {
   ];
   const DONUT_GAP = 2.5; // separación visual entre segmentos, en unidades de circunferencia
 
+  // Redondea cada valor a un % entero repartiendo el remanente por "mayor resto"
+  // (método Hare/largest remainder) — así los % mostrados siempre suman 100,
+  // en vez de quedar en 98% o 101% por redondear cada uno por separado.
+  function porcentajesEnteros(valores: number[]): number[] {
+    const total = valores.reduce((a, b) => a + b, 0);
+    if (total === 0) return valores.map(() => 0);
+    const exactos = valores.map(v => (v / total) * 100);
+    const enteros = exactos.map(Math.floor);
+    let faltante = 100 - enteros.reduce((a, b) => a + b, 0);
+    const ordenPorResto = exactos
+      .map((v, i) => ({ i, resto: v - Math.floor(v) }))
+      .sort((a, b) => b.resto - a.resto);
+    for (let k = 0; k < faltante; k++) enteros[ordenPorResto[k].i]++;
+    return enteros;
+  }
+
   function MotivosPerdidaDonut() {
     const ordenados = [...r!.motivosPerdida].sort((a, b) => b.cantidad - a.cantidad);
     const total = ordenados.reduce((acc, m) => acc + m.cantidad, 0);
     if (total === 0) return null;
+    const porcentajes = porcentajesEnteros(ordenados.map(m => m.cantidad));
 
     const colorPorMotivo = new Map<string, string>(ordenados.map((m, i) => [m.motivo, COLORES_MOTIVOS[i % COLORES_MOTIVOS.length]]));
 
@@ -446,17 +463,14 @@ export default function ReportesPage() {
           </div>
         </div>
         <div className="flex-1 w-full flex flex-col gap-2">
-          {ordenados.map(m => {
-            const pct = Math.round((m.cantidad / total) * 100);
-            return (
-              <div key={m.motivo} className="flex items-center gap-3">
-                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: colorPorMotivo.get(m.motivo) }} />
-                <span className="text-sm text-slate-700 flex-1 truncate">{m.motivo}</span>
-                <span className="text-xs text-slate-400 w-9 text-right">{pct}%</span>
-                <span className="text-sm font-bold text-red-600 w-6 text-right">{m.cantidad}</span>
-              </div>
-            );
-          })}
+          {ordenados.map((m, i) => (
+            <div key={m.motivo} className="flex items-center gap-3">
+              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: colorPorMotivo.get(m.motivo) }} />
+              <span className="text-sm text-slate-700 flex-1 truncate">{m.motivo}</span>
+              <span className="text-sm font-bold text-red-600 w-10 text-right">{porcentajes[i]}%</span>
+              <span className="text-xs text-slate-400 w-14 text-right">{m.cantidad} neg.</span>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -470,13 +484,19 @@ export default function ReportesPage() {
       [...r!.motivosPerdida].sort((a, b) => b.cantidad - a.cantidad).map((m, i) => [m.motivo, COLORES_MOTIVOS[i % COLORES_MOTIVOS.length]])
     );
     const maxVal = ordenados[0].valorTotal || 1;
+    // % del valor total perdido (no del máximo de la barra) — para que se
+    // pueda comparar directamente contra el % del donut de arriba, que es
+    // por cantidad de negocios. El ancho de la barra sigue siendo relativo
+    // al máximo, solo para que la más grande use el 100% del ancho visual.
+    const porcentajesValor = porcentajesEnteros(ordenados.map(m => m.valorTotal));
 
     return (
       <div className="mt-6 pt-5 border-t border-slate-100">
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Valor perdido por motivo</p>
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Valor perdido por motivo</p>
+        <p className="text-xs text-slate-400 mb-3">% sobre el total de dinero perdido — compáralo con el % de negocios de arriba</p>
         <div className="flex flex-col gap-2">
-          {ordenados.map(m => {
-            const pct = (m.valorTotal / maxVal) * 100;
+          {ordenados.map((m, i) => {
+            const anchoBarra = (m.valorTotal / maxVal) * 100;
             return (
               <div key={m.motivo} className="flex items-center gap-4">
                 <div className="w-40 shrink-0 flex items-center gap-2">
@@ -484,10 +504,13 @@ export default function ReportesPage() {
                   <span className="text-xs text-slate-600 truncate">{m.motivo}</span>
                 </div>
                 <div className="flex-1 relative h-5 bg-slate-50 rounded-lg overflow-hidden">
-                  <div className="h-full rounded-lg" style={{ width: `${Math.max(pct, 3)}%`, backgroundColor: colorPorMotivo.get(m.motivo), opacity: 0.85 }} />
+                  <div className="h-full rounded-lg" style={{ width: `${Math.max(anchoBarra, 3)}%`, backgroundColor: colorPorMotivo.get(m.motivo), opacity: 0.85 }} />
+                </div>
+                <div className="w-14 text-right shrink-0">
+                  <span className="text-sm font-bold text-slate-700">{porcentajesValor[i]}%</span>
                 </div>
                 <div className="w-20 text-right shrink-0">
-                  <span className="text-xs font-bold text-slate-700">{fmtK(m.valorTotal)}</span>
+                  <span className="text-xs text-slate-400">{fmtK(m.valorTotal)}</span>
                 </div>
               </div>
             );
