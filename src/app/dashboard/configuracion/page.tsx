@@ -6,11 +6,11 @@ import {
   IconTheater, IconTicket, IconScale, IconBuildingPavilion,
   IconBuilding, IconUsers, IconChartFunnel, IconCalendar, IconFileText,
   IconReportAnalytics, IconUsersGroup, IconDownload, IconTrash, IconCheck,
-  IconKey, IconCopy, IconRefresh, IconGripVertical,
+  IconKey, IconCopy, IconRefresh, IconGripVertical, IconEye, IconEyeOff,
   type Icon,
 } from "@tabler/icons-react";
 
-type EtapaPipeline = { id: string; key: string; nombre: string; orden: number };
+type EtapaPipeline = { id: string; key: string; nombre: string; orden: number; oculta: boolean };
 
 type Modulos = {
   funciones?: boolean;
@@ -100,6 +100,8 @@ export default function ConfiguracionPage() {
   const [guardandoEtapas, setGuardandoEtapas] = useState(false);
   const [etapasOk, setEtapasOk] = useState(false);
   const [draggingEtapaId, setDraggingEtapaId] = useState<string | null>(null);
+  const [errorEtapaId, setErrorEtapaId] = useState<string | null>(null);
+  const [errorEtapaMsg, setErrorEtapaMsg] = useState("");
 
   function cargarEtapas() {
     fetch("/api/etapas-pipeline").then(res => res.json()).then(data => setEtapas(Array.isArray(data) ? data : []));
@@ -119,6 +121,23 @@ export default function ConfiguracionPage() {
 
   function renombrarEtapa(id: string, nombre: string) {
     setEtapas(prev => prev.map(e => e.id === id ? { ...e, nombre } : e));
+  }
+
+  async function toggleOcultarEtapa(etapa: EtapaPipeline) {
+    setErrorEtapaId(null);
+    const res = await fetch(`/api/etapas-pipeline/${etapa.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ oculta: !etapa.oculta }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setErrorEtapaId(etapa.id);
+      setErrorEtapaMsg(data.error ?? "No se pudo actualizar la etapa");
+      return;
+    }
+    const actualizada = await res.json();
+    setEtapas(prev => prev.map(e => e.id === etapa.id ? actualizada : e));
   }
 
   function onDropEtapa(idDestino: string) {
@@ -406,26 +425,41 @@ export default function ConfiguracionPage() {
             {etapasOk && <span className="text-xs text-emerald-600 font-medium">✓ Guardado</span>}
           </div>
           <p className="text-xs text-slate-400 mb-4">
-            Cambia el nombre visible de cada etapa y arrástralas para reordenarlas. El orden y los nombres se reflejan en el Pipeline y en Reportes.
+            Cambia el nombre visible de cada etapa y arrástralas para reordenarlas. El orden y los nombres se reflejan en el Pipeline y en Reportes. "Ganada" y "Perdida" no se pueden ocultar; las demás solo si no tienen oportunidades asignadas.
           </p>
           <div className="flex flex-col gap-1.5">
-            {etapas.map(e => (
-              <div key={e.id}
-                draggable
-                onDragStart={() => setDraggingEtapaId(e.id)}
-                onDragOver={ev => ev.preventDefault()}
-                onDrop={() => onDropEtapa(e.id)}
-                onDragEnd={() => setDraggingEtapaId(null)}
-                className={`flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 bg-white cursor-grab active:cursor-grabbing ${draggingEtapaId === e.id ? "opacity-40" : ""}`}>
-                <IconGripVertical size={16} stroke={1.75} className="text-slate-300 shrink-0" />
-                <input
-                  value={e.nombre}
-                  onChange={ev => renombrarEtapa(e.id, ev.target.value)}
-                  onBlur={() => guardarEtapas(etapas)}
-                  className="flex-1 text-sm text-slate-800 outline-none border-b border-transparent focus:border-brand-400 py-0.5"
-                />
-              </div>
-            ))}
+            {etapas.map(e => {
+              const puedeOcultar = e.key !== "GANADA" && e.key !== "PERDIDA";
+              return (
+                <div key={e.id}>
+                  <div
+                    draggable
+                    onDragStart={() => setDraggingEtapaId(e.id)}
+                    onDragOver={ev => ev.preventDefault()}
+                    onDrop={() => onDropEtapa(e.id)}
+                    onDragEnd={() => setDraggingEtapaId(null)}
+                    className={`flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 bg-white cursor-grab active:cursor-grabbing ${draggingEtapaId === e.id ? "opacity-40" : ""} ${e.oculta ? "opacity-50" : ""}`}>
+                    <IconGripVertical size={16} stroke={1.75} className="text-slate-300 shrink-0" />
+                    <input
+                      value={e.nombre}
+                      onChange={ev => renombrarEtapa(e.id, ev.target.value)}
+                      onBlur={() => guardarEtapas(etapas)}
+                      className="flex-1 text-sm text-slate-800 outline-none border-b border-transparent focus:border-brand-400 py-0.5"
+                    />
+                    {e.oculta && <span className="text-xs text-slate-400 shrink-0">Oculta</span>}
+                    {puedeOcultar && (
+                      <button onClick={() => toggleOcultarEtapa(e)}
+                        className="shrink-0 text-slate-400 hover:text-slate-700 p-1" title={e.oculta ? "Mostrar etapa" : "Ocultar etapa"}>
+                        {e.oculta ? <IconEyeOff size={16} stroke={1.75} /> : <IconEye size={16} stroke={1.75} />}
+                      </button>
+                    )}
+                  </div>
+                  {errorEtapaId === e.id && (
+                    <p className="text-xs text-red-500 mt-1 ml-3">{errorEtapaMsg}</p>
+                  )}
+                </div>
+              );
+            })}
           </div>
           {guardandoEtapas && <p className="text-xs text-slate-400 mt-2">Guardando...</p>}
         </div>

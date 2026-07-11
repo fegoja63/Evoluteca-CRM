@@ -250,10 +250,13 @@ model Adjunto {
 // alertas (que comparan por key literal, ej. o.etapa === "GANADA") no
 // necesitan cambiar: solo la UI del Pipeline muestra el nombre/orden custom.
 model EtapaPipeline {
-  id      String @id @default(uuid())
+  id      String  @id @default(uuid())
   key     String // PROSPECTO | CALIFICADO | PROPUESTA | NEGOCIACION | GANADA | PERDIDA
   nombre  String
   orden   Int
+  // Solo las 4 etapas intermedias se pueden ocultar, y solo si no tienen
+  // oportunidades asignadas (se valida en la API) — GANADA/PERDIDA nunca.
+  oculta  Boolean @default(false)
 
   tenantId String
   tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)

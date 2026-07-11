@@ -1,0 +1,1 @@
+ALTER TABLE "etapas_pipeline" ADD COLUMN IF NOT EXISTS "oculta" BOOLEAN NOT NULL DEFAULT false;

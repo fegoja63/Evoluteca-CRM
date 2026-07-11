@@ -106,7 +106,11 @@ export default function OportunidadDetallePage() {
   useEffect(() => {
     fetch("/api/etapas-pipeline").then(r => r.json()).then(data => {
       if (!Array.isArray(data) || data.length === 0) return;
-      setETAPAS(data.map((e: { key: string; nombre: string }) => ({ key: e.key, label: e.nombre, color: ETAPA_COLOR[e.key] })));
+      setETAPAS(
+        data
+          .filter((e: { oculta?: boolean }) => !e.oculta)
+          .map((e: { key: string; nombre: string }) => ({ key: e.key, label: e.nombre, color: ETAPA_COLOR[e.key] }))
+      );
     });
   }, []);
 
