@@ -16,7 +16,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const emailDestino: string | undefined = parsedBody.email?.trim() || undefined;
 
   const cot = await prisma.cotizacion.findFirst({
-    where: { id: params.id, tenantId: session.user.tenantId },
+    where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
     include: {
       empresa:  { select: { nombre: true } },
       contacto: { select: { nombre: true, email: true } },

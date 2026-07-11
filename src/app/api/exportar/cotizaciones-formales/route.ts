@@ -8,7 +8,7 @@ export async function GET() {
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const cotizaciones = await prisma.cotizacion.findMany({
-    where: { tenantId: session.user.tenantId },
+    where: { tenantId: session.user.tenantId, eliminadoEn: null },
     orderBy: { numero: "desc" },
     include: {
       empresa:  { select: { nombre: true } },

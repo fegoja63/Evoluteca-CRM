@@ -92,7 +92,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   if (!session?.user) return new NextResponse("No autorizado", { status: 401 });
 
   const cot = await prisma.cotizacion.findFirst({
-    where: { id: params.id, tenantId: session.user.tenantId },
+    where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
     include: {
       empresa:     { select: { nombre: true, email: true, telefono: true } },
       contacto:    { select: { nombre: true, email: true, cargo: true } },

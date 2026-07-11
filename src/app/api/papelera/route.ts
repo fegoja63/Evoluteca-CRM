@@ -10,7 +10,7 @@ export async function GET() {
 
   const tenantId = session.user.tenantId;
 
-  const [empresas, contactos] = await Promise.all([
+  const [empresas, contactos, oportunidades, cotizaciones] = await Promise.all([
     prisma.empresa.findMany({
       where: { tenantId, eliminadoEn: { not: null } },
       select: { id: true, nombre: true, email: true, sector: true, eliminadoEn: true },
@@ -21,7 +21,17 @@ export async function GET() {
       select: { id: true, nombre: true, email: true, cargo: true, eliminadoEn: true },
       orderBy: { eliminadoEn: "desc" },
     }),
+    prisma.oportunidad.findMany({
+      where: { tenantId, eliminadoEn: { not: null } },
+      select: { id: true, titulo: true, valor: true, etapa: true, empresa: { select: { nombre: true } }, eliminadoEn: true },
+      orderBy: { eliminadoEn: "desc" },
+    }),
+    prisma.cotizacion.findMany({
+      where: { tenantId, eliminadoEn: { not: null } },
+      select: { id: true, numero: true, estado: true, empresa: { select: { nombre: true } }, eliminadoEn: true },
+      orderBy: { eliminadoEn: "desc" },
+    }),
   ]);
 
-  return NextResponse.json({ empresas, contactos });
+  return NextResponse.json({ empresas, contactos, oportunidades, cotizaciones });
 }

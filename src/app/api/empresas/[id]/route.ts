@@ -16,9 +16,9 @@ export async function GET(
     where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
     include: {
       contactos: { where: { eliminadoEn: null } },
-      oportunidades: true,
+      oportunidades: { where: { eliminadoEn: null } },
       actividades: { orderBy: { fecha: "asc" } },
-      cotizaciones: { include: { items: true } },
+      cotizaciones: { where: { eliminadoEn: null }, include: { items: true } },
     },
   });
 

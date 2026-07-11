@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   const page = searchParams.get("page");
   const take = Number(searchParams.get("take") ?? 30) || 30;
 
-  const where = { tenantId: session.user.tenantId, ...(todas ? {} : filtroOwner(session.user.rol, session.user.id)) };
+  const where = { tenantId: session.user.tenantId, eliminadoEn: null, ...(todas ? {} : filtroOwner(session.user.rol, session.user.id)) };
 
   // Sin "page" se mantiene el comportamiento anterior (lista completa) — el
   // Kanban de Pipeline y los KPIs de Cotizaciones necesitan el dataset

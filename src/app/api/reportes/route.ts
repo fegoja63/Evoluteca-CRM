@@ -40,7 +40,7 @@ export async function GET(request: Request) {
     prisma.empresa.count({ where: { tenantId, ...ownerFiltro } }),
     prisma.contacto.count({ where: { tenantId } }),
     prisma.oportunidad.findMany({
-      where: { tenantId, ...ownerFiltro, ...vendedorFiltro },
+      where: { tenantId, eliminadoEn: null, ...ownerFiltro, ...vendedorFiltro },
       select: { id: true, etapa: true, valor: true, probabilidad: true, fechaCierre: true, fechaEvento: true, creadoEn: true, extras: true, creadoBy: true, motivoPerdida: true, sede: true, segmento: true, empresa: { select: { nombre: true } } },
     }),
     prisma.actividad.count({ where: { tenantId, completada: false, ...ownerFiltro } }),

@@ -45,6 +45,10 @@ model Tenant {
   logoUrl        String?
   emailsActivos  Boolean  @default(true)
   apiKeyLeads    String?  @unique
+  // Tope de usuarios activos según el plan contratado (null = sin límite).
+  // Lo controla exclusivamente el panel interno de Evoluteca, no el propio
+  // tenant — es una palanca de precios, no una preferencia de cuenta.
+  limiteUsuarios Int?
 
   usuarios        Usuario[]
   empresas        Empresa[]
@@ -187,6 +191,7 @@ model Oportunidad {
   probabilidad  Int?              @default(50)
   creadoEn      DateTime          @default(now())
   creadoBy      String?
+  eliminadoEn   DateTime?
 
   tenantId    String
   tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -208,6 +213,7 @@ model Oportunidad {
   @@index([tenantId])
   @@index([tenantId, creadoEn])
   @@index([tenantId, etapa])
+  @@index([tenantId, eliminadoEn])
   @@index([salonId, fechaEvento])
   @@map("oportunidades")
 }
@@ -339,6 +345,7 @@ model Cotizacion {
   horaInicio      String?
   horaFin         String?
   creadoEn        DateTime          @default(now())
+  eliminadoEn     DateTime?
 
   tenantId    String
   tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -359,6 +366,7 @@ model Cotizacion {
 
   @@index([tenantId])
   @@index([tenantId, creadoEn])
+  @@index([tenantId, eliminadoEn])
   @@index([salonId, fechaEvento])
   @@map("cotizaciones")
 }

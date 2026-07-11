@@ -27,7 +27,7 @@ export async function PATCH(
     if (etapa.key === "GANADA" || etapa.key === "PERDIDA") {
       return NextResponse.json({ error: "Las etapas Ganada y Perdida no se pueden ocultar" }, { status: 400 });
     }
-    const enUso = await prisma.oportunidad.count({ where: { tenantId, etapa: etapa.key as "PROSPECTO" | "CALIFICADO" | "PROPUESTA" | "NEGOCIACION" } });
+    const enUso = await prisma.oportunidad.count({ where: { tenantId, eliminadoEn: null, etapa: etapa.key as "PROSPECTO" | "CALIFICADO" | "PROPUESTA" | "NEGOCIACION" } });
     if (enUso > 0) {
       return NextResponse.json({ error: `No se puede ocultar: hay ${enUso} oportunidad(es) en esta etapa` }, { status: 400 });
     }

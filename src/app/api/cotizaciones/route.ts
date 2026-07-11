@@ -9,7 +9,7 @@ export async function GET() {
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const cotizaciones = await prisma.cotizacion.findMany({
-    where: { tenantId: session.user.tenantId },
+    where: { tenantId: session.user.tenantId, eliminadoEn: null },
     orderBy: { creadoEn: "desc" },
     include: {
       empresa: { select: { id: true, nombre: true } },
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     if (!contacto) return NextResponse.json({ error: "Contacto no encontrado" }, { status: 400 });
   }
   if (oportunidadId) {
-    const oportunidad = await prisma.oportunidad.findFirst({ where: { id: oportunidadId, tenantId } });
+    const oportunidad = await prisma.oportunidad.findFirst({ where: { id: oportunidadId, tenantId, eliminadoEn: null } });
     if (!oportunidad) return NextResponse.json({ error: "Oportunidad no encontrada" }, { status: 400 });
   }
   if (salonId) {

@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
     prisma.oportunidad.findMany({
       where: {
         tenantId,
+        eliminadoEn: null,
         ...ownerFiltro,
         OR: [
           { titulo: { contains: q, mode: "insensitive" } },
@@ -53,6 +54,7 @@ export async function GET(req: NextRequest) {
     prisma.cotizacion.findMany({
       where: {
         tenantId,
+        eliminadoEn: null,
         OR: [
           { empresa: { nombre: { contains: q, mode: "insensitive" } } },
           { sede:    { contains: q, mode: "insensitive" } },

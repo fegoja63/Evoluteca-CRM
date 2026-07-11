@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { editarOportunidadSchema } from "@/lib/validations/oportunidades";
 import { parseOrError } from "@/lib/validations/helpers";
+import { puedeEliminar } from "@/lib/permisos";
 
 export async function GET(
   request: Request,
@@ -12,7 +13,7 @@ export async function GET(
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const op = await prisma.oportunidad.findFirst({
-    where: { id: params.id, tenantId: session.user.tenantId },
+    where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
     include: {
       empresa:  { select: { id: true, nombre: true, sector: true, telefono: true } },
       contacto: { select: { id: true, nombre: true, email: true, telefono: true, cargo: true } },
@@ -38,7 +39,7 @@ export async function PATCH(
   const { titulo, valor, etapa, motivoPerdida, cotizacionNumero, notas, empresaId, contactoId, probabilidad, fechaCierre, salonId, sede, fechaEvento, horaInicio, horaFin } = parsed;
 
   const oportunidad = await prisma.oportunidad.findFirst({
-    where: { id: params.id, tenantId: session.user.tenantId },
+    where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
   });
 
   if (!oportunidad) {
@@ -106,15 +107,17 @@ export async function DELETE(
 ) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  if (session.user.rol !== "ADMINISTRADOR") {
-    return NextResponse.json({ error: "Solicita al Administrador borrar esta oportunidad" }, { status: 403 });
+  if (!puedeEliminar(session.user.rol)) {
+    return NextResponse.json({ error: "No tienes permiso para eliminar" }, { status: 403 });
   }
 
   const existente = await prisma.oportunidad.findFirst({
-    where: { id: params.id, tenantId: session.user.tenantId },
+    where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
   });
   if (!existente) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
 
-  await prisma.oportunidad.delete({ where: { id: params.id } });
+  // Borrado suave: se mueve a la Papelera en vez de eliminarse de inmediato,
+  // igual que Empresa/Contacto/Cotizacion — se puede restaurar desde ahí.
+  await prisma.oportunidad.update({ where: { id: params.id }, data: { eliminadoEn: new Date() } });
   return NextResponse.json({ ok: true });
 }

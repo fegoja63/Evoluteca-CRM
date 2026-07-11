@@ -26,6 +26,7 @@ export async function GET(request: Request) {
   const cotizaciones = await prisma.cotizacion.findMany({
     where: {
       tenantId: session.user.tenantId,
+      eliminadoEn: null,
       salonId,
       fechaEvento: { gte: inicioDia, lt: finDia },
       ...(excluir ? { id: { not: excluir } } : {}),

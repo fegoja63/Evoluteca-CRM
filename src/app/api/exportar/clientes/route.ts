@@ -12,7 +12,7 @@ export async function GET() {
     where: { tenantId: session.user.tenantId, ...filtroOwner(session.user.rol, session.user.id) },
     orderBy: { nombre: "asc" },
     include: {
-      _count: { select: { contactos: true, oportunidades: true } },
+      _count: { select: { contactos: true, oportunidades: { where: { eliminadoEn: null } } } },
     },
   });
 

@@ -8,7 +8,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const cot = await prisma.cotizacion.findFirst({
-    where: { id: params.id, tenantId: session.user.tenantId },
+    where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
     select: { id: true, tokenPublico: true },
   });
   if (!cot) return NextResponse.json({ error: "No encontrada" }, { status: 404 });

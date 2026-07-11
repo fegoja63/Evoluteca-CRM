@@ -15,12 +15,12 @@ export async function GET(_req: Request, { params }: { params: { empresaId: stri
       orderBy: { creadoEn: "desc" }, take: 50,
     }),
     prisma.oportunidad.findMany({
-      where: { tenantId: tid, empresaId: eid },
+      where: { tenantId: tid, empresaId: eid, eliminadoEn: null },
       select: { id: true, titulo: true, etapa: true, valor: true, creadoEn: true },
       orderBy: { creadoEn: "desc" }, take: 50,
     }),
     prisma.cotizacion.findMany({
-      where: { tenantId: tid, empresaId: eid },
+      where: { tenantId: tid, empresaId: eid, eliminadoEn: null },
       select: { id: true, numero: true, estado: true, creadoEn: true },
       orderBy: { creadoEn: "desc" }, take: 50,
     }),

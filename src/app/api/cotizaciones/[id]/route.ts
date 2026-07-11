@@ -10,7 +10,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const cot = await prisma.cotizacion.findFirst({
-    where: { id: params.id, tenantId: session.user.tenantId },
+    where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
     include: {
       empresa:  { select: { id: true, nombre: true, email: true, telefono: true } },
       contacto: { select: { id: true, nombre: true, email: true, telefono: true } },
@@ -37,7 +37,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   }
 
   await prisma.cotizacion.updateMany({
-    where: { id: params.id, tenantId: session.user.tenantId },
+    where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
     data: {
       ...(estado !== undefined && { estado }),
       ...(notas !== undefined && { notas: notas || null }),
@@ -63,11 +63,11 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     return NextResponse.json({ error: "No tienes permiso para eliminar" }, { status: 403 });
   }
 
-  // ItemCotizacion.cotizacion tiene onDelete: Cascade, así que borrar la
-  // cotización (ya filtrada por tenantId) se lleva sus ítems automáticamente
-  // — no hace falta (ni conviene) borrar los ítems por separado sin ese filtro.
-  await prisma.cotizacion.deleteMany({
-    where: { id: params.id, tenantId: session.user.tenantId },
+  // Borrado suave: se mueve a la Papelera en vez de eliminarse de inmediato
+  // (igual que Empresa/Contacto/Oportunidad) — se puede restaurar desde ahí.
+  await prisma.cotizacion.updateMany({
+    where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
+    data: { eliminadoEn: new Date() },
   });
 
   return NextResponse.json({ ok: true });

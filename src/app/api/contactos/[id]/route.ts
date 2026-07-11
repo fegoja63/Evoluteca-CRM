@@ -13,7 +13,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
     include: {
       empresa: { select: { id: true, nombre: true } },
-      oportunidades: { select: { id: true, titulo: true, etapa: true, valor: true, motivoPerdida: true } },
+      oportunidades: { where: { eliminadoEn: null }, select: { id: true, titulo: true, etapa: true, valor: true, motivoPerdida: true } },
       actividades: { select: { id: true, tipo: true, titulo: true, fecha: true, completada: true }, orderBy: { fecha: "desc" } },
     },
   });

@@ -76,7 +76,7 @@ export async function GET(
     }
     case "pipeline": {
       const datos = await prisma.oportunidad.findMany({
-        where: { tenantId, ...ownerFiltro },
+        where: { tenantId, eliminadoEn: null, ...ownerFiltro },
         orderBy: { creadoEn: "desc" },
         include: {
           empresa: { select: { nombre: true } },
@@ -132,7 +132,7 @@ export async function GET(
     }
     case "cotizaciones": {
       const datos = await prisma.cotizacion.findMany({
-        where: { tenantId },
+        where: { tenantId, eliminadoEn: null },
         orderBy: { creadoEn: "desc" },
         include: {
           empresa: { select: { nombre: true } },

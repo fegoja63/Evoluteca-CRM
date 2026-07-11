@@ -24,10 +24,18 @@ export async function POST(req: Request) {
     const existente = await prisma.empresa.findFirst({ where });
     if (!existente) return NextResponse.json({ error: "No encontrado en la papelera" }, { status: 404 });
     await prisma.empresa.update({ where: { id }, data: { eliminadoEn: null } });
-  } else {
+  } else if (tipo === "contacto") {
     const existente = await prisma.contacto.findFirst({ where });
     if (!existente) return NextResponse.json({ error: "No encontrado en la papelera" }, { status: 404 });
     await prisma.contacto.update({ where: { id }, data: { eliminadoEn: null } });
+  } else if (tipo === "oportunidad") {
+    const existente = await prisma.oportunidad.findFirst({ where });
+    if (!existente) return NextResponse.json({ error: "No encontrado en la papelera" }, { status: 404 });
+    await prisma.oportunidad.update({ where: { id }, data: { eliminadoEn: null } });
+  } else {
+    const existente = await prisma.cotizacion.findFirst({ where });
+    if (!existente) return NextResponse.json({ error: "No encontrado en la papelera" }, { status: 404 });
+    await prisma.cotizacion.update({ where: { id }, data: { eliminadoEn: null } });
   }
 
   return NextResponse.json({ ok: true });

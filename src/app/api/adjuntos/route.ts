@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     if (!contacto) return NextResponse.json({ error: "Contacto no encontrado" }, { status: 404 });
   }
   if (oportunidadId) {
-    const oportunidad = await prisma.oportunidad.findFirst({ where: { id: oportunidadId, tenantId } });
+    const oportunidad = await prisma.oportunidad.findFirst({ where: { id: oportunidadId, tenantId, eliminadoEn: null } });
     if (!oportunidad) return NextResponse.json({ error: "Oportunidad no encontrada" }, { status: 404 });
   }
 

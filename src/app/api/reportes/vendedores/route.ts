@@ -25,7 +25,7 @@ export async function GET() {
       orderBy: { nombre: "asc" },
     }),
     prisma.oportunidad.findMany({
-      where: { tenantId, creadoBy: { not: null } },
+      where: { tenantId, eliminadoEn: null, creadoBy: { not: null } },
       select: { id: true, etapa: true, valor: true, probabilidad: true, creadoBy: true, creadoEn: true, fechaCierre: true, fechaEvento: true, extras: true },
     }),
     prisma.actividad.findMany({

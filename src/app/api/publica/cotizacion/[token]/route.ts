@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(_req: Request, { params }: { params: { token: string } }) {
   const cot = await prisma.cotizacion.findFirst({
-    where: { tokenPublico: params.token },
+    where: { tokenPublico: params.token, eliminadoEn: null },
     include: {
       empresa:  { select: { nombre: true } },
       contacto: { select: { nombre: true, email: true } },
@@ -27,7 +27,7 @@ export async function PATCH(req: Request, { params }: { params: { token: string 
   if (!permitido) return NextResponse.json({ error: "Demasiados intentos. Espera unos minutos." }, { status: 429 });
 
   const cot = await prisma.cotizacion.findFirst({
-    where: { tokenPublico: params.token },
+    where: { tokenPublico: params.token, eliminadoEn: null },
     select: { id: true, estado: true },
   });
   if (!cot) return NextResponse.json({ error: "No encontrada" }, { status: 404 });

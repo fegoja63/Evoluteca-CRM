@@ -104,7 +104,7 @@ async function procesarUsuario(
     // ── 2. Negocios estancados (+14 días sin actividad) ──────────────────────
     const etapasActivas: EtapaOportunidad[] = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];
     const opActivas = await prisma.oportunidad.findMany({
-      where: { tenantId: u.tenantId, etapa: { in: etapasActivas }, ...ownerWhere },
+      where: { tenantId: u.tenantId, eliminadoEn: null, etapa: { in: etapasActivas }, ...ownerWhere },
       include: {
         empresa: { select: { nombre: true } },
         actividades: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
@@ -144,6 +144,7 @@ async function procesarUsuario(
     const cierranProximo = await prisma.oportunidad.findMany({
       where: {
         tenantId: u.tenantId,
+        eliminadoEn: null,
         etapa: { in: etapasActivas },
         fechaCierre: { gte: ahora, lte: en7dias },
         ...ownerWhere,

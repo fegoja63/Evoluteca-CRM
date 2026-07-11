@@ -11,6 +11,7 @@ export async function GET() {
   const oportunidades = await prisma.oportunidad.findMany({
     where: {
       tenantId: session.user.tenantId,
+      eliminadoEn: null,
       etapa: { notIn: ["GANADA", "PERDIDA"] },
       ...filtroOwner(session.user.rol, session.user.id),
     },

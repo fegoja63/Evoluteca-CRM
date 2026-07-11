@@ -56,7 +56,7 @@ export async function GET() {
   // Traer oportunidades con todo relacionado
   const ownerFiltro = filtroOwner(session.user.rol, session.user.id);
   const oportunidades = await prisma.oportunidad.findMany({
-    where: { tenantId, ...ownerFiltro },
+    where: { tenantId, eliminadoEn: null, ...ownerFiltro },
     orderBy: { creadoEn: "asc" },
     include: {
       empresa: true,
