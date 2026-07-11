@@ -403,6 +403,68 @@ export default function ReportesPage() {
     );
   }
 
+  // ── Donut de motivos de pérdida ──
+  const COLORES_MOTIVOS = ["#ef4444", "#f97316", "#f59e0b", "#fb7185", "#c026d3"];
+  const COLOR_OTROS = "#94a3b8";
+  const TOP_N_MOTIVOS = 4;
+
+  function MotivosPerdidaDonut() {
+    const ordenados = [...r!.motivosPerdida].sort((a, b) => b.cantidad - a.cantidad);
+    const total = ordenados.reduce((acc, m) => acc + m.cantidad, 0);
+    if (total === 0) return null;
+
+    const agrupar = ordenados.length > TOP_N_MOTIVOS + 1;
+    const principales = agrupar ? ordenados.slice(0, TOP_N_MOTIVOS) : ordenados;
+    const otros = agrupar ? ordenados.slice(TOP_N_MOTIVOS) : [];
+    const otrosTotal = otros.reduce((acc, m) => acc + m.cantidad, 0);
+    const colorPorMotivo = new Map<string, string>(principales.map((m, i) => [m.motivo, COLORES_MOTIVOS[i]]));
+
+    const r_ = 40, C = 2 * Math.PI * r_;
+    let acumulado = 0;
+    const segmentos = agrupar
+      ? [...principales, { motivo: "Otros", cantidad: otrosTotal }]
+      : principales;
+
+    return (
+      <div className="flex flex-col sm:flex-row items-center gap-8">
+        <div className="relative w-40 h-40 shrink-0">
+          <svg viewBox="0 0 100 100" className="w-40 h-40 -rotate-90">
+            <circle cx="50" cy="50" r={r_} fill="none" stroke="#f1f5f9" strokeWidth="14" />
+            {segmentos.map(s => {
+              const pct = s.cantidad / total;
+              const dash = pct * C;
+              const dashoffset = -acumulado;
+              acumulado += dash;
+              const color = s.motivo === "Otros" ? COLOR_OTROS : (colorPorMotivo.get(s.motivo) ?? COLOR_OTROS);
+              return (
+                <circle key={s.motivo} cx="50" cy="50" r={r_} fill="none" stroke={color} strokeWidth="14"
+                  strokeDasharray={`${dash} ${C - dash}`} strokeDashoffset={dashoffset} />
+              );
+            })}
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-2xl font-bold text-slate-800">{total}</span>
+            <span className="text-xs text-slate-400">perdidos</span>
+          </div>
+        </div>
+        <div className="flex-1 w-full flex flex-col gap-2">
+          {ordenados.map(m => {
+            const pct = Math.round((m.cantidad / total) * 100);
+            const color = colorPorMotivo.get(m.motivo) ?? COLOR_OTROS;
+            return (
+              <div key={m.motivo} className="flex items-center gap-3">
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                <span className="text-sm text-slate-700 flex-1 truncate">{m.motivo}</span>
+                <span className="text-xs text-slate-400 w-9 text-right">{pct}%</span>
+                <span className="text-sm font-bold text-red-600 w-6 text-right">{m.cantidad}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   // ── Funnel de conversión ──
   function Funnel() {
     const etapasFunnel = ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION","GANADA"];
@@ -690,25 +752,7 @@ export default function ReportesPage() {
       {r.motivosPerdida.length > 0 && (
         <div className="mt-6 bg-white rounded-2xl border border-slate-200 p-6">
           <h2 className="text-base font-bold text-slate-900 mb-4">Motivos de pérdida</h2>
-          <div className="flex flex-col gap-2">
-            {r.motivosPerdida.map(m => {
-              const maxCant = r.motivosPerdida[0].cantidad || 1;
-              const pct = (m.cantidad / maxCant) * 100;
-              return (
-                <div key={m.motivo} className="flex items-center gap-4">
-                  <div className="w-48 shrink-0">
-                    <p className="text-sm font-medium text-slate-800 truncate">{m.motivo}</p>
-                  </div>
-                  <div className="flex-1 relative h-6 bg-slate-50 rounded-xl overflow-hidden">
-                    <div className="h-full rounded-xl bg-red-400" style={{ width: `${Math.max(pct, 3)}%`, opacity: 0.8 }} />
-                  </div>
-                  <div className="w-16 text-right shrink-0">
-                    <span className="text-sm font-bold text-red-600">{m.cantidad}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <MotivosPerdidaDonut />
         </div>
       )}
 
