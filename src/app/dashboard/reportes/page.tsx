@@ -479,13 +479,18 @@ export default function ReportesPage() {
   }
 
   // ── Valor perdido por motivo (complementa el donut: cuánto dinero, no solo cuántos negocios) ──
+  // Usa el mismo orden que el donut (por cantidad de negocios, no por valor)
+  // para que la fila N de esta lista sea siempre el mismo motivo que la
+  // fila N de la leyenda del donut — así el color y el título corresponden
+  // en la misma posición entre ambas gráficas, no solo por color.
   function ValorPerdidoPorMotivo() {
-    const ordenados = [...r!.motivosPerdida].filter(m => m.valorTotal > 0).sort((a, b) => b.valorTotal - a.valorTotal);
+    const ordenPorCantidad = [...r!.motivosPerdida].sort((a, b) => b.cantidad - a.cantidad);
+    const ordenados = ordenPorCantidad.filter(m => m.valorTotal > 0);
     if (ordenados.length === 0) return null;
     const colorPorMotivo = new Map<string, string>(
-      [...r!.motivosPerdida].sort((a, b) => b.cantidad - a.cantidad).map((m, i) => [m.motivo, COLORES_MOTIVOS[i % COLORES_MOTIVOS.length]])
+      ordenPorCantidad.map((m, i) => [m.motivo, COLORES_MOTIVOS[i % COLORES_MOTIVOS.length]])
     );
-    const maxVal = ordenados[0].valorTotal || 1;
+    const maxVal = Math.max(...ordenados.map(m => m.valorTotal)) || 1;
     // % del valor total perdido (no del máximo de la barra) — para que se
     // pueda comparar directamente contra el % del donut de arriba, que es
     // por cantidad de negocios. El ancho de la barra sigue siendo relativo
