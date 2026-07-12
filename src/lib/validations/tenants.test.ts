@@ -26,4 +26,14 @@ describe("editarTenantSchema", () => {
   it("acepta un objeto vacío (PATCH sin cambios)", () => {
     expect(editarTenantSchema.parse({})).toEqual({});
   });
+
+  it("acepta limiteUsuarios como número positivo o null (ilimitado)", () => {
+    expect(editarTenantSchema.parse({ limiteUsuarios: 5 }).limiteUsuarios).toBe(5);
+    expect(editarTenantSchema.parse({ limiteUsuarios: null }).limiteUsuarios).toBeNull();
+  });
+
+  it("rechaza limiteUsuarios menor a 1", () => {
+    expect(() => editarTenantSchema.parse({ limiteUsuarios: 0 })).toThrow();
+    expect(() => editarTenantSchema.parse({ limiteUsuarios: -1 })).toThrow();
+  });
 });

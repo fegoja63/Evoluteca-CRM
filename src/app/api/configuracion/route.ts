@@ -8,10 +8,18 @@ export async function GET() {
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: session.user.tenantId },
-    select: { modulos: true, nombre: true, logoUrl: true, emailsActivos: true },
+    select: { modulos: true, nombre: true, logoUrl: true, emailsActivos: true, limiteUsuarios: true },
   });
 
-  return NextResponse.json({ modulos: tenant?.modulos ?? {}, tenantNombre: tenant?.nombre ?? "", logoUrl: tenant?.logoUrl ?? "", emailsActivos: tenant?.emailsActivos ?? true });
+  return NextResponse.json({
+    modulos: tenant?.modulos ?? {},
+    tenantNombre: tenant?.nombre ?? "",
+    logoUrl: tenant?.logoUrl ?? "",
+    emailsActivos: tenant?.emailsActivos ?? true,
+    // Solo Evoluteca puede cambiar este valor desde el panel interno — no se
+    // acepta en el PATCH de esta ruta, es de solo lectura para el tenant.
+    limiteUsuarios: tenant?.limiteUsuarios ?? null,
+  });
 }
 
 export async function PATCH(request: Request) {

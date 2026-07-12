@@ -38,7 +38,24 @@ export async function PATCH(
     }
     data.rol = rol;
   }
-  if (activo !== undefined) data.activo = activo;
+  if (activo !== undefined) {
+    // Reactivar a alguien también consume un cupo del límite de usuarios —
+    // sin este chequeo, desactivar y reactivar sería una forma de sortear el
+    // tope fijado por el plan.
+    if (activo === true && !existente.activo) {
+      const tenant = await prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { limiteUsuarios: true } });
+      if (tenant?.limiteUsuarios != null) {
+        const activos = await prisma.usuario.count({ where: { tenantId: session.user.tenantId, activo: true } });
+        if (activos >= tenant.limiteUsuarios) {
+          return NextResponse.json(
+            { error: `Tu plan permite hasta ${tenant.limiteUsuarios} usuario${tenant.limiteUsuarios !== 1 ? "s" : ""} activo${tenant.limiteUsuarios !== 1 ? "s" : ""}. Contacta a tu asesor Evoluteca para ampliar el límite.` },
+            { status: 403 }
+          );
+        }
+      }
+    }
+    data.activo = activo;
+  }
   if (nuevaPassword !== undefined) {
     if (typeof nuevaPassword !== "string" || nuevaPassword.length < 6) {
       return NextResponse.json({ error: "La contraseña debe tener al menos 6 caracteres" }, { status: 400 });

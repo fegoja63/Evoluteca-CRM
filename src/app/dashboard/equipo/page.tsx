@@ -42,6 +42,7 @@ export default function EquipoPage() {
   const [reasignando, setReasignando] = useState(false);
   const [reasignarId, setReasignarId] = useState("");
   const [reasignarResultado, setReasignarResultado] = useState<{ empresas: number; oportunidades: number; actividades: number; expedientes: number; terminos: number } | null>(null);
+  const [limiteUsuarios, setLimiteUsuarios] = useState<number | null>(null);
 
   async function exportarExcel() {
     setExportando(true);
@@ -68,7 +69,10 @@ export default function EquipoPage() {
     setCargando(false);
   }
 
-  useEffect(() => { cargar(); }, []);
+  useEffect(() => {
+    cargar();
+    fetch("/api/configuracion").then(r => r.json()).then(d => setLimiteUsuarios(d.limiteUsuarios ?? null));
+  }, []);
 
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
@@ -142,20 +146,36 @@ export default function EquipoPage() {
   }
 
   async function toggleActivo(id: string, activo: boolean) {
+    const anterior = usuarios.find(u => u.id === id)?.activo;
     setUsuarios((prev) => prev.map((u) => (u.id === id ? { ...u, activo } : u)));
-    await fetch(`/api/usuarios/${id}`, {
+    const res = await fetch(`/api/usuarios/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ activo }),
     });
+    if (!res.ok) {
+      // Revertir el cambio optimista si el backend lo rechazó (ej. límite de
+      // usuarios del plan) y mostrar el motivo.
+      const data = await res.json().catch(() => ({}));
+      setUsuarios((prev) => prev.map((u) => (u.id === id ? { ...u, activo: anterior ?? u.activo } : u)));
+      alert(data.error ?? "No se pudo actualizar el estado del usuario.");
+    }
   }
+
+  const usuariosActivos = usuarios.filter(u => u.activo).length;
+  const enLimite = limiteUsuarios !== null && usuariosActivos >= limiteUsuarios;
 
   return (
     <div>
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-lg font-medium text-neutral-900">Equipo</h1>
-          <p className="text-sm text-neutral-500">Usuarios con acceso a este CRM</p>
+          <p className="text-sm text-neutral-500">
+            Usuarios con acceso a este CRM
+            {limiteUsuarios !== null && (
+              <span className={enLimite ? "text-amber-600 font-medium" : ""}> · {usuariosActivos} de {limiteUsuarios} usuarios de tu plan</span>
+            )}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button onClick={exportarExcel} disabled={exportando}
@@ -165,13 +185,21 @@ export default function EquipoPage() {
           {esAdmin && (
             <button
               onClick={() => setMostrarForm(true)}
-              className="flex items-center gap-1.5 rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700"
+              disabled={enLimite}
+              title={enLimite ? `Tu plan permite hasta ${limiteUsuarios} usuarios activos. Contacta a tu asesor Evoluteca para ampliar el límite.` : undefined}
+              className="flex items-center gap-1.5 rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <IconUserPlus size={15} stroke={1.75} /> Invitar usuario
             </button>
           )}
         </div>
       </div>
+
+      {esAdmin && enLimite && (
+        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          Ya usas los <strong>{limiteUsuarios}</strong> usuarios activos incluidos en tu plan. Desactiva a alguien que ya no use el CRM para liberar un cupo, o contacta a tu asesor Evoluteca para ampliar el límite.
+        </div>
+      )}
 
       {!esAdmin && (
         <div className="mb-6 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-4 text-center">

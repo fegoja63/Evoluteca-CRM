@@ -12,7 +12,7 @@ export async function GET(req: Request) {
     orderBy: { creadoEn: "desc" },
     select: {
       id: true, nombre: true, slug: true, plan: true, activo: true,
-      creadoEn: true, modulos: true, emailsActivos: true,
+      creadoEn: true, modulos: true, emailsActivos: true, limiteUsuarios: true,
       _count: { select: { usuarios: true, empresas: true, cotizaciones: true } },
     },
   });

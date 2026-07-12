@@ -10,6 +10,9 @@ export const editarTenantSchema = z.object({
   activo: z.boolean().optional(),
   plan: z.enum(PLANES, { error: "Plan inválido" }).optional(),
   emailsActivos: z.boolean().optional(),
+  // null = sin límite (usuarios ilimitados); un entero positivo es el tope
+  // de usuarios activos permitidos para ese tenant.
+  limiteUsuarios: z.union([z.number().int().min(1).max(9999), z.null()]).optional(),
   modulos: z.object({
     funciones: z.boolean().optional(),
     audiencia: z.boolean().optional(),

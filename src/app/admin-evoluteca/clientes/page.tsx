@@ -15,8 +15,17 @@ type Tenant = {
   creadoEn: string;
   modulos: Modulos;
   emailsActivos: boolean;
+  limiteUsuarios: number | null;
   _count: { usuarios: number; empresas: number; cotizaciones: number };
 };
+
+// Los 3 escalones de precio más comunes, para elegir en un clic — "Personalizado"
+// deja escribir cualquier número (ej. plan de 5 + adicionales pagados).
+const LIMITES_RAPIDOS = [
+  { label: "1 (solo Admin)", valor: 1 },
+  { label: "Hasta 5", valor: 5 },
+  { label: "Ilimitados", valor: null },
+] as const;
 
 const MODULOS_DISPONIBLES = [
   { key: "funciones", label: "Funciones" },
@@ -73,7 +82,7 @@ export default function ClientesInternoPage() {
     cargar(claveInput);
   }
 
-  async function actualizar(id: string, cambios: Partial<{ activo: boolean; plan: string; emailsActivos: boolean; modulos: Modulos }>) {
+  async function actualizar(id: string, cambios: Partial<{ activo: boolean; plan: string; emailsActivos: boolean; limiteUsuarios: number | null; modulos: Modulos }>) {
     setGuardando(true);
     const res = await fetch(`/api/admin-evoluteca/tenants/${id}`, {
       method: "PATCH",
@@ -183,7 +192,9 @@ export default function ClientesInternoPage() {
                           {t.activo ? "Activo" : "Suspendido"}
                         </span>
                       </td>
-                      <td className="px-4 py-2 text-slate-600">{t._count.usuarios}</td>
+                      <td className="px-4 py-2 text-slate-600">
+                        {t._count.usuarios} <span className="text-slate-400">/ {t.limiteUsuarios ?? "∞"}</span>
+                      </td>
                       <td className="px-4 py-2 text-slate-500 whitespace-nowrap">
                         {new Date(t.creadoEn).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })}
                       </td>
@@ -199,7 +210,7 @@ export default function ClientesInternoPage() {
                     {editandoId === t.id && (
                       <tr key={`${t.id}-editor`} className="bg-slate-50">
                         <td colSpan={6} className="px-4 py-4">
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                             <div>
                               <p className="text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Estado de la cuenta</p>
                               <button
@@ -230,6 +241,38 @@ export default function ClientesInternoPage() {
                               >
                                 {t.emailsActivos ? "Activados" : "Desactivados"}
                               </button>
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Límite de usuarios</p>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {LIMITES_RAPIDOS.map(l => (
+                                  <button
+                                    key={l.label}
+                                    disabled={guardando}
+                                    onClick={() => actualizar(t.id, { limiteUsuarios: l.valor })}
+                                    className={`rounded-lg px-2.5 py-1.5 text-xs font-medium disabled:opacity-50 ${t.limiteUsuarios === l.valor ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200"}`}
+                                  >
+                                    {l.label}
+                                  </button>
+                                ))}
+                                <input
+                                  type="number"
+                                  min={1}
+                                  max={9999}
+                                  placeholder="Otro"
+                                  disabled={guardando}
+                                  defaultValue={t.limiteUsuarios ?? ""}
+                                  onBlur={e => {
+                                    const v = e.target.value.trim();
+                                    if (!v) return;
+                                    const n = Number(v);
+                                    if (n >= 1 && n !== t.limiteUsuarios) actualizar(t.id, { limiteUsuarios: n });
+                                  }}
+                                  className="w-16 rounded-lg border border-slate-200 px-2 py-1.5 text-xs outline-none focus:border-blue-400"
+                                  title="Escribe un número y sal del campo para guardar (ej: usuarios adicionales pagados sobre el plan de 5)"
+                                />
+                              </div>
+                              <p className="mt-1 text-[10px] text-slate-400">{t._count.usuarios} usuario{t._count.usuarios !== 1 ? "s" : ""} hoy</p>
                             </div>
                           </div>
                           <div className="mt-4">

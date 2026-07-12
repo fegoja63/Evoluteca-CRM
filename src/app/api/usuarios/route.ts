@@ -37,6 +37,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Rol inválido" }, { status: 400 });
   }
 
+  // Tope de usuarios activos según el plan contratado (lo fija Evoluteca desde
+  // el panel interno, no el propio tenant). Los usuarios inactivos no cuentan
+  // contra el límite — desactivar a alguien libera un cupo para invitar a otro.
+  const tenant = await prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { limiteUsuarios: true } });
+  if (tenant?.limiteUsuarios != null) {
+    const activos = await prisma.usuario.count({ where: { tenantId: session.user.tenantId, activo: true } });
+    if (activos >= tenant.limiteUsuarios) {
+      return NextResponse.json(
+        { error: `Tu plan permite hasta ${tenant.limiteUsuarios} usuario${tenant.limiteUsuarios !== 1 ? "s" : ""} activo${tenant.limiteUsuarios !== 1 ? "s" : ""}. Contacta a tu asesor Evoluteca para ampliar el límite.` },
+        { status: 403 }
+      );
+    }
+  }
+
   const existente = await prisma.usuario.findUnique({ where: { email } });
   if (existente) {
     return NextResponse.json({ error: "Ya existe una cuenta con ese correo" }, { status: 409 });
