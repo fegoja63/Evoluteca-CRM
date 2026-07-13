@@ -338,11 +338,11 @@ function AgendaContent() {
         {/* Toggle vista */}
         <div className="flex rounded-xl border border-slate-200 overflow-hidden text-sm w-fit">
           <button onClick={() => setVista("lista")}
-            className={`px-4 py-2 font-medium transition-colors flex items-center gap-1.5 ${vista === "lista" ? "bg-accent-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
+            className={`px-4 py-2 font-medium transition-colors flex items-center gap-1.5 ${vista === "lista" ? "bg-accent-600 text-white" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}>
             <IconLayoutList size={15} stroke={1.75} />Lista
           </button>
           <button onClick={() => setVista("calendario")}
-            className={`px-4 py-2 font-medium transition-colors flex items-center gap-1.5 ${vista === "calendario" ? "bg-accent-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
+            className={`px-4 py-2 font-medium transition-colors flex items-center gap-1.5 ${vista === "calendario" ? "bg-accent-600 text-white" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}>
             <IconCalendar size={15} stroke={1.75} />Calendario
           </button>
         </div>
@@ -365,15 +365,15 @@ function AgendaContent() {
       {vista === "lista" && (
         <div className="mb-4 flex gap-2 flex-wrap">
           <button onClick={() => setFiltro("pendientes")}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "pendientes" ? "bg-brand-50 text-brand-700" : "text-neutral-500 hover:bg-neutral-100"}`}>
+            className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "pendientes" ? "bg-brand-50 text-brand-700" : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"}`}>
             Pendientes
           </button>
           <button onClick={() => setFiltro("todas")}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "todas" ? "bg-brand-50 text-brand-700" : "text-neutral-500 hover:bg-neutral-100"}`}>
+            className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "todas" ? "bg-brand-50 text-brand-700" : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"}`}>
             Todas
           </button>
           <button onClick={() => setFiltro("vencidas")}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "vencidas" ? "bg-red-50 text-red-700" : "text-neutral-500 hover:bg-neutral-100"}`}>
+            className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "vencidas" ? "bg-red-50 text-red-700" : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"}`}>
             Vencidas
           </button>
         </div>

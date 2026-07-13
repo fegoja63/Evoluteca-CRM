@@ -494,11 +494,11 @@ export default function PipelinePage() {
         {/* Toggle vista */}
         <div className="ml-auto flex rounded-xl border border-slate-200 overflow-hidden bg-white">
           <button onClick={() => setVista("kanban")}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${vista === "kanban" ? "bg-accent-600 text-white" : "text-slate-500 hover:bg-slate-50"}`}>
+            className={`px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${vista === "kanban" ? "bg-accent-600 text-white" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}>
             <IconLayoutKanban size={14} stroke={1.75} />Kanban
           </button>
           <button onClick={() => setVista("tabla")}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${vista === "tabla" ? "bg-accent-600 text-white" : "text-slate-500 hover:bg-slate-50"}`}>
+            className={`px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${vista === "tabla" ? "bg-accent-600 text-white" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}>
             <IconTable size={14} stroke={1.75} />Tabla
           </button>
         </div>

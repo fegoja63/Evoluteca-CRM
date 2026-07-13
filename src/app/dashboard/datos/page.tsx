@@ -132,7 +132,7 @@ export default function DatosPage() {
                   className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors ${
                     moduloActivo === m.key
                       ? "bg-accent-600 text-white font-medium"
-                      : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                      : "bg-slate-200 text-slate-700 hover:bg-slate-300"
                   }`}
                 >
                   <Icono size={15} stroke={1.75} /> {m.label}
