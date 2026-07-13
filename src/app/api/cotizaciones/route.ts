@@ -35,9 +35,11 @@ export async function POST(request: Request) {
   // usuario podría enlazar (y luego ver los datos de) una empresa/contacto/
   // oportunidad/salón de otro tenant simplemente enviando su id.
   const tenantId = session.user.tenantId;
+  let empresaNombre: string | null = null;
   if (empresaId) {
     const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId, eliminadoEn: null } });
     if (!empresa) return NextResponse.json({ error: "Empresa no encontrada" }, { status: 400 });
+    empresaNombre = empresa.nombre;
   }
   if (contactoId) {
     const contacto = await prisma.contacto.findFirst({ where: { id: contactoId, tenantId, eliminadoEn: null } });
@@ -52,32 +54,65 @@ export async function POST(request: Request) {
     if (!salon) return NextResponse.json({ error: "Salón no encontrado" }, { status: 400 });
   }
 
-  const cotizacion = await prisma.cotizacion.create({
-    data: {
-      empresaId: empresaId || null,
-      contactoId: contactoId || null,
-      oportunidadId: oportunidadId || null,
-      salonId: salonId || null,
-      fechaEvento: fechaEvento ? new Date(fechaEvento) : null,
-      horaInicio: horaInicio || null,
-      horaFin: horaFin || null,
-      sede: sede?.trim() || null,
-      notas: notas?.trim() || null,
-      fechaValidez: fechaValidez ? new Date(fechaValidez) : null,
-      impuestoNombre: impuestoNombre?.trim() || null,
-      impuestoPorcentaje: impuestoPorcentaje ?? null,
-      impuesto2Nombre: impuesto2Nombre?.trim() || null,
-      impuesto2Porcentaje: impuesto2Porcentaje ?? null,
-      tenantId: session.user.tenantId,
-      items: {
-        create: items.map(item => ({
-          descripcion: item.descripcion.trim(),
-          cantidad: item.cantidad ?? 1,
-          precioUnit: item.precioUnit,
-        })),
+  const fechaEventoDate = fechaEvento ? new Date(fechaEvento) : null;
+
+  // La cotización es la base del pipeline: si no se enlazó a una oportunidad
+  // existente, se crea una automáticamente en la etapa "Cotización" (PROPUESTA)
+  // con el cliente, salón, fecha y valor de la cotización, y se enlazan. Así
+  // toda cotización aparece como un negocio en el Pipeline sin trabajo manual.
+  // Ambas creaciones van en una transacción para no dejar una oportunidad
+  // huérfana si la cotización falla.
+  const cotizacion = await prisma.$transaction(async (tx) => {
+    let opId = oportunidadId || null;
+    if (!opId) {
+      const subtotal = items.reduce((s, it) => s + (it.cantidad ?? 1) * it.precioUnit, 0);
+      const op = await tx.oportunidad.create({
+        data: {
+          titulo: empresaNombre ? `Cotización — ${empresaNombre}` : "Cotización nueva",
+          valor: subtotal,
+          etapa: "PROPUESTA",
+          empresaId: empresaId || null,
+          contactoId: contactoId || null,
+          salonId: salonId || null,
+          sede: sede?.trim() || null,
+          fechaEvento: fechaEventoDate,
+          horaInicio: horaInicio || null,
+          horaFin: horaFin || null,
+          probabilidad: 50,
+          tenantId,
+          creadoBy: session.user.id,
+        },
+      });
+      opId = op.id;
+    }
+
+    return tx.cotizacion.create({
+      data: {
+        empresaId: empresaId || null,
+        contactoId: contactoId || null,
+        oportunidadId: opId,
+        salonId: salonId || null,
+        fechaEvento: fechaEventoDate,
+        horaInicio: horaInicio || null,
+        horaFin: horaFin || null,
+        sede: sede?.trim() || null,
+        notas: notas?.trim() || null,
+        fechaValidez: fechaValidez ? new Date(fechaValidez) : null,
+        impuestoNombre: impuestoNombre?.trim() || null,
+        impuestoPorcentaje: impuestoPorcentaje ?? null,
+        impuesto2Nombre: impuesto2Nombre?.trim() || null,
+        impuesto2Porcentaje: impuesto2Porcentaje ?? null,
+        tenantId,
+        items: {
+          create: items.map(item => ({
+            descripcion: item.descripcion.trim(),
+            cantidad: item.cantidad ?? 1,
+            precioUnit: item.precioUnit,
+          })),
+        },
       },
-    },
-    include: { empresa: true, contacto: true, items: true },
+      include: { empresa: true, contacto: true, items: true },
+    });
   });
 
   return NextResponse.json(cotizacion, { status: 201 });

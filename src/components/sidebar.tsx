@@ -6,7 +6,7 @@ import { signOut, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import {
   IconLayoutDashboard, IconBuilding, IconUsers, IconChartFunnel, IconCalendar,
-  IconFileText, IconFilePlus, IconPackage, IconTemplate, IconReportAnalytics,
+  IconFileText, IconPackage, IconTemplate, IconReportAnalytics,
   IconUsersGroup, IconTheater, IconTicket, IconScale, IconBuildingPavilion,
   IconDatabaseImport, IconTrash, IconRocket, IconLifebuoy, IconSettings,
   IconUserCircle, IconLogout, IconSearch, IconX, IconArrowsSort, IconCheck,
@@ -25,8 +25,7 @@ const navBase: NavItem[] = [
   { href: "/dashboard/contactos", label: "Contactos", icon: IconUsers },
   { href: "/dashboard/pipeline", label: "Pipeline", icon: IconChartFunnel },
   { href: "/dashboard/agenda", label: "Agenda", icon: IconCalendar },
-  { href: "/dashboard/cotizaciones", label: "Cotizaciones", icon: IconFileText },
-  { href: "/dashboard/cotizaciones-formales", label: "Nueva cotización", icon: IconFilePlus },
+  { href: "/dashboard/cotizaciones-formales", label: "Cotizaciones", icon: IconFileText },
   { href: "/dashboard/catalogo", label: "Catálogo", icon: IconPackage },
   { href: "/dashboard/plantillas", label: "Plantillas", icon: IconTemplate },
   { href: "/dashboard/reportes", label: "Reportes", icon: IconReportAnalytics },
@@ -242,10 +241,7 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
       <div className="flex-1 overflow-y-auto px-3 pb-3 pt-1 flex flex-col gap-0.5">
         {navItems.map((item) => {
           const activo = pathname === item.href ||
-            (item.href !== "/dashboard" &&
-             item.href !== "/dashboard/cotizaciones" &&
-             pathname.startsWith(item.href)) ||
-            (item.href === "/dashboard/cotizaciones" && (pathname === "/dashboard/cotizaciones" || (pathname.startsWith("/dashboard/cotizaciones") && !pathname.startsWith("/dashboard/cotizaciones-formales"))));
+            (item.href !== "/dashboard" && pathname.startsWith(item.href));
           const Icono = item.icon;
           const claseBase = cn(
             "flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors",

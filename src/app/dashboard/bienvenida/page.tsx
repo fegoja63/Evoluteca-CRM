@@ -74,7 +74,7 @@ export default function BienvenidaPage() {
     { icon: IconBuilding, label: "Clientes", desc: "Empresas y cuentas", href: "/dashboard/cuentas" },
     { icon: IconUsers, label: "Contactos", desc: "Personas de tus clientes", href: "/dashboard/contactos" },
     { icon: IconChartFunnel, label: "Pipeline", desc: "Oportunidades de venta", href: "/dashboard/pipeline" },
-    { icon: IconFileText, label: "Cotizaciones", desc: "Negocios activos", href: "/dashboard/cotizaciones" },
+    { icon: IconFileText, label: "Cotizaciones", desc: "Propuestas en PDF", href: "/dashboard/cotizaciones-formales" },
     { icon: IconCalendar, label: "Agenda", desc: "Actividades y tareas", href: "/dashboard/agenda" },
     { icon: IconReportAnalytics, label: "Reportes", desc: "KPIs y métricas", href: "/dashboard/reportes" },
   ];

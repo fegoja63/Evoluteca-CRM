@@ -105,8 +105,8 @@ export default function CotizacionesFormalesPage() {
     <div>
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Cotizaciones formales</h1>
-          <p className="text-slate-500 text-sm mt-1">Documentos con desglose de servicios y precios</p>
+          <h1 className="text-2xl font-semibold text-slate-900">Cotizaciones</h1>
+          <p className="text-slate-500 text-sm mt-1">Cada cotización aparece como un negocio en el Pipeline</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button onClick={exportarExcel} disabled={exportando}
