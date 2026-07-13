@@ -22,6 +22,7 @@ type Cotizacion = {
   empresa:     { id: string; nombre: string; email: string | null; telefono: string | null } | null;
   contacto:    { id: string; nombre: string; email: string | null; telefono: string | null } | null;
   oportunidad: { id: string; titulo: string } | null;
+  reemplazada?: boolean;
   items: Item[];
 };
 
@@ -252,12 +253,22 @@ export default function CotizacionDetailPage() {
       {/* Header */}
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-3 mb-2 flex-wrap">
             <span className={`rounded-full border px-3 py-0.5 text-xs font-bold ${ESTADO_COLOR[cot.estado]}`}>
               {ESTADO_LABEL[cot.estado]}
             </span>
+            {cot.reemplazada && (
+              <span className="rounded-full border border-slate-200 bg-slate-200 px-3 py-0.5 text-xs font-bold text-slate-500">
+                Reemplazada
+              </span>
+            )}
             <span className="text-xs text-slate-400">Creada el {fmtFecha(cot.creadoEn)}</span>
           </div>
+          {cot.reemplazada && (
+            <p className="mb-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+              Esta cotización fue reemplazada por una versión más reciente del mismo negocio. Se conserva como historial, pero la versión vigente es otra.
+            </p>
+          )}
           <h1 className="text-2xl font-bold text-slate-900">
             Cotización #{String(cot.numero).padStart(4, "0")}
           </h1>

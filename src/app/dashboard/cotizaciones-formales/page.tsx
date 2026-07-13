@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   IconFilePlus, IconSearch, IconX, IconDownload, IconAlertTriangle, IconFileText,
 } from "@tabler/icons-react";
+import { idsReemplazadas } from "@/lib/cotizaciones";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type Cotizacion = {
@@ -86,6 +87,12 @@ export default function CotizacionesFormalesPage() {
     cargar();
   }
 
+  // Cotizaciones reemplazadas por una versión más reciente del mismo negocio.
+  // Se muestran atenuadas como historial y no cuentan como activas.
+  const reemplazadas = idsReemplazadas(
+    lista.map(c => ({ id: c.id, numero: c.numero, estado: c.estado, oportunidadId: c.oportunidad?.id ?? null }))
+  );
+
   const listado = lista.filter(c => {
     if (filtroEstado !== "TODAS" && c.estado !== filtroEstado) return false;
     if (busqueda) {
@@ -96,10 +103,10 @@ export default function CotizacionesFormalesPage() {
     return true;
   });
 
-  const valorTotal = listado.reduce((acc, c) => acc + total(c.items), 0);
+  const valorTotal = listado.reduce((acc, c) => acc + (reemplazadas.has(c.id) ? 0 : total(c.items)), 0);
   const conteos = { BORRADOR: 0, ENVIADA: 0, ACEPTADA: 0, RECHAZADA: 0 };
-  lista.forEach(c => { if (c.estado in conteos) conteos[c.estado as keyof typeof conteos]++; });
-  const vencidas = lista.filter(c => validezBadge(c.fechaValidez, c.estado) !== null);
+  lista.forEach(c => { if (!reemplazadas.has(c.id) && c.estado in conteos) conteos[c.estado as keyof typeof conteos]++; });
+  const vencidas = lista.filter(c => !reemplazadas.has(c.id) && validezBadge(c.fechaValidez, c.estado) !== null);
 
   return (
     <div>
@@ -206,7 +213,7 @@ export default function CotizacionesFormalesPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {listado.map(c => (
-                <tr key={c.id} className="hover:bg-slate-50 transition-colors group">
+                <tr key={c.id} className={`hover:bg-slate-50 transition-colors group ${reemplazadas.has(c.id) ? "opacity-55" : ""}`}>
                   <td className="px-4 py-1">
                     <Link href={`/dashboard/cotizaciones-formales/${c.id}`}>
                       <span className="font-mono text-xs font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-lg">
@@ -243,9 +250,16 @@ export default function CotizacionesFormalesPage() {
                     {c.items.length > 0 ? fmt(total(c.items)) : <span className="text-slate-400 font-normal">—</span>}
                   </td>
                   <td className="px-4 py-1 text-center">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${ESTADO_COLOR[c.estado]}`}>
-                      {ESTADO_LABEL[c.estado]}
-                    </span>
+                    <div className="flex flex-col items-center gap-1">
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${ESTADO_COLOR[c.estado]}`}>
+                        {ESTADO_LABEL[c.estado]}
+                      </span>
+                      {reemplazadas.has(c.id) && (
+                        <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold bg-slate-200 text-slate-500">
+                          Reemplazada
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-1 text-right">
                     <button onClick={() => eliminar(c.id)}

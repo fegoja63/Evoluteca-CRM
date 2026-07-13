@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
 import { editarCotizacionSchema } from "@/lib/validations/cotizaciones";
 import { parseOrError } from "@/lib/validations/helpers";
+import { idsReemplazadas } from "@/lib/cotizaciones";
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
@@ -19,7 +20,20 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     },
   });
   if (!cot) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
-  return NextResponse.json(cot);
+
+  // Marca si esta cotización quedó reemplazada por una versión más reciente
+  // del mismo negocio (recotización). Se deriva de las cotizaciones hermanas,
+  // sin columna extra en la base.
+  let reemplazada = false;
+  if (cot.oportunidadId) {
+    const hermanas = await prisma.cotizacion.findMany({
+      where: { oportunidadId: cot.oportunidadId, tenantId: session.user.tenantId, eliminadoEn: null },
+      select: { id: true, numero: true, estado: true },
+    });
+    reemplazada = idsReemplazadas(hermanas.map(h => ({ ...h, oportunidadId: cot.oportunidadId }))).has(cot.id);
+  }
+
+  return NextResponse.json({ ...cot, reemplazada });
 }
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
