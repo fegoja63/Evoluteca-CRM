@@ -17,6 +17,7 @@ type Cotizacion = {
 
 const DIAS_SEMANA = ["L", "M", "M", "J", "V", "S", "D"];
 const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+const ESTADO_LABEL: Record<string, string> = { BORRADOR: "Borrador", ENVIADA: "Enviada", ACEPTADA: "Aceptada", RECHAZADA: "Rechazada" };
 
 export default function CalendarioSalonesPage() {
   const hoy = new Date();
@@ -59,6 +60,20 @@ export default function CalendarioSalonesPage() {
       mapa.set(dia, [...reservas].sort((a, b) => (a.horaInicio ?? "").localeCompare(b.horaInicio ?? "")));
     });
     return mapa;
+  }, [cotizaciones, salonId, anio, mes]);
+
+  // Cotizaciones del mismo salón/mes que aún no están aceptadas — se
+  // muestran aparte (no en el calendario) para no confundirlas con las
+  // reservas ya confirmadas, pero siguen siendo útiles de ver venir.
+  const pendientesDelMes = useMemo(() => {
+    if (!salonId) return [];
+    return cotizaciones
+      .filter(c => c.salonId === salonId && c.estado !== "ACEPTADA" && c.estado !== "RECHAZADA" && c.fechaEvento)
+      .filter(c => {
+        const f = new Date(c.fechaEvento!);
+        return f.getUTCFullYear() === anio && f.getUTCMonth() + 1 === mes;
+      })
+      .sort((a, b) => new Date(a.fechaEvento!).getTime() - new Date(b.fechaEvento!).getTime());
   }, [cotizaciones, salonId, anio, mes]);
 
   const celdas = useMemo(() => {
@@ -191,6 +206,32 @@ export default function CalendarioSalonesPage() {
             </div>
           </div>
           <p className="mt-3 text-xs text-slate-400">Se muestran solo las cotizaciones con estado "Aceptada" — las reservas confirmadas del salón. Arrastra una reserva a otro día para reprogramarla.</p>
+
+          {pendientesDelMes.length > 0 && (
+            <div className="mt-6">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                Cotizaciones con fecha este mes, aún no aceptadas ({pendientesDelMes.length})
+              </p>
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 divide-y divide-amber-100">
+                {pendientesDelMes.map(c => {
+                  const f = new Date(c.fechaEvento!);
+                  const fechaLabel = `${f.getUTCDate()} de ${MESES[f.getUTCMonth()].toLowerCase()}`;
+                  return (
+                    <Link key={c.id} href={`/dashboard/cotizaciones-formales/${c.id}`}
+                      className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm hover:bg-amber-100/60">
+                      <span className="text-slate-700">
+                        <span className="font-medium">{c.empresa?.nombre ?? "Sin empresa"}</span>
+                        <span className="text-slate-400"> · {fechaLabel}{c.horaInicio ? ` · ${c.horaInicio}` : ""}</span>
+                      </span>
+                      <span className="shrink-0 rounded-full border border-amber-300 bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
+                        {ESTADO_LABEL[c.estado]}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
