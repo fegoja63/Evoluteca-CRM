@@ -104,7 +104,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.13"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.14"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -236,7 +236,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.13 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.14 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -494,8 +494,11 @@ export async function GET() {
       React.createElement(P, null, "Además, en la Agenda las actividades vencidas muestran un ícono de campana. Al tocarlo recibes el recordatorio inmediatamente sin esperar al día siguiente."),
       React.createElement(Tip, null, "Solo recibirás el email de cada tipo si tienes situaciones reales en esa categoría. Si no tienes actividades vencidas, ese email no se envía."),
 
-      React.createElement(H2, null, "4.5 Vista de calendario"),
-      React.createElement(P, null, "La agenda muestra las actividades del mes en formato lista agrupadas por fecha. Usa los filtros de tipo y estado para encontrar rápidamente lo que buscas."),
+      React.createElement(H2, null, "4.5 Lista o Calendario"),
+      React.createElement(P, null, "En la parte superior de la Agenda hay un selector \"Lista / Calendario\" para cambiar cómo ves tus actividades."),
+      React.createElement(LI, null, "Lista: muestra las actividades según el filtro activo (Pendientes, Todas o Vencidas), una debajo de otra. Es la vista más rápida para marcar actividades como completadas o eliminarlas."),
+      React.createElement(LI, null, "Calendario: muestra el mes completo en cuadrícula. Cada día con actividades tiene un punto de color según el tipo (rojo si alguna de ese día está vencida). Haz clic en cualquier día para abrir un panel debajo del calendario con el detalle de sus actividades, donde también puedes completarlas o eliminarlas."),
+      React.createElement(Tip, null, "Usa Calendario para ver de un vistazo cómo se distribuye tu carga del mes; usa Lista cuando quieras despachar tareas una por una con los filtros de Pendientes, Todas o Vencidas."),
 
       React.createElement(H2, null, "4.6 Exportar al calendario (iCal)"),
       React.createElement(P, null, "Haz clic en el botón iCal en la parte superior de la Agenda para descargar todas tus actividades pendientes como archivo .ics. Este archivo es compatible con:"),
@@ -593,7 +596,8 @@ export async function GET() {
       React.createElement(Paso, { n: 2, titulo: "Mapear columnas", desc: "El sistema muestra todas las columnas del Excel con una muestra real de los datos. Para cada campo del CRM (empresa, contacto, oportunidad), selecciona qué columna del Excel corresponde." }),
       React.createElement(Paso, { n: 3, titulo: "Verificar y confirmar", desc: "Revisa la previsualización. Los campos obligatorios (empresa, contacto, oportunidad) deben estar mapeados antes de poder importar. Haz clic en Importar." }),
       React.createElement(Paso, { n: 4, titulo: "Resultado", desc: "El sistema muestra cuántos clientes, contactos y oportunidades se crearon. Si una empresa ya existe, no se duplica — se vinculan los nuevos contactos a la existente." }),
-      React.createElement(Tip, null, "Si la importación no salió como esperabas, puedes usar la sección Datos > Limpiar para eliminar los registros importados y volver a intentar."),
+      React.createElement(Tip, null, "Si la importación no salió como esperabas, revisa el resumen de errores, corrige el Excel y vuelve a importar. No existe una función para deshacer solo los registros de una importación puntual."),
+      React.createElement(Nota, null, "Si necesitas borrar por completo los datos de tu organización para empezar de cero, el Administrador puede hacerlo desde Configuración, en la \"Zona de peligro\" (\"Limpiar todos los datos de prueba\") — pero ojo: esa acción borra TODA la información de la empresa (clientes, contactos, oportunidades, actividades, cotizaciones, funciones y espectadores), no solo lo que acabas de importar, y no se puede deshacer."),
     ),
 
     // ── CAPÍTULO 7: REPORTES ──
@@ -643,7 +647,7 @@ export async function GET() {
 
       React.createElement(H2, null, "7.8 Motivos de pérdida"),
       React.createElement(P, null, "Este panel muestra, para el período filtrado, una gráfica de donut con la proporción de oportunidades perdidas por cada motivo (ver 3.5), acompañada de una leyenda con el porcentaje y la cantidad de negocios de cada motivo. Las oportunidades perdidas antes de que existiera este campo, o marcadas sin elegir un motivo, se agrupan como \"Sin especificar\"."),
-      React.createElement(P, null, "Debajo del donut, la sección \"Valor perdido por motivo\" muestra lo mismo pero en dinero: qué porcentaje del total de pesos perdidos corresponde a cada motivo. Comparar ambas secciones te dice si el motivo que más negocios te quita es también el que más dinero te cuesta, o si son motivos distintos."),
+      React.createElement(P, null, "Junto al donut (debajo, en pantallas angostas), la sección \"Valor perdido por motivo\" muestra lo mismo pero en dinero: qué porcentaje del total de pesos perdidos corresponde a cada motivo. Cada gráfica se ordena de forma independiente por su propia métrica — el donut por cantidad de negocios, la lista por valor perdido — así que el orden de los motivos puede no coincidir entre las dos. Comparar ambas te dice si el motivo que más negocios te quita es también el que más dinero te cuesta, o si son motivos distintos."),
       React.createElement(Tip, null, "Si un motivo domina claramente el listado (por ejemplo, \"Presupuesto insuficiente\"), es una señal para revisar la estrategia de precios o el argumentario de ventas de ese período."),
 
       React.createElement(H2, null, "7.9 Tiempo promedio de cierre"),
@@ -679,21 +683,22 @@ export async function GET() {
             React.createElement(Text, { style: [s.tablaHCell, { flex: 3 }] }, "Qué mide"),
           ),
           ...[
-            ["Pipeline activo",    "Valor total en COP de todas las oportunidades en proceso (no cerradas)."],
-            ["Forecast del mes",   "Suma de (Valor × Probabilidad) de oportunidades activas con cierre este mes."],
-            ["Ganados este mes",   "Valor total de negocios cerrados como GANADOS en el mes actual."],
-            ["Actividades vencidas", "Tareas, llamadas o reuniones que pasaron su fecha sin completarse."],
-            ["Actividades hoy",    "Actividades programadas para el día de hoy — el foco del día."],
+            ["Empresas",           "Clientes registrados, con enlace directo al listado de Clientes."],
+            ["Contactos",          "Personas en tu red, vinculadas a las empresas."],
+            ["Oportunidades",      "Oportunidades activas en el pipeline (no cerradas)."],
+            ["Tareas pendientes",  "Actividades sin completar; el subtítulo indica cuántas son de hoy."],
+            ["Salud comercial",    "Puntaje de 0 a 100 que resume la salud del pipeline (ver 8.6)."],
           ].map(([kpi, desc], i) => React.createElement(View, { key: kpi, style: [s.tablaRow, i % 2 === 1 ? { backgroundColor: C.grisClaro } : {}] },
             React.createElement(Text, { style: [s.tablaCell, { flex: 1, fontFamily: "Helvetica-Bold" }] }, kpi),
             React.createElement(Text, { style: [s.tablaCell, { flex: 3 }] }, desc),
           )),
         ),
       ),
+      React.createElement(Nota, null, "El banner superior del Dashboard, aparte, muestra \"Meta del mes\" y \"Meta del año\" (ver 8.1), y las cifras de \"Ganado este mes\", \"Pipeline activo\" y \"Tasa de cierre\"."),
 
-      React.createElement(H2, null, "8.3 Ranking de vendedores"),
-      React.createElement(P, null, "Muestra el top de vendedores del equipo ordenados por el valor total de sus oportunidades activas en el Pipeline. Incluye para cada vendedor: nombre, número de oportunidades activas, valor total en pipeline y valor ganado en el mes."),
-      React.createElement(Tip, null, "El ranking es útil para la reunión de ventas semanal: identifica quién tiene más oportunidades en juego y quién va más avanzado hacia su meta mensual."),
+      React.createElement(H2, null, "8.3 Rendimiento del equipo"),
+      React.createElement(P, null, "Muestra el ranking de vendedores del equipo ordenados por valor ganado en el mes. Incluye para cada vendedor: número de oportunidades activas, tasa de cierre, valor ganado en el mes y valor total en pipeline. Debajo del ranking, una barra muestra el total ganado por el equipo contra la meta del mes."),
+      React.createElement(Tip, null, "Es útil para la reunión de ventas semanal: identifica quién tiene más oportunidades en juego y quién va más avanzado hacia su meta mensual."),
 
       React.createElement(H2, null, "8.4 Oportunidades calientes"),
       React.createElement(P, null, "Lista las 5 oportunidades de mayor valor actualmente activas (no cerradas). Son los negocios de mayor impacto potencial si se cierran en el mes. Se muestran con empresa, etapa y valor."),
@@ -702,11 +707,15 @@ export async function GET() {
       React.createElement(P, null, "Registro de los negocios cerrados como GANADOS en el mes actual. Buen indicador del momentum del equipo y del ritmo de cierre."),
 
       React.createElement(H2, null, "8.6 Salud comercial"),
-      React.createElement(P, null, "Panel con alertas de actividad: actividades vencidas, actividades de hoy y de esta semana. Permite identificar de un vistazo si el equipo está al día con sus compromisos. Las actividades vencidas aparecen en rojo como prioridad inmediata."),
-      React.createElement(Tip, null, "El objetivo diario es llegar al Dashboard sin alertas en rojo. Cuando todas las actividades vencidas están completadas y las de hoy están al día, el semáforo está en verde."),
+      React.createElement(P, null, "Puntaje de 0 a 100 que resume qué tan sano está el pipeline del equipo, con una barra de progreso y una lista de 5 factores que lo componen: seguimiento activo, tasa de cierre, tareas vencidas, negocios estancados y movimiento del pipeline."),
+      React.createElement(Tip, null, "Úsalo como termómetro rápido en la reunión semanal: un puntaje bajo señala en cuál de los 5 factores hay que poner atención primero."),
 
       React.createElement(H2, null, "8.7 Actividades de hoy"),
-      React.createElement(P, null, "La tarjeta \"Actividades de hoy\" está en la primera fila del Dashboard, junto a Pipeline y Oportunidades calientes, para que lo más urgente del día quede visible de inmediato al entrar. Cada actividad pendiente de hoy se muestra resaltada en rojo, igual que en la Agenda (ver 4.7). El Ranking de vendedores (ver 8.3) pasa a la segunda fila."),
+      React.createElement(P, null, "La tarjeta \"Actividades de hoy\" está en la primera fila del Dashboard, junto a Pipeline y Oportunidades calientes, para que lo más urgente del día quede visible de inmediato al entrar. Cada actividad pendiente de hoy se muestra resaltada en rojo, igual que en la Agenda (ver 4.7). Rendimiento del equipo (ver 8.3) pasa a la segunda fila."),
+
+      React.createElement(H2, null, "8.8 Panel de alertas (\"Requieren atención\")"),
+      React.createElement(P, null, "Reúne las situaciones que necesitan seguimiento: actividades vencidas, negocios sin actividad reciente, cierres previstos para esta semana, cotizaciones enviadas sin respuesta y, si el tenant tiene los módulos correspondientes activos, plazos procesales próximos a vencer o funciones con ocupación baja."),
+      React.createElement(Tip, null, "El objetivo diario es llegar al Dashboard sin alertas pendientes en este panel."),
     ),
 
     // ── CAPÍTULO 9: CONFIGURACIÓN ──

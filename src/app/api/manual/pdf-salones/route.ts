@@ -175,7 +175,7 @@ export async function GET() {
             ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#ccfbf1", marginBottom: 3 } }, item)),
           ),
           React.createElement(View, { style: { marginTop: 40 } },
-            React.createElement(Text, { style: s.portadaVer }, `Versión 1.0 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+            React.createElement(Text, { style: s.portadaVer }, `Versión 1.1 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
           ),
         ),
       ),
@@ -253,6 +253,10 @@ export async function GET() {
       React.createElement(Paso, { n: 3, titulo: "Confirmar si hay choque", desc: "Si hay conflicto, aparece una ventana de confirmación con el nombre del cliente en conflicto. Puedes cancelar o mover de todas formas." }),
       React.createElement(P, null, "Al mover una reserva, la fecha del evento de esa cotización se actualiza automáticamente — no es necesario editarla manualmente desde su ficha."),
       React.createElement(Tip, null, "Usa el calendario para reprogramar visualmente cuando un cliente pide cambiar de fecha, en vez de editar la fecha desde el detalle de la cotización."),
+
+      React.createElement(H2, null, "5.3 Cotizaciones pendientes del mes"),
+      React.createElement(P, null, "Debajo del calendario, si hay cotizaciones del salón elegido con fecha de evento dentro del mes que estás viendo pero que todavía no pasaron a estado Aceptada, aparece la sección \"Cotizaciones con fecha este mes, aún no aceptadas\" en un panel ámbar aparte. Cada fila muestra el cliente, la fecha, la hora (si la tiene) y el estado actual (Borrador, Enviada o Rechazada)."),
+      React.createElement(Tip, null, "Revísala antes de confirmar una reserva nueva: te avisa qué otras cotizaciones ya están interesadas en fechas de ese mes para el mismo salón, aunque todavía no sean una reserva confirmada."),
     ),
 
     // ── CAPÍTULO 6 y 7 ──
@@ -278,7 +282,7 @@ export async function GET() {
       React.createElement(P, null, "Las cotizaciones y oportunidades que ya lo tenían vinculado no se modifican ni pierden su historial. El salón desactivado simplemente deja de aparecer como opción al crear nuevas cotizaciones u oportunidades."),
 
       React.createElement(H2, null, "¿El calendario y la tabla por día muestran cotizaciones en borrador?"),
-      React.createElement(P, null, "No. Ambas vistas muestran únicamente cotizaciones en estado ACEPTADA — las reservas ya confirmadas. Las cotizaciones en borrador o enviadas (pero no aceptadas todavía) generan el aviso ámbar de \"pendiente\" al cotizar, pero no ocupan un lugar visible en el calendario ni en la tabla por día."),
+      React.createElement(P, null, "El calendario en sí y la tabla por día muestran únicamente cotizaciones en estado ACEPTADA — las reservas ya confirmadas. Pero justo debajo del calendario (no en la tabla por día) hay una sección aparte, \"Cotizaciones con fecha este mes, aún no aceptadas\" (ver 5.3), que sí lista las cotizaciones en Borrador, Enviada o Rechazada con fecha dentro de ese mes, para que las tengas presentes aunque todavía no sean una reserva confirmada."),
 
       React.createElement(Sep, null),
 
