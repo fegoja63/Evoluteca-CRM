@@ -4,6 +4,7 @@ import {
   textoOpcional,
   emailOpcional,
   telefonoOpcional,
+  urlOpcional,
   idOpcional,
   montoNoNegativo,
   montoOpcional,
@@ -41,6 +42,27 @@ describe("textoOpcional", () => {
   });
   it("rechaza texto que excede el máximo", () => {
     expect(() => schema.parse("123456")).toThrow();
+  });
+});
+
+// Regresión: varias rutas mandan `campo?.trim() || null` cuando el usuario
+// deja un campo de texto opcional en blanco (ej. "Sede" o "Notas" en una
+// cotización). Sin .nullable() aquí, Zod rechazaba null con el mensaje
+// genérico de unión "Invalid input" y la petición entera fallaba — un bug
+// real que impedía crear cotizaciones con esos campos vacíos, encontrado
+// reproduciendo en vivo el reporte de un usuario (2026-07-14).
+describe("campos de texto opcionales — regresión null -> 'Invalid input'", () => {
+  it("textoOpcional acepta null", () => {
+    expect(textoOpcional(200).parse(null)).toBeNull();
+  });
+  it("emailOpcional acepta null", () => {
+    expect(emailOpcional.parse(null)).toBeNull();
+  });
+  it("telefonoOpcional acepta null", () => {
+    expect(telefonoOpcional.parse(null)).toBeNull();
+  });
+  it("urlOpcional acepta null", () => {
+    expect(urlOpcional.parse(null)).toBeNull();
   });
 });
 

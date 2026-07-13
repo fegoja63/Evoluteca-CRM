@@ -8,10 +8,15 @@ import { z } from "zod";
 export const nombreRequerido = (min = 2, max = 200) =>
   z.string().trim().min(min, `Debe tener al menos ${min} caracteres`).max(max, `Máximo ${max} caracteres`);
 
+// .nullable() además de .optional(): varias rutas mandan `campo?.trim() ||
+// null` cuando el usuario deja un campo de texto en blanco (no ""), y sin
+// aceptar null aquí Zod rechaza la petición entera con el mensaje generico
+// de union "Invalid input" — un bug real que impidio crear cotizaciones con
+// "Sede" o "Notas" vacíos (ver fix del 2026-07-14).
 export const textoOpcional = (max = 1000) =>
-  z.union([z.string().trim().max(max, `Máximo ${max} caracteres`), z.literal("")]).optional();
+  z.union([z.string().trim().max(max, `Máximo ${max} caracteres`), z.literal("")]).optional().nullable();
 
-export const emailOpcional = z.union([z.string().trim().email("Ingresa un correo válido").max(200), z.literal("")]).optional();
+export const emailOpcional = z.union([z.string().trim().email("Ingresa un correo válido").max(200), z.literal("")]).optional().nullable();
 
 export const emailRequerido = z.string().trim().email("Ingresa un correo válido").max(200);
 
@@ -20,9 +25,9 @@ export const emailRequerido = z.string().trim().email("Ingresa un correo válido
 export const telefonoOpcional = z.union([
   z.string().trim().max(30, "Máximo 30 caracteres").regex(/^[+]?[\d\s\-().]{7,30}$/, "Ingresa un teléfono válido"),
   z.literal(""),
-]).optional();
+]).optional().nullable();
 
-export const urlOpcional = z.union([z.string().trim().max(300, "Máximo 300 caracteres"), z.literal("")]).optional();
+export const urlOpcional = z.union([z.string().trim().max(300, "Máximo 300 caracteres"), z.literal("")]).optional().nullable();
 
 // Ids de relaciones (empresaId, contactoId, etc.) — los <select> del frontend
 // mandan "" cuando la opción es "Sin empresa"/"Sin contacto".
