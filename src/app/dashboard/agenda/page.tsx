@@ -338,11 +338,11 @@ function AgendaContent() {
         {/* Toggle vista */}
         <div className="flex rounded-xl border border-slate-200 overflow-hidden text-sm w-fit">
           <button onClick={() => setVista("lista")}
-            className={`px-4 py-2 font-medium transition-colors flex items-center gap-1.5 ${vista === "lista" ? "bg-accent-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}>
+            className={`px-4 py-2 font-medium transition-colors flex items-center gap-1.5 ${vista === "lista" ? "bg-accent-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
             <IconLayoutList size={15} stroke={1.75} />Lista
           </button>
           <button onClick={() => setVista("calendario")}
-            className={`px-4 py-2 font-medium transition-colors flex items-center gap-1.5 ${vista === "calendario" ? "bg-accent-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}>
+            className={`px-4 py-2 font-medium transition-colors flex items-center gap-1.5 ${vista === "calendario" ? "bg-accent-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
             <IconCalendar size={15} stroke={1.75} />Calendario
           </button>
         </div>
