@@ -67,6 +67,37 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     },
   });
 
+  // Aceptar una cotización cierra el negocio: mueve su oportunidad a "Ganada"
+  // en el pipeline (registrando el cambio de etapa), coherente con que la
+  // cotización es la base del pipeline. Rechazar NO mueve el negocio, porque
+  // suele recotizarse y el negocio sigue vivo.
+  if (estado === "ACEPTADA") {
+    const cot = await prisma.cotizacion.findFirst({
+      where: { id: params.id, tenantId: session.user.tenantId },
+      select: { oportunidadId: true },
+    });
+    if (cot?.oportunidadId) {
+      const op = await prisma.oportunidad.findFirst({
+        where: { id: cot.oportunidadId, tenantId: session.user.tenantId, eliminadoEn: null },
+        select: { id: true, etapa: true },
+      });
+      if (op && op.etapa !== "GANADA") {
+        await prisma.$transaction([
+          prisma.oportunidad.update({ where: { id: op.id }, data: { etapa: "GANADA" } }),
+          prisma.cambioEtapa.create({
+            data: {
+              oportunidadId: op.id,
+              etapaAnterior: op.etapa,
+              etapaNueva: "GANADA",
+              creadoBy: session.user.id ?? null,
+              creadoByNombre: session.user.name ?? null,
+            },
+          }),
+        ]);
+      }
+    }
+  }
+
   return NextResponse.json({ ok: true });
 }
 

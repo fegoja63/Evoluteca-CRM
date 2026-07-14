@@ -37,7 +37,13 @@ const ESTADO_LABEL: Record<string, string> = {
 };
 
 const TRANSICIONES: Record<string, { label: string; estado: string; color: string }[]> = {
-  BORRADOR:  [{ label: "Marcar enviada",   estado: "ENVIADA",   color: "bg-accent-600 hover:bg-accent-700" }],
+  // Desde Borrador se puede enviar, o marcar aceptada/rechazada directamente
+  // (p. ej. cuando el cliente acepta por teléfono y nunca se "envió" el PDF).
+  BORRADOR:  [
+    { label: "Marcar enviada",   estado: "ENVIADA",   color: "bg-accent-600 hover:bg-accent-700" },
+    { label: "Marcar aceptada",  estado: "ACEPTADA",  color: "bg-emerald-600 hover:bg-emerald-700" },
+    { label: "Marcar rechazada", estado: "RECHAZADA", color: "bg-red-600 hover:bg-red-700" },
+  ],
   ENVIADA:   [
     { label: "Marcar aceptada",  estado: "ACEPTADA",  color: "bg-emerald-600 hover:bg-emerald-700" },
     { label: "Marcar rechazada", estado: "RECHAZADA", color: "bg-red-600 hover:bg-red-700" },

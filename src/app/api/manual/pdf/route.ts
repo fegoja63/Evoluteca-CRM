@@ -104,7 +104,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.14"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.15"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -236,7 +236,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.14 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.15 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -537,9 +537,11 @@ export async function GET() {
 
       React.createElement(H2, null, "5.3 Estados de una cotización"),
       React.createElement(LI, null, "BORRADOR — Recién creada, aún no enviada al cliente"),
-      React.createElement(LI, null, "ENVIADA — El cliente ya la recibió. Se activan las opciones Aceptada / Rechazada"),
+      React.createElement(LI, null, "ENVIADA — El cliente ya la recibió"),
       React.createElement(LI, null, "ACEPTADA — Cliente aprobó la cotización"),
       React.createElement(LI, null, "RECHAZADA — Cliente no aceptó. Puede reabrirse como borrador"),
+      React.createElement(P, null, "Desde el detalle de la cotización cambias el estado con los botones de arriba. Desde Borrador puedes \"Marcar enviada\", o ir directo a \"Marcar aceptada\" / \"Marcar rechazada\" — útil cuando el cliente acepta por teléfono y nunca se envió el PDF formalmente."),
+      React.createElement(Nota, null, "Al marcar una cotización como Aceptada, su negocio en el Pipeline pasa automáticamente a la etapa \"Ganada\" (la cotización es la base del pipeline). Rechazar una cotización NO mueve el negocio, porque a menudo se recotiza y el negocio sigue vivo."),
 
       React.createElement(H2, null, "5.4 Impuesto y desglose del total"),
       React.createElement(P, null, "Junto a la tabla de ítems encontrarás dos campos: el nombre del impuesto (por defecto \"IVA\", editable a cualquier texto) y su porcentaje. El sistema calcula automáticamente:"),
