@@ -154,7 +154,7 @@ export default function CotizacionesFormalesPage() {
           <IconAlertTriangle size={18} stroke={1.75} className="text-red-500 shrink-0" />
           <div className="flex-1">
             <p className="text-sm font-semibold text-red-800">
-              {vencidas.length} cotización{vencidas.length !== 1 ? "es" : ""} vencida{vencidas.length !== 1 ? "s" : ""} o próxima{vencidas.length !== 1 ? "s" : ""} a vencer
+              {vencidas.length} {vencidas.length !== 1 ? "cotizaciones" : "cotización"} {vencidas.length !== 1 ? "vencidas o próximas" : "vencida o próxima"} a vencer
             </p>
             <p className="text-xs text-red-600 mt-0.5">Revisa y actualiza la fecha de validez o cambia el estado.</p>
           </div>
