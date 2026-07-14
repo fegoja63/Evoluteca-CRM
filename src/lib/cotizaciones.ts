@@ -32,6 +32,14 @@ export function valorSuccessFee(
   return ahorroMensualTotal(lineas) * (p / 100) * m;
 }
 
+/** Valor del contrato en modalidad fee mensual = fee mensual × meses. */
+export function valorFeeMensual(
+  feeMensual: number | string | null | undefined,
+  meses: number | string | null | undefined,
+): number {
+  return Number(feeMensual ?? 0) * Number(meses ?? 0);
+}
+
 // Una cotización puede tener recotizaciones (versiones nuevas) que apuntan al
 // mismo negocio (oportunidad). Para no ensuciar el pipeline ni la lista con
 // versiones viejas, se calcula cuál es la cotización "vigente" de cada negocio

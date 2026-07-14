@@ -30,12 +30,13 @@ export const crearCotizacionSchema = z.object({
   sede: textoOpcional(200),
   notas: textoOpcional(2000),
   fechaValidez: fechaOpcional,
-  modalidad: z.enum(["FEE_FIJO", "SUCCESS_FEE"]).optional().default("FEE_FIJO"),
+  modalidad: z.enum(["FEE_FIJO", "SUCCESS_FEE", "FEE_MENSUAL"]).optional().default("FEE_FIJO"),
   items: z.array(itemSchema).optional().default([]),
-  // Success fee:
+  // Success fee y fee mensual:
   lineasAhorro: z.array(lineaAhorroSchema).optional().default([]),
   porcentajeHonorarios: porcentajeOpcional.nullable(),
   horizonteMeses: enteroOpcional(600).nullable(),
+  feeMensual: montoOpcional(999_999_999_999, "El fee mensual no puede ser negativo").nullable(),
   impuestoNombre: textoOpcional(60),
   impuestoPorcentaje: porcentajeOpcional.nullable(),
   impuesto2Nombre: textoOpcional(60),
@@ -46,6 +47,11 @@ export const crearCotizacionSchema = z.object({
       ctx.addIssue({ code: "custom", path: ["lineasAhorro"], message: "Agrega al menos una línea de ahorro" });
     if (data.porcentajeHonorarios == null)
       ctx.addIssue({ code: "custom", path: ["porcentajeHonorarios"], message: "Indica el % de honorarios" });
+    if (data.horizonteMeses == null)
+      ctx.addIssue({ code: "custom", path: ["horizonteMeses"], message: "Indica el horizonte en meses" });
+  } else if (data.modalidad === "FEE_MENSUAL") {
+    if (data.feeMensual == null)
+      ctx.addIssue({ code: "custom", path: ["feeMensual"], message: "Indica el fee mensual" });
     if (data.horizonteMeses == null)
       ctx.addIssue({ code: "custom", path: ["horizonteMeses"], message: "Indica el horizonte en meses" });
   } else if (data.items.length === 0) {

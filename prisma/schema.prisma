@@ -331,10 +331,13 @@ enum EstadoCotizacion {
 // Modalidad de cobro de la cotización.
 // FEE_FIJO: líneas fijas (cantidad × precio) — modelo de eventos/servicios.
 // SUCCESS_FEE: honorarios como % del ahorro estimado durante un horizonte de
-// meses (modelo de OLTC: optimización de gasto TIC/servicios públicos).
+//   meses (modelo estándar de OLTC: optimización de gasto TIC).
+// FEE_MENSUAL: un honorario fijo mensual durante un horizonte de meses
+//   (alternativa de OLTC si el cliente no quiere el esquema por ahorro).
 enum ModalidadCotizacion {
   FEE_FIJO
   SUCCESS_FEE
+  FEE_MENSUAL
 }
 
 model Cotizacion {
@@ -342,9 +345,10 @@ model Cotizacion {
   numero          Int               @default(autoincrement())
   estado          EstadoCotizacion  @default(BORRADOR)
   modalidad       ModalidadCotizacion @default(FEE_FIJO)
-  // Success fee (solo cuando modalidad = SUCCESS_FEE):
-  porcentajeHonorarios Decimal?     @db.Decimal(5, 2)  // ej. 50.00 (%)
-  horizonteMeses       Int?                             // ej. 18 (meses)
+  // Success fee (SUCCESS_FEE) y fee mensual (FEE_MENSUAL):
+  porcentajeHonorarios Decimal?     @db.Decimal(5, 2)  // % del ahorro (success fee)
+  horizonteMeses       Int?                             // horizonte en meses (ambas)
+  feeMensual           Decimal?     @db.Decimal(14, 2)  // honorario fijo mensual (fee mensual)
   notas           String?
   fechaEvento     DateTime?
   sede            String?

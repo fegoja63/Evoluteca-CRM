@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { data: parsed, error } = parseOrError(crearCotizacionSchema, body);
   if (error) return error;
-  const { empresaId, contactoId, oportunidadId, salonId, fechaEvento, horaInicio, horaFin, sede, notas, fechaValidez, items, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje, modalidad, lineasAhorro, porcentajeHonorarios, horizonteMeses } = parsed;
+  const { empresaId, contactoId, oportunidadId, salonId, fechaEvento, horaInicio, horaFin, sede, notas, fechaValidez, items, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje, modalidad, lineasAhorro, porcentajeHonorarios, horizonteMeses, feeMensual } = parsed;
 
   // Cada relación opcional debe pertenecer al mismo tenant — sin esto, un
   // usuario podría enlazar (y luego ver los datos de) una empresa/contacto/
@@ -68,9 +68,12 @@ export async function POST(request: Request) {
     if (!opId) {
       // Valor del negocio según la modalidad: en success fee es el honorario
       // estimado (Σ ahorro mensual × % × meses); en fee fijo, la suma de ítems.
-      const valorNegocio = modalidad === "SUCCESS_FEE"
-        ? lineasAhorro.reduce((s, l) => s + l.ahorroEstimadoMensual, 0) * ((porcentajeHonorarios ?? 0) / 100) * (horizonteMeses ?? 0)
-        : items.reduce((s, it) => s + (it.cantidad ?? 1) * it.precioUnit, 0);
+      const valorNegocio =
+        modalidad === "SUCCESS_FEE"
+          ? lineasAhorro.reduce((s, l) => s + l.ahorroEstimadoMensual, 0) * ((porcentajeHonorarios ?? 0) / 100) * (horizonteMeses ?? 0)
+          : modalidad === "FEE_MENSUAL"
+            ? (feeMensual ?? 0) * (horizonteMeses ?? 0)
+            : items.reduce((s, it) => s + (it.cantidad ?? 1) * it.precioUnit, 0);
       const op = await tx.oportunidad.create({
         data: {
           titulo: empresaNombre ? `Cotización — ${empresaNombre}` : "Cotización nueva",
@@ -109,7 +112,8 @@ export async function POST(request: Request) {
         impuesto2Porcentaje: impuesto2Porcentaje ?? null,
         modalidad,
         porcentajeHonorarios: modalidad === "SUCCESS_FEE" ? (porcentajeHonorarios ?? null) : null,
-        horizonteMeses: modalidad === "SUCCESS_FEE" ? (horizonteMeses ?? null) : null,
+        horizonteMeses: (modalidad === "SUCCESS_FEE" || modalidad === "FEE_MENSUAL") ? (horizonteMeses ?? null) : null,
+        feeMensual: modalidad === "FEE_MENSUAL" ? (feeMensual ?? null) : null,
         tenantId,
         items: {
           create: items.map(item => ({

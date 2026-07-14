@@ -235,6 +235,45 @@ async function main() {
   }
   console.log(`✅ ${propuestas.length} cotizaciones Success Fee creadas`);
 
+  // ── COTIZACIÓN FEE MENSUAL (alternativa cuando el cliente no quiere % ) ────
+  {
+    const emp = empresas[10];
+    const cont = contactos.find(c => c.empresaId === emp.id);
+    const feeMensual = 6_500_000;
+    const meses = 18;
+    const valor = feeMensual * meses;
+    const op = await prisma.oportunidad.create({
+      data: {
+        titulo: `Cotización — ${emp.nombre}`,
+        valor,
+        etapa: "PROPUESTA",
+        empresaId: emp.id,
+        contactoId: cont?.id ?? null,
+        probabilidad: 55,
+        tenantId: tenant.id,
+        creadoBy: vendedores[0],
+        creadoEn: dia(-8),
+      },
+    });
+    await prisma.cotizacion.create({
+      data: {
+        estado: "ENVIADA",
+        modalidad: "FEE_MENSUAL",
+        feeMensual,
+        horizonteMeses: meses,
+        notas: "Honorario fijo mensual por el acompañamiento de optimización durante el horizonte del contrato.",
+        fechaValidez: dia(20),
+        empresaId: emp.id,
+        contactoId: cont?.id ?? null,
+        oportunidadId: op.id,
+        tenantId: tenant.id,
+        creadoEn: dia(-8),
+      },
+    });
+    console.log(`   • Cotización FEE MENSUAL — ${emp.nombre}: ${feeMensual.toLocaleString("es-CO")} COP/mes × ${meses} = ${valor.toLocaleString("es-CO")} COP`);
+  }
+  console.log("✅ 1 cotización Fee Mensual creada");
+
   console.log("\n🎉 Seed Demo OLTC completado.\n");
   console.log("   Ingreso:  admin@demo-oltc.com  /  Demo2026!");
   await prisma.$disconnect();
