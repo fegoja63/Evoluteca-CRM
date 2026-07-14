@@ -16,6 +16,7 @@ export async function GET() {
       contacto: { select: { id: true, nombre: true, email: true } },
       oportunidad: { select: { id: true, titulo: true, fechaEvento: true, sede: true } },
       items: true,
+      lineasAhorro: true,
     },
   });
 
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { data: parsed, error } = parseOrError(crearCotizacionSchema, body);
   if (error) return error;
-  const { empresaId, contactoId, oportunidadId, salonId, fechaEvento, horaInicio, horaFin, sede, notas, fechaValidez, items, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje } = parsed;
+  const { empresaId, contactoId, oportunidadId, salonId, fechaEvento, horaInicio, horaFin, sede, notas, fechaValidez, items, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje, modalidad, lineasAhorro, porcentajeHonorarios, horizonteMeses } = parsed;
 
   // Cada relación opcional debe pertenecer al mismo tenant — sin esto, un
   // usuario podría enlazar (y luego ver los datos de) una empresa/contacto/
@@ -65,11 +66,15 @@ export async function POST(request: Request) {
   const cotizacion = await prisma.$transaction(async (tx) => {
     let opId = oportunidadId || null;
     if (!opId) {
-      const subtotal = items.reduce((s, it) => s + (it.cantidad ?? 1) * it.precioUnit, 0);
+      // Valor del negocio según la modalidad: en success fee es el honorario
+      // estimado (Σ ahorro mensual × % × meses); en fee fijo, la suma de ítems.
+      const valorNegocio = modalidad === "SUCCESS_FEE"
+        ? lineasAhorro.reduce((s, l) => s + l.ahorroEstimadoMensual, 0) * ((porcentajeHonorarios ?? 0) / 100) * (horizonteMeses ?? 0)
+        : items.reduce((s, it) => s + (it.cantidad ?? 1) * it.precioUnit, 0);
       const op = await tx.oportunidad.create({
         data: {
           titulo: empresaNombre ? `Cotización — ${empresaNombre}` : "Cotización nueva",
-          valor: subtotal,
+          valor: valorNegocio,
           etapa: "PROPUESTA",
           empresaId: empresaId || null,
           contactoId: contactoId || null,
@@ -102,6 +107,9 @@ export async function POST(request: Request) {
         impuestoPorcentaje: impuestoPorcentaje ?? null,
         impuesto2Nombre: impuesto2Nombre?.trim() || null,
         impuesto2Porcentaje: impuesto2Porcentaje ?? null,
+        modalidad,
+        porcentajeHonorarios: modalidad === "SUCCESS_FEE" ? (porcentajeHonorarios ?? null) : null,
+        horizonteMeses: modalidad === "SUCCESS_FEE" ? (horizonteMeses ?? null) : null,
         tenantId,
         items: {
           create: items.map(item => ({
@@ -110,8 +118,15 @@ export async function POST(request: Request) {
             precioUnit: item.precioUnit,
           })),
         },
+        lineasAhorro: {
+          create: lineasAhorro.map(l => ({
+            area: l.area.trim(),
+            gastoBaseMensual: l.gastoBaseMensual,
+            ahorroEstimadoMensual: l.ahorroEstimadoMensual,
+          })),
+        },
       },
-      include: { empresa: true, contacto: true, items: true },
+      include: { empresa: true, contacto: true, items: true, lineasAhorro: true },
     });
   });
 

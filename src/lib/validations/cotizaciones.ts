@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { textoOpcional, idOpcional, montoNoNegativo, porcentajeOpcional, fechaOpcional, horaOpcional } from "./campos";
+import { textoOpcional, idOpcional, montoNoNegativo, montoOpcional, enteroOpcional, porcentajeOpcional, fechaOpcional, horaOpcional } from "./campos";
 
 const itemSchema = z.object({
   descripcion: z.string().trim().min(1, "La descripción del ítem es obligatoria").max(300),
@@ -10,6 +10,13 @@ const itemSchema = z.object({
     z.coerce.number().min(0.01, "La cantidad debe ser mayor a 0").max(1_000_000, "Cantidad demasiado alta").optional()
   ),
   precioUnit: montoNoNegativo(999_999_999, "El precio no puede ser negativo"),
+});
+
+// Línea de ahorro estimado por área (modalidad SUCCESS_FEE).
+const lineaAhorroSchema = z.object({
+  area: z.string().trim().min(1, "El área es obligatoria").max(120),
+  gastoBaseMensual: montoNoNegativo(999_999_999_999, "El gasto base no puede ser negativo"),
+  ahorroEstimadoMensual: montoNoNegativo(999_999_999_999, "El ahorro no puede ser negativo"),
 });
 
 export const crearCotizacionSchema = z.object({
@@ -23,11 +30,27 @@ export const crearCotizacionSchema = z.object({
   sede: textoOpcional(200),
   notas: textoOpcional(2000),
   fechaValidez: fechaOpcional,
-  items: z.array(itemSchema).min(1, "Agrega al menos un ítem"),
+  modalidad: z.enum(["FEE_FIJO", "SUCCESS_FEE"]).optional().default("FEE_FIJO"),
+  items: z.array(itemSchema).optional().default([]),
+  // Success fee:
+  lineasAhorro: z.array(lineaAhorroSchema).optional().default([]),
+  porcentajeHonorarios: porcentajeOpcional.nullable(),
+  horizonteMeses: enteroOpcional(600).nullable(),
   impuestoNombre: textoOpcional(60),
   impuestoPorcentaje: porcentajeOpcional.nullable(),
   impuesto2Nombre: textoOpcional(60),
   impuesto2Porcentaje: porcentajeOpcional.nullable(),
+}).superRefine((data, ctx) => {
+  if (data.modalidad === "SUCCESS_FEE") {
+    if (data.lineasAhorro.length === 0)
+      ctx.addIssue({ code: "custom", path: ["lineasAhorro"], message: "Agrega al menos una línea de ahorro" });
+    if (data.porcentajeHonorarios == null)
+      ctx.addIssue({ code: "custom", path: ["porcentajeHonorarios"], message: "Indica el % de honorarios" });
+    if (data.horizonteMeses == null)
+      ctx.addIssue({ code: "custom", path: ["horizonteMeses"], message: "Indica el horizonte en meses" });
+  } else if (data.items.length === 0) {
+    ctx.addIssue({ code: "custom", path: ["items"], message: "Agrega al menos un ítem" });
+  }
 });
 
 export const editarCotizacionSchema = z.object({

@@ -328,10 +328,23 @@ enum EstadoCotizacion {
   RECHAZADA
 }
 
+// Modalidad de cobro de la cotización.
+// FEE_FIJO: líneas fijas (cantidad × precio) — modelo de eventos/servicios.
+// SUCCESS_FEE: honorarios como % del ahorro estimado durante un horizonte de
+// meses (modelo de OLTC: optimización de gasto TIC/servicios públicos).
+enum ModalidadCotizacion {
+  FEE_FIJO
+  SUCCESS_FEE
+}
+
 model Cotizacion {
   id              String            @id @default(uuid())
   numero          Int               @default(autoincrement())
   estado          EstadoCotizacion  @default(BORRADOR)
+  modalidad       ModalidadCotizacion @default(FEE_FIJO)
+  // Success fee (solo cuando modalidad = SUCCESS_FEE):
+  porcentajeHonorarios Decimal?     @db.Decimal(5, 2)  // ej. 50.00 (%)
+  horizonteMeses       Int?                             // ej. 18 (meses)
   notas           String?
   fechaEvento     DateTime?
   sede            String?
@@ -362,7 +375,8 @@ model Cotizacion {
   salonId     String?
   salon       Salon?            @relation(fields: [salonId], references: [id], onDelete: SetNull)
 
-  items       ItemCotizacion[]
+  items         ItemCotizacion[]
+  lineasAhorro  LineaAhorro[]
 
   @@index([tenantId])
   @@index([tenantId, creadoEn])
@@ -382,6 +396,23 @@ model ItemCotizacion {
 
   @@index([cotizacionId])
   @@map("items_cotizacion")
+}
+
+// Línea de ahorro estimado por área de gasto (modalidad SUCCESS_FEE).
+// El valor estimado del contrato = Σ(ahorroEstimadoMensual) × % honorarios ×
+// horizonte de meses. Es una ESTIMACIÓN al cotizar; el ahorro real se mide
+// mes a mes tras ganar (fuera del alcance de esta fase).
+model LineaAhorro {
+  id                    String     @id @default(uuid())
+  area                  String     // ej. "Telecomunicaciones", "Energía"
+  gastoBaseMensual      Decimal    @db.Decimal(14, 2)
+  ahorroEstimadoMensual Decimal    @db.Decimal(14, 2)
+
+  cotizacionId  String
+  cotizacion    Cotizacion @relation(fields: [cotizacionId], references: [id], onDelete: Cascade)
+
+  @@index([cotizacionId])
+  @@map("lineas_ahorro")
 }
 
 // ---- Plantillas de cotización ----

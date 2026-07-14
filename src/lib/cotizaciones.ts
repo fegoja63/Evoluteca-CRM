@@ -5,6 +5,33 @@ export type CotizacionResumen = {
   oportunidadId: string | null;
 };
 
+// --- Modalidad SUCCESS_FEE (honorarios como % del ahorro estimado) ---
+
+export type LineaAhorroCalc = {
+  gastoBaseMensual: number | string;
+  ahorroEstimadoMensual: number | string;
+};
+
+/** Ahorro mensual estimado total = Σ de las líneas. */
+export function ahorroMensualTotal(lineas: LineaAhorroCalc[]): number {
+  return lineas.reduce((s, l) => s + Number(l.ahorroEstimadoMensual || 0), 0);
+}
+
+/**
+ * Valor estimado del contrato en modalidad success fee:
+ *   Σ(ahorro mensual estimado) × (% honorarios / 100) × horizonte en meses.
+ * Los valores pueden llegar como number o string (Decimal serializado).
+ */
+export function valorSuccessFee(
+  lineas: LineaAhorroCalc[],
+  porcentaje: number | string | null | undefined,
+  meses: number | string | null | undefined,
+): number {
+  const p = Number(porcentaje ?? 0);
+  const m = Number(meses ?? 0);
+  return ahorroMensualTotal(lineas) * (p / 100) * m;
+}
+
 // Una cotización puede tener recotizaciones (versiones nuevas) que apuntan al
 // mismo negocio (oportunidad). Para no ensuciar el pipeline ni la lista con
 // versiones viejas, se calcula cuál es la cotización "vigente" de cada negocio

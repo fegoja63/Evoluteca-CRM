@@ -18,5 +18,6 @@ export const editarTenantSchema = z.object({
     audiencia: z.boolean().optional(),
     expedientes: z.boolean().optional(),
     salones: z.boolean().optional(),
+    ahorros: z.boolean().optional(),
   }).strict().optional(),
 });
