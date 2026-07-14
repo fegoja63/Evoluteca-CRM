@@ -22,7 +22,7 @@ const ROLES = [
 ];
 
 export default function EquipoPage() {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [cargando, setCargando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
@@ -65,8 +65,10 @@ export default function EquipoPage() {
   async function cargar() {
     setCargando(true);
     const res = await fetch("/api/usuarios");
-    const data = await res.json();
-    setUsuarios(data);
+    const data = await res.json().catch(() => null);
+    // Si la API devuelve un error (no un arreglo), no revienta el render:
+    // se deja la lista vacía en vez de romper toda la página con .map.
+    setUsuarios(Array.isArray(data) ? data : []);
     setCargando(false);
   }
 
@@ -111,6 +113,9 @@ export default function EquipoPage() {
       return;
     }
     setUsuarios(prev => prev.map(u => (u.id === id ? { ...u, nombre: nombreNuevo } : u)));
+    // Si edité mi propio nombre, refresco la sesión para que el sidebar y el
+    // avatar muestren el nombre nuevo sin tener que volver a entrar.
+    if (id === session?.user?.id) await update({ name: nombreNuevo });
     setEditNombreId(null);
   }
 
@@ -311,7 +316,7 @@ export default function EquipoPage() {
                 return (
                   <tr key={u.id} className="hover:bg-neutral-50">
                     <td className="px-4 py-1 font-medium text-neutral-900">
-                      {esAdmin && !esUnoMismo && editNombreId === u.id ? (
+                      {esAdmin && editNombreId === u.id ? (
                         <div className="flex items-center gap-1.5">
                           <input
                             autoFocus
@@ -331,9 +336,9 @@ export default function EquipoPage() {
                       ) : (
                         <span className="group inline-flex items-center gap-1.5">
                           {u.nombre} {esUnoMismo && <span className="text-xs text-neutral-400">(tú)</span>}
-                          {esAdmin && !esUnoMismo && (
+                          {esAdmin && (
                             <button onClick={() => { setEditNombreId(u.id); setEditNombreValor(u.nombre); }}
-                              className="text-neutral-300 hover:text-brand-500 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="text-neutral-400 hover:text-brand-500 text-xs transition-colors"
                               title="Editar nombre">
                               <IconEdit size={13} stroke={1.75} />
                             </button>

@@ -18,12 +18,14 @@ export async function PATCH(
   });
   if (!existente) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
-  if (existente.id === session.user.id) {
-    return NextResponse.json({ error: "No puedes cambiar tu propio rol o estado" }, { status: 400 });
-  }
-
   const body = await request.json();
   const { nombre, rol, activo, nuevaPassword } = body;
+
+  // Puedes editar tu propio NOMBRE, pero no cambiarte a ti mismo el rol o el
+  // estado (evita que un admin se quite permisos o se desactive por error).
+  if (existente.id === session.user.id && (rol !== undefined || activo !== undefined)) {
+    return NextResponse.json({ error: "No puedes cambiar tu propio rol o estado" }, { status: 400 });
+  }
 
   const data: Record<string, unknown> = {};
   if (nombre !== undefined) {
