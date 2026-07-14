@@ -96,11 +96,24 @@ export default function FichaClientePage() {
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
     setGuardando(true);
-    await fetch(`/api/empresas/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+    try {
+      const res = await fetch(`/api/empresas/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        // Se mantiene el modo edición abierto para no perder lo escrito.
+        alert(data.error ?? "No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+        setGuardando(false);
+        return;
+      }
+    } catch {
+      alert("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+      setGuardando(false);
+      return;
+    }
     setEditando(false);
     setGuardando(false);
     cargar();
@@ -108,7 +121,13 @@ export default function FichaClientePage() {
 
   async function handleEliminar() {
     if (!confirm("¿Eliminar este cliente? Esta acción no se puede deshacer.")) return;
-    await fetch(`/api/empresas/${id}`, { method: "DELETE" });
+    try {
+      const res = await fetch(`/api/empresas/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+    } catch {
+      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
     router.push("/dashboard/cuentas");
   }
 

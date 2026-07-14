@@ -121,12 +121,22 @@ export default function CalendarioSalonesPage() {
       }
     }
 
+    // Guardado optimista con reversión: si el PATCH no persiste, se restaura
+    // la fecha anterior y se avisa, para no dejar en pantalla una reserva
+    // "movida" que en realidad no se guardó.
+    const previas = cotizaciones;
     setCotizaciones(prev => prev.map(c => c.id === draggedId ? { ...c, fechaEvento: new Date(Date.UTC(anio, mes - 1, dia)).toISOString() } : c));
-    await fetch(`/api/cotizaciones/${draggedId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fechaEvento: nuevaFecha }),
-    });
+    try {
+      const guardar = await fetch(`/api/cotizaciones/${draggedId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fechaEvento: nuevaFecha }),
+      });
+      if (!guardar.ok) throw new Error();
+    } catch {
+      setCotizaciones(previas);
+      alert("No se pudo reprogramar la reserva. Revisa tu conexión e inténtalo de nuevo.");
+    }
     setMoviendo(false);
   }
 

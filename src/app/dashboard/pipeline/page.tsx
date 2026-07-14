@@ -278,36 +278,60 @@ export default function PipelinePage() {
       const cot = prompt("Número de cotización (opcional):");
       if (cot && cot.trim()) cotizacionNumero = cot.trim();
     }
+    // Guardado optimista con reversión: si el PATCH no persiste (red, sesión
+    // expirada, error del servidor), se restaura el estado previo y se avisa,
+    // para que el usuario nunca crea que un cambio quedó guardado si no lo está.
+    const previas = oportunidades;
     setOportunidades(prev => prev.map(o => o.id === id ? {
       ...o,
       etapa,
       ...(cotizacionNumero ? { extras: { ...(o.extras || {}), "COTIZACION NUMERO": cotizacionNumero } } : {}),
     } : o));
-    await fetch(`/api/oportunidades/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ etapa, ...(cotizacionNumero ? { cotizacionNumero } : {}) }),
-    });
+    try {
+      const res = await fetch(`/api/oportunidades/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ etapa, ...(cotizacionNumero ? { cotizacionNumero } : {}) }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      setOportunidades(previas);
+      alert("No se pudo guardar el cambio de etapa. Revisa tu conexión e inténtalo de nuevo.");
+    }
   }
 
   async function confirmarPerdida() {
     if (!modalPerdidaId) return;
     const id = modalPerdidaId;
     const motivoPerdida = motivoPerdidaSel === "Otro" ? otroMotivoPerdida.trim() : motivoPerdidaSel;
+    const previas = oportunidades;
     setOportunidades(prev => prev.map(o => o.id === id ? { ...o, etapa: "PERDIDA", motivoPerdida } : o));
     setModalPerdidaId(null);
-    await fetch(`/api/oportunidades/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ etapa: "PERDIDA", motivoPerdida }),
-    });
+    try {
+      const res = await fetch(`/api/oportunidades/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ etapa: "PERDIDA", motivoPerdida }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      setOportunidades(previas);
+      alert("No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.");
+    }
   }
 
   async function eliminarOportunidad(id: string, titulo: string) {
     if (!esAdministrador) { alert("Solicita al Administrador borrar esta oportunidad."); return; }
     if (!confirm(`¿Eliminar la oportunidad "${titulo}"? Esta acción no se puede deshacer.`)) return;
+    const previas = oportunidades;
     setOportunidades(prev => prev.filter(o => o.id !== id));
-    await fetch(`/api/oportunidades/${id}`, { method: "DELETE" });
+    try {
+      const res = await fetch(`/api/oportunidades/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+    } catch {
+      setOportunidades(previas);
+      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+    }
   }
 
   function fmt(valor: string | null) {

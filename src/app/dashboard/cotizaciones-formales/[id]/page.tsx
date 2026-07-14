@@ -122,20 +122,30 @@ export default function CotizacionDetailPage() {
 
   async function cambiarEstado(estado: string) {
     if (estado === "RECHAZADA") { setMostrarMotivoModal(true); return; }
-    await fetch(`/api/cotizaciones/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ estado }),
-    });
+    try {
+      const res = await fetch(`/api/cotizaciones/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ estado }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      alert("No se pudo cambiar el estado. Revisa tu conexión e inténtalo de nuevo.");
+    }
     cargar();
   }
 
   async function confirmarRechazo() {
-    await fetch(`/api/cotizaciones/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ estado: "RECHAZADA", motivoRechazo }),
-    });
+    try {
+      const res = await fetch(`/api/cotizaciones/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ estado: "RECHAZADA", motivoRechazo }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      alert("No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.");
+    }
     setMostrarMotivoModal(false);
     setMotivoRechazo("");
     cargar();
@@ -143,11 +153,19 @@ export default function CotizacionDetailPage() {
 
   async function guardarNotas() {
     setGuardando(true);
-    await fetch(`/api/cotizaciones/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ notas }),
-    });
+    try {
+      const res = await fetch(`/api/cotizaciones/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notas }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      // Mantiene el editor abierto para no perder lo escrito.
+      alert("No se pudieron guardar las notas. Revisa tu conexión e inténtalo de nuevo.");
+      setGuardando(false);
+      return;
+    }
     setEditNotas(false);
     setGuardando(false);
     cargar();
@@ -155,14 +173,21 @@ export default function CotizacionDetailPage() {
 
   async function guardarImpuesto() {
     setGuardandoImpuesto(true);
-    await fetch(`/api/cotizaciones/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        impuestoNombre: impuestoNombre || null, impuestoPorcentaje: impuestoPorcentaje || null,
-        impuesto2Nombre: impuesto2Nombre || null, impuesto2Porcentaje: impuesto2Porcentaje || null,
-      }),
-    });
+    try {
+      const res = await fetch(`/api/cotizaciones/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          impuestoNombre: impuestoNombre || null, impuestoPorcentaje: impuestoPorcentaje || null,
+          impuesto2Nombre: impuesto2Nombre || null, impuesto2Porcentaje: impuesto2Porcentaje || null,
+        }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      alert("No se pudieron guardar los impuestos. Revisa tu conexión e inténtalo de nuevo.");
+      setGuardandoImpuesto(false);
+      return;
+    }
     setEditImpuesto(false);
     setGuardandoImpuesto(false);
     cargar();
@@ -170,7 +195,13 @@ export default function CotizacionDetailPage() {
 
   async function eliminar() {
     if (!confirm("¿Eliminar esta cotización? Esta acción no se puede deshacer.")) return;
-    await fetch(`/api/cotizaciones/${id}`, { method: "DELETE" });
+    try {
+      const res = await fetch(`/api/cotizaciones/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+    } catch {
+      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
     router.push("/dashboard/cotizaciones-formales");
   }
 

@@ -257,11 +257,25 @@ function AgendaContent() {
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
     setGuardando(true);
-    await fetch("/api/actividades", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+    try {
+      const res = await fetch("/api/actividades", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        // No se cierra ni se limpia el formulario si falló: así el usuario no
+        // pierde lo que escribió y puede reintentar.
+        alert(data.error ?? "No se pudo guardar la actividad. Revisa tu conexión e inténtalo de nuevo.");
+        setGuardando(false);
+        return;
+      }
+    } catch {
+      alert("No se pudo guardar la actividad. Revisa tu conexión e inténtalo de nuevo.");
+      setGuardando(false);
+      return;
+    }
     setForm({ tipo: "TAREA", titulo: "", fecha: "", notas: "", empresaId: "", contactoId: "", oportunidadId: "" });
     setMostrarForm(false);
     setGuardando(false);
@@ -269,12 +283,19 @@ function AgendaContent() {
   }
 
   async function toggleCompletada(id: string, completada: boolean) {
+    const previas = actividades;
     setActividades((prev) => prev.map((a) => (a.id === id ? { ...a, completada } : a)));
-    await fetch(`/api/actividades/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ completada }),
-    });
+    try {
+      const res = await fetch(`/api/actividades/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ completada }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      setActividades(previas);
+      alert("No se pudo guardar el cambio. Revisa tu conexión e inténtalo de nuevo.");
+    }
   }
 
   async function enviarRecordatorio(a: Actividad) {
@@ -299,8 +320,15 @@ function AgendaContent() {
 
   async function eliminarActividad(id: string) {
     if (!confirm("¿Eliminar esta actividad?")) return;
+    const previas = actividades;
     setActividades((prev) => prev.filter((a) => a.id !== id));
-    await fetch(`/api/actividades/${id}`, { method: "DELETE" });
+    try {
+      const res = await fetch(`/api/actividades/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+    } catch {
+      setActividades(previas);
+      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+    }
   }
 
   function formatoFecha(fecha: string) {

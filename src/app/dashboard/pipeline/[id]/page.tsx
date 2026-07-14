@@ -141,16 +141,30 @@ export default function OportunidadDetallePage() {
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
     setGuardando(true);
-    await fetch(`/api/oportunidades/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        titulo: form.titulo, valor: form.valor || null, etapa: form.etapa, notas: form.notas || null,
-        fechaCierre: form.fechaCierre || null, probabilidad: Number(form.probabilidad),
-        salonId: form.salonId || null, sede: form.sede || null, fechaEvento: form.fechaEvento || null,
-        horaInicio: form.horaInicio || null, horaFin: form.horaFin || null,
-      }),
-    });
+    try {
+      const res = await fetch(`/api/oportunidades/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          titulo: form.titulo, valor: form.valor || null, etapa: form.etapa, notas: form.notas || null,
+          fechaCierre: form.fechaCierre || null, probabilidad: Number(form.probabilidad),
+          salonId: form.salonId || null, sede: form.sede || null, fechaEvento: form.fechaEvento || null,
+          horaInicio: form.horaInicio || null, horaFin: form.horaFin || null,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        // Se mantiene el modo edición abierto con lo que el usuario escribió,
+        // para que no pierda sus cambios si el guardado falló.
+        alert(data.error ?? "No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+        setGuardando(false);
+        return;
+      }
+    } catch {
+      alert("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+      setGuardando(false);
+      return;
+    }
     setEditando(false);
     setGuardando(false);
     cargar();
@@ -166,21 +180,31 @@ export default function OportunidadDetallePage() {
       const cot = prompt("Número de cotización (opcional):");
       if (cot && cot.trim()) cotizacionNumero = cot.trim();
     }
-    await fetch(`/api/oportunidades/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ etapa, ...(cotizacionNumero ? { cotizacionNumero } : {}) }),
-    });
+    try {
+      const res = await fetch(`/api/oportunidades/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ etapa, ...(cotizacionNumero ? { cotizacionNumero } : {}) }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      alert("No se pudo cambiar la etapa. Revisa tu conexión e inténtalo de nuevo.");
+    }
     cargar();
   }
 
   async function confirmarPerdida() {
     const motivo = motivoPerdida === "Otro" ? otroMotivo : motivoPerdida;
-    await fetch(`/api/oportunidades/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ etapa: "PERDIDA", motivoPerdida: motivo || "" }),
-    });
+    try {
+      const res = await fetch(`/api/oportunidades/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ etapa: "PERDIDA", motivoPerdida: motivo || "" }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      alert("No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.");
+    }
     setModalPerdida(false);
     setMotivoPerdida("");
     setOtroMotivo("");
@@ -190,7 +214,13 @@ export default function OportunidadDetallePage() {
   async function eliminar() {
     if (!esAdministrador) { alert("Solicita al Administrador borrar esta oportunidad."); return; }
     if (!confirm("¿Eliminar esta oportunidad? Esta acción no se puede deshacer.")) return;
-    await fetch(`/api/oportunidades/${id}`, { method: "DELETE" });
+    try {
+      const res = await fetch(`/api/oportunidades/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+    } catch {
+      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
     router.push("/dashboard/pipeline");
   }
 
