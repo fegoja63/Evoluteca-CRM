@@ -415,19 +415,23 @@ export default function CotizacionDetailPage() {
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <h2 className="text-sm font-bold text-slate-700 mb-4">Datos generales</h2>
           <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-            {[
-              { label: "Empresa",         value: cot.empresa?.nombre },
+            {([
+              { label: "Empresa",         value: cot.empresa?.nombre ?? null },
               { label: "Contacto",        value: cot.contacto ? `${cot.contacto.nombre}${cot.contacto.email ? ` · ${cot.contacto.email}` : ""}` : null },
-              { label: "Oportunidad",     value: cot.oportunidad?.titulo },
-              { label: "Sede / Lugar",    value: cot.sede },
+              { label: "Negocio (Pipeline)", value: cot.oportunidad?.titulo ?? null, href: cot.oportunidad ? `/dashboard/pipeline/${cot.oportunidad.id}` : undefined },
+              { label: "Sede / Lugar",    value: cot.sede ?? null },
               { label: "Fecha del evento",value: fmtFecha(cot.fechaEvento) },
               { label: "Validez hasta",   value: fmtFecha(cot.fechaValidez) },
-            ].map(r => (
+            ] as { label: string; value: string | null; href?: string }[]).map(r => (
               <div key={r.label}>
                 <p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">{r.label}</p>
-                <p className={r.value ? "text-slate-900 font-medium" : "text-slate-300 italic text-xs"}>
-                  {r.value ?? "No especificado"}
-                </p>
+                {r.href && r.value ? (
+                  <Link href={r.href} className="text-brand-600 font-medium hover:underline">{r.value} →</Link>
+                ) : (
+                  <p className={r.value ? "text-slate-900 font-medium" : "text-slate-300 italic text-xs"}>
+                    {r.value ?? "No especificado"}
+                  </p>
+                )}
               </div>
             ))}
           </div>

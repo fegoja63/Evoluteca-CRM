@@ -56,6 +56,7 @@ export default function CotizacionesFormalesPage() {
   const [lista, setLista] = useState<Cotizacion[]>([]);
   const [cargando, setCargando] = useState(true);
   const [filtroEstado, setFiltroEstado] = useState("TODAS");
+  const [soloVencidas, setSoloVencidas] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [exportando, setExportando] = useState(false);
 
@@ -95,6 +96,7 @@ export default function CotizacionesFormalesPage() {
 
   const listado = lista.filter(c => {
     if (filtroEstado !== "TODAS" && c.estado !== filtroEstado) return false;
+    if (soloVencidas && validezBadge(c.fechaValidez, c.estado) === null) return false;
     if (busqueda) {
       const q = busqueda.toLowerCase();
       const campos = [c.empresa?.nombre, c.contacto?.nombre, c.sede, String(c.numero)].filter(Boolean).map(v => v!.toLowerCase());
@@ -137,7 +139,7 @@ export default function CotizacionesFormalesPage() {
           { label: "Aceptadas",   key: "ACEPTADA",  color: "bg-emerald-500" },
           { label: "Rechazadas",  key: "RECHAZADA", color: "bg-red-500" },
         ].map(k => (
-          <button key={k.key} onClick={() => setFiltroEstado(filtroEstado === k.key ? "TODAS" : k.key)}
+          <button key={k.key} onClick={() => { setSoloVencidas(false); setFiltroEstado(filtroEstado === k.key ? "TODAS" : k.key); }}
             className={`rounded-2xl border p-4 text-left transition-all ${filtroEstado === k.key ? "border-brand-400 ring-2 ring-brand-200" : "border-slate-200 bg-white hover:border-slate-300"}`}>
             <div className={`w-2 h-2 rounded-full ${k.color} mb-2`} />
             <p className="text-2xl font-bold text-slate-900">{conteos[k.key as keyof typeof conteos]}</p>
@@ -156,7 +158,7 @@ export default function CotizacionesFormalesPage() {
             </p>
             <p className="text-xs text-red-600 mt-0.5">Revisa y actualiza la fecha de validez o cambia el estado.</p>
           </div>
-          <button onClick={() => setFiltroEstado("ENVIADA")} className="text-xs text-red-700 font-medium underline shrink-0">Ver enviadas</button>
+          <button onClick={() => { setSoloVencidas(true); setFiltroEstado("TODAS"); setBusqueda(""); }} className="text-xs text-red-700 font-medium underline shrink-0">Ver vencidas</button>
         </div>
       )}
 
@@ -174,8 +176,8 @@ export default function CotizacionesFormalesPage() {
             </button>
           )}
         </div>
-        {(busqueda || filtroEstado !== "TODAS") && (
-          <button onClick={() => { setBusqueda(""); setFiltroEstado("TODAS"); }}
+        {(busqueda || filtroEstado !== "TODAS" || soloVencidas) && (
+          <button onClick={() => { setBusqueda(""); setFiltroEstado("TODAS"); setSoloVencidas(false); }}
             className="flex items-center gap-1 text-xs text-brand-600 hover:underline">
             <IconX size={12} stroke={2.5} />
             Limpiar
