@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { KpiCard } from "@/components/kpi-card";
 import {
@@ -118,7 +119,7 @@ export default function AudienciaPage() {
     setGuardando(false);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      alert(data.error ?? "No se pudo crear el espectador. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error(data.error ?? "No se pudo crear el espectador. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     setForm(FORM_VACIO);
@@ -140,7 +141,7 @@ export default function AudienciaPage() {
     });
     setGuardando(false);
     if (!res.ok) {
-      alert("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     setEditandoId(null);
@@ -151,7 +152,7 @@ export default function AudienciaPage() {
     if (!confirm("¿Eliminar este espectador?")) return;
     const res = await fetch(`/api/espectadores/${id}`, { method: "DELETE" });
     if (!res.ok) {
-      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     cargar(busqueda);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { IconBuildingPavilion, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
@@ -135,7 +136,7 @@ export default function CalendarioSalonesPage() {
       if (!guardar.ok) throw new Error();
     } catch {
       setCotizaciones(previas);
-      alert("No se pudo reprogramar la reserva. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo reprogramar la reserva. Revisa tu conexión e inténtalo de nuevo.");
     }
     setMoviendo(false);
   }

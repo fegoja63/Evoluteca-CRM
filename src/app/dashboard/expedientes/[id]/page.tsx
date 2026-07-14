@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "@/lib/toast";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -144,7 +145,7 @@ export default function DetalleExpedientePage() {
     const res = await fetch(`/api/expedientes/${id}`, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      alert(data.error || "No se pudo eliminar el expediente");
+      toast.error(data.error || "No se pudo eliminar el expediente");
       return;
     }
     router.push("/dashboard/expedientes");
@@ -181,7 +182,7 @@ export default function DetalleExpedientePage() {
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      alert(data.error || "No se pudo actualizar el plazo");
+      toast.error(data.error || "No se pudo actualizar el plazo");
       return;
     }
     cargar();
@@ -192,7 +193,7 @@ export default function DetalleExpedientePage() {
     const res = await fetch(`/api/expedientes/terminos/${terminoId}`, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      alert(data.error || "No se pudo eliminar el plazo");
+      toast.error(data.error || "No se pudo eliminar el plazo");
       return;
     }
     cargar();
@@ -226,7 +227,7 @@ export default function DetalleExpedientePage() {
     const res = await fetch(`/api/expedientes/horas/${registroId}`, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      alert(data.error || "No se pudo eliminar el registro de horas");
+      toast.error(data.error || "No se pudo eliminar el registro de horas");
       return;
     }
     cargar();

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "@/lib/toast";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -105,7 +106,7 @@ export default function FichaFuncionPage() {
     setGuardando(false);
     if (!res.ok) {
       // Mantiene el modo edición abierto para no perder lo escrito.
-      alert("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     setEditando(false);
@@ -116,7 +117,7 @@ export default function FichaFuncionPage() {
     if (!confirm("¿Eliminar esta función? Esta acción no se puede deshacer.")) return;
     const res = await fetch(`/api/funciones/${id}`, { method: "DELETE" });
     if (!res.ok) {
-      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     router.push("/dashboard/funciones");
@@ -136,7 +137,7 @@ export default function FichaFuncionPage() {
     });
     setEnviandoNps(false);
     if (!res.ok) {
-      alert("No se pudo guardar la respuesta NPS. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo guardar la respuesta NPS. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     setNpsForm({ puntuacion: "", comentario: "", espectadorId: "" });
@@ -170,7 +171,7 @@ export default function FichaFuncionPage() {
     const res = await fetch(`/api/funciones/asistencias/${asistenciaId}`, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      alert(data.error || "No se pudo quitar la asistencia");
+      toast.error(data.error || "No se pudo quitar la asistencia");
       return;
     }
     cargar();

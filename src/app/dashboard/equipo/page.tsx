@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "@/lib/toast";
 import { useSession } from "next-auth/react";
 import { RendimientoEquipo } from "@/components/rendimiento-equipo";
 import { IconDownload, IconUserPlus, IconEdit, IconCircleCheck } from "@tabler/icons-react";
@@ -106,7 +107,7 @@ export default function EquipoPage() {
     });
     setGuardandoNombre(false);
     if (!res.ok) {
-      alert("No se pudo guardar el nombre. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo guardar el nombre. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     setUsuarios(prev => prev.map(u => (u.id === id ? { ...u, nombre: nombreNuevo } : u)));
@@ -123,7 +124,7 @@ export default function EquipoPage() {
     });
     if (!res.ok) {
       setUsuarios((prev) => prev.map((u) => (u.id === id && anterior ? { ...u, rol: anterior } : u)));
-      alert("No se pudo cambiar el rol. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo cambiar el rol. Revisa tu conexión e inténtalo de nuevo.");
     }
   }
 
@@ -137,7 +138,7 @@ export default function EquipoPage() {
     });
     setReseteando(false);
     if (!res.ok) {
-      alert("No se pudo restablecer la contraseña. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo restablecer la contraseña. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     setResetOk(true);
@@ -171,7 +172,7 @@ export default function EquipoPage() {
       // usuarios del plan) y mostrar el motivo.
       const data = await res.json().catch(() => ({}));
       setUsuarios((prev) => prev.map((u) => (u.id === id ? { ...u, activo: anterior ?? u.activo } : u)));
-      alert(data.error ?? "No se pudo actualizar el estado del usuario.");
+      toast.error(data.error ?? "No se pudo actualizar el estado del usuario.");
     }
   }
 

@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "@/lib/toast";
 import { KpiCard } from "@/components/kpi-card";
 import { Pager } from "@/components/pager";
 import {
@@ -75,7 +76,7 @@ export default function FuncionesPage() {
     setGuardando(false);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      alert(data.error ?? "No se pudo crear la función. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error(data.error ?? "No se pudo crear la función. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     setForm(FORM_VACIO);
@@ -106,7 +107,7 @@ export default function FuncionesPage() {
     });
     setGuardando(false);
     if (!res.ok) {
-      alert("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     setEditandoId(null);
@@ -118,7 +119,7 @@ export default function FuncionesPage() {
     if (!confirm("¿Eliminar esta función?")) return;
     const res = await fetch(`/api/funciones/${id}`, { method: "DELETE" });
     if (!res.ok) {
-      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     cargar(page);

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Sidebar } from "@/components/sidebar";
 import { MobileNav } from "@/components/mobile-nav";
 import { Fab } from "@/components/fab";
+import { Toaster } from "@/lib/toast";
 
 export default async function DashboardLayout({
   children,
@@ -42,6 +43,7 @@ export default async function DashboardLayout({
       {/* Nav inferior + FAB: solo móvil */}
       <MobileNav />
       <Fab />
+      <Toaster />
     </div>
   );
 }

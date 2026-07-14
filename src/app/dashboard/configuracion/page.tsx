@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "@/lib/toast";
 import { useSession } from "next-auth/react";
 import {
   IconTheater, IconTicket, IconScale, IconBuildingPavilion,
@@ -116,7 +117,7 @@ export default function ConfiguracionPage() {
     });
     setGuardandoEtapas(false);
     if (!res.ok) {
-      alert("No se pudieron guardar las etapas. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudieron guardar las etapas. Revisa tu conexión e inténtalo de nuevo.");
       cargarEtapas(); // resincroniza con lo realmente guardado
       return;
     }
@@ -180,10 +181,10 @@ export default function ConfiguracionPage() {
     const res = await fetch("/api/configuracion/limpiar", { method: "DELETE" });
     setLimpiando(false);
     if (!res.ok) {
-      alert("No se pudieron eliminar los datos. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudieron eliminar los datos. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
-    alert("✓ Datos eliminados. El CRM está limpio.");
+    toast.success("Datos eliminados. El CRM está limpio.");
   }
 
   useEffect(() => {
@@ -216,7 +217,7 @@ export default function ConfiguracionPage() {
     });
     setGuardandoLogo(false);
     if (!res.ok) {
-      alert("No se pudo guardar el logo. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo guardar el logo. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     setLogoUrl(logoInput);
@@ -237,7 +238,7 @@ export default function ConfiguracionPage() {
     setGuardandoEmails(false);
     if (!res.ok) {
       setEmailsActivos(anterior);
-      alert("No se pudo guardar el cambio. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo guardar el cambio. Revisa tu conexión e inténtalo de nuevo.");
     }
   }
 
@@ -256,7 +257,7 @@ export default function ConfiguracionPage() {
     setGuardando(false);
     if (!res.ok) {
       setModulos(anteriores);
-      alert("No se pudo guardar el cambio de módulo. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo guardar el cambio de módulo. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     setGuardado(true);

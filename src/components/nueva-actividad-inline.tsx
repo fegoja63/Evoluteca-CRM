@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "@/lib/toast";
 
 type Props = {
   empresaId?: string;
@@ -51,7 +52,7 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
     setGuardando(false);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      alert(data.error ?? "No se pudo crear la actividad. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error(data.error ?? "No se pudo crear la actividad. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     setForm({ tipo: tipoInicial ?? "TAREA", titulo: "", fecha: fechaLocalDefault(), notas: "" });

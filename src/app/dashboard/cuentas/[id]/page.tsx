@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "@/lib/toast";
 
 const SECTORES = [
   "Arte y Cultura", "Educación", "Entretenimiento", "Eventos corporativos",
@@ -106,12 +107,12 @@ export default function FichaClientePage() {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         // Se mantiene el modo edición abierto para no perder lo escrito.
-        alert(data.error ?? "No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+        toast.error(data.error ?? "No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
         setGuardando(false);
         return;
       }
     } catch {
-      alert("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
       setGuardando(false);
       return;
     }
@@ -126,7 +127,7 @@ export default function FichaClientePage() {
       const res = await fetch(`/api/empresas/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error();
     } catch {
-      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     router.push("/dashboard/cuentas");

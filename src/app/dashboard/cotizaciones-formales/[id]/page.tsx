@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "@/lib/toast";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { IconLink, IconMail, IconCheck, IconBrandWhatsapp, IconStar, IconDownload, IconCopy, IconArrowLeft } from "@tabler/icons-react";
@@ -130,7 +131,7 @@ export default function CotizacionDetailPage() {
       });
       if (!res.ok) throw new Error();
     } catch {
-      alert("No se pudo cambiar el estado. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo cambiar el estado. Revisa tu conexión e inténtalo de nuevo.");
     }
     cargar();
   }
@@ -144,7 +145,7 @@ export default function CotizacionDetailPage() {
       });
       if (!res.ok) throw new Error();
     } catch {
-      alert("No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.");
     }
     setMostrarMotivoModal(false);
     setMotivoRechazo("");
@@ -162,7 +163,7 @@ export default function CotizacionDetailPage() {
       if (!res.ok) throw new Error();
     } catch {
       // Mantiene el editor abierto para no perder lo escrito.
-      alert("No se pudieron guardar las notas. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudieron guardar las notas. Revisa tu conexión e inténtalo de nuevo.");
       setGuardando(false);
       return;
     }
@@ -184,7 +185,7 @@ export default function CotizacionDetailPage() {
       });
       if (!res.ok) throw new Error();
     } catch {
-      alert("No se pudieron guardar los impuestos. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudieron guardar los impuestos. Revisa tu conexión e inténtalo de nuevo.");
       setGuardandoImpuesto(false);
       return;
     }
@@ -199,7 +200,7 @@ export default function CotizacionDetailPage() {
       const res = await fetch(`/api/cotizaciones/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error();
     } catch {
-      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     router.push("/dashboard/cotizaciones-formales");

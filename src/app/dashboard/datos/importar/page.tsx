@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { toast } from "@/lib/toast";
 import Link from "next/link";
 import {
   IconBuilding, IconUser, IconChartFunnel, IconUsers,
@@ -102,7 +103,7 @@ export default function ImportarAvanzadoPage() {
     const campoObligatorio = modulo === "oportunidades" ? "titulo" : "nombre";
     const tieneCampoObligatorio = Object.values(mapeo).includes(campoObligatorio);
     if (!tieneCampoObligatorio) {
-      alert(`Debes asignar al menos una columna al campo "${campoObligatorio === "nombre" ? "Nombre *" : "Título *"}" antes de importar.`);
+      toast.error(`Debes asignar al menos una columna al campo "${campoObligatorio === "nombre" ? "Nombre *" : "Título *"}" antes de importar.`);
       return;
     }
 

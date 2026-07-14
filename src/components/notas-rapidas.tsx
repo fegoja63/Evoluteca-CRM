@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { toast } from "@/lib/toast";
 
 interface NotasRapidasProps {
   valor: string | null;
@@ -32,7 +33,7 @@ export function NotasRapidas({ valor, onGuardar }: NotasRapidasProps) {
       // Si el guardado falló, se mantiene el editor abierto con lo escrito y
       // se avisa — nunca se muestra "✓ Guardado" en falso.
       setGuardando(false);
-      alert(e instanceof Error ? e.message : "No se pudieron guardar las notas. Inténtalo de nuevo.");
+      toast.error(e instanceof Error ? e.message : "No se pudieron guardar las notas. Inténtalo de nuevo.");
       return;
     }
     setGuardando(false);

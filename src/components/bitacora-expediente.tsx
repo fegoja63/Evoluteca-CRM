@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "@/lib/toast";
 
 type Evento = {
   id: string;
@@ -84,7 +85,7 @@ export function BitacoraExpediente({ expedienteId, puedeEliminar }: { expediente
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      alert(data.error || "No se pudo eliminar el registro");
+      toast.error(data.error || "No se pudo eliminar el registro");
       return;
     }
     cargar();

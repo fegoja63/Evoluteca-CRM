@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import { toast } from "@/lib/toast";
 import { useSearchParams } from "next/navigation";
 import { KpiCard } from "@/components/kpi-card";
 import {
@@ -267,12 +268,12 @@ function AgendaContent() {
         const data = await res.json().catch(() => ({}));
         // No se cierra ni se limpia el formulario si falló: así el usuario no
         // pierde lo que escribió y puede reintentar.
-        alert(data.error ?? "No se pudo guardar la actividad. Revisa tu conexión e inténtalo de nuevo.");
+        toast.error(data.error ?? "No se pudo guardar la actividad. Revisa tu conexión e inténtalo de nuevo.");
         setGuardando(false);
         return;
       }
     } catch {
-      alert("No se pudo guardar la actividad. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo guardar la actividad. Revisa tu conexión e inténtalo de nuevo.");
       setGuardando(false);
       return;
     }
@@ -294,7 +295,7 @@ function AgendaContent() {
       if (!res.ok) throw new Error();
     } catch {
       setActividades(previas);
-      alert("No se pudo guardar el cambio. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo guardar el cambio. Revisa tu conexión e inténtalo de nuevo.");
     }
   }
 
@@ -327,7 +328,7 @@ function AgendaContent() {
       if (!res.ok) throw new Error();
     } catch {
       setActividades(previas);
-      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
     }
   }
 

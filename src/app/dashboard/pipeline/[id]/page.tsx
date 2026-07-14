@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { toast } from "@/lib/toast";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -157,12 +158,12 @@ export default function OportunidadDetallePage() {
         const data = await res.json().catch(() => ({}));
         // Se mantiene el modo edición abierto con lo que el usuario escribió,
         // para que no pierda sus cambios si el guardado falló.
-        alert(data.error ?? "No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+        toast.error(data.error ?? "No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
         setGuardando(false);
         return;
       }
     } catch {
-      alert("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
       setGuardando(false);
       return;
     }
@@ -189,7 +190,7 @@ export default function OportunidadDetallePage() {
       });
       if (!res.ok) throw new Error();
     } catch {
-      alert("No se pudo cambiar la etapa. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo cambiar la etapa. Revisa tu conexión e inténtalo de nuevo.");
     }
     cargar();
   }
@@ -204,7 +205,7 @@ export default function OportunidadDetallePage() {
       });
       if (!res.ok) throw new Error();
     } catch {
-      alert("No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.");
     }
     setModalPerdida(false);
     setMotivoPerdida("");
@@ -213,13 +214,13 @@ export default function OportunidadDetallePage() {
   }
 
   async function eliminar() {
-    if (!esAdministrador) { alert("Solicita al Administrador borrar esta oportunidad."); return; }
+    if (!esAdministrador) { toast.error("Solicita al Administrador borrar esta oportunidad."); return; }
     if (!confirm("¿Eliminar esta oportunidad? Esta acción no se puede deshacer.")) return;
     try {
       const res = await fetch(`/api/oportunidades/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error();
     } catch {
-      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
     router.push("/dashboard/pipeline");

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, KeyboardEvent } from "react";
+import { toast } from "@/lib/toast";
 
 const COLORES = [
   "bg-blue-100 text-blue-700",
@@ -48,7 +49,7 @@ export function Etiquetas({ etiquetas, onGuardar, readonly }: Props) {
     } catch (e) {
       // Si falló, se mantiene el editor abierto con las etiquetas escritas.
       setGuardando(false);
-      alert(e instanceof Error ? e.message : "No se pudieron guardar las etiquetas. Inténtalo de nuevo.");
+      toast.error(e instanceof Error ? e.message : "No se pudieron guardar las etiquetas. Inténtalo de nuevo.");
       return;
     }
     setGuardando(false);

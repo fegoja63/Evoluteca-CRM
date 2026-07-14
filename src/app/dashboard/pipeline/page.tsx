@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
@@ -296,7 +297,7 @@ export default function PipelinePage() {
       if (!res.ok) throw new Error();
     } catch {
       setOportunidades(previas);
-      alert("No se pudo guardar el cambio de etapa. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo guardar el cambio de etapa. Revisa tu conexión e inténtalo de nuevo.");
     }
   }
 
@@ -316,12 +317,12 @@ export default function PipelinePage() {
       if (!res.ok) throw new Error();
     } catch {
       setOportunidades(previas);
-      alert("No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.");
     }
   }
 
   async function eliminarOportunidad(id: string, titulo: string) {
-    if (!esAdministrador) { alert("Solicita al Administrador borrar esta oportunidad."); return; }
+    if (!esAdministrador) { toast.error("Solicita al Administrador borrar esta oportunidad."); return; }
     if (!confirm(`¿Eliminar la oportunidad "${titulo}"? Esta acción no se puede deshacer.`)) return;
     const previas = oportunidades;
     setOportunidades(prev => prev.filter(o => o.id !== id));
@@ -330,7 +331,7 @@ export default function PipelinePage() {
       if (!res.ok) throw new Error();
     } catch {
       setOportunidades(previas);
-      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
     }
   }
 
