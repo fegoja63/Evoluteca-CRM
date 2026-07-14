@@ -263,7 +263,8 @@ export default function ConfiguracionPage() {
     setGuardando(false);
     if (!res.ok) {
       setModulos(anteriores);
-      toast.error("No se pudo guardar el cambio de módulo. Revisa tu conexión e inténtalo de nuevo.");
+      const data = await res.json().catch(() => ({} as { error?: string }));
+      toast.error(`No se pudo guardar el módulo (error ${res.status}). ${data.error ?? "Revisa tu conexión e inténtalo de nuevo."}`.trim());
       return;
     }
     setGuardado(true);
