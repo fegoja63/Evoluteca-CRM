@@ -781,6 +781,7 @@ export default function PipelinePage() {
           </div>
         </div>
       ) : (
+        <>
         <div className="grid grid-cols-6 gap-3">
           {ETAPAS.map(etapa => {
             const items = filtradas.filter(o => o.etapa === etapa.key);
@@ -883,6 +884,19 @@ export default function PipelinePage() {
             );
           })}
         </div>
+
+        {/* Leyenda: qué significan los colores del borde de cada tarjeta */}
+        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <p className="text-xs font-semibold text-slate-500 mb-2">¿Qué significan los colores de las tarjetas?</p>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-600">
+            <span className="text-slate-400">La barra de color a la izquierda indica hace cuánto se creó el negocio:</span>
+            <span className="flex items-center gap-1.5"><span className="inline-block h-3.5 w-1 rounded bg-emerald-400" />Menos de 15 días — reciente</span>
+            <span className="flex items-center gap-1.5"><span className="inline-block h-3.5 w-1 rounded bg-amber-400" />Entre 15 y 29 días — dale seguimiento</span>
+            <span className="flex items-center gap-1.5"><span className="inline-block h-3.5 w-1 rounded bg-red-400" />30 días o más — estancado</span>
+            <span className="text-slate-400">Los negocios en Ganada y Perdida no muestran barra (ya están cerrados).</span>
+          </div>
+        </div>
+        </>
       )}
 
       {/* Modal motivo de pérdida */}
