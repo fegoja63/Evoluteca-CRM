@@ -7,6 +7,7 @@ import { WhatsAppBtn } from "@/components/whatsapp-btn";
 import { ExtrasPanel } from "@/components/extras-panel";
 import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 import { NotasRapidas } from "@/components/notas-rapidas";
+import { guardarJson } from "@/lib/guardar";
 import { Adjuntos } from "@/components/adjuntos";
 
 type Empresa = { id: string; nombre: string };
@@ -238,11 +239,7 @@ export default function FichaContactoPage() {
       <NotasRapidas
         valor={contacto.notas}
         onGuardar={async (notas) => {
-          await fetch(`/api/contactos/${contacto.id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ notas }),
-          });
+          await guardarJson(`/api/contactos/${contacto.id}`, "PATCH", { notas });
           cargar();
         }}
       />

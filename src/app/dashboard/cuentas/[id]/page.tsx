@@ -16,6 +16,7 @@ import { TimelineCliente } from "@/components/timeline-cliente";
 import { NotasRapidas } from "@/components/notas-rapidas";
 import { Adjuntos } from "@/components/adjuntos";
 import { Etiquetas } from "@/components/etiquetas";
+import { guardarJson } from "@/lib/guardar";
 import { WhatsAppBtn } from "@/components/whatsapp-btn";
 import { IconPhone, IconMail, IconUsers, type Icon } from "@tabler/icons-react";
 
@@ -225,11 +226,7 @@ export default function FichaClientePage() {
         <Etiquetas
           etiquetas={empresa.etiquetas ?? []}
           onGuardar={async (etiquetas) => {
-            await fetch(`/api/empresas/${empresa.id}`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ etiquetas }),
-            });
+            await guardarJson(`/api/empresas/${empresa.id}`, "PATCH", { etiquetas });
             cargar();
           }}
         />
@@ -238,11 +235,7 @@ export default function FichaClientePage() {
       <NotasRapidas
         valor={empresa.notas}
         onGuardar={async (notas) => {
-          await fetch(`/api/empresas/${empresa.id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ notas }),
-          });
+          await guardarJson(`/api/empresas/${empresa.id}`, "PATCH", { notas });
           cargar();
         }}
       />

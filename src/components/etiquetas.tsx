@@ -43,7 +43,14 @@ export function Etiquetas({ etiquetas, onGuardar, readonly }: Props) {
 
   async function guardar() {
     setGuardando(true);
-    await onGuardar(lista);
+    try {
+      await onGuardar(lista);
+    } catch (e) {
+      // Si falló, se mantiene el editor abierto con las etiquetas escritas.
+      setGuardando(false);
+      alert(e instanceof Error ? e.message : "No se pudieron guardar las etiquetas. Inténtalo de nuevo.");
+      return;
+    }
     setGuardando(false);
     setEditando(false);
   }

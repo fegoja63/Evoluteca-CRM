@@ -110,14 +110,19 @@ export default function AudienciaPage() {
   async function handleCrear(e: React.FormEvent) {
     e.preventDefault();
     setGuardando(true);
-    await fetch("/api/espectadores", {
+    const res = await fetch("/api/espectadores", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
+    setGuardando(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error ?? "No se pudo crear el espectador. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
     setForm(FORM_VACIO);
     setMostrarForm(false);
-    setGuardando(false);
     cargar(busqueda);
   }
 
@@ -128,19 +133,27 @@ export default function AudienciaPage() {
 
   async function handleGuardarEdicion(id: string) {
     setGuardando(true);
-    await fetch(`/api/espectadores/${id}`, {
+    const res = await fetch(`/api/espectadores/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(editForm),
     });
-    setEditandoId(null);
     setGuardando(false);
+    if (!res.ok) {
+      alert("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
+    setEditandoId(null);
     cargar(busqueda);
   }
 
   async function handleEliminar(id: string) {
     if (!confirm("¿Eliminar este espectador?")) return;
-    await fetch(`/api/espectadores/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/espectadores/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
     cargar(busqueda);
   }
 

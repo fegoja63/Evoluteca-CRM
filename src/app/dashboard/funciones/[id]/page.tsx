@@ -97,26 +97,35 @@ export default function FichaFuncionPage() {
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
     setGuardando(true);
-    await fetch(`/api/funciones/${id}`, {
+    const res = await fetch(`/api/funciones/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
-    setEditando(false);
     setGuardando(false);
+    if (!res.ok) {
+      // Mantiene el modo edición abierto para no perder lo escrito.
+      alert("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
+    setEditando(false);
     cargar();
   }
 
   async function handleEliminar() {
     if (!confirm("¿Eliminar esta función? Esta acción no se puede deshacer.")) return;
-    await fetch(`/api/funciones/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/funciones/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
     router.push("/dashboard/funciones");
   }
 
   async function handleNps(e: React.FormEvent) {
     e.preventDefault();
     setEnviandoNps(true);
-    await fetch(`/api/funciones/${id}/nps`, {
+    const res = await fetch(`/api/funciones/${id}/nps`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -125,8 +134,12 @@ export default function FichaFuncionPage() {
         espectadorId: npsForm.espectadorId || null,
       }),
     });
-    setNpsForm({ puntuacion: "", comentario: "", espectadorId: "" });
     setEnviandoNps(false);
+    if (!res.ok) {
+      alert("No se pudo guardar la respuesta NPS. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
+    setNpsForm({ puntuacion: "", comentario: "", espectadorId: "" });
     cargar();
   }
 

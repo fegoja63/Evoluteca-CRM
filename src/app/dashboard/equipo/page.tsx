@@ -99,34 +99,47 @@ export default function EquipoPage() {
     if (!editNombreValor.trim()) return;
     setGuardandoNombre(true);
     const nombreNuevo = editNombreValor.trim();
-    await fetch(`/api/usuarios/${id}`, {
+    const res = await fetch(`/api/usuarios/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nombre: nombreNuevo }),
     });
-    setUsuarios(prev => prev.map(u => (u.id === id ? { ...u, nombre: nombreNuevo } : u)));
     setGuardandoNombre(false);
+    if (!res.ok) {
+      alert("No se pudo guardar el nombre. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
+    setUsuarios(prev => prev.map(u => (u.id === id ? { ...u, nombre: nombreNuevo } : u)));
     setEditNombreId(null);
   }
 
   async function cambiarRol(id: string, rol: string) {
+    const anterior = usuarios.find(u => u.id === id)?.rol;
     setUsuarios((prev) => prev.map((u) => (u.id === id ? { ...u, rol } : u)));
-    await fetch(`/api/usuarios/${id}`, {
+    const res = await fetch(`/api/usuarios/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rol }),
     });
+    if (!res.ok) {
+      setUsuarios((prev) => prev.map((u) => (u.id === id && anterior ? { ...u, rol: anterior } : u)));
+      alert("No se pudo cambiar el rol. Revisa tu conexión e inténtalo de nuevo.");
+    }
   }
 
   async function resetearPassword(id: string) {
     if (!resetPass || resetPass.length < 6) return;
     setReseteando(true);
-    await fetch(`/api/usuarios/${id}`, {
+    const res = await fetch(`/api/usuarios/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nuevaPassword: resetPass }),
     });
     setReseteando(false);
+    if (!res.ok) {
+      alert("No se pudo restablecer la contraseña. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
     setResetOk(true);
     setTimeout(() => { setResetId(null); setResetPass(""); setResetOk(false); }, 2000);
   }

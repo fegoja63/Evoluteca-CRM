@@ -26,7 +26,15 @@ export function NotasRapidas({ valor, onGuardar }: NotasRapidasProps) {
   async function guardar() {
     if (texto === (valor ?? "")) { setEditando(false); return; }
     setGuardando(true);
-    await onGuardar(texto);
+    try {
+      await onGuardar(texto);
+    } catch (e) {
+      // Si el guardado falló, se mantiene el editor abierto con lo escrito y
+      // se avisa — nunca se muestra "✓ Guardado" en falso.
+      setGuardando(false);
+      alert(e instanceof Error ? e.message : "No se pudieron guardar las notas. Inténtalo de nuevo.");
+      return;
+    }
     setGuardando(false);
     setEditando(false);
     setGuardado(true);

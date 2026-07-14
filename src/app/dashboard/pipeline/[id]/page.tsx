@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 import { NotasRapidas } from "@/components/notas-rapidas";
+import { guardarJson } from "@/lib/guardar";
 import { Adjuntos } from "@/components/adjuntos";
 import {
   IconAlertTriangle, IconHistory, IconTarget, IconTrophy, IconX, IconArrowRight,
@@ -436,11 +437,7 @@ export default function OportunidadDetallePage() {
       <NotasRapidas
         valor={op?.notas ?? null}
         onGuardar={async (notas) => {
-          await fetch(`/api/oportunidades/${op!.id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ notas: notas || null }),
-          });
+          await guardarJson(`/api/oportunidades/${op!.id}`, "PATCH", { notas: notas || null });
           cargar();
         }}
       />

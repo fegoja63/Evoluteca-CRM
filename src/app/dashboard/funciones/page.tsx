@@ -67,14 +67,19 @@ export default function FuncionesPage() {
   async function handleCrear(e: React.FormEvent) {
     e.preventDefault();
     setGuardando(true);
-    await fetch("/api/funciones", {
+    const res = await fetch("/api/funciones", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
+    setGuardando(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error ?? "No se pudo crear la función. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
     setForm(FORM_VACIO);
     setMostrarForm(false);
-    setGuardando(false);
     cargar(page);
     cargarStats();
   }
@@ -94,20 +99,28 @@ export default function FuncionesPage() {
 
   async function handleGuardarEdicion(id: string) {
     setGuardando(true);
-    await fetch(`/api/funciones/${id}`, {
+    const res = await fetch(`/api/funciones/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(editForm),
     });
-    setEditandoId(null);
     setGuardando(false);
+    if (!res.ok) {
+      alert("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
+    setEditandoId(null);
     cargar(page);
     cargarStats();
   }
 
   async function handleEliminar(id: string) {
     if (!confirm("¿Eliminar esta función?")) return;
-    await fetch(`/api/funciones/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/funciones/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
     cargar(page);
     cargarStats();
   }

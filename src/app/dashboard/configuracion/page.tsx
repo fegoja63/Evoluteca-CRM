@@ -109,12 +109,17 @@ export default function ConfiguracionPage() {
 
   async function guardarEtapas(nuevasEtapas: EtapaPipeline[]) {
     setGuardandoEtapas(true);
-    await fetch("/api/etapas-pipeline", {
+    const res = await fetch("/api/etapas-pipeline", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ etapas: nuevasEtapas.map((e, i) => ({ id: e.id, nombre: e.nombre, orden: i + 1 })) }),
     });
     setGuardandoEtapas(false);
+    if (!res.ok) {
+      alert("No se pudieron guardar las etapas. Revisa tu conexión e inténtalo de nuevo.");
+      cargarEtapas(); // resincroniza con lo realmente guardado
+      return;
+    }
     setEtapasOk(true);
     setTimeout(() => setEtapasOk(false), 2000);
   }
@@ -172,8 +177,12 @@ export default function ConfiguracionPage() {
     if (!confirm("¿Estás seguro? Esto borrará TODAS las empresas, contactos, oportunidades, actividades, cotizaciones, funciones y espectadores. Tu usuario y configuración se conservan.")) return;
     if (!confirm("Segunda confirmación: ¿borrar todos los datos de prueba?")) return;
     setLimpiando(true);
-    await fetch("/api/configuracion/limpiar", { method: "DELETE" });
+    const res = await fetch("/api/configuracion/limpiar", { method: "DELETE" });
     setLimpiando(false);
+    if (!res.ok) {
+      alert("No se pudieron eliminar los datos. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
     alert("✓ Datos eliminados. El CRM está limpio.");
   }
 
@@ -200,41 +209,56 @@ export default function ConfiguracionPage() {
 
   async function guardarLogo() {
     setGuardandoLogo(true);
-    await fetch("/api/configuracion", {
+    const res = await fetch("/api/configuracion", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ logoUrl: logoInput }),
     });
-    setLogoUrl(logoInput);
     setGuardandoLogo(false);
+    if (!res.ok) {
+      alert("No se pudo guardar el logo. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
+    setLogoUrl(logoInput);
     setLogoOk(true);
     setTimeout(() => setLogoOk(false), 2500);
   }
 
   async function toggleEmails(valor: boolean) {
     if (!esAdmin) return;
+    const anterior = emailsActivos;
     setGuardandoEmails(true);
     setEmailsActivos(valor);
-    await fetch("/api/configuracion", {
+    const res = await fetch("/api/configuracion", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ emailsActivos: valor }),
     });
     setGuardandoEmails(false);
+    if (!res.ok) {
+      setEmailsActivos(anterior);
+      alert("No se pudo guardar el cambio. Revisa tu conexión e inténtalo de nuevo.");
+    }
   }
 
   async function toggleModulo(key: string, valor: boolean) {
     if (!esAdmin) return;
+    const anteriores = modulos;
     const nuevos = { ...modulos, [key]: valor };
     setModulos(nuevos);
     setGuardando(true);
     setGuardado(false);
-    await fetch("/api/configuracion", {
+    const res = await fetch("/api/configuracion", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ modulos: nuevos }),
     });
     setGuardando(false);
+    if (!res.ok) {
+      setModulos(anteriores);
+      alert("No se pudo guardar el cambio de módulo. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
     setGuardado(true);
     setTimeout(() => setGuardado(false), 2000);
     window.location.reload();

@@ -38,7 +38,7 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
     setGuardando(true);
-    await fetch("/api/actividades", {
+    const res = await fetch("/api/actividades", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -48,9 +48,14 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
         oportunidadId: oportunidadId ?? null,
       }),
     });
+    setGuardando(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error ?? "No se pudo crear la actividad. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
     setForm({ tipo: tipoInicial ?? "TAREA", titulo: "", fecha: fechaLocalDefault(), notas: "" });
     setAbierto(false);
-    setGuardando(false);
     onGuardado?.();
   }
 

@@ -9,6 +9,11 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
+  const tenant = await prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { modulos: true } });
+  if (!moduloActivo(tenant?.modulos, "expedientes")) {
+    return NextResponse.json({ error: "El módulo Expedientes no está activo" }, { status: 403 });
+  }
+
   const expedientes = await prisma.expediente.findMany({
     where: { tenantId: session.user.tenantId, ...filtroOwner(session.user.rol, session.user.id) },
     orderBy: { creadoEn: "desc" },
