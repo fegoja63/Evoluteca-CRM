@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   IconFilePlus, IconSearch, IconX, IconDownload, IconAlertTriangle, IconFileText,
+  IconSend, IconBan, IconTrash, IconArchive,
 } from "@tabler/icons-react";
 import { idsReemplazadas } from "@/lib/cotizaciones";
+import { guardarJson } from "@/lib/guardar";
+import { toast } from "@/lib/toast";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type Cotizacion = {
@@ -59,6 +62,8 @@ export default function CotizacionesFormalesPage() {
   const [soloVencidas, setSoloVencidas] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [exportando, setExportando] = useState(false);
+  const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set());
+  const [procesando, setProcesando] = useState(false);
 
   async function exportarExcel() {
     setExportando(true);
@@ -84,8 +89,49 @@ export default function CotizacionesFormalesPage() {
 
   async function eliminar(id: string) {
     if (!confirm("¿Eliminar esta cotización formal?")) return;
-    await fetch(`/api/cotizaciones/${id}`, { method: "DELETE" });
+    try {
+      const res = await fetch(`/api/cotizaciones/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+    } catch {
+      toast.error("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
     cargar();
+  }
+
+  function toggleSeleccion(id: string) {
+    setSeleccionadas(prev => {
+      const s = new Set(prev);
+      if (s.has(id)) s.delete(id); else s.add(id);
+      return s;
+    });
+  }
+
+  function toggleTodas(ids: string[]) {
+    setSeleccionadas(prev => {
+      const todasMarcadas = ids.length > 0 && ids.every(id => prev.has(id));
+      return todasMarcadas ? new Set() : new Set(ids);
+    });
+  }
+
+  // Ejecuta una acción en lote (enviar/rechazar/eliminar) sobre las
+  // cotizaciones dadas, en una sola petición transaccional.
+  async function accionLote(ids: string[], accion: "ENVIADA" | "RECHAZADA" | "eliminar", confirmMsg: string) {
+    if (ids.length === 0 || procesando) return;
+    if (!confirm(confirmMsg)) return;
+    setProcesando(true);
+    try {
+      const r = await guardarJson("/api/cotizaciones/bulk", "POST", { ids, accion }) as { afectadas?: number };
+      const n = r?.afectadas ?? ids.length;
+      const verbo = accion === "eliminar" ? "eliminadas (en Papelera)" : accion === "ENVIADA" ? "marcadas como enviadas" : "marcadas como rechazadas";
+      toast.success(`${n} cotización${n !== 1 ? "es" : ""} ${verbo}.`);
+      setSeleccionadas(new Set());
+      await cargar();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo completar la acción.");
+    } finally {
+      setProcesando(false);
+    }
   }
 
   // Cotizaciones reemplazadas por una versión más reciente del mismo negocio.
@@ -118,6 +164,15 @@ export default function CotizacionesFormalesPage() {
           <p className="text-slate-500 text-sm mt-1">Cada cotización aparece como un negocio en el Pipeline</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {reemplazadas.size > 0 && (
+            <button onClick={() => accionLote(Array.from(reemplazadas), "eliminar",
+              `¿Archivar ${reemplazadas.size} recotización${reemplazadas.size !== 1 ? "es" : ""} reemplazada${reemplazadas.size !== 1 ? "s" : ""}? Se moverán a la Papelera y podrás restaurarlas.`)}
+              disabled={procesando}
+              className="flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100 disabled:opacity-50">
+            <IconArchive size={16} stroke={1.75} />
+            Archivar reemplazadas ({reemplazadas.size})
+          </button>
+          )}
           <button onClick={exportarExcel} disabled={exportando}
             className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
             <IconDownload size={16} stroke={1.75} />
@@ -203,6 +258,12 @@ export default function CotizacionesFormalesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                <th className="px-4 py-1 text-center w-8">
+                  <input type="checkbox" aria-label="Seleccionar todo"
+                    className="cursor-pointer accent-brand-600 align-middle"
+                    checked={listado.length > 0 && listado.every(c => seleccionadas.has(c.id))}
+                    onChange={() => toggleTodas(listado.map(c => c.id))} />
+                </th>
                 <th className="px-4 py-1 text-left">N°</th>
                 <th className="px-4 py-1 text-left">Cliente</th>
                 <th className="px-4 py-1 text-left">Evento / Sede</th>
@@ -215,7 +276,13 @@ export default function CotizacionesFormalesPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {listado.map(c => (
-                <tr key={c.id} className={`hover:bg-slate-50 transition-colors group ${reemplazadas.has(c.id) ? "opacity-55" : ""}`}>
+                <tr key={c.id} className={`transition-colors group ${seleccionadas.has(c.id) ? "bg-brand-50/60" : "hover:bg-slate-50"} ${reemplazadas.has(c.id) ? "opacity-55" : ""}`}>
+                  <td className="px-4 py-1 text-center">
+                    <input type="checkbox" aria-label={`Seleccionar cotización ${c.numero}`}
+                      className="cursor-pointer accent-brand-600 align-middle"
+                      checked={seleccionadas.has(c.id)}
+                      onChange={() => toggleSeleccion(c.id)} />
+                  </td>
                   <td className="px-4 py-1">
                     <Link href={`/dashboard/cotizaciones-formales/${c.id}`}>
                       <span className="font-mono text-xs font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-lg">
@@ -274,7 +341,7 @@ export default function CotizacionesFormalesPage() {
             </tbody>
             <tfoot>
               <tr className="bg-slate-50 border-t-2 border-slate-200">
-                <td colSpan={5} className="px-4 py-1 text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                <td colSpan={6} className="px-4 py-1 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                   Total ({listado.length} cotizaciones)
                 </td>
                 <td className="px-4 py-1 text-right font-bold text-slate-900">{fmt(valorTotal)}</td>
@@ -282,6 +349,34 @@ export default function CotizacionesFormalesPage() {
               </tr>
             </tfoot>
           </table>
+        </div>
+      )}
+
+      {/* Barra de acciones en lote: aparece al seleccionar cotizaciones */}
+      {seleccionadas.size > 0 && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-xl">
+          <span className="text-sm font-semibold text-slate-700 pr-1">
+            {seleccionadas.size} seleccionada{seleccionadas.size !== 1 ? "s" : ""}
+          </span>
+          <button disabled={procesando}
+            onClick={() => accionLote(Array.from(seleccionadas), "ENVIADA", `¿Marcar ${seleccionadas.size} cotización(es) como Enviada?`)}
+            className="flex items-center gap-1.5 rounded-xl border border-brand-200 bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-700 hover:bg-brand-100 disabled:opacity-50">
+            <IconSend size={15} stroke={1.75} />Marcar enviada
+          </button>
+          <button disabled={procesando}
+            onClick={() => accionLote(Array.from(seleccionadas), "RECHAZADA", `¿Marcar ${seleccionadas.size} cotización(es) como Rechazada?`)}
+            className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-100 disabled:opacity-50">
+            <IconBan size={15} stroke={1.75} />Marcar rechazada
+          </button>
+          <button disabled={procesando}
+            onClick={() => accionLote(Array.from(seleccionadas), "eliminar", `¿Eliminar ${seleccionadas.size} cotización(es)? Se moverán a la Papelera y podrás restaurarlas.`)}
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+            <IconTrash size={15} stroke={1.75} />Eliminar
+          </button>
+          <button onClick={() => setSeleccionadas(new Set())}
+            className="text-slate-400 hover:text-slate-700 pl-1" aria-label="Cancelar selección">
+            <IconX size={16} stroke={2} />
+          </button>
         </div>
       )}
     </div>
