@@ -15,6 +15,7 @@ type Salon = { id: string; nombre: string; capacidad: number | null };
 type Disponibilidad = { aceptadas: { id: string; empresa: { nombre: string } | null }[]; pendientes: { id: string; empresa: { nombre: string } | null }[] };
 
 type Linea = { descripcion: string; cantidad: string; precioUnit: string };
+type LineaAhorro = { area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string };
 
 function fmt(v: number) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
@@ -161,6 +162,16 @@ export default function NuevaCotizacionPage() {
     { descripcion: "", cantidad: "1", precioUnit: "" },
   ]);
 
+  // Modalidad de cobro (módulo "Facturación por resultados").
+  const [moduloAhorros, setModuloAhorros] = useState(false);
+  const [modalidad, setModalidad] = useState<"FEE_FIJO" | "SUCCESS_FEE" | "FEE_MENSUAL">("FEE_FIJO");
+  const [lineasAhorro, setLineasAhorro] = useState<LineaAhorro[]>([
+    { area: "", gastoBaseMensual: "", ahorroEstimadoMensual: "" },
+  ]);
+  const [porcentajeHonorarios, setPorcentajeHonorarios] = useState("50");
+  const [horizonteMeses, setHorizonteMeses] = useState("18");
+  const [feeMensual, setFeeMensual] = useState("");
+
   const dirty =
     empresaId !== "" || contactoId !== "" || oportunidadId !== "" || salonId !== "" ||
     sede !== "" || fechaEvento !== "" || horaInicio !== "" || horaFin !== "" || fechaValidez !== "" || notas !== "" ||
@@ -199,6 +210,7 @@ export default function NuevaCotizacionPage() {
       if (salonesActivo) {
         fetch("/api/salones").then(r => r.json()).then(s => setSalones(Array.isArray(s) ? s : []));
       }
+      setModuloAhorros(!!config?.modulos?.ahorros);
       setCargando(false);
     });
   }, []);
@@ -221,6 +233,23 @@ export default function NuevaCotizacionPage() {
     setLineas(prev => prev.filter((_, idx) => idx !== i));
   }
 
+  function updateLineaAhorro(i: number, field: keyof LineaAhorro, val: string) {
+    setLineasAhorro(prev => prev.map((l, idx) => idx === i ? { ...l, [field]: val } : l));
+  }
+  function addLineaAhorro() {
+    setLineasAhorro(prev => [...prev, { area: "", gastoBaseMensual: "", ahorroEstimadoMensual: "" }]);
+  }
+  function removeLineaAhorro(i: number) {
+    setLineasAhorro(prev => prev.filter((_, idx) => idx !== i));
+  }
+
+  // Cálculos en vivo de las modalidades de honorarios.
+  const ahorroMensualTot = lineasAhorro.reduce((a, l) => a + (parseFloat(l.ahorroEstimadoMensual) || 0), 0);
+  const gastoBaseTot = lineasAhorro.reduce((a, l) => a + (parseFloat(l.gastoBaseMensual) || 0), 0);
+  const meses = parseInt(horizonteMeses) || 0;
+  const valorSuccessFee = ahorroMensualTot * ((parseFloat(porcentajeHonorarios) || 0) / 100) * meses;
+  const valorFeeMensualCalc = (parseFloat(feeMensual) || 0) * meses;
+
   const subtotal = lineas.reduce((acc, l) => {
     const q = parseFloat(l.cantidad) || 0;
     const p = parseFloat(l.precioUnit) || 0;
@@ -237,9 +266,19 @@ export default function NuevaCotizacionPage() {
     setError("");
 
     const lineasValidas = lineas.filter(l => l.descripcion.trim());
-    if (lineasValidas.length === 0) {
+    const lineasAhorroValidas = lineasAhorro.filter(l => l.area.trim());
+    if (modalidad === "FEE_FIJO" && lineasValidas.length === 0) {
       setError("Agrega al menos una línea de servicio con descripción.");
       return;
+    }
+    if (modalidad === "SUCCESS_FEE") {
+      if (lineasAhorroValidas.length === 0) { setError("Agrega al menos una línea de ahorro con su área."); return; }
+      if (!(parseFloat(porcentajeHonorarios) > 0)) { setError("Indica el % de honorarios."); return; }
+      if (!meses) { setError("Indica el horizonte en meses."); return; }
+    }
+    if (modalidad === "FEE_MENSUAL") {
+      if (!(parseFloat(feeMensual) > 0)) { setError("Indica el fee mensual."); return; }
+      if (!meses) { setError("Indica el horizonte en meses."); return; }
     }
     if (modoEmpresa === "nueva" && !empresaId && nuevaEmpresaForm.nombre.trim()) {
       setError("Tienes datos de un cliente nuevo sin crear. Haz clic en \"Crear cliente\" o cambia a \"Existente\".");
@@ -273,11 +312,20 @@ export default function NuevaCotizacionPage() {
         impuestoPorcentaje: impuestoPorcentaje || null,
         impuesto2Nombre: impuesto2Nombre.trim() || null,
         impuesto2Porcentaje: impuesto2Porcentaje || null,
-        items: lineasValidas.map(l => ({
+        modalidad,
+        items: modalidad === "FEE_FIJO" ? lineasValidas.map(l => ({
           descripcion: l.descripcion.trim(),
           cantidad:    parseInt(l.cantidad) || 1,
           precioUnit:  parseFloat(l.precioUnit) || 0,
-        })),
+        })) : [],
+        lineasAhorro: modalidad === "SUCCESS_FEE" ? lineasAhorroValidas.map(l => ({
+          area: l.area.trim(),
+          gastoBaseMensual: parseFloat(l.gastoBaseMensual) || 0,
+          ahorroEstimadoMensual: parseFloat(l.ahorroEstimadoMensual) || 0,
+        })) : [],
+        porcentajeHonorarios: modalidad === "SUCCESS_FEE" ? (porcentajeHonorarios || null) : null,
+        horizonteMeses: (modalidad === "SUCCESS_FEE" || modalidad === "FEE_MENSUAL") ? (horizonteMeses || null) : null,
+        feeMensual: modalidad === "FEE_MENSUAL" ? (feeMensual || null) : null,
       }),
     });
 
@@ -527,7 +575,29 @@ export default function NuevaCotizacionPage() {
           </div>
         </div>
 
-        {/* Líneas de servicio */}
+        {/* Selector de modalidad (módulo Facturación por resultados) */}
+        {moduloAhorros && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <h2 className="text-sm font-bold text-slate-700 mb-1">Modalidad de cobro</h2>
+            <p className="text-xs text-slate-400 mb-3">Cómo se cobra esta cotización.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {([
+                { k: "FEE_FIJO", t: "Fee fijo", d: "Líneas de servicio con precio" },
+                { k: "SUCCESS_FEE", t: "Success fee", d: "% del ahorro estimado × meses" },
+                { k: "FEE_MENSUAL", t: "Fee mensual", d: "Honorario fijo mensual × meses" },
+              ] as const).map(op => (
+                <button type="button" key={op.k} onClick={() => setModalidad(op.k)}
+                  className={`text-left rounded-xl border p-3 transition-colors ${modalidad === op.k ? "border-brand-400 ring-2 ring-brand-100 bg-brand-50/40" : "border-slate-200 hover:border-slate-300"}`}>
+                  <p className="text-sm font-semibold text-slate-800">{op.t}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{op.d}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Líneas de servicio (fee fijo) */}
+        {modalidad === "FEE_FIJO" && (
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <h2 className="text-sm font-bold text-slate-700 mb-4">Servicios / Ítems</h2>
 
@@ -645,6 +715,85 @@ export default function NuevaCotizacionPage() {
             </div>
           </div>
         </div>
+        )}
+
+        {/* Ahorro estimado (success fee) */}
+        {modalidad === "SUCCESS_FEE" && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <h2 className="text-sm font-bold text-slate-700 mb-1">Ahorro estimado por área</h2>
+            <p className="text-xs text-slate-400 mb-3">Los honorarios son un % de este ahorro durante el horizonte del contrato.</p>
+            <div className="mb-2 grid grid-cols-[1fr_120px_120px_28px] gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wide px-1">
+              <span>Área de gasto</span><span className="text-right">Gasto base/mes</span><span className="text-right">Ahorro/mes</span><span />
+            </div>
+            <div className="flex flex-col gap-2">
+              {lineasAhorro.map((l, i) => (
+                <div key={i} className="grid grid-cols-[1fr_120px_120px_28px] gap-2 items-center">
+                  <input type="text" placeholder="Ej: Telecomunicaciones" value={l.area}
+                    onChange={e => updateLineaAhorro(i, "area", e.target.value)}
+                    className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  <input type="number" min={0} step="1000" placeholder="0" value={l.gastoBaseMensual}
+                    onChange={e => updateLineaAhorro(i, "gastoBaseMensual", e.target.value)}
+                    className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 text-right" />
+                  <input type="number" min={0} step="1000" placeholder="0" value={l.ahorroEstimadoMensual}
+                    onChange={e => updateLineaAhorro(i, "ahorroEstimadoMensual", e.target.value)}
+                    className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 text-right" />
+                  <button type="button" onClick={() => removeLineaAhorro(i)} disabled={lineasAhorro.length === 1}
+                    className="text-slate-300 hover:text-red-500 disabled:opacity-30 text-lg font-bold leading-none">×</button>
+                </div>
+              ))}
+            </div>
+            <button type="button" onClick={addLineaAhorro} className="mt-3 text-sm text-brand-600 hover:underline">+ Área de gasto</button>
+
+            <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-end justify-between gap-4">
+              <div className="flex gap-2">
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">% honorarios</label>
+                  <input type="number" min={0} max={100} step="1" value={porcentajeHonorarios}
+                    onChange={e => setPorcentajeHonorarios(e.target.value)}
+                    className="w-24 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Horizonte (meses)</label>
+                  <input type="number" min={1} step="1" value={horizonteMeses}
+                    onChange={e => setHorizonteMeses(e.target.value)}
+                    className="w-28 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-slate-400">Ahorro mensual: <span className="font-medium text-slate-600">{fmt(ahorroMensualTot)}</span> · Gasto base: <span className="font-medium text-slate-600">{fmt(gastoBaseTot)}</span></p>
+                <p className="text-xs text-slate-400 uppercase tracking-wide mt-1">Honorario estimado</p>
+                <p className="text-2xl font-bold text-slate-900">{fmt(valorSuccessFee)}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Fee mensual */}
+        {modalidad === "FEE_MENSUAL" && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <h2 className="text-sm font-bold text-slate-700 mb-3">Fee mensual</h2>
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div className="flex gap-2">
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Fee mensual (COP)</label>
+                  <input type="number" min={0} step="1000" placeholder="0" value={feeMensual}
+                    onChange={e => setFeeMensual(e.target.value)}
+                    className="w-40 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 text-right" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Horizonte (meses)</label>
+                  <input type="number" min={1} step="1" value={horizonteMeses}
+                    onChange={e => setHorizonteMeses(e.target.value)}
+                    className="w-28 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-slate-400 uppercase tracking-wide">Total del contrato</p>
+                <p className="text-2xl font-bold text-slate-900">{fmt(valorFeeMensualCalc)}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Notas */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
