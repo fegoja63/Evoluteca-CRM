@@ -40,6 +40,30 @@ export function valorFeeMensual(
   return Number(feeMensual ?? 0) * Number(meses ?? 0);
 }
 
+export type CotizacionValor = {
+  modalidad?: string | null;
+  items?: { cantidad: number; precioUnit: number | string }[];
+  lineasAhorro?: LineaAhorroCalc[];
+  porcentajeHonorarios?: number | string | null;
+  horizonteMeses?: number | string | null;
+  feeMensual?: number | string | null;
+};
+
+/** Valor del contrato según la modalidad (honorario estimado). */
+export function valorCotizacion(c: CotizacionValor): number {
+  if (c.modalidad === "SUCCESS_FEE")
+    return valorSuccessFee(c.lineasAhorro ?? [], c.porcentajeHonorarios, c.horizonteMeses);
+  if (c.modalidad === "FEE_MENSUAL")
+    return valorFeeMensual(c.feeMensual, c.horizonteMeses);
+  return (c.items ?? []).reduce((s, it) => s + (it.cantidad ?? 1) * Number(it.precioUnit), 0);
+}
+
+export const MODALIDAD_LABEL: Record<string, string> = {
+  FEE_FIJO: "Fee fijo",
+  SUCCESS_FEE: "Success fee",
+  FEE_MENSUAL: "Fee mensual",
+};
+
 // Una cotización puede tener recotizaciones (versiones nuevas) que apuntan al
 // mismo negocio (oportunidad). Para no ensuciar el pipeline ni la lista con
 // versiones viejas, se calcula cuál es la cotización "vigente" de cada negocio

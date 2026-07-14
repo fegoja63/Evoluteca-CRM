@@ -6,15 +6,17 @@ import {
   IconFilePlus, IconSearch, IconX, IconDownload, IconAlertTriangle, IconFileText,
   IconSend, IconBan, IconTrash, IconArchive,
 } from "@tabler/icons-react";
-import { idsReemplazadas } from "@/lib/cotizaciones";
+import { idsReemplazadas, valorCotizacion, MODALIDAD_LABEL } from "@/lib/cotizaciones";
 import { guardarJson } from "@/lib/guardar";
 import { toast } from "@/lib/toast";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
+type LineaAhorro = { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string };
 type Cotizacion = {
   id: string;
   numero: number;
   estado: string;
+  modalidad: string;
   fechaEvento: string | null;
   fechaValidez: string | null;
   sede: string | null;
@@ -24,6 +26,10 @@ type Cotizacion = {
   contacto: { id: string; nombre: string; email: string | null } | null;
   oportunidad: { id: string; titulo: string } | null;
   items: Item[];
+  lineasAhorro: LineaAhorro[];
+  porcentajeHonorarios: string | null;
+  horizonteMeses: number | null;
+  feeMensual: string | null;
 };
 
 const ESTADO_COLOR: Record<string, string> = {
@@ -151,7 +157,7 @@ export default function CotizacionesFormalesPage() {
     return true;
   });
 
-  const valorTotal = listado.reduce((acc, c) => acc + (reemplazadas.has(c.id) ? 0 : total(c.items)), 0);
+  const valorTotal = listado.reduce((acc, c) => acc + (reemplazadas.has(c.id) ? 0 : valorCotizacion(c)), 0);
   const conteos = { BORRADOR: 0, ENVIADA: 0, ACEPTADA: 0, RECHAZADA: 0 };
   lista.forEach(c => { if (!reemplazadas.has(c.id) && c.estado in conteos) conteos[c.estado as keyof typeof conteos]++; });
   const vencidas = lista.filter(c => !reemplazadas.has(c.id) && validezBadge(c.fechaValidez, c.estado) !== null);
@@ -316,13 +322,18 @@ export default function CotizacionesFormalesPage() {
                     ) : "—"}
                   </td>
                   <td className="px-4 py-1 text-right font-bold text-slate-900 whitespace-nowrap">
-                    {c.items.length > 0 ? fmt(total(c.items)) : <span className="text-slate-400 font-normal">—</span>}
+                    {(() => { const v = valorCotizacion(c); return v > 0 ? fmt(v) : <span className="text-slate-400 font-normal">—</span>; })()}
                   </td>
                   <td className="px-4 py-1 text-center">
                     <div className="flex flex-col items-center gap-1">
                       <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${ESTADO_COLOR[c.estado]}`}>
                         {ESTADO_LABEL[c.estado]}
                       </span>
+                      {c.modalidad && c.modalidad !== "FEE_FIJO" && (
+                        <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold bg-brand-50 text-brand-700">
+                          {MODALIDAD_LABEL[c.modalidad] ?? c.modalidad}
+                        </span>
+                      )}
                       {reemplazadas.has(c.id) && (
                         <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold bg-slate-200 text-slate-500">
                           Reemplazada

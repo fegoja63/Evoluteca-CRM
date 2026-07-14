@@ -2,15 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
+import { ahorroMensualTotal, valorCotizacion, valorFeeMensual, MODALIDAD_LABEL } from "@/lib/cotizaciones";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { IconLink, IconMail, IconCheck, IconBrandWhatsapp, IconStar, IconDownload, IconCopy, IconArrowLeft } from "@tabler/icons-react";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
+type LineaAhorro = { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string };
 type Cotizacion = {
   id: string;
   numero: number;
   estado: string;
+  modalidad: string;
+  porcentajeHonorarios: string | null;
+  horizonteMeses: number | null;
+  feeMensual: string | null;
+  lineasAhorro: LineaAhorro[];
   fechaEvento: string | null;
   fechaValidez: string | null;
   sede: string | null;
@@ -110,7 +117,9 @@ export default function CotizacionDetailPage() {
       const sub = data.items.reduce((acc: number, i: Item) => acc + i.cantidad * Number(i.precioUnit), 0);
       const pct1 = Number(data.impuestoPorcentaje ?? 0);
       const pct2 = Number(data.impuesto2Porcentaje ?? 0);
-      const tot = sub + sub * (pct1 / 100) + sub * (pct2 / 100);
+      const tot = data.modalidad && data.modalidad !== "FEE_FIJO"
+        ? valorCotizacion(data)
+        : sub + sub * (pct1 / 100) + sub * (pct2 / 100);
       const numero = `#${String(data.numero).padStart(4, "0")}`;
       const cliente = data.empresa?.nombre ?? "";
       const saludo = data.contacto?.nombre ? `Hola ${data.contacto.nombre}` : "Hola";
@@ -469,7 +478,59 @@ export default function CotizacionDetailPage() {
           </div>
         </div>
 
-        {/* Ítems */}
+        {/* Honorarios (success fee / fee mensual) */}
+        {cot.modalidad !== "FEE_FIJO" && (
+          <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h2 className="text-sm font-bold text-slate-700">Propuesta de honorarios</h2>
+              <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold bg-brand-50 text-brand-700">{MODALIDAD_LABEL[cot.modalidad] ?? cot.modalidad}</span>
+            </div>
+            {cot.modalidad === "SUCCESS_FEE" ? (
+              <>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                      <th className="px-5 py-3 text-left">Área de gasto</th>
+                      <th className="px-5 py-3 text-right">Gasto base mensual</th>
+                      <th className="px-5 py-3 text-right">Ahorro estimado mensual</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {cot.lineasAhorro.map(l => (
+                      <tr key={l.id}>
+                        <td className="px-5 py-3 text-slate-800">{l.area}</td>
+                        <td className="px-5 py-3 text-right text-slate-600">{fmt(Number(l.gastoBaseMensual))}</td>
+                        <td className="px-5 py-3 text-right font-semibold text-emerald-700">{fmt(Number(l.ahorroEstimadoMensual))}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="px-5 py-4 border-t border-slate-100 space-y-1.5 text-sm">
+                  <div className="flex justify-between text-slate-600"><span>Ahorro mensual estimado</span><span className="font-semibold">{fmt(ahorroMensualTotal(cot.lineasAhorro))}</span></div>
+                  <div className="flex justify-between text-slate-600"><span>Honorarios (% del ahorro)</span><span className="font-semibold">{Number(cot.porcentajeHonorarios ?? 0)}%</span></div>
+                  <div className="flex justify-between text-slate-600"><span>Horizonte</span><span className="font-semibold">{cot.horizonteMeses ?? 0} meses</span></div>
+                  <div className="flex justify-between items-center border-t-2 border-slate-200 pt-3 mt-2">
+                    <span className="text-sm font-bold text-slate-700 uppercase tracking-wide">Honorario estimado</span>
+                    <span className="text-xl font-bold text-slate-900">{fmt(valorCotizacion(cot))}</span>
+                  </div>
+                  <p className="text-xs text-slate-400 pt-1">Estimación sobre el ahorro proyectado. El honorario real se cobra sobre el ahorro efectivamente verificado mes a mes.</p>
+                </div>
+              </>
+            ) : (
+              <div className="px-5 py-4 space-y-1.5 text-sm">
+                <div className="flex justify-between text-slate-600"><span>Fee mensual</span><span className="font-semibold">{fmt(Number(cot.feeMensual ?? 0))}</span></div>
+                <div className="flex justify-between text-slate-600"><span>Horizonte</span><span className="font-semibold">{cot.horizonteMeses ?? 0} meses</span></div>
+                <div className="flex justify-between items-center border-t-2 border-slate-200 pt-3 mt-2">
+                  <span className="text-sm font-bold text-slate-700 uppercase tracking-wide">Total del contrato</span>
+                  <span className="text-xl font-bold text-slate-900">{fmt(valorFeeMensual(cot.feeMensual, cot.horizonteMeses))}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Ítems (solo modalidad fee fijo) */}
+        {cot.modalidad === "FEE_FIJO" && (
         <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100">
             <h2 className="text-sm font-bold text-slate-700">Servicios / Ítems</h2>
@@ -572,6 +633,7 @@ export default function CotizacionDetailPage() {
             )}
           </div>
         </div>
+        )}
 
         {/* Notas */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
