@@ -496,7 +496,7 @@ export default function CotizacionDetailPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {cot.lineasAhorro.map(l => (
+                    {(cot.lineasAhorro ?? []).map(l => (
                       <tr key={l.id}>
                         <td className="px-5 py-3 text-slate-800">{l.area}</td>
                         <td className="px-5 py-3 text-right text-slate-600">{fmt(Number(l.gastoBaseMensual))}</td>
@@ -506,7 +506,7 @@ export default function CotizacionDetailPage() {
                   </tbody>
                 </table>
                 <div className="px-5 py-4 border-t border-slate-100 space-y-1.5 text-sm">
-                  <div className="flex justify-between text-slate-600"><span>Ahorro mensual estimado</span><span className="font-semibold">{fmt(ahorroMensualTotal(cot.lineasAhorro))}</span></div>
+                  <div className="flex justify-between text-slate-600"><span>Ahorro mensual estimado</span><span className="font-semibold">{fmt(ahorroMensualTotal(cot.lineasAhorro ?? []))}</span></div>
                   <div className="flex justify-between text-slate-600"><span>Honorarios (% del ahorro)</span><span className="font-semibold">{Number(cot.porcentajeHonorarios ?? 0)}%</span></div>
                   <div className="flex justify-between text-slate-600"><span>Horizonte</span><span className="font-semibold">{cot.horizonteMeses ?? 0} meses</span></div>
                   <div className="flex justify-between items-center border-t-2 border-slate-200 pt-3 mt-2">

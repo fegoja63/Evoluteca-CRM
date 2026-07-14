@@ -17,6 +17,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       contacto: { select: { id: true, nombre: true, email: true, telefono: true } },
       oportunidad: { select: { id: true, titulo: true } },
       items: { orderBy: { id: "asc" } },
+      lineasAhorro: { orderBy: { id: "asc" } },
     },
   });
   if (!cot) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
