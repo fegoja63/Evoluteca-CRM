@@ -21,6 +21,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       empresa:  { select: { nombre: true } },
       contacto: { select: { nombre: true, email: true } },
       items:    true,
+      lineasAhorro: { orderBy: { id: "asc" } },
       tenant:   { select: { logoUrl: true } },
     },
   });
@@ -49,6 +50,54 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;font-size:13px;font-weight:600;color:#1e293b;text-align:right">${fmt(i.cantidad * Number(i.precioUnit))}</td>
     </tr>`).join("");
 
+  // Modalidad de cobro: fee fijo (ítems) vs honorarios (success fee / fee mensual).
+  const esFijo = !cot.modalidad || cot.modalidad === "FEE_FIJO";
+  const ahorroMes = (cot.lineasAhorro ?? []).reduce((a, l) => a + Number(l.ahorroEstimadoMensual), 0);
+  const pctHon = Number(cot.porcentajeHonorarios ?? 0);
+  const mesesHz = cot.horizonteMeses ?? 0;
+  const feeMes = Number(cot.feeMensual ?? 0);
+  const valorContrato = cot.modalidad === "SUCCESS_FEE" ? ahorroMes * (pctHon / 100) * mesesHz
+    : cot.modalidad === "FEE_MENSUAL" ? feeMes * mesesHz : total;
+
+  const th = (t: string, align = "left") => `<th style="padding:10px 12px;text-align:${align};font-size:11px;color:#64748b;text-transform:uppercase;font-weight:600">${t}</th>`;
+  const tablaFijo = `
+    <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+      <thead><tr style="background:#f8fafc">${th("Descripción")}${th("Cant.","center")}${th("P. Unitario","right")}${th("Subtotal","right")}</tr></thead>
+      <tbody>${filasItems}</tbody>
+      <tfoot>
+        <tr><td colspan="3" style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">Subtotal</td><td style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${fmt(subtotal)}</td></tr>
+        ${pctImpuesto > 0 ? `<tr><td colspan="3" style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${cot.impuestoNombre ?? "Impuesto"} (${pctImpuesto}%)</td><td style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${fmt(valorImpuesto)}</td></tr>` : ""}
+        ${pctImpuesto2 > 0 ? `<tr><td colspan="3" style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${cot.impuesto2Nombre ?? "Impuesto"} (${pctImpuesto2}%)</td><td style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${fmt(valorImpuesto2)}</td></tr>` : ""}
+        <tr style="background:#f8fafc"><td colspan="3" style="padding:12px;font-size:13px;font-weight:700;color:#1e293b">TOTAL</td><td style="padding:12px;font-size:15px;font-weight:700;color:#1e3a8a;text-align:right">${fmt(total)}</td></tr>
+      </tfoot>
+    </table>`;
+  const filasAhorro = (cot.lineasAhorro ?? []).map(l => `
+    <tr>
+      <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;font-size:13px;color:#1e293b">${l.area}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;font-size:13px;color:#64748b;text-align:right">${fmt(Number(l.gastoBaseMensual))}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;font-size:13px;font-weight:600;color:#047857;text-align:right">${fmt(Number(l.ahorroEstimadoMensual))}</td>
+    </tr>`).join("");
+  const tablaSuccess = `
+    <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+      <thead><tr style="background:#f8fafc">${th("Área de gasto")}${th("Gasto base/mes","right")}${th("Ahorro/mes","right")}</tr></thead>
+      <tbody>${filasAhorro}</tbody>
+      <tfoot>
+        <tr><td colspan="2" style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">Ahorro mensual estimado</td><td style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${fmt(ahorroMes)}</td></tr>
+        <tr><td colspan="2" style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">Honorarios</td><td style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${pctHon}% × ${mesesHz} meses</td></tr>
+        <tr style="background:#f8fafc"><td colspan="2" style="padding:12px;font-size:13px;font-weight:700;color:#1e293b">HONORARIO ESTIMADO</td><td style="padding:12px;font-size:15px;font-weight:700;color:#1e3a8a;text-align:right">${fmt(valorContrato)}</td></tr>
+      </tfoot>
+    </table>
+    <p style="margin-top:8px;font-size:11px;color:#94a3b8">Estimación sobre el ahorro proyectado. El honorario real se cobra sobre el ahorro efectivamente verificado durante el horizonte del contrato.</p>`;
+  const tablaMensual = `
+    <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+      <tbody>
+        <tr><td style="padding:10px 12px;font-size:13px;color:#1e293b">Fee mensual</td><td style="padding:10px 12px;font-size:13px;color:#64748b;text-align:right">${fmt(feeMes)}</td></tr>
+        <tr><td style="padding:10px 12px;font-size:13px;color:#1e293b;border-top:1px solid #e2e8f0">Horizonte</td><td style="padding:10px 12px;font-size:13px;color:#64748b;text-align:right;border-top:1px solid #e2e8f0">${mesesHz} meses</td></tr>
+        <tr style="background:#f8fafc"><td style="padding:12px;font-size:13px;font-weight:700;color:#1e293b">TOTAL DEL CONTRATO</td><td style="padding:12px;font-size:15px;font-weight:700;color:#1e3a8a;text-align:right">${fmt(valorContrato)}</td></tr>
+      </tbody>
+    </table>`;
+  const tablaHtml = esFijo ? tablaFijo : (cot.modalidad === "SUCCESS_FEE" ? tablaSuccess : tablaMensual);
+
   const pdfUrl = `${process.env.NEXTAUTH_URL}/api/cotizaciones/${cot.id}/pdf`;
 
   const html = `
@@ -67,37 +116,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
           A continuación encontrará el detalle de la cotización <strong>${numero}</strong> emitida para <strong>${cliente}</strong>.
         </p>
 
-        <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
-          <thead>
-            <tr style="background:#f8fafc">
-              <th style="padding:10px 12px;text-align:left;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:600">Descripción</th>
-              <th style="padding:10px 12px;text-align:center;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:600">Cant.</th>
-              <th style="padding:10px 12px;text-align:right;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:600">P. Unitario</th>
-              <th style="padding:10px 12px;text-align:right;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:600">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>${filasItems}</tbody>
-          <tfoot>
-            <tr>
-              <td colspan="3" style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">Subtotal</td>
-              <td style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${fmt(subtotal)}</td>
-            </tr>
-            ${pctImpuesto > 0 ? `
-            <tr>
-              <td colspan="3" style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${cot.impuestoNombre ?? "Impuesto"} (${pctImpuesto}%)</td>
-              <td style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${fmt(valorImpuesto)}</td>
-            </tr>` : ""}
-            ${pctImpuesto2 > 0 ? `
-            <tr>
-              <td colspan="3" style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${cot.impuesto2Nombre ?? "Impuesto"} (${pctImpuesto2}%)</td>
-              <td style="padding:6px 12px;font-size:12px;color:#64748b;text-align:right">${fmt(valorImpuesto2)}</td>
-            </tr>` : ""}
-            <tr style="background:#f8fafc">
-              <td colspan="3" style="padding:12px;font-size:13px;font-weight:700;color:#1e293b">TOTAL</td>
-              <td style="padding:12px;font-size:15px;font-weight:700;color:#1e3a8a;text-align:right">${fmt(total)}</td>
-            </tr>
-          </tfoot>
-        </table>
+        ${tablaHtml}
 
         ${cot.notas ? `<div style="margin-top:16px;background:#f8fafc;border-radius:8px;padding:12px;font-size:12px;color:#64748b"><strong>Notas:</strong> ${cot.notas}</div>` : ""}
         ${cot.fechaValidez ? `<p style="margin-top:12px;font-size:12px;color:#94a3b8">Cotización válida hasta: <strong>${new Date(cot.fechaValidez).toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric", timeZone: "UTC" })}</strong></p>` : ""}

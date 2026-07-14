@@ -13,6 +13,7 @@ export async function GET(_req: Request, { params }: { params: { token: string }
       empresa:  { select: { nombre: true } },
       contacto: { select: { nombre: true, email: true } },
       items:    { orderBy: { id: "asc" } },
+      lineasAhorro: { orderBy: { id: "asc" } },
       tenant:   { select: { nombre: true, logoUrl: true } },
     },
   });

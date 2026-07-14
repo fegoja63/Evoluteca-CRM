@@ -17,10 +17,15 @@ type Cotizacion = {
   impuestoPorcentaje: string | null;
   impuesto2Nombre: string | null;
   impuesto2Porcentaje: string | null;
+  modalidad: string;
+  porcentajeHonorarios: string | null;
+  horizonteMeses: number | null;
+  feeMensual: string | null;
   empresa:  { nombre: string } | null;
   contacto: { nombre: string; email: string | null } | null;
   tenant:   { nombre: string; logoUrl: string | null };
   items: Item[];
+  lineasAhorro: { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string }[];
 };
 
 const MOTIVOS = [
@@ -102,6 +107,15 @@ export default function CotizacionPublicaPage() {
   const pctImpuesto2 = Number(cot.impuesto2Porcentaje ?? 0);
   const valorImpuesto2 = subtotal * (pctImpuesto2 / 100);
   const total = subtotal + valorImpuesto + valorImpuesto2;
+
+  // Modalidad de cobro (facturación por resultados).
+  const esFijo = !cot.modalidad || cot.modalidad === "FEE_FIJO";
+  const ahorroMes = (cot.lineasAhorro ?? []).reduce((a, l) => a + Number(l.ahorroEstimadoMensual), 0);
+  const pctHon = Number(cot.porcentajeHonorarios ?? 0);
+  const mesesHz = cot.horizonteMeses ?? 0;
+  const feeMes = Number(cot.feeMensual ?? 0);
+  const valorContrato = cot.modalidad === "SUCCESS_FEE" ? ahorroMes * (pctHon / 100) * mesesHz
+    : cot.modalidad === "FEE_MENSUAL" ? feeMes * mesesHz : total;
   const yaRespondida = cot.estado === "ACEPTADA" || cot.estado === "RECHAZADA";
 
   return (
@@ -139,7 +153,8 @@ export default function CotizacionPublicaPage() {
             ))}
           </div>
 
-          {/* Tabla items */}
+          {/* Tabla según modalidad de cobro */}
+          {esFijo ? (
           <div className="rounded-xl border border-slate-200 overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
@@ -184,6 +199,46 @@ export default function CotizacionPublicaPage() {
               </tfoot>
             </table>
           </div>
+          ) : (
+          <div className="rounded-xl border border-slate-200 overflow-hidden">
+            {cot.modalidad === "SUCCESS_FEE" ? (
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold">Área de gasto</th>
+                    <th className="px-4 py-3 text-right font-semibold">Gasto base/mes</th>
+                    <th className="px-4 py-3 text-right font-semibold">Ahorro/mes</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {(cot.lineasAhorro ?? []).map((l, idx) => (
+                    <tr key={l.id} className={idx % 2 === 1 ? "bg-slate-50" : ""}>
+                      <td className="px-4 py-3 text-slate-800">{l.area}</td>
+                      <td className="px-4 py-3 text-right text-slate-500">{fmt(Number(l.gastoBaseMensual))}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-emerald-700">{fmt(Number(l.ahorroEstimadoMensual))}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr><td colSpan={2} className="px-4 py-1.5 text-right text-xs text-slate-500">Ahorro mensual estimado</td><td className="px-4 py-1.5 text-right text-sm text-slate-600">{fmt(ahorroMes)}</td></tr>
+                  <tr><td colSpan={2} className="px-4 py-1.5 text-right text-xs text-slate-500">Honorarios</td><td className="px-4 py-1.5 text-right text-sm text-slate-600">{pctHon}% × {mesesHz} meses</td></tr>
+                  <tr className="bg-slate-50 border-t-2 border-slate-200"><td colSpan={2} className="px-4 py-3 font-bold text-slate-700 text-sm">HONORARIO ESTIMADO</td><td className="px-4 py-3 text-right font-bold text-[#1e3a8a] text-lg">{fmt(valorContrato)}</td></tr>
+                </tfoot>
+              </table>
+            ) : (
+              <table className="w-full text-sm">
+                <tbody className="divide-y divide-slate-100">
+                  <tr><td className="px-4 py-3 text-slate-800">Fee mensual</td><td className="px-4 py-3 text-right text-slate-500">{fmt(feeMes)}</td></tr>
+                  <tr><td className="px-4 py-3 text-slate-800">Horizonte</td><td className="px-4 py-3 text-right text-slate-500">{mesesHz} meses</td></tr>
+                  <tr className="bg-slate-50 border-t-2 border-slate-200"><td className="px-4 py-3 font-bold text-slate-700 text-sm">TOTAL DEL CONTRATO</td><td className="px-4 py-3 text-right font-bold text-[#1e3a8a] text-lg">{fmt(valorContrato)}</td></tr>
+                </tbody>
+              </table>
+            )}
+            {cot.modalidad === "SUCCESS_FEE" && (
+              <p className="px-4 py-2 text-xs text-slate-400 border-t border-slate-100">Estimación sobre el ahorro proyectado. El honorario real se cobra sobre el ahorro efectivamente verificado durante el horizonte del contrato.</p>
+            )}
+          </div>
+          )}
 
           {cot.notas && (
             <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 text-sm text-slate-600">

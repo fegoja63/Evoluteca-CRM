@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { renderToBuffer, Document, Page, Text, View, StyleSheet, Font, Image } from "@react-pdf/renderer";
+import { MODALIDAD_LABEL } from "@/lib/cotizaciones";
 import React from "react";
 
 export const dynamic = "force-dynamic";
@@ -98,17 +99,29 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       contacto:    { select: { nombre: true, email: true, cargo: true } },
       oportunidad: { select: { titulo: true } },
       items:       { orderBy: { id: "asc" } },
+      lineasAhorro:{ orderBy: { id: "asc" } },
       tenant:      { select: { nombre: true, logoUrl: true } },
     },
   });
   if (!cot) return new NextResponse("No encontrada", { status: 404 });
 
+  const esFijo = !cot.modalidad || cot.modalidad === "FEE_FIJO";
   const subtotal = cot.items.reduce((acc, i) => acc + i.cantidad * Number(i.precioUnit), 0);
   const pctImpuesto = Number(cot.impuestoPorcentaje ?? 0);
   const valorImpuesto = subtotal * (pctImpuesto / 100);
   const pctImpuesto2 = Number(cot.impuesto2Porcentaje ?? 0);
   const valorImpuesto2 = subtotal * (pctImpuesto2 / 100);
   const total = subtotal + valorImpuesto + valorImpuesto2;
+
+  // Modalidad de honorarios (success fee / fee mensual). En el servidor los
+  // montos son Decimal de Prisma, por eso se calcula inline con Number().
+  const ahorroMes = (cot.lineasAhorro ?? []).reduce((a, l) => a + Number(l.ahorroEstimadoMensual), 0);
+  const pctHon = Number(cot.porcentajeHonorarios ?? 0);
+  const mesesHz = cot.horizonteMeses ?? 0;
+  const feeMes = Number(cot.feeMensual ?? 0);
+  const valorContrato = cot.modalidad === "SUCCESS_FEE" ? ahorroMes * (pctHon / 100) * mesesHz
+    : cot.modalidad === "FEE_MENSUAL" ? feeMes * mesesHz
+    : total;
 
   // Si el logo configurado no carga (URL rota, host caído, no es una imagen),
   // @react-pdf/renderer puede lanzar una excepción no controlada dentro de
@@ -183,8 +196,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
         )
       ),
 
-      // Tabla de ítems
-      React.createElement(View, { style: styles.section },
+      // Servicios / honorarios según la modalidad de cobro
+      esFijo ? React.createElement(View, { style: styles.section },
         React.createElement(Text, { style: styles.sectionTitle }, "Servicios"),
         React.createElement(View, { style: styles.table },
           React.createElement(View, { style: styles.tableHead },
@@ -214,6 +227,35 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
             React.createElement(Text, { style: styles.totalValue }, fmt(total)),
           )
         )
+      ) : React.createElement(View, { style: styles.section },
+        React.createElement(Text, { style: styles.sectionTitle }, `Propuesta de honorarios — ${MODALIDAD_LABEL[cot.modalidad] ?? ""}`),
+        cot.modalidad === "SUCCESS_FEE" ? React.createElement(View, { style: styles.table },
+          React.createElement(View, { style: styles.tableHead },
+            React.createElement(Text, { style: [styles.tableHeadTx, styles.colDesc] }, "Área de gasto"),
+            React.createElement(Text, { style: [styles.tableHeadTx, styles.colNum] }, "Gasto base/mes"),
+            React.createElement(Text, { style: [styles.tableHeadTx, styles.colNum] }, "Ahorro/mes"),
+          ),
+          ...(cot.lineasAhorro ?? []).map((l, i) =>
+            React.createElement(View, { key: l.id, wrap: false, style: [styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}] },
+              React.createElement(Text, { style: [styles.cellTx, styles.colDesc] }, l.area),
+              React.createElement(Text, { style: [styles.cellTx, styles.colNum] }, fmt(Number(l.gastoBaseMensual))),
+              React.createElement(Text, { style: [styles.cellTx, styles.colNum, { fontFamily: "Helvetica-Bold" }] }, fmt(Number(l.ahorroEstimadoMensual))),
+            )
+          )
+        ) : null,
+        React.createElement(View, { style: styles.totalBox, wrap: false },
+          React.createElement(View, { style: styles.totalInner },
+            React.createElement(View, { style: { marginBottom: 6, alignItems: "flex-end" } },
+              cot.modalidad === "SUCCESS_FEE" ? React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `Ahorro mensual estimado: ${fmt(ahorroMes)}`) : null,
+              cot.modalidad === "SUCCESS_FEE" ? React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `Honorarios: ${pctHon}% del ahorro`) : null,
+              cot.modalidad === "FEE_MENSUAL" ? React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `Fee mensual: ${fmt(feeMes)}`) : null,
+              React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `Horizonte: ${mesesHz} meses`),
+            ),
+            React.createElement(Text, { style: styles.totalLabel }, cot.modalidad === "SUCCESS_FEE" ? "HONORARIO ESTIMADO" : "TOTAL DEL CONTRATO"),
+            React.createElement(Text, { style: styles.totalValue }, fmt(valorContrato)),
+          )
+        ),
+        cot.modalidad === "SUCCESS_FEE" ? React.createElement(Text, { style: { fontSize: 7.5, color: "#94a3b8", marginTop: 6 } }, "Estimación sobre el ahorro proyectado. El honorario real se cobra sobre el ahorro efectivamente verificado durante el horizonte del contrato.") : null,
       ),
 
       // Notas
