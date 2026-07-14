@@ -104,7 +104,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.15"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.16"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -236,7 +236,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.15 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.16 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -524,7 +524,7 @@ export async function GET() {
       React.createElement(Paso, { n: 2, titulo: "Seleccionar cliente", desc: "Para Cliente, Contacto y Oportunidad vinculada verás dos botones: Existente y + Nuevo. Usa Existente para elegir de la lista un cliente ya registrado (incluso si ya lo has cotizado antes); usa + Nuevo para crearlo sin salir del formulario." }),
       React.createElement(Paso, { n: 3, titulo: "Detalles del evento", desc: "Ingresa la sede o lugar, la fecha del evento y la fecha de validez de la cotización." }),
       React.createElement(Paso, { n: 4, titulo: "Agregar ítems", desc: 'Escribe cada servicio en la tabla de líneas: descripción, cantidad y precio unitario. Usa el selector "Agregar servicio del catálogo" para cargar ítems predefinidos automáticamente.' }),
-      React.createElement(Paso, { n: 5, titulo: "Impuesto y total", desc: "Si aplica, escribe el nombre del impuesto (ej: IVA) y su porcentaje. El sistema calcula automáticamente el desglose de Subtotal, Impuesto y Total." }),
+      React.createElement(Paso, { n: 5, titulo: "Impuestos y total", desc: "Si aplica, escribe el nombre y porcentaje del impuesto (ej: IVA 19%). Puedes agregar hasta dos impuestos (por ejemplo IVA y un cargo por servicio). El sistema calcula automáticamente el desglose de Subtotal, cada impuesto y Total." }),
       React.createElement(Paso, { n: 6, titulo: "Guardar y descargar", desc: 'Haz clic en "Guardar como borrador". Luego desde el detalle puedes cambiar el estado y descargar el PDF.' }),
 
       React.createElement(H2, null, "5.2 Cliente, contacto y oportunidad: existente o nuevo"),
@@ -543,35 +543,45 @@ export async function GET() {
       React.createElement(P, null, "Desde el detalle de la cotización cambias el estado con los botones de arriba. Desde Borrador puedes \"Marcar enviada\", o ir directo a \"Marcar aceptada\" / \"Marcar rechazada\" — útil cuando el cliente acepta por teléfono y nunca se envió el PDF formalmente."),
       React.createElement(Nota, null, "Al marcar una cotización como Aceptada, su negocio en el Pipeline pasa automáticamente a la etapa \"Ganada\" (la cotización es la base del pipeline). Rechazar una cotización NO mueve el negocio, porque a menudo se recotiza y el negocio sigue vivo."),
 
-      React.createElement(H2, null, "5.4 Impuesto y desglose del total"),
-      React.createElement(P, null, "Junto a la tabla de ítems encontrarás dos campos: el nombre del impuesto (por defecto \"IVA\", editable a cualquier texto) y su porcentaje. El sistema calcula automáticamente:"),
-      React.createElement(LI, null, "Subtotal — suma de todas las líneas de servicio (cantidad × precio unitario)"),
-      React.createElement(LI, null, "Impuesto — el porcentaje que ingresaste aplicado sobre el subtotal"),
-      React.createElement(LI, null, "Total — subtotal más impuesto"),
-      React.createElement(P, null, "Si dejas el porcentaje en 0 o vacío, el desglose de impuesto simplemente no aparece y el Total es igual al Subtotal. Puedes editar el impuesto en cualquier momento desde el detalle de la cotización, incluso después de guardarla, con el enlace \"Editar impuesto\" junto a la tabla de ítems."),
-      React.createElement(Tip, null, "El desglose de Subtotal / Impuesto / Total se muestra también en el PDF descargable, en el email enviado al cliente y en el link público de la cotización — no necesitas repetir la configuración en cada lugar."),
+      React.createElement(H2, null, "5.4 La cotización siembra el Pipeline"),
+      React.createElement(P, null, "La cotización es la base del pipeline: al guardar una cotización que no vinculaste a una oportunidad existente, el sistema crea automáticamente un negocio en el Pipeline en la etapa \"Cotización\", con el mismo cliente, salón, fecha y valor. Así toda cotización aparece como un negocio sin que tengas que crearlo aparte."),
+      React.createElement(P, null, "En el detalle de la cotización, el campo \"Negocio (Pipeline)\" muestra el nombre del negocio con una flecha (→): haz clic para ir directo a esa tarjeta en el Kanban del Pipeline y seguir su avance."),
 
-      React.createElement(H2, null, "5.5 Descargar PDF"),
-      React.createElement(P, null, 'Desde el detalle de cualquier cotización, haz clic en el botón "Descargar PDF". El PDF incluye el logo de tu empresa (si lo configuraste en Configuración), datos del cliente y contacto, tabla de ítems, desglose de impuesto y total, y notas.'),
+      React.createElement(H2, null, "5.5 Recotizaciones y versiones"),
+      React.createElement(P, null, "Un mismo negocio puede tener varias cotizaciones (por ejemplo, cuando ajustas el precio tras negociar). Para recotizar, crea una nueva cotización vinculada a la misma oportunidad, o usa el botón \"Duplicar\" desde el detalle. La versión más reciente queda como la vigente y las anteriores se marcan solas con un badge gris \"Reemplazada\"."),
+      React.createElement(LI, null, "En el Pipeline el negocio aparece una sola vez, no una por cada versión — el embudo no se infla con recotizaciones."),
+      React.createElement(LI, null, "Las cotizaciones \"Reemplazada\" no cuentan en los totales ni en las alertas de vencimiento, pero siguen visibles (atenuadas) para conservar el historial."),
+      React.createElement(Nota, null, "Si aceptas cualquier versión, esa se vuelve la vigente aunque no sea la más reciente, y su negocio pasa a Ganada."),
+
+      React.createElement(H2, null, "5.6 Impuestos y desglose del total"),
+      React.createElement(P, null, "Junto a la tabla de ítems puedes definir hasta dos impuestos, cada uno con su nombre (por defecto \"IVA\", editable a cualquier texto — ej: un cargo por servicio) y su porcentaje. El sistema calcula automáticamente:"),
+      React.createElement(LI, null, "Subtotal — suma de todas las líneas de servicio (cantidad × precio unitario)"),
+      React.createElement(LI, null, "Cada impuesto — el porcentaje que ingresaste aplicado sobre el subtotal"),
+      React.createElement(LI, null, "Total — subtotal más los impuestos"),
+      React.createElement(P, null, "Si dejas un porcentaje en 0 o vacío, ese impuesto simplemente no aparece en el desglose. Puedes editar los impuestos en cualquier momento desde el detalle de la cotización, incluso después de guardarla, con el enlace \"Editar impuestos\" junto a la tabla de ítems."),
+      React.createElement(Tip, null, "El desglose de Subtotal / Impuestos / Total se muestra también en el PDF descargable, en el email enviado al cliente y en el link público de la cotización — no necesitas repetir la configuración en cada lugar."),
+
+      React.createElement(H2, null, "5.7 Descargar PDF"),
+      React.createElement(P, null, 'Desde el detalle de cualquier cotización, haz clic en el botón "Descargar PDF". El PDF incluye el logo de tu empresa (si lo configuraste en Configuración), datos del cliente y contacto, tabla de ítems, desglose de impuestos y total, y notas.'),
       React.createElement(Tip, null, "El PDF se genera automáticamente con el estado actual de la cotización. Si haces cambios, descarga de nuevo para obtener la versión actualizada."),
 
-      React.createElement(H2, null, "5.6 Enviar la cotización por email"),
+      React.createElement(H2, null, "5.8 Enviar la cotización por email"),
       React.createElement(P, null, 'Desde el detalle de la cotización, haz clic en "Enviar email" para abrir un panel con un campo de correo editable. Viene pre-llenado con el email del contacto vinculado (si tiene), pero puedes cambiarlo por cualquier otra dirección antes de enviar — útil cuando quien recibe la cotización no es el contacto principal registrado en el CRM.'),
       React.createElement(P, null, "El correo incluye el PDF de la cotización como adjunto. También puedes generar un \"Link cliente\" — una URL pública de solo lectura que puedes compartir por cualquier canal (WhatsApp, mensaje directo) sin necesidad de enviar un correo."),
 
-      React.createElement(H2, null, "5.7 Catálogo de servicios"),
+      React.createElement(H2, null, "5.9 Catálogo de servicios"),
       React.createElement(P, null, 'Ve a Catálogo para crear servicios reutilizables con nombre, descripción y precio base. Al crear una cotización, aparece el selector "Agregar servicio del catálogo" que carga los datos automáticamente en una nueva línea.'),
       React.createElement(Nota, null, "El precio del catálogo es un precio base. Puedes modificarlo libremente en cada cotización sin afectar el catálogo."),
 
-      React.createElement(H2, null, "5.8 Fecha de validez y alertas de vencimiento"),
+      React.createElement(H2, null, "5.10 Fecha de validez y alertas de vencimiento"),
       React.createElement(P, null, "Cada cotización puede tener una fecha de validez. El sistema monitorea automáticamente las cotizaciones en estado BORRADOR o ENVIADA y muestra alertas cuando están próximas a vencer o ya vencidas:"),
       React.createElement(LI, null, "Badge rojo 'Vencida Xd' — la fecha de validez ya pasó"),
       React.createElement(LI, null, "Badge rojo 'Vence hoy' — vence el día de hoy"),
       React.createElement(LI, null, "Badge ámbar 'Vence en Xd' — vence en 7 días o menos"),
-      React.createElement(P, null, "En el dashboard principal aparece un bloque en el panel de alertas con el número de cotizaciones vencidas o próximas a vencer. Al hacer clic va directamente a la lista de cotizaciones."),
+      React.createElement(P, null, "En la propia lista de Cotizaciones aparece una franja roja de alerta con el número de cotizaciones vencidas o próximas a vencer, y un botón \"Ver vencidas\" que filtra el listado para mostrar solo esas. También en el dashboard principal el panel de alertas muestra ese conteo y enlaza a la lista."),
       React.createElement(Tip, null, "Cuando una cotización es ACEPTADA o RECHAZADA, los badges de vencimiento desaparecen — el estado definitivo ya no requiere seguimiento de validez."),
 
-      React.createElement(H2, null, "5.9 Plantillas de cotización"),
+      React.createElement(H2, null, "5.11 Plantillas de cotización"),
       React.createElement(P, null, 'Ve a Plantillas para guardar combinaciones completas de ítems que usas seguido (por ejemplo, un paquete de servicios para un tipo de evento) y reutilizarlas en segundos al armar una cotización nueva.'),
       React.createElement(Paso, { n: 1, titulo: "Crear una plantilla", desc: 'En Plantillas, botón "+ Nueva plantilla". Dale un nombre y agrega tantas líneas como necesites (descripción, cantidad, precio unitario) — igual que en el formulario de una cotización.' }),
       React.createElement(Paso, { n: 2, titulo: "Editar una plantilla", desc: 'Botón "Editar" sobre cualquier plantilla de la lista. Puedes cambiar el nombre y modificar, agregar o quitar cualquier línea de ítems — no solo renombrarla. Al guardar, la lista de ítems de la plantilla se reemplaza por completo con lo que dejaste en el formulario.' }),
