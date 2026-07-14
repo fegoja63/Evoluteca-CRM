@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
 import { useSession } from "next-auth/react";
 import {
-  IconTheater, IconTicket, IconScale, IconBuildingPavilion,
+  IconTheater, IconTicket, IconScale, IconBuildingPavilion, IconReportMoney,
   IconBuilding, IconUsers, IconChartFunnel, IconCalendar, IconFileText,
   IconReportAnalytics, IconUsersGroup, IconDownload, IconTrash, IconCheck,
   IconKey, IconCopy, IconRefresh, IconGripVertical, IconEye, IconEyeOff,
@@ -44,6 +44,12 @@ const MODULOS_DISPONIBLES: { key: string; titulo: string; descripcion: string; i
     titulo: "Módulo Salones (alquiler de espacios)",
     descripcion: "Catálogo de salones con capacidad y descripción, selector de salón en cada cotización, calendario mensual de reservas y aviso de choque de fechas cuando dos cotizaciones apuntan al mismo salón el mismo día. Ideal para negocios con varios espacios en alquiler.",
     icon: IconBuildingPavilion,
+  },
+  {
+    key: "ahorros",
+    titulo: "Módulo Facturación por resultados",
+    descripcion: "Cotiza cobrando por resultado: honorarios como % del ahorro estimado por área (success fee) o un fee mensual fijo, ambos por un horizonte de meses editable. Calcula el valor del contrato automáticamente. Ideal para consultoras de optimización de gasto que cobran sobre el ahorro logrado.",
+    icon: IconReportMoney,
   },
 ];
 
