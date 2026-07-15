@@ -4,7 +4,7 @@ import { Fragment, useEffect, useState } from "react";
 
 const CLAVE_KEY = "admin-evoluteca-secret";
 
-type Modulos = { funciones?: boolean; audiencia?: boolean; expedientes?: boolean; salones?: boolean };
+type Modulos = { funciones?: boolean; audiencia?: boolean; expedientes?: boolean; salones?: boolean; ahorros?: boolean };
 
 type Tenant = {
   id: string;
@@ -32,6 +32,7 @@ const MODULOS_DISPONIBLES = [
   { key: "audiencia", label: "Audiencia" },
   { key: "expedientes", label: "Expedientes" },
   { key: "salones", label: "Salones" },
+  { key: "ahorros", label: "Facturación por resultados" },
 ] as const;
 
 const PLANES = ["arranque", "empresa", "corporativo"] as const;
@@ -150,9 +151,14 @@ export default function ClientesInternoPage() {
             <h1 className="text-2xl font-semibold text-slate-900">Clientes de Evoluteca</h1>
             <p className="text-slate-500 text-sm mt-1">{tenants.length} tenants — página interna, no indexada</p>
           </div>
-          <a href="/admin-evoluteca/nuevo-cliente" className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-            + Nuevo cliente
-          </a>
+          <div className="flex gap-2">
+            <a href="/admin-evoluteca/errores" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+              Errores
+            </a>
+            <a href="/admin-evoluteca/nuevo-cliente" className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+              + Nuevo cliente
+            </a>
+          </div>
         </div>
 
         <input

@@ -419,6 +419,26 @@ model LineaAhorro {
   @@map("lineas_ahorro")
 }
 
+// Registro de errores en producción (monitoreo propio, sin terceros). Lo llena
+// el capturador del cliente (error boundary + window.onerror) y se ve desde el
+// panel interno de Evoluteca. Sin relación a Tenant (se conserva el histórico
+// aunque el tenant se elimine y sirve incluso sin sesión válida).
+model ErrorLog {
+  id           String   @id @default(uuid())
+  mensaje      String
+  stack        String?
+  url          String?
+  tipo         String   @default("client") // client | unhandledrejection | boundary
+  tenantId     String?
+  tenantNombre String?
+  usuarioEmail String?
+  userAgent    String?
+  creadoEn     DateTime @default(now())
+
+  @@index([creadoEn])
+  @@map("error_logs")
+}
+
 // ---- Plantillas de cotización ----
 
 model PlantillaCotizacion {
