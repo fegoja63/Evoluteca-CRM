@@ -19,6 +19,7 @@ import { Adjuntos } from "@/components/adjuntos";
 import { Etiquetas } from "@/components/etiquetas";
 import { guardarJson } from "@/lib/guardar";
 import { WhatsAppBtn } from "@/components/whatsapp-btn";
+import { ResumenIA } from "@/components/resumen-ia";
 import { IconPhone, IconMail, IconUsers, type Icon } from "@tabler/icons-react";
 
 type Detalle = {
@@ -220,7 +221,11 @@ export default function FichaClientePage() {
         </div>
       )}
 
-      <ExtrasPanel extras={empresa.extras} />
+      <ResumenIA empresaId={empresa.id} />
+
+      <div className="mt-4">
+        <ExtrasPanel extras={empresa.extras} />
+      </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5">
         <h2 className="text-sm font-bold text-slate-700 mb-3">Etiquetas</h2>
