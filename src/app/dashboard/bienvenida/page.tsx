@@ -5,13 +5,14 @@ import { useEffect, useState } from "react";
 import {
   IconDatabaseImport, IconBuilding, IconChartFunnel, IconUsers, IconFileText,
   IconCalendar, IconReportAnalytics, IconBooks, IconTheater, IconBuildingPavilion,
-  IconFlask, IconDownload, IconCircleCheck, IconApi, type Icon,
+  IconFlask, IconDownload, IconCircleCheck, IconApi, IconReportMoney, type Icon,
 } from "@tabler/icons-react";
 
 export default function BienvenidaPage() {
   const [nombre, setNombre] = useState("");
   const [esTeatro, setEsTeatro] = useState(false);
   const [esSalones, setEsSalones] = useState(false);
+  const [esAhorros, setEsAhorros] = useState(false);
   const [esDemoTeatro, setEsDemoTeatro] = useState(false);
   const [esDemoEvoluteca, setEsDemoEvoluteca] = useState(false);
 
@@ -22,6 +23,7 @@ export default function BienvenidaPage() {
         if (d.tenantNombre) setNombre(d.tenantNombre);
         setEsTeatro(!!d.modulos?.funciones || !!d.modulos?.audiencia);
         setEsSalones(!!d.modulos?.salones);
+        setEsAhorros(!!d.modulos?.ahorros);
         setEsDemoTeatro(d.tenantNombre === "Demo Teatro");
         setEsDemoEvoluteca(d.tenantNombre === "Demo Evoluteca");
       });
@@ -198,6 +200,29 @@ export default function BienvenidaPage() {
               <div className="flex gap-3">
                 <a href="/api/manual/pdf-salones" target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 transition-colors">
+                  <IconDownload size={16} stroke={1.75} /> Descargar anexo PDF
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Anexo Facturación por resultados — solo si el módulo está activo */}
+      {esAhorros && (
+        <div className="bg-white rounded-2xl border border-emerald-200 p-5 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
+              <IconReportMoney size={22} stroke={1.75} className="text-emerald-600" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-sm font-bold text-slate-900 mb-1">Anexo — Facturación por Resultados</h2>
+              <p className="text-xs text-slate-500 mb-4">
+                Guía adicional solo con lo específico de tu operación: las tres modalidades de cobro (fee fijo, success fee y fee mensual), cómo cotizar por % del ahorro o por fee mensual paso a paso, el cálculo del honorario, y cómo enviar la propuesta al cliente.
+              </p>
+              <div className="flex gap-3">
+                <a href="/api/manual/pdf-ahorros" target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors">
                   <IconDownload size={16} stroke={1.75} /> Descargar anexo PDF
                 </a>
               </div>
