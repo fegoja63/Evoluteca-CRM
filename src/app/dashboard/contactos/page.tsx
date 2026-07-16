@@ -5,8 +5,10 @@ import Link from "next/link";
 import { Pager } from "@/components/pager";
 import {
   IconUsers, IconBuilding, IconAlertTriangle, IconMail, IconUserCircle, IconX,
+  IconPencil,
   type Icon,
 } from "@tabler/icons-react";
+import { toast } from "@/lib/toast";
 
 const TAKE = 30;
 
@@ -38,6 +40,9 @@ export default function ContactosPage() {
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [stats, setStats] = useState({ total: 0, conEmpresa: 0, sinEmpresa: 0, conEmail: 0 });
+  const [editando, setEditando] = useState<Contacto | null>(null);
+  const [formEdit, setFormEdit] = useState({ nombre: "", email: "", telefono: "", cargo: "", empresaId: "" });
+  const [guardandoEdit, setGuardandoEdit] = useState(false);
 
   const duplicados = todosContactos.filter(c => {
     const nombreMatch = form.nombre.trim().length >= 3 &&
@@ -128,6 +133,45 @@ export default function ContactosPage() {
     setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
     setMostrarForm(false);
     setGuardando(false);
+    cargar(busqueda, page);
+    cargarStats(busqueda);
+    fetch("/api/contactos").then(res => res.json()).then(setTodosContactos);
+  }
+
+  function abrirEdicion(c: Contacto) {
+    setEditando(c);
+    setFormEdit({
+      nombre: c.nombre,
+      email: c.email ?? "",
+      telefono: c.telefono ?? "",
+      cargo: c.cargo ?? "",
+      empresaId: c.empresa?.id ?? "",
+    });
+  }
+
+  async function handleGuardarEdicion(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editando) return;
+    setGuardandoEdit(true);
+    try {
+      const res = await fetch(`/api/contactos/${editando.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formEdit),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error ?? "No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+        setGuardandoEdit(false);
+        return;
+      }
+    } catch {
+      toast.error("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+      setGuardandoEdit(false);
+      return;
+    }
+    setEditando(null);
+    setGuardandoEdit(false);
     cargar(busqueda, page);
     cargarStats(busqueda);
     fetch("/api/contactos").then(res => res.json()).then(setTodosContactos);
@@ -340,6 +384,7 @@ export default function ContactosPage() {
                 <th className="px-4 py-1 font-medium">Cargo</th>
                 <th className="px-4 py-1 font-medium">Email</th>
                 <th className="px-4 py-1 font-medium">Empresa</th>
+                <th className="px-4 py-1 font-medium text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
@@ -353,11 +398,79 @@ export default function ContactosPage() {
                   <td className="px-4 py-1 text-neutral-500">{c.cargo ?? "—"}</td>
                   <td className="px-4 py-1 text-neutral-500">{c.email ?? "—"}</td>
                   <td className="px-4 py-1 text-neutral-500">{c.empresa?.nombre ?? "—"}</td>
+                  <td className="px-4 py-1 text-right">
+                    <button onClick={() => abrirEdicion(c)} title="Editar"
+                      className="text-neutral-300 hover:text-brand-600 inline-flex">
+                      <IconPencil size={15} stroke={1.75} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
           <Pager page={page} take={TAKE} total={totalCount} onChange={cambiarPagina} />
+        </div>
+      )}
+
+      {editando && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setEditando(null)}>
+          <div className="w-full max-w-lg rounded-xl border border-neutral-200 bg-white p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-medium text-neutral-900">Editar contacto</h2>
+              <button onClick={() => setEditando(null)} className="text-neutral-400 hover:text-neutral-700">
+                <IconX size={18} stroke={1.75} />
+              </button>
+            </div>
+            <form onSubmit={handleGuardarEdicion} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label className="mb-1 block text-xs text-neutral-500">Nombre *</label>
+                <input required value={formEdit.nombre}
+                  onChange={(e) => setFormEdit({ ...formEdit, nombre: e.target.value })}
+                  className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-neutral-500">Email</label>
+                <input type="email" value={formEdit.email}
+                  onChange={(e) => setFormEdit({ ...formEdit, email: e.target.value })}
+                  className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-neutral-500">Teléfono</label>
+                <input value={formEdit.telefono}
+                  onChange={(e) => setFormEdit({ ...formEdit, telefono: e.target.value })}
+                  className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-neutral-500">Cargo</label>
+                <input value={formEdit.cargo}
+                  onChange={(e) => setFormEdit({ ...formEdit, cargo: e.target.value })}
+                  className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-neutral-500">Empresa</label>
+                <select value={formEdit.empresaId}
+                  onChange={(e) => setFormEdit({ ...formEdit, empresaId: e.target.value })}
+                  className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                  <option value="">Sin empresa</option>
+                  {empresas.map((emp) => (
+                    <option key={emp.id} value={emp.id}>{emp.nombre}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-span-2 flex gap-2 pt-1">
+                <button type="submit" disabled={guardandoEdit}
+                  className="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                  {guardandoEdit ? "Guardando..." : "Guardar cambios"}
+                </button>
+                <button type="button" onClick={() => setEditando(null)}
+                  className="rounded-md border border-neutral-300 px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-100">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

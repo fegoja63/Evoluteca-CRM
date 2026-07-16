@@ -38,6 +38,30 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: "Demasiados resúmenes seguidos. Espera un momento." }, { status: 429 });
   }
 
+  // Cupo mensual de resúmenes según el plan del tenant.
+  // null = ilimitado · 0 = desactivado · N>0 = tope mensual.
+  const periodo = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: session.user.tenantId },
+    select: { limiteResumenesIA: true },
+  });
+  const limite = tenant?.limiteResumenesIA ?? null;
+  if (limite === 0) {
+    return NextResponse.json({ error: "Los Resúmenes con IA no están incluidos en tu plan." }, { status: 403 });
+  }
+  if (limite != null) {
+    const uso = await prisma.usoIA.findUnique({
+      where: { tenantId_periodo: { tenantId: session.user.tenantId, periodo } },
+      select: { cantidad: true },
+    });
+    if ((uso?.cantidad ?? 0) >= limite) {
+      return NextResponse.json(
+        { error: `Alcanzaste el límite de ${limite} resúmenes con IA este mes. Escríbenos para ampliar tu plan.` },
+        { status: 429 },
+      );
+    }
+  }
+
   const empresa = await prisma.empresa.findFirst({
     where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
     include: {
@@ -99,7 +123,22 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
           messages: [{ role: "user", content: contexto }],
         });
         ms.on("text", (delta) => controller.enqueue(encoder.encode(delta)));
-        await ms.finalMessage();
+        const final = await ms.finalMessage();
+        // Registra el consumo del mes (best-effort; no rompe la respuesta).
+        try {
+          await prisma.usoIA.upsert({
+            where: { tenantId_periodo: { tenantId: session.user.tenantId, periodo } },
+            create: {
+              tenantId: session.user.tenantId, periodo, cantidad: 1,
+              tokensEntrada: final.usage.input_tokens, tokensSalida: final.usage.output_tokens,
+            },
+            update: {
+              cantidad: { increment: 1 },
+              tokensEntrada: { increment: final.usage.input_tokens },
+              tokensSalida: { increment: final.usage.output_tokens },
+            },
+          });
+        } catch { /* el conteo no debe tumbar el resumen */ }
       } catch {
         controller.enqueue(encoder.encode("\n\n_No se pudo generar el resumen en este momento. Inténtalo de nuevo._"));
       } finally {

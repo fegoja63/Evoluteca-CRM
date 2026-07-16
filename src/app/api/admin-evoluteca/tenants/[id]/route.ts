@@ -14,7 +14,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const body = await req.json();
   const { data, error } = parseOrError(editarTenantSchema, body);
   if (error) return error;
-  const { activo, plan, emailsActivos, limiteUsuarios, modulos } = data;
+  const { activo, plan, emailsActivos, limiteUsuarios, limiteResumenesIA, modulos } = data;
 
   // Los módulos se fusionan (no se reemplaza el objeto completo) para no
   // desactivar accidentalmente un módulo que no vino en este PATCH.
@@ -28,11 +28,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       ...(plan !== undefined && { plan }),
       ...(emailsActivos !== undefined && { emailsActivos }),
       ...(limiteUsuarios !== undefined && { limiteUsuarios }),
+      ...(limiteResumenesIA !== undefined && { limiteResumenesIA }),
       ...(modulosNuevos !== undefined && { modulos: modulosNuevos }),
     },
     select: {
       id: true, nombre: true, slug: true, plan: true, activo: true,
       creadoEn: true, modulos: true, emailsActivos: true, limiteUsuarios: true,
+      limiteResumenesIA: true,
       _count: { select: { usuarios: true, empresas: true, cotizaciones: true } },
     },
   });

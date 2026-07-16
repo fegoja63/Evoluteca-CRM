@@ -13,6 +13,9 @@ export const editarTenantSchema = z.object({
   // null = sin límite (usuarios ilimitados); un entero positivo es el tope
   // de usuarios activos permitidos para ese tenant.
   limiteUsuarios: z.union([z.number().int().min(1).max(9999), z.null()]).optional(),
+  // Tope mensual de Resúmenes con IA. null = ilimitado; 0 = desactivado;
+  // entero positivo = tope. Palanca de plan controlada solo por el panel.
+  limiteResumenesIA: z.union([z.number().int().min(0).max(99999), z.null()]).optional(),
   modulos: z.object({
     funciones: z.boolean().optional(),
     audiencia: z.boolean().optional(),

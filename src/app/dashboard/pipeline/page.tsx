@@ -540,7 +540,9 @@ export default function PipelinePage() {
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Título *</label>
               <input required value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                placeholder="Cliente – Servicio (Mes Año). Ej: Teatro Nacional – Renta de salón (Ago 2026)"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 placeholder:text-slate-400" />
+              <p className="mt-1 text-xs text-slate-400">Usa el formato <span className="font-medium">Cliente – Servicio (Mes Año)</span> para que todas las oportunidades se vean igual.</p>
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Valor estimado (COP)</label>

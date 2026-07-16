@@ -49,6 +49,10 @@ model Tenant {
   // Lo controla exclusivamente el panel interno de Evoluteca, no el propio
   // tenant — es una palanca de precios, no una preferencia de cuenta.
   limiteUsuarios Int?
+  // Tope de "Resúmenes con IA" por mes (palanca de plan, controlada por el
+  // panel interno). null = ilimitado; 0 = IA desactivada; N>0 = tope mensual.
+  // Por defecto 100 (plan Pro). El consumo real se lleva en UsoIA.
+  limiteResumenesIA Int? @default(100)
 
   usuarios        Usuario[]
   empresas        Empresa[]
@@ -71,8 +75,27 @@ model Tenant {
   salones             Salon[]
   adjuntos            Adjunto[]
   etapasPipeline      EtapaPipeline[]
+  usoIA               UsoIA[]
 
   @@map("tenants")
+}
+
+// Consumo mensual de "Resúmenes con IA" por tenant. Una fila por
+// (tenant, periodo "YYYY-MM"). Se incrementa cada vez que se genera un
+// resumen exitoso; se usa para hacer cumplir limiteResumenesIA y para
+// mostrar el gasto en el panel interno.
+model UsoIA {
+  id            String   @id @default(uuid())
+  tenantId      String
+  periodo       String   // "YYYY-MM"
+  cantidad      Int      @default(0)
+  tokensEntrada Int      @default(0)
+  tokensSalida  Int      @default(0)
+  actualizadoEn DateTime @updatedAt
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, periodo])
+  @@map("uso_ia")
 }
 
 model Usuario {

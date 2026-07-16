@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   IconFilePlus, IconSearch, IconX, IconDownload, IconChartFunnel,
-  IconTarget, IconCircleCheck, IconFileText, IconArrowsExchange,
+  IconTarget, IconCircleCheck, IconFileText, IconArrowsExchange, IconPencil,
   type Icon,
 } from "@tabler/icons-react";
+import { toast } from "@/lib/toast";
 
 type Oportunidad = {
   id: string;
@@ -197,6 +198,52 @@ export default function CotizacionesPage() {
 
   const [busqueda, setBusqueda] = useState("");
   const [cambiandoEtapa, setCambiandoEtapa] = useState<string | null>(null);
+  const [editando, setEditando] = useState<Oportunidad | null>(null);
+  const [formEdit, setFormEdit] = useState({ titulo: "", empresaId: "", contactoId: "", valor: "", etapa: "PROPUESTA" });
+  const [guardandoEdit, setGuardandoEdit] = useState(false);
+
+  function abrirEdicion(o: Oportunidad) {
+    setEditando(o);
+    setFormEdit({
+      titulo: o.titulo,
+      empresaId: o.empresa?.id ?? "",
+      contactoId: o.contacto?.id ?? "",
+      valor: o.valor ?? "",
+      etapa: o.etapa,
+    });
+  }
+
+  async function handleGuardarEdicion(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editando) return;
+    setGuardandoEdit(true);
+    try {
+      const res = await fetch(`/api/oportunidades/${editando.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          titulo: formEdit.titulo,
+          empresaId: formEdit.empresaId || null,
+          contactoId: formEdit.contactoId || null,
+          valor: formEdit.valor === "" ? null : formEdit.valor,
+          etapa: formEdit.etapa,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error ?? "No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+        setGuardandoEdit(false);
+        return;
+      }
+    } catch {
+      toast.error("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+      setGuardandoEdit(false);
+      return;
+    }
+    setEditando(null);
+    setGuardandoEdit(false);
+    cargar();
+  }
 
   async function cambiarEtapa(id: string, nuevaEtapa: string) {
     setCambiandoEtapa(id);
@@ -531,6 +578,7 @@ export default function CotizacionesPage() {
                 <th className="px-4 py-1 text-left">Trimestre</th>
                 <th className="px-4 py-1 text-right">Valor cotizado</th>
                 <th className="px-4 py-1 text-center">Etapa</th>
+                <th className="px-4 py-1 text-center">Editar</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -588,6 +636,12 @@ export default function CotizacionesPage() {
                       ))}
                     </select>
                   </td>
+                  <td className="px-4 py-1 text-center">
+                    <button onClick={() => abrirEdicion(o)} title="Editar cotización"
+                      className="text-slate-300 hover:text-brand-600 inline-flex">
+                      <IconPencil size={15} stroke={1.75} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -600,9 +654,72 @@ export default function CotizacionesPage() {
                   {fmt(listado.reduce((acc, o) => acc + Number(o.valor ?? 0), 0))}
                 </td>
                 <td />
+                <td />
               </tr>
             </tfoot>
           </table>
+        </div>
+      )}
+
+      {editando && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setEditando(null)}>
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-slate-800">Editar cotización</h2>
+              <button onClick={() => setEditando(null)} className="text-slate-400 hover:text-slate-600">
+                <IconX size={18} stroke={1.75} />
+              </button>
+            </div>
+            <form onSubmit={handleGuardarEdicion} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label className="mb-1 block text-xs text-slate-500">Tipo de evento / Negocio *</label>
+                <input required value={formEdit.titulo}
+                  onChange={e => setFormEdit({ ...formEdit, titulo: e.target.value })}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-slate-500">Empresa / Cliente</label>
+                <select value={formEdit.empresaId} onChange={e => setFormEdit({ ...formEdit, empresaId: e.target.value })}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                  <option value="">Sin empresa</option>
+                  {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-slate-500">Contacto</label>
+                <select value={formEdit.contactoId} onChange={e => setFormEdit({ ...formEdit, contactoId: e.target.value })}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                  <option value="">Sin contacto</option>
+                  {contactos.map(c => <option key={c.id} value={c.id}>{c.nombre}{c.email ? ` — ${c.email}` : ""}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-slate-500">Valor cotizado (COP)</label>
+                <input type="number" step="1000" placeholder="0" value={formEdit.valor}
+                  onChange={e => setFormEdit({ ...formEdit, valor: e.target.value })}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-slate-500">Etapa</label>
+                <select value={formEdit.etapa} onChange={e => setFormEdit({ ...formEdit, etapa: e.target.value })}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                  {ETAPAS_ACTIVAS.map(e => <option key={e} value={e}>{ETAPA_LABEL[e]}</option>)}
+                </select>
+              </div>
+              <div className="col-span-2 flex justify-end gap-2 pt-1">
+                <button type="button" onClick={() => setEditando(null)}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={guardandoEdit}
+                  className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                  {guardandoEdit ? "Guardando..." : "Guardar cambios"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

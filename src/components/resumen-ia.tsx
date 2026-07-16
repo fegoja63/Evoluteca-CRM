@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IconSparkles } from "@tabler/icons-react";
+
+type Uso = { limite: number | null; usados: number; iaConfigurada: boolean };
 
 // Botón "Resumen con IA" para la ficha de un cliente. Llama al endpoint propio
 // (POST /api/ia/resumen-cliente/[id]) que a su vez llama a Claude, y muestra el
@@ -12,6 +14,15 @@ export function ResumenIA({ empresaId }: { empresaId: string }) {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
   const [abierto, setAbierto] = useState(false);
+  const [uso, setUso] = useState<Uso | null>(null);
+
+  async function cargarUso() {
+    try {
+      const res = await fetch("/api/ia/uso");
+      if (res.ok) setUso(await res.json());
+    } catch { /* silencioso */ }
+  }
+  useEffect(() => { cargarUso(); }, []);
 
   async function generar() {
     setCargando(true);
@@ -39,8 +50,18 @@ export function ResumenIA({ empresaId }: { empresaId: string }) {
       setError("No se pudo generar el resumen. Revisa tu conexión e inténtalo de nuevo.");
     } finally {
       setCargando(false);
+      cargarUso();
     }
   }
+
+  // Texto de consumo del mes: "12 / 100 este mes" o "12 este mes" (ilimitado).
+  const usoTexto = uso && uso.iaConfigurada && uso.limite !== 0
+    ? uso.limite == null
+      ? `${uso.usados} este mes`
+      : `${uso.usados} / ${uso.limite} este mes`
+    : null;
+  const sinPlan = uso?.limite === 0;
+  const topeAlcanzado = uso?.limite != null && uso.limite > 0 && uso.usados >= uso.limite;
 
   return (
     <div className="mt-4 rounded-2xl border border-brand-200 bg-brand-50/40 p-5">
@@ -51,15 +72,19 @@ export function ResumenIA({ empresaId }: { empresaId: string }) {
           </div>
           <div>
             <h2 className="text-sm font-semibold text-slate-800">Resumen con IA</h2>
-            <p className="text-xs text-slate-500">Un vistazo rápido de la cuenta y la siguiente acción sugerida.</p>
+            <p className="text-xs text-slate-500">
+              Un vistazo rápido de la cuenta y la siguiente acción sugerida.
+              {usoTexto && <span className="text-slate-400"> · {usoTexto}</span>}
+            </p>
           </div>
         </div>
         <button
           onClick={generar}
-          disabled={cargando}
-          className="shrink-0 rounded-xl bg-brand-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+          disabled={cargando || sinPlan || topeAlcanzado}
+          title={sinPlan ? "No incluido en tu plan" : topeAlcanzado ? "Alcanzaste tu límite del mes" : undefined}
+          className="shrink-0 rounded-xl bg-brand-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {cargando ? "Generando…" : texto || error ? "Regenerar" : "Generar resumen"}
+          {cargando ? "Generando…" : sinPlan ? "No disponible" : topeAlcanzado ? "Límite alcanzado" : texto || error ? "Regenerar" : "Generar resumen"}
         </button>
       </div>
 

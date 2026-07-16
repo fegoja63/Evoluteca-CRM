@@ -111,7 +111,9 @@
       "Bash(python \"C:\\\\Users\\\\felip\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-felip-OneDrive-Desktop-Info-FGJ-evoluteca-crm-sprint1-V2\\\\ac87279c-e144-486e-97b2-5376739e87b4\\\\scratchpad\\\\belarte\\\\extract.py\")",
       "Bash(python \"/c/Users/felip/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/532d72a5-100c-4d87-9b94-6c40ab4d1970/4099ec0b-e72b-4758-a8f2-7040aa6db819/skills/pptx/scripts/office/soffice.py\" --headless --convert-to pdf \"C:\\\\Users\\\\felip\\\\OneDrive\\\\Desktop\\\\Belarte\\\\Analisis Belarte.pptx\")",
       "Bash(python -c ' *)",
-      "Bash(mkdir -p media)"
+      "Bash(mkdir -p media)",
+      "Bash(npx vitest *)",
+      "Bash(echo \"=== EXIT: $? ===\")"
     ]
   }
 }

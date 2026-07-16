@@ -8,9 +8,17 @@ import {
   IconPhone, IconUsers, IconCheck, IconMail, IconPinned,
   IconChevronLeft, IconChevronRight, IconTrash, IconLayoutList, IconCalendar,
   IconFileExport, IconFileSpreadsheet, IconPlus, IconBell, IconCircleCheck,
-  IconAlertTriangle,
+  IconAlertTriangle, IconPencil,
   type Icon,
 } from "@tabler/icons-react";
+
+// Convierte una fecha ISO al formato que espera <input type="datetime-local">
+// (YYYY-MM-DDTHH:mm) en hora local, para precargarla al editar.
+function toLocalInput(iso: string) {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 const TIPO_ICON: Record<string, Icon> = { LLAMADA: IconPhone, REUNION: IconUsers, TAREA: IconCheck, EMAIL: IconMail };
 
@@ -19,6 +27,7 @@ type Actividad = {
   tipo: string;
   titulo: string;
   fecha: string;
+  notas: string | null;
   completada: boolean;
   empresa: { id: string; nombre: string } | null;
   contacto: { id: string; nombre: string } | null;
@@ -40,7 +49,7 @@ const DIAS_SEMANA = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
 const MESES_NOMBRE = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
 function CalendarioActividades({
-  actividades, mes, setMes, diaSeleccionado, setDiaSeleccionado, onToggle, onEliminar, formatoFecha,
+  actividades, mes, setMes, diaSeleccionado, setDiaSeleccionado, onToggle, onEditar, onEliminar, formatoFecha,
 }: {
   actividades: Actividad[];
   mes: { anio: number; mes: number };
@@ -48,6 +57,7 @@ function CalendarioActividades({
   diaSeleccionado: string | null;
   setDiaSeleccionado: (d: string | null) => void;
   onToggle: (id: string, completada: boolean) => void;
+  onEditar: (a: Actividad) => void;
   onEliminar: (id: string) => void;
   formatoFecha: (f: string) => string;
 }) {
@@ -183,6 +193,10 @@ function CalendarioActividades({
                       {a.empresa && ` · ${a.empresa.nombre}`}
                     </p>
                   </div>
+                  <button onClick={() => onEditar(a)} title="Editar"
+                    className="text-slate-300 hover:text-brand-600 shrink-0">
+                    <IconPencil size={14} stroke={1.75} />
+                  </button>
                   <button onClick={() => onEliminar(a.id)} title="Eliminar"
                     className="text-slate-300 hover:text-red-500 shrink-0">
                     <IconTrash size={14} stroke={1.75} />
@@ -204,6 +218,7 @@ function AgendaContent() {
   const [oportunidades, setOportunidades] = useState<Oportunidad[]>([]);
   const [cargando, setCargando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
+  const [editandoId, setEditandoId] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [exportando, setExportando] = useState(false);
   const searchParams = useSearchParams();
@@ -255,15 +270,39 @@ function AgendaContent() {
 
   useEffect(() => { cargar(); cargarRelaciones(); }, []);
 
+  function cerrarForm() {
+    setMostrarForm(false);
+    setEditandoId(null);
+    setForm({ tipo: "TAREA", titulo: "", fecha: "", notas: "", empresaId: "", contactoId: "", oportunidadId: "" });
+  }
+
+  function iniciarEdicion(a: Actividad) {
+    setEditandoId(a.id);
+    setForm({
+      tipo: a.tipo,
+      titulo: a.titulo,
+      fecha: toLocalInput(a.fecha),
+      notas: a.notas ?? "",
+      empresaId: a.empresa?.id ?? "",
+      contactoId: a.contacto?.id ?? "",
+      oportunidadId: a.oportunidad?.id ?? "",
+    });
+    setMostrarForm(true);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
     setGuardando(true);
     try {
-      const res = await fetch("/api/actividades", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      const res = await fetch(
+        editandoId ? `/api/actividades/${editandoId}` : "/api/actividades",
+        {
+          method: editandoId ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        }
+      );
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         // No se cierra ni se limpia el formulario si falló: así el usuario no
@@ -277,8 +316,7 @@ function AgendaContent() {
       setGuardando(false);
       return;
     }
-    setForm({ tipo: "TAREA", titulo: "", fecha: "", notas: "", empresaId: "", contactoId: "", oportunidadId: "" });
-    setMostrarForm(false);
+    cerrarForm();
     setGuardando(false);
     cargar();
   }
@@ -384,7 +422,7 @@ function AgendaContent() {
             className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 flex items-center gap-1.5">
             {exportando ? "Exportando..." : (<><IconFileSpreadsheet size={15} stroke={1.75} />Excel</>)}
           </button>
-          <button onClick={() => setMostrarForm(true)}
+          <button onClick={() => { setEditandoId(null); setForm({ tipo: "TAREA", titulo: "", fecha: "", notas: "", empresaId: "", contactoId: "", oportunidadId: "" }); setMostrarForm(true); }}
             className="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 flex items-center gap-1.5">
             <IconPlus size={15} stroke={1.75} />Nueva actividad
           </button>
@@ -410,7 +448,7 @@ function AgendaContent() {
 
       {mostrarForm && (
         <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-          <h2 className="mb-4 text-sm font-medium text-neutral-900">Nueva actividad</h2>
+          <h2 className="mb-4 text-sm font-medium text-neutral-900">{editandoId ? "Editar actividad" : "Nueva actividad"}</h2>
           <form onSubmit={handleGuardar} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-neutral-500">Título *</label>
@@ -497,11 +535,11 @@ function AgendaContent() {
                 disabled={guardando}
                 className="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
               >
-                {guardando ? "Guardando..." : "Guardar"}
+                {guardando ? "Guardando..." : editandoId ? "Guardar cambios" : "Guardar"}
               </button>
               <button
                 type="button"
-                onClick={() => setMostrarForm(false)}
+                onClick={cerrarForm}
                 className="rounded-md border border-neutral-300 px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-100"
               >
                 Cancelar
@@ -521,6 +559,7 @@ function AgendaContent() {
           diaSeleccionado={diaSeleccionado}
           setDiaSeleccionado={setDiaSeleccionado}
           onToggle={toggleCompletada}
+          onEditar={iniciarEdicion}
           onEliminar={eliminarActividad}
           formatoFecha={formatoFecha}
         />
@@ -568,6 +607,10 @@ function AgendaContent() {
                   {notifOk === a.id ? <IconCircleCheck size={16} stroke={1.75} className="text-emerald-500" /> : notificando === a.id ? "..." : <IconBell size={16} stroke={1.75} />}
                 </button>
               )}
+              <button onClick={() => iniciarEdicion(a)}
+                className="text-neutral-300 hover:text-brand-600" title="Editar">
+                <IconPencil size={15} stroke={1.75} />
+              </button>
               <button onClick={() => eliminarActividad(a.id)}
                 className="text-neutral-300 hover:text-red-600" title="Eliminar">
                 <IconTrash size={15} stroke={1.75} />
