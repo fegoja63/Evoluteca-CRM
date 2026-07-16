@@ -69,7 +69,7 @@ function urgenciaBadgeColor(dias: number): string {
 }
 
 type Empresa = { id: string; nombre: string };
-type Contacto = { id: string; nombre: string };
+type Contacto = { id: string; nombre: string; empresa: { id: string; nombre: string } | null };
 type UsuarioVendedor = { id: string; nombre: string };
 type Salon = { id: string; nombre: string; capacidad: number | null };
 type Disponibilidad = { aceptadas: { id: string; empresa: { nombre: string } | null }[]; pendientes: { id: string; empresa: { nombre: string } | null }[] };
@@ -142,6 +142,8 @@ export default function PipelinePage() {
   const [creandoContactoError, setCreandoContactoError] = useState("");
   const [salones, setSalones] = useState<Salon[]>([]);
   const [moduloSalones, setModuloSalones] = useState(false);
+  const [moduloFunciones, setModuloFunciones] = useState(false);
+  const [moduloAhorros, setModuloAhorros] = useState(false);
   const [disponibilidad, setDisponibilidad] = useState<Disponibilidad | null>(null);
   const disponibilidadClaveRef = useRef("");
 
@@ -161,6 +163,8 @@ export default function PipelinePage() {
     const config = await resConfig.json();
     const salonesActivo = !!config?.modulos?.salones;
     setModuloSalones(salonesActivo);
+    setModuloFunciones(!!config?.modulos?.funciones);
+    setModuloAhorros(!!config?.modulos?.ahorros);
     if (salonesActivo) {
       fetch("/api/salones").then(r => r.json()).then(s => setSalones(Array.isArray(s) ? s : []));
     }
@@ -571,7 +575,7 @@ export default function PipelinePage() {
                 </div>
               </div>
               {modoEmpresa === "existente" ? (
-                <select value={form.empresaId} onChange={e => setForm({...form, empresaId: e.target.value})}
+                <select value={form.empresaId} onChange={e => setForm({...form, empresaId: e.target.value, contactoId: ""})}
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
                   <option value="">Sin empresa</option>
                   {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
@@ -611,13 +615,23 @@ export default function PipelinePage() {
                   </button>
                 </div>
               </div>
-              {modoContacto === "existente" ? (
-                <select value={form.contactoId} onChange={e => setForm({...form, contactoId: e.target.value})}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
-                  <option value="">Sin contacto</option>
-                  {contactos.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-                </select>
-              ) : (
+              {modoContacto === "existente" ? (() => {
+                const contactosDeEmpresa = form.empresaId
+                  ? contactos.filter(c => c.empresa?.id === form.empresaId)
+                  : contactos;
+                return (
+                  <>
+                    <select value={form.contactoId} onChange={e => setForm({...form, contactoId: e.target.value})}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                      <option value="">Sin contacto</option>
+                      {contactosDeEmpresa.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                    </select>
+                    {form.empresaId && contactosDeEmpresa.length === 0 && (
+                      <p className="mt-1 text-xs text-slate-400">Esta empresa no tiene contactos. Usa <span className="font-medium">+ Nuevo</span> para crear uno.</p>
+                    )}
+                  </>
+                );
+              })() : (
                 <div className="rounded-lg border border-brand-200 bg-brand-50 p-2.5">
                   <div className="flex flex-col gap-2">
                     <input type="text" placeholder="Nombre del contacto *" value={nuevoContactoForm.nombre}
@@ -662,17 +676,23 @@ export default function PipelinePage() {
                 )}
               </div>
             )}
-            <div>
-              <label className="mb-1 block text-xs text-slate-500">Sede / Lugar</label>
-              <input value={form.sede} onChange={e => setForm({...form, sede: e.target.value})}
-                placeholder="Teatro Nacional, Sala A..."
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs text-slate-500">Fecha del evento</label>
-              <input type="date" value={form.fechaEvento} onChange={e => setForm({...form, fechaEvento: e.target.value})}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
-            </div>
+            {/* Sede y fecha del evento pertenecen a los módulos Funciones/Salones.
+                Se ocultan cuando el tenant sólo usa Facturación por resultados (ahorros). */}
+            {(moduloFunciones || moduloSalones || !moduloAhorros) && (
+              <>
+                <div>
+                  <label className="mb-1 block text-xs text-slate-500">Sede / Lugar</label>
+                  <input value={form.sede} onChange={e => setForm({...form, sede: e.target.value})}
+                    placeholder="Teatro Nacional, Sala A..."
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-slate-500">Fecha del evento</label>
+                  <input type="date" value={form.fechaEvento} onChange={e => setForm({...form, fechaEvento: e.target.value})}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                </div>
+              </>
+            )}
             {moduloSalones && form.salonId && (
               <div>
                 <label className="mb-1 block text-xs text-slate-500">Horario (opcional)</label>
