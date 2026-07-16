@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IconDownload, IconPlus, IconX, IconPackage, IconTarget } from "@tabler/icons-react";
+import { IconDownload, IconPlus, IconX, IconPackage, IconTarget, IconTrash } from "@tabler/icons-react";
 import { MoneyInput } from "@/components/money-input";
 
 type Producto = { id: string; nombre: string; descripcion: string | null; precioBase: string; activo: boolean };
+type Fila = { nombre: string; descripcion: string; precioBase: string };
+
+const filaVacia = (): Fila => ({ nombre: "", descripcion: "", precioBase: "" });
 
 function fmt(v: string | number) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(Number(v));
@@ -15,6 +18,7 @@ export default function CatalogoPage() {
   const [cargando, setCargando]   = useState(true);
   const [editId, setEditId]       = useState<string | null>(null);
   const [form, setForm]           = useState({ nombre: "", descripcion: "", precioBase: "" });
+  const [filas, setFilas]         = useState<Fila[]>([filaVacia()]);
   const [modo, setModo]           = useState<"lista" | "nuevo">("lista");
   const [guardando, setGuardando] = useState(false);
   const [exportando, setExportando] = useState(false);
@@ -42,31 +46,65 @@ export default function CatalogoPage() {
   useEffect(() => { cargar(); }, []);
 
   async function guardar() {
-    if (!form.nombre.trim()) return;
-    setGuardando(true);
     setError("");
-    const res = editId
-      ? await fetch(`/api/productos/${editId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        })
-      : await fetch("/api/productos", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error ?? "No se pudo guardar el servicio");
+    // Edición: una sola fila vía PATCH
+    if (editId) {
+      if (!form.nombre.trim()) return;
+      setGuardando(true);
+      const res = await fetch(`/api/productos/${editId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? "No se pudo guardar el servicio");
+        setGuardando(false);
+        return;
+      }
+      setEditId(null);
+      setForm({ nombre: "", descripcion: "", precioBase: "" });
+      setModo("lista");
       setGuardando(false);
+      cargar();
       return;
     }
-    setEditId(null);
-    setForm({ nombre: "", descripcion: "", precioBase: "" });
+
+    // Nuevo: una o varias filas vía POST
+    const validas = filas.filter(f => f.nombre.trim());
+    if (validas.length === 0) {
+      setError("Agrega al menos una línea con nombre.");
+      return;
+    }
+    setGuardando(true);
+    for (const f of validas) {
+      const res = await fetch("/api/productos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(f),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? `No se pudo guardar "${f.nombre}"`);
+        setGuardando(false);
+        cargar();
+        return;
+      }
+    }
+    setFilas([filaVacia()]);
     setModo("lista");
     setGuardando(false);
     cargar();
+  }
+
+  function updateFila(i: number, field: keyof Fila, val: string) {
+    setFilas(prev => prev.map((f, idx) => idx === i ? { ...f, [field]: val } : f));
+  }
+  function addFila() {
+    setFilas(prev => [...prev, filaVacia()]);
+  }
+  function removeFila(i: number) {
+    setFilas(prev => prev.length === 1 ? prev : prev.filter((_, idx) => idx !== i));
   }
 
   async function eliminar(id: string) {
@@ -100,7 +138,7 @@ export default function CatalogoPage() {
             <IconDownload size={16} stroke={1.75} />
             {exportando ? "Exportando..." : "Excel"}
           </button>
-          <button onClick={() => { setModo(modo === "nuevo" ? "lista" : "nuevo"); setEditId(null); setForm({ nombre: "", descripcion: "", precioBase: "" }); }}
+          <button onClick={() => { setModo(modo === "nuevo" ? "lista" : "nuevo"); setEditId(null); setForm({ nombre: "", descripcion: "", precioBase: "" }); setFilas([filaVacia()]); }}
             className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
             {modo === "nuevo" ? <IconX size={16} stroke={1.75} /> : <IconPlus size={16} stroke={1.75} />}
             {modo === "nuevo" ? "Cancelar" : "Nuevo servicio"}
@@ -117,29 +155,72 @@ export default function CatalogoPage() {
       {/* Formulario */}
       {modo === "nuevo" && (
         <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5">
-          <h2 className="text-sm font-bold text-slate-700 mb-4">{editId ? "Editar servicio" : "Nuevo servicio"}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="block text-xs font-medium text-slate-600 mb-1">Nombre del servicio *</label>
-              <input type="text" value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
-                placeholder="Ej: Iluminación escénica, Sonido profesional..."
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+          <h2 className="text-sm font-bold text-slate-700 mb-4">{editId ? "Editar servicio" : "Nuevos servicios"}</h2>
+
+          {editId ? (
+            /* Edición: un solo servicio */
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <label className="block text-xs font-medium text-slate-600 mb-1">Nombre del servicio *</label>
+                <input type="text" value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
+                  placeholder="Ej: Iluminación escénica, Sonido profesional..."
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Precio base (COP)</label>
+                <MoneyInput value={form.precioBase} onChange={v => setForm(f => ({ ...f, precioBase: v }))}
+                  placeholder="0"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Descripción (opcional)</label>
+                <input type="text" value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
+                  placeholder="Breve descripción del servicio"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Precio base (COP)</label>
-              <MoneyInput value={form.precioBase} onChange={v => setForm(f => ({ ...f, precioBase: v }))}
-                placeholder="0"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+          ) : (
+            /* Nuevo: una o varias líneas */
+            <div className="flex flex-col gap-3">
+              {filas.map((f, i) => (
+                <div key={i} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+                  <div className="sm:col-span-5">
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Nombre del servicio *</label>
+                    <input type="text" value={f.nombre} onChange={e => updateFila(i, "nombre", e.target.value)}
+                      placeholder="Ej: Iluminación escénica, Sonido profesional..."
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  </div>
+                  <div className="sm:col-span-3">
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Precio base (COP)</label>
+                    <MoneyInput value={f.precioBase} onChange={v => updateFila(i, "precioBase", v)}
+                      placeholder="0"
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  </div>
+                  <div className="sm:col-span-3">
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Descripción (opcional)</label>
+                    <input type="text" value={f.descripcion} onChange={e => updateFila(i, "descripcion", e.target.value)}
+                      placeholder="Breve descripción"
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  </div>
+                  <div className="sm:col-span-1 flex sm:justify-center">
+                    <button type="button" onClick={() => removeFila(i)} disabled={filas.length === 1}
+                      title="Quitar línea"
+                      className="rounded-xl border border-slate-200 bg-white p-2 text-slate-400 hover:text-red-500 hover:border-red-200 disabled:opacity-30 disabled:hover:text-slate-400 disabled:hover:border-slate-200">
+                      <IconTrash size={16} stroke={1.75} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <button type="button" onClick={addFila}
+                className="self-start inline-flex items-center gap-1.5 rounded-xl border border-dashed border-slate-300 px-3 py-2 text-sm font-medium text-slate-500 hover:border-brand-300 hover:text-brand-600">
+                <IconPlus size={16} stroke={1.75} />
+                Agregar otra línea
+              </button>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Descripción (opcional)</label>
-              <input type="text" value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
-                placeholder="Breve descripción del servicio"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
-            </div>
-          </div>
+          )}
+
           <div className="mt-4 flex gap-2">
-            <button onClick={guardar} disabled={guardando || !form.nombre.trim()}
+            <button onClick={guardar} disabled={guardando || (editId ? !form.nombre.trim() : !filas.some(f => f.nombre.trim()))}
               className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
               {guardando ? "Guardando..." : editId ? "Guardar cambios" : "Agregar al catálogo"}
             </button>
