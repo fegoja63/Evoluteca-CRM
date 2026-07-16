@@ -321,6 +321,10 @@ enum TipoActividad {
   REUNION
   TAREA
   EMAIL
+  // Solo se ofrecen en el vertical de teatros/alquileres (módulo funciones o
+  // salones); la UI las oculta para el resto de tenants.
+  VISITA_COMERCIAL
+  VISITA_TECNICA
 }
 
 model Actividad {

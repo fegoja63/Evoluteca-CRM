@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
+import { tiposActividadVisibles } from "@/lib/tipos-actividad";
 
 type Props = {
   empresaId?: string;
@@ -11,13 +12,6 @@ type Props = {
   tipoInicial?: string;
   autoAbrir?: boolean;
 };
-
-const TIPOS = [
-  { key: "TAREA",   label: "Tarea",   icon: "✅" },
-  { key: "LLAMADA", label: "Llamada", icon: "📞" },
-  { key: "REUNION", label: "Reunión", icon: "🤝" },
-  { key: "EMAIL",   label: "Email",   icon: "✉️" },
-];
 
 function fechaLocalDefault() {
   const d = new Date();
@@ -29,6 +23,17 @@ function fechaLocalDefault() {
 export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onGuardado, tipoInicial, autoAbrir }: Props) {
   const [abierto, setAbierto] = useState(autoAbrir ?? false);
   const [guardando, setGuardando] = useState(false);
+  const [modulos, setModulos] = useState<Record<string, boolean>>({});
+
+  // Las visitas comercial/técnica solo se ofrecen en el vertical de
+  // teatros/alquileres; se decide según los módulos del tenant.
+  useEffect(() => {
+    fetch("/api/configuracion")
+      .then((res) => res.json())
+      .then((data) => setModulos((data.modulos as Record<string, boolean>) ?? {}))
+      .catch(() => {});
+  }, []);
+  const tipos = tiposActividadVisibles(modulos);
   const [form, setForm] = useState({
     tipo: tipoInicial ?? "TAREA",
     titulo: "",
@@ -80,7 +85,7 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
           onChange={e => setForm({ ...form, tipo: e.target.value })}
           className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-blue-500"
         >
-          {TIPOS.map(t => <option key={t.key} value={t.key}>{t.icon} {t.label}</option>)}
+          {tipos.map(t => <option key={t.key} value={t.key}>{t.emoji} {t.label}</option>)}
         </select>
         <input
           required

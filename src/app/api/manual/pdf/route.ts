@@ -104,7 +104,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.16"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.17"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -236,7 +236,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.16 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.17 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -303,6 +303,24 @@ export async function GET() {
           )),
         ),
       ),
+
+      React.createElement(H2, null, "1.6 Búsqueda global"),
+      React.createElement(P, null, "En la parte superior del menú lateral hay un buscador (\"Buscar...\") que consulta toda tu organización en un solo lugar. Escribe al menos 2 letras y el sistema muestra, mientras tecleas, coincidencias en todos los tipos de registro a la vez:"),
+      React.createElement(LI, null, "Clientes (empresas)"),
+      React.createElement(LI, null, "Contactos (personas)"),
+      React.createElement(LI, null, "Oportunidades del pipeline"),
+      React.createElement(LI, null, "Cotizaciones"),
+      React.createElement(LI, null, "Actividades de la agenda"),
+      React.createElement(P, null, "Haz clic en cualquier resultado para ir directo a su ficha. La lupa junto a cada resultado indica de qué tipo es. Toca la × del buscador para limpiar el texto y cerrar los resultados."),
+      React.createElement(Tip, null, "Es la forma más rápida de abrir un cliente o una cotización sin recorrer el listado: escribe parte del nombre y salta directo. El buscador respeta tus permisos — solo encuentra registros que tu rol puede ver."),
+
+      React.createElement(H2, null, "1.7 Personalizar el orden del menú"),
+      React.createElement(P, null, "Puedes reordenar los módulos del menú lateral para dejar arriba los que más usas. Junto al título \"Menú\" hay un botón \"Ordenar\":"),
+      React.createElement(Paso, { n: 1, titulo: "Activar el modo ordenar", desc: "Haz clic en \"Ordenar\". Cada módulo muestra un ícono de puntos (agarradera) a la izquierda." }),
+      React.createElement(Paso, { n: 2, titulo: "Arrastrar y soltar", desc: "Arrastra cada módulo a la posición que prefieras. El nuevo orden se guarda automáticamente en tu perfil." }),
+      React.createElement(Paso, { n: 3, titulo: "Terminar", desc: "Haz clic en \"Listo\" para volver a la navegación normal. Con el botón \"Restablecer\" vuelves al orden original en cualquier momento." }),
+      React.createElement(Nota, null, "El orden del menú es personal de cada usuario — no afecta a tus compañeros. Si se activa un módulo nuevo (por ejemplo Funciones o Salones), aparece automáticamente al final de tu menú sin alterar el orden que ya definiste."),
+
     ),
 
     // ── CAPÍTULO 2: CLIENTES Y CONTACTOS ──
@@ -373,6 +391,22 @@ export async function GET() {
       React.createElement(LI, null, "Eliminar — ícono de papelera junto a cada archivo; pide confirmación antes de borrar"),
       React.createElement(P, null, "Cada archivo queda vinculado a un único registro (el cliente, contacto u oportunidad desde donde lo subiste) — no es necesario elegir dónde guardarlo ni organizarlo en carpetas."),
       React.createElement(Nota, null, "Los archivos se guardan de forma segura dentro del CRM, no en un servicio externo. No se comparten entre organizaciones distintas."),
+
+      React.createElement(H2, null, "2.10 Resumen con IA"),
+      React.createElement(P, null, "En la ficha de cada cliente encontrarás el panel \"Resumen con IA\". Al hacer clic en \"Generar resumen\", el CRM analiza toda la información de esa cuenta (contactos, oportunidades y su etapa, actividades recientes, cotizaciones y su estado) y redacta en segundos un resumen breve y accionable. El texto va apareciendo a medida que se escribe."),
+      React.createElement(P, null, "El resumen siempre trae tres secciones cortas:"),
+      React.createElement(LI, null, "Estado de la relación — antigüedad de la cuenta, nivel de actividad y valor en juego"),
+      React.createElement(LI, null, "Señales — riesgos (inactividad, cotizaciones sin cerrar, negocios perdidos) u oportunidades (negocios calientes, recompra)"),
+      React.createElement(LI, null, "Próxima acción — la gestión concreta más recomendable ahora para ese cliente"),
+      React.createElement(P, null, "Puedes volver a pulsar \"Regenerar\" para obtener una nueva versión con los datos más recientes. El panel muestra tu consumo del mes (por ejemplo \"12 / 100 este mes\")."),
+      React.createElement(Nota, null, "Los Resúmenes con IA dependen del plan de tu organización: pueden ser ilimitados o tener un tope mensual. Si tu plan no los incluye, o si ya alcanzaste el tope del mes, el botón aparece deshabilitado con el aviso correspondiente. Escríbenos para ampliar tu plan."),
+      React.createElement(Tip, null, "Úsalo antes de una llamada o reunión para ponerte al día de una cuenta en 5 segundos sin tener que leer todo el historial. El resumen se apoya solo en los datos reales del CRM — no inventa cifras."),
+
+      React.createElement(H2, null, "2.11 Editar y eliminar desde las listas"),
+      React.createElement(P, null, "No necesitas abrir la ficha completa para corregir o eliminar un registro. En las listas de Clientes, Contactos y Cotizaciones, cada fila tiene dos botones de acción rápida:"),
+      React.createElement(LI, null, "Editar (ícono de lápiz) — abre una ventana para modificar los datos del registro sin salir del listado. Al guardar, la lista se actualiza al instante."),
+      React.createElement(LI, null, "Eliminar (ícono de papelera) — pide confirmación y mueve el registro a la Papelera (ver 2.8), desde donde puedes restaurarlo."),
+      React.createElement(Nota, null, "El botón Eliminar solo aparece para los roles con permiso (Administrador y Gerente). Al igual que en las fichas, eliminar desde la lista no borra el registro de inmediato: lo envía a la Papelera."),
     ),
 
     // ── CAPÍTULO 3: PIPELINE ──
@@ -750,10 +784,12 @@ export async function GET() {
       React.createElement(Nota, null, "Recomendamos mantener los emails activos. Son el recordatorio diario que evita que los negocios se pierdan por falta de seguimiento."),
 
       React.createElement(H2, null, "9.2 Módulos opcionales"),
-      React.createElement(P, null, "Algunos módulos están desactivados por defecto ya que son específicos para ciertos tipos de negocio:"),
+      React.createElement(P, null, "Algunos módulos están desactivados por defecto ya que son específicos para ciertos tipos de negocio. Cada uno agrega su propia opción en el menú lateral cuando lo activas:"),
       React.createElement(LI, null, "Funciones: para empresas de teatro o espectáculos. Gestiona funciones con aforo, boletería y NPS de asistentes"),
       React.createElement(LI, null, "Audiencia: gestión de espectadores con segmentación por tipo (individual, grupo, empresa, colegio)"),
-      React.createElement(P, null, "Activa o desactiva estos módulos según tu tipo de negocio desde la sección Configuración > Módulos."),
+      React.createElement(LI, null, "Expedientes: para firmas de abogados y servicios profesionales. Gestiona casos con bitácora, registro de horas, plazos procesales y control de conflictos de interés"),
+      React.createElement(LI, null, "Salones: para alquiler de espacios y eventos. Catálogo de salones, calendario de reservas con arrastrar y soltar, control de choques de fecha y tabla de alquileres por día"),
+      React.createElement(P, null, "Activa o desactiva estos módulos según tu tipo de negocio desde la sección Configuración > Módulos. Cada vertical cuenta además con un anexo específico descargable desde la Guía de inicio."),
 
       React.createElement(H2, null, "9.3 Gestión del equipo y roles"),
       React.createElement(P, null, 'Ve a Equipo para ver los usuarios de tu organización. El Administrador puede crear nuevos miembros y asignarles uno de tres roles. Esto es lo que puede hacer cada uno:'),
@@ -826,6 +862,9 @@ export async function GET() {
 
       React.createElement(H2, null, "¿Qué pasa si cierro el navegador mientras creo una cotización?"),
       React.createElement(P, null, "Los datos se guardan solo al hacer clic en el botón de guardar. Si cierras antes, se perderán los datos no guardados. Guarda frecuentemente como borrador."),
+
+      React.createElement(H2, null, "¿Qué es el Resumen con IA y qué datos usa?"),
+      React.createElement(P, null, "Es un resumen breve y accionable de una cuenta que genera la inteligencia artificial en la ficha del cliente (ver 2.10). Solo usa los datos reales de ese cliente dentro de tu CRM (contactos, oportunidades, actividades y cotizaciones) — no consulta información externa ni comparte tus datos con otras organizaciones. Según tu plan puede ser ilimitado o tener un tope mensual, visible en el mismo panel."),
 
       React.createElement(Sep, null),
 

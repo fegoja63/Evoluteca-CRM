@@ -125,7 +125,12 @@
       "Bash(rm -f ./_testzod.mjs)",
       "Bash(docker --version)",
       "Bash(psql --version)",
-      "Bash(git restore *)"
+      "Bash(git restore *)",
+      "Bash(vercel --version)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\(p.scripts,null,2\\)\\)\")",
+      "Bash(node -e \"const t=require\\('@tabler/icons-react'\\); console.log\\(['IconBriefcase','IconTool','IconBuildingStore','IconMapPin','IconClipboardCheck','IconBuildingPavilion'].map\\(n=>n+':'+\\(typeof t[n]\\)\\).join\\('\\\\n'\\)\\)\")",
+      "PowerShell(npx prisma generate 2>&1)",
+      "PowerShell(npx prisma generate --no-engine 2>&1)"
     ]
   }
 }

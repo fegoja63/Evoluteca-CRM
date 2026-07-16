@@ -5,12 +5,12 @@ import { toast } from "@/lib/toast";
 import { useSearchParams } from "next/navigation";
 import { KpiCard } from "@/components/kpi-card";
 import {
-  IconPhone, IconUsers, IconCheck, IconMail, IconPinned,
+  IconPinned,
   IconChevronLeft, IconChevronRight, IconTrash, IconLayoutList, IconCalendar,
   IconFileExport, IconFileSpreadsheet, IconPlus, IconBell, IconCircleCheck,
   IconAlertTriangle, IconPencil,
-  type Icon,
 } from "@tabler/icons-react";
+import { tiposActividadVisibles, tipoActividadDef, type TipoActividadDef } from "@/lib/tipos-actividad";
 
 // Convierte una fecha ISO al formato que espera <input type="datetime-local">
 // (YYYY-MM-DDTHH:mm) en hora local, para precargarla al editar.
@@ -19,8 +19,6 @@ function toLocalInput(iso: string) {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
-
-const TIPO_ICON: Record<string, Icon> = { LLAMADA: IconPhone, REUNION: IconUsers, TAREA: IconCheck, EMAIL: IconMail };
 
 type Actividad = {
   id: string;
@@ -35,21 +33,14 @@ type Actividad = {
 };
 
 type Empresa = { id: string; nombre: string };
-type Contacto = { id: string; nombre: string };
-type Oportunidad = { id: string; titulo: string };
-
-const TIPOS = [
-  { key: "TAREA",   label: "Tarea",   dot: "bg-slate-400" },
-  { key: "LLAMADA", label: "Llamada", dot: "bg-blue-500" },
-  { key: "REUNION", label: "Reunión", dot: "bg-violet-500" },
-  { key: "EMAIL",   label: "Email",   dot: "bg-emerald-500" },
-];
+type Contacto = { id: string; nombre: string; empresa?: { id: string; nombre: string } | null };
+type Oportunidad = { id: string; titulo: string; empresa?: { id: string; nombre: string } | null };
 
 const DIAS_SEMANA = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
 const MESES_NOMBRE = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
 function CalendarioActividades({
-  actividades, mes, setMes, diaSeleccionado, setDiaSeleccionado, onToggle, onEditar, onEliminar, formatoFecha,
+  actividades, mes, setMes, diaSeleccionado, setDiaSeleccionado, onToggle, onEditar, onEliminar, formatoFecha, tipos,
 }: {
   actividades: Actividad[];
   mes: { anio: number; mes: number };
@@ -60,6 +51,7 @@ function CalendarioActividades({
   onEditar: (a: Actividad) => void;
   onEliminar: (id: string) => void;
   formatoFecha: (f: string) => string;
+  tipos: TipoActividadDef[];
 }) {
   const hoy = new Date();
   const primerDia = new Date(mes.anio, mes.mes, 1);
@@ -141,7 +133,7 @@ function CalendarioActividades({
                 {acts.length > 0 && (
                   <div className="flex flex-wrap gap-0.5 justify-center">
                     {acts.slice(0, 3).map(a => {
-                      const dot = TIPOS.find(t => t.key === a.tipo)?.dot ?? "bg-slate-400";
+                      const dot = tipoActividadDef(a.tipo)?.dot ?? "bg-slate-400";
                       return (
                         <span key={a.id}
                           className={`w-1.5 h-1.5 rounded-full ${a.completada ? "bg-slate-200" : tieneVencidas && !a.completada ? "bg-red-400" : dot}`} />
@@ -157,7 +149,7 @@ function CalendarioActividades({
 
         {/* Leyenda */}
         <div className="flex gap-4 mt-3 pt-3 border-t border-slate-100 flex-wrap">
-          {TIPOS.map(t => (
+          {tipos.map(t => (
             <span key={t.key} className="flex items-center gap-1 text-xs text-slate-500">
               <span className={`w-2 h-2 rounded-full ${t.dot}`} />{t.label}
             </span>
@@ -183,7 +175,7 @@ function CalendarioActividades({
                 <div key={a.id} className="flex items-center gap-3 rounded-xl border border-neutral-200 p-3 text-sm">
                   <input type="checkbox" checked={a.completada}
                     onChange={e => onToggle(a.id, e.target.checked)} className="h-4 w-4" />
-                  <span className={`w-2 h-2 rounded-full shrink-0 ${TIPOS.find(t=>t.key===a.tipo)?.dot ?? "bg-slate-400"}`} />
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${tipoActividadDef(a.tipo)?.dot ?? "bg-slate-400"}`} />
                   <div className="flex-1 min-w-0">
                     <p className={a.completada ? "text-slate-400 line-through text-xs" : "font-medium text-slate-900 text-xs"}>
                       {a.titulo}
@@ -213,6 +205,7 @@ function CalendarioActividades({
 
 function AgendaContent() {
   const [actividades, setActividades] = useState<Actividad[]>([]);
+  const [modulos, setModulos] = useState<Record<string, boolean>>({});
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [contactos, setContactos] = useState<Contacto[]>([]);
   const [oportunidades, setOportunidades] = useState<Oportunidad[]>([]);
@@ -248,6 +241,36 @@ function AgendaContent() {
   const [form, setForm] = useState({
     tipo: "TAREA", titulo: "", fecha: "", notas: "", empresaId: "", contactoId: "", oportunidadId: "",
   });
+  const [nuevoContacto, setNuevoContacto] = useState(false);
+  const [nuevoContactoNombre, setNuevoContactoNombre] = useState("");
+  const [creandoContacto, setCreandoContacto] = useState(false);
+
+  async function crearContactoRapido() {
+    const nombre = nuevoContactoNombre.trim();
+    if (!nombre) return;
+    setCreandoContacto(true);
+    try {
+      const res = await fetch("/api/contactos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre, empresaId: form.empresaId || undefined }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error ?? "No se pudo crear el contacto. Inténtalo de nuevo.");
+        return;
+      }
+      const creado: Contacto = await res.json();
+      setContactos((prev) => [creado, ...prev]);
+      setForm((f) => ({ ...f, contactoId: creado.id }));
+      setNuevoContacto(false);
+      setNuevoContactoNombre("");
+    } catch {
+      toast.error("No se pudo crear el contacto. Revisa tu conexión e inténtalo de nuevo.");
+    } finally {
+      setCreandoContacto(false);
+    }
+  }
 
   async function cargar() {
     setCargando(true);
@@ -268,12 +291,25 @@ function AgendaContent() {
     setOportunidades(await resOp.json());
   }
 
-  useEffect(() => { cargar(); cargarRelaciones(); }, []);
+  useEffect(() => {
+    cargar();
+    cargarRelaciones();
+    fetch("/api/configuracion")
+      .then((res) => res.json())
+      .then((data) => setModulos((data.modulos as Record<string, boolean>) ?? {}))
+      .catch(() => {});
+  }, []);
+
+  // Tipos ofrecidos en el selector: las visitas comercial/técnica solo aparecen
+  // en el vertical de teatros/alquileres.
+  const tiposVisibles = tiposActividadVisibles(modulos);
 
   function cerrarForm() {
     setMostrarForm(false);
     setEditandoId(null);
     setForm({ tipo: "TAREA", titulo: "", fecha: "", notas: "", empresaId: "", contactoId: "", oportunidadId: "" });
+    setNuevoContacto(false);
+    setNuevoContactoNombre("");
   }
 
   function iniciarEdicion(a: Actividad) {
@@ -346,7 +382,7 @@ function AgendaContent() {
         tipo: "RECORDATORIO_ACTIVIDAD",
         datos: {
           titulo: a.titulo,
-          tipo: TIPOS.find(t => t.key === a.tipo)?.label ?? a.tipo,
+          tipo: tipoActividadDef(a.tipo)?.label ?? a.tipo,
           fecha: new Date(a.fecha).toLocaleString("es-CO", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
           notas: "",
         },
@@ -466,7 +502,7 @@ function AgendaContent() {
                 onChange={(e) => setForm({ ...form, tipo: e.target.value })}
                 className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               >
-                {TIPOS.map((t) => (
+                {tiposVisibles.map((t) => (
                   <option key={t.key} value={t.key}>{t.label}</option>
                 ))}
               </select>
@@ -485,7 +521,21 @@ function AgendaContent() {
               <label className="mb-1 block text-xs text-neutral-500">Empresa</label>
               <select
                 value={form.empresaId}
-                onChange={(e) => setForm({ ...form, empresaId: e.target.value })}
+                onChange={(e) => {
+                  const nuevaEmpresa = e.target.value;
+                  const contactoValido =
+                    !nuevaEmpresa ||
+                    contactos.find((c) => c.id === form.contactoId)?.empresa?.id === nuevaEmpresa;
+                  const oportunidadValida =
+                    !nuevaEmpresa ||
+                    oportunidades.find((o) => o.id === form.oportunidadId)?.empresa?.id === nuevaEmpresa;
+                  setForm({
+                    ...form,
+                    empresaId: nuevaEmpresa,
+                    contactoId: contactoValido ? form.contactoId : "",
+                    oportunidadId: oportunidadValida ? form.oportunidadId : "",
+                  });
+                }}
                 className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               >
                 <option value="">Sin empresa</option>
@@ -495,17 +545,55 @@ function AgendaContent() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs text-neutral-500">Contacto</label>
-              <select
-                value={form.contactoId}
-                onChange={(e) => setForm({ ...form, contactoId: e.target.value })}
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
-              >
-                <option value="">Sin contacto</option>
-                {contactos.map((c) => (
-                  <option key={c.id} value={c.id}>{c.nombre}</option>
-                ))}
-              </select>
+              <div className="mb-1 flex items-center justify-between">
+                <label className="block text-xs text-neutral-500">Contacto</label>
+                <button
+                  type="button"
+                  onClick={() => { setNuevoContacto((v) => !v); setNuevoContactoNombre(""); }}
+                  className="text-xs font-medium text-brand-600 hover:text-brand-700"
+                >
+                  {nuevoContacto ? "Cancelar" : "+ Nuevo contacto"}
+                </button>
+              </div>
+              {nuevoContacto ? (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={nuevoContactoNombre}
+                    onChange={(e) => setNuevoContactoNombre(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); crearContactoRapido(); } }}
+                    placeholder="Nombre del contacto"
+                    autoFocus
+                    className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={crearContactoRapido}
+                    disabled={creandoContacto || !nuevoContactoNombre.trim()}
+                    className="whitespace-nowrap rounded-md bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                  >
+                    {creandoContacto ? "Guardando…" : "Agregar"}
+                  </button>
+                </div>
+              ) : (
+                <select
+                  value={form.contactoId}
+                  onChange={(e) => setForm({ ...form, contactoId: e.target.value })}
+                  className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
+                >
+                  <option value="">Sin contacto</option>
+                  {contactos
+                    .filter((c) => !form.empresaId || c.empresa?.id === form.empresaId)
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>{c.nombre}</option>
+                    ))}
+                </select>
+              )}
+              {nuevoContacto && form.empresaId && (
+                <p className="mt-1 text-xs text-neutral-400">
+                  Se asignará a {empresas.find((e) => e.id === form.empresaId)?.nombre}.
+                </p>
+              )}
             </div>
             <div>
               <label className="mb-1 block text-xs text-neutral-500">Oportunidad</label>
@@ -515,9 +603,11 @@ function AgendaContent() {
                 className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               >
                 <option value="">Sin oportunidad</option>
-                {oportunidades.map((o) => (
-                  <option key={o.id} value={o.id}>{o.titulo}</option>
-                ))}
+                {oportunidades
+                  .filter((o) => !form.empresaId || o.empresa?.id === form.empresaId)
+                  .map((o) => (
+                    <option key={o.id} value={o.id}>{o.titulo}</option>
+                  ))}
               </select>
             </div>
             <div className="col-span-2">
@@ -562,6 +652,7 @@ function AgendaContent() {
           onEditar={iniciarEdicion}
           onEliminar={eliminarActividad}
           formatoFecha={formatoFecha}
+          tipos={tiposVisibles}
         />
       ) : visibles.length === 0 ? (
         <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
@@ -572,7 +663,7 @@ function AgendaContent() {
       ) : (
         <div className="flex flex-col gap-2">
           {visibles.map((a) => {
-            const IconoTipo = TIPO_ICON[a.tipo] ?? IconPinned;
+            const IconoTipo = tipoActividadDef(a.tipo)?.icon ?? IconPinned;
             // "Hoy" se resalta en rojo aunque aún no esté vencida — es la alerta
             // del día, para que no se pierda entre el resto de la lista.
             const esHoy = !a.completada && new Date(a.fecha).toDateString() === new Date().toDateString();
@@ -583,7 +674,7 @@ function AgendaContent() {
                 onChange={(e) => toggleCompletada(a.id, e.target.checked)} className="h-4 w-4" />
               <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600 flex items-center gap-1">
                 <IconoTipo size={12} stroke={1.75} />
-                {TIPOS.find((t) => t.key === a.tipo)?.label}
+                {tipoActividadDef(a.tipo)?.label}
               </span>
               {esHoy && (
                 <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">

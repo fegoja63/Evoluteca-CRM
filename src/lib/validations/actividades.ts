@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { nombreRequerido, textoOpcional, idOpcional, fechaValida, fechaOpcional } from "./campos";
 
-const TIPOS = ["LLAMADA", "REUNION", "TAREA", "EMAIL"] as const;
+const TIPOS = ["LLAMADA", "REUNION", "TAREA", "EMAIL", "VISITA_COMERCIAL", "VISITA_TECNICA"] as const;
 
 export const crearActividadSchema = z.object({
   tipo: z.enum(TIPOS, { error: "Tipo inválido" }).optional(),
