@@ -710,12 +710,12 @@ export default function PipelinePage() {
               </div>
             )}
             <div className="col-span-2">
-              <label className="mb-1 block text-xs text-slate-500">
-                Probabilidad de cierre: <span className="font-semibold text-brand-600">{form.probabilidad}%</span>
+              <label className="mb-1 block text-xs font-medium text-red-600">
+                Probabilidad de cierre: <span className="font-semibold text-red-600">{form.probabilidad}%</span>
               </label>
               <input type="range" min="0" max="100" step="5" value={form.probabilidad}
                 onChange={e => setForm({...form, probabilidad: e.target.value})}
-                className="w-full accent-brand-600" />
+                className="w-full accent-red-600" />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Fecha de cierre estimada</label>
