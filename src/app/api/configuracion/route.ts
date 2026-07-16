@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { normalizarCuerpo } from "@/lib/cuerpo-cotizacion";
 
 export async function GET() {
   const session = await auth();
@@ -8,7 +9,7 @@ export async function GET() {
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: session.user.tenantId },
-    select: { modulos: true, nombre: true, logoUrl: true, emailsActivos: true, limiteUsuarios: true },
+    select: { modulos: true, nombre: true, logoUrl: true, emailsActivos: true, limiteUsuarios: true, cuerpoCotizacion: true },
   });
 
   return NextResponse.json({
@@ -16,6 +17,7 @@ export async function GET() {
     tenantNombre: tenant?.nombre ?? "",
     logoUrl: tenant?.logoUrl ?? "",
     emailsActivos: tenant?.emailsActivos ?? true,
+    cuerpoCotizacion: normalizarCuerpo(tenant?.cuerpoCotizacion),
     // Solo Evoluteca puede cambiar este valor desde el panel interno — no se
     // acepta en el PATCH de esta ruta, es de solo lectura para el tenant.
     limiteUsuarios: tenant?.limiteUsuarios ?? null,
@@ -40,11 +42,22 @@ export async function PATCH(request: Request) {
     data.logoUrl = body.logoUrl;
   }
   if (body.emailsActivos !== undefined) data.emailsActivos = body.emailsActivos;
+  if (body.cuerpoCotizacion !== undefined) {
+    // Se normaliza en el servidor (recorta títulos/contenido y limita la
+    // cantidad de secciones) para que una llamada directa no pueda inflar la
+    // fila de Tenant ni guardar datos con forma inesperada.
+    data.cuerpoCotizacion = normalizarCuerpo(body.cuerpoCotizacion);
+  }
 
   const tenant = await prisma.tenant.update({
     where: { id: session.user.tenantId },
     data,
   });
 
-  return NextResponse.json({ modulos: tenant.modulos, logoUrl: tenant.logoUrl ?? "", emailsActivos: tenant.emailsActivos });
+  return NextResponse.json({
+    modulos: tenant.modulos,
+    logoUrl: tenant.logoUrl ?? "",
+    emailsActivos: tenant.emailsActivos,
+    cuerpoCotizacion: normalizarCuerpo(tenant.cuerpoCotizacion),
+  });
 }

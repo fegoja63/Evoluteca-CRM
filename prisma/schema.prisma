@@ -44,6 +44,12 @@ model Tenant {
   modulos        Json     @default("{}")
   logoUrl        String?
   emailsActivos  Boolean  @default(true)
+  // Cuerpo/condiciones que el tenant define una vez y se repiten en TODAS sus
+  // cotizaciones (PDF y link público): array de { titulo, contenido }. Ej:
+  // "Sobre nosotros", "Alcance", "Condiciones comerciales", "Condiciones
+  // legales", "Términos y plazos". null/[] = se usan las condiciones por
+  // defecto del sistema (no rompe cotizaciones de tenants que no lo configuren).
+  cuerpoCotizacion Json?
   apiKeyLeads    String?  @unique
   // Tope de usuarios activos según el plan contratado (null = sin límite).
   // Lo controla exclusivamente el panel interno de Evoluteca, no el propio

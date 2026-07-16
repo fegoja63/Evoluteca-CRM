@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { permitirYRegistrar } from "@/lib/rate-limit";
 import { accionCotizacionPublicaSchema } from "@/lib/validations/publica";
 import { parseOrError } from "@/lib/validations/helpers";
+import { seccionesCotizacion } from "@/lib/cuerpo-cotizacion";
 
 export const dynamic = "force-dynamic";
 
@@ -14,11 +15,16 @@ export async function GET(_req: Request, { params }: { params: { token: string }
       contacto: { select: { nombre: true, email: true } },
       items:    { orderBy: { id: "asc" } },
       lineasAhorro: { orderBy: { id: "asc" } },
-      tenant:   { select: { nombre: true, logoUrl: true } },
+      tenant:   { select: { nombre: true, logoUrl: true, cuerpoCotizacion: true } },
     },
   });
   if (!cot) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
-  return NextResponse.json(cot);
+  // Se resuelven las secciones a mostrar en el servidor (cuerpo del tenant o las
+  // condiciones por defecto) y se quita el campo crudo del tenant de la
+  // respuesta pública.
+  const { cuerpoCotizacion, ...tenant } = cot.tenant;
+  void cuerpoCotizacion;
+  return NextResponse.json({ ...cot, tenant, cuerpo: seccionesCotizacion(cot.tenant.cuerpoCotizacion) });
 }
 
 export async function PATCH(req: Request, { params }: { params: { token: string } }) {

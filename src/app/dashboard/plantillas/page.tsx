@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IconPlus, IconX, IconClipboardText, IconStar } from "@tabler/icons-react";
+import { IconPlus, IconX, IconClipboardText, IconStar, IconInfoCircle } from "@tabler/icons-react";
 
 type ItemPlantilla = { id: string; descripcion: string; cantidad: string | number; precioUnit: string | number };
 type Plantilla = { id: string; nombre: string; notas: string | null; creadoEn: string; items: ItemPlantilla[] };
@@ -11,6 +11,10 @@ const LINEA_VACIA: Linea = { descripcion: "", cantidad: "1", precioUnit: "" };
 
 function fmt(v: string | number) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(Number(v));
+}
+
+function totalPlantilla(p: Plantilla) {
+  return p.items.reduce((acc, it) => acc + Number(it.precioUnit) * Number(it.cantidad), 0);
 }
 
 function LineasEditor({ lineas, onChange }: { lineas: Linea[]; onChange: (lineas: Linea[]) => void }) {
@@ -58,11 +62,13 @@ export default function PlantillasPage() {
   const [cargando, setCargando] = useState(true);
   const [modo, setModo] = useState<"lista" | "nuevo">("lista");
   const [nombre, setNombre] = useState("");
+  const [notas, setNotas] = useState("");
   const [lineas, setLineas] = useState<Linea[]>([{ ...LINEA_VACIA }]);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [nombreEdit, setNombreEdit] = useState("");
+  const [notasEdit, setNotasEdit] = useState("");
   const [lineasEdit, setLineasEdit] = useState<Linea[]>([{ ...LINEA_VACIA }]);
   const [expandidoId, setExpandidoId] = useState<string | null>(null);
 
@@ -83,6 +89,7 @@ export default function PlantillasPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         nombre,
+        notas,
         items: lineas
           .filter(l => l.descripcion.trim())
           .map(l => ({ descripcion: l.descripcion, cantidad: l.cantidad, precioUnit: l.precioUnit })),
@@ -95,6 +102,7 @@ export default function PlantillasPage() {
       return;
     }
     setNombre("");
+    setNotas("");
     setLineas([{ ...LINEA_VACIA }]);
     setModo("lista");
     setGuardando(false);
@@ -105,6 +113,7 @@ export default function PlantillasPage() {
     setExpandidoId(null);
     setEditandoId(p.id);
     setNombreEdit(p.nombre);
+    setNotasEdit(p.notas ?? "");
     setLineasEdit(
       p.items.length > 0
         ? p.items.map(it => ({ descripcion: it.descripcion, cantidad: String(it.cantidad), precioUnit: String(it.precioUnit) }))
@@ -121,6 +130,7 @@ export default function PlantillasPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         nombre: nombreEdit,
+        notas: notasEdit,
         items: lineasEdit
           .filter(l => l.descripcion.trim())
           .map(l => ({ descripcion: l.descripcion, cantidad: l.cantidad, precioUnit: l.precioUnit })),
@@ -156,12 +166,20 @@ export default function PlantillasPage() {
           <p className="text-slate-500 text-sm mt-1">Guarda combinaciones de ítems que usas seguido para armar cotizaciones más rápido</p>
         </div>
         <button
-          onClick={() => { setModo(modo === "nuevo" ? "lista" : "nuevo"); setNombre(""); setLineas([{ ...LINEA_VACIA }]); setError(""); setEditandoId(null); }}
+          onClick={() => { setModo(modo === "nuevo" ? "lista" : "nuevo"); setNombre(""); setNotas(""); setLineas([{ ...LINEA_VACIA }]); setError(""); setEditandoId(null); }}
           className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 self-start sm:self-auto"
         >
           {modo === "nuevo" ? <IconX size={16} stroke={1.75} /> : <IconPlus size={16} stroke={1.75} />}
           {modo === "nuevo" ? "Cancelar" : "Nueva plantilla"}
         </button>
+      </div>
+
+      <div className="mb-6 flex items-start gap-2 rounded-xl border border-violet-100 bg-violet-50 px-4 py-3 text-xs text-violet-700">
+        <IconInfoCircle size={16} stroke={1.75} className="mt-0.5 shrink-0" />
+        <p>
+          Esta función sirve únicamente para <strong>agregar ítems y precios estándar</strong> a una cotización más rápido.
+          No genera cotizaciones ni facturas por sí sola: al crear una cotización nueva eliges <strong>"Cargar plantilla"</strong> y las líneas se rellenan automáticamente, listas para ajustar.
+        </p>
       </div>
 
       {error && (
@@ -181,6 +199,14 @@ export default function PlantillasPage() {
           </div>
 
           <LineasEditor lineas={lineas} onChange={setLineas} />
+
+          <div className="mt-4">
+            <label className="block text-xs font-medium text-slate-600 mb-1">Notas / observaciones (opcional)</label>
+            <textarea value={notas} onChange={e => setNotas(e.target.value)} rows={2}
+              placeholder="Ej: Los precios no incluyen transporte fuera de la ciudad."
+              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 resize-y" />
+            <p className="mt-1 text-xs text-slate-400">Se copian a las observaciones de la cotización al cargar la plantilla.</p>
+          </div>
 
           <div className="mt-5 flex gap-2">
             <button onClick={crear} disabled={guardando || !nombre.trim()}
@@ -213,6 +239,12 @@ export default function PlantillasPage() {
                       className="w-full max-w-md rounded-xl border border-brand-300 px-3 py-2 text-sm outline-none focus:border-brand-500" />
                   </div>
                   <LineasEditor lineas={lineasEdit} onChange={setLineasEdit} />
+                  <div className="mt-4">
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Notas / observaciones (opcional)</label>
+                    <textarea value={notasEdit} onChange={e => setNotasEdit(e.target.value)} rows={2}
+                      placeholder="Ej: Los precios no incluyen transporte fuera de la ciudad."
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 resize-y" />
+                  </div>
                   <div className="mt-5 flex gap-2">
                     <button onClick={() => guardarEdicion(p.id)} disabled={guardando || !nombreEdit.trim()}
                       className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
@@ -229,7 +261,12 @@ export default function PlantillasPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
                       <button onClick={() => setExpandidoId(expandidoId === p.id ? null : p.id)} className="text-left">
-                        <h3 className="text-sm font-bold text-slate-900">{p.nombre}</h3>
+                        <h3 className="text-sm font-bold text-slate-900">
+                          {p.nombre}
+                          {p.items.length > 0 && (
+                            <span className="ml-2 text-xs font-semibold text-brand-600">{fmt(totalPlantilla(p))}</span>
+                          )}
+                        </h3>
                         <p className="text-xs text-slate-400">{p.items.length} ítem(s) · creada el {new Date(p.creadoEn).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })}</p>
                       </button>
                     </div>

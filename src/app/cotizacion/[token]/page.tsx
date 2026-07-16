@@ -26,6 +26,7 @@ type Cotizacion = {
   tenant:   { nombre: string; logoUrl: string | null };
   items: Item[];
   lineasAhorro: { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string }[];
+  cuerpo?: { titulo: string; contenido: string }[];
 };
 
 const MOTIVOS = [
@@ -122,16 +123,32 @@ export default function CotizacionPublicaPage() {
     <div className="min-h-screen bg-slate-100 py-10 px-4">
       <div className="max-w-2xl mx-auto">
 
-        {/* Header */}
-        <div className="bg-[#1e3a8a] rounded-2xl rounded-b-none px-8 py-6 flex items-center justify-between">
-          <div>
-            <p className="text-blue-300 text-sm font-medium">{cot.tenant.nombre}</p>
-            <h1 className="text-white text-2xl font-bold mt-1">
-              Cotización #{String(cot.numero).padStart(4, "0")}
-            </h1>
+        {/* Header — identidad de la empresa + metadatos de la cotización */}
+        <div className="bg-[#1e3a8a] rounded-2xl rounded-b-none px-8 pt-6 pb-5">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-blue-200 text-[11px] font-semibold uppercase tracking-[0.18em]">
+                Propuesta comercial
+              </p>
+              <h1 className="text-white text-2xl font-bold mt-1">
+                {cot.tenant.nombre}
+              </h1>
+            </div>
+            <img src={cot.tenant.logoUrl || "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg"} alt="Logo"
+              className="h-12 w-auto rounded-lg object-contain bg-white p-1 shrink-0" />
           </div>
-          <img src={cot.tenant.logoUrl || "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg"} alt="Logo"
-            className="h-12 w-auto rounded-lg object-contain bg-white p-1" />
+          <div className="mt-5 pt-4 border-t border-white/15 flex flex-wrap items-center gap-x-8 gap-y-1.5">
+            <div className="text-xs">
+              <span className="text-blue-300 uppercase tracking-wide">Cotización</span>
+              <span className="text-white font-semibold ml-2">N.º {String(cot.numero).padStart(4, "0")}</span>
+            </div>
+            {cot.fechaValidez && (
+              <div className="text-xs">
+                <span className="text-blue-300 uppercase tracking-wide">Válida hasta</span>
+                <span className="text-white font-medium ml-2">{fmtFecha(cot.fechaValidez)}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Body */}
@@ -245,6 +262,25 @@ export default function CotizacionPublicaPage() {
               <strong className="text-slate-700">Notas:</strong> {cot.notas}
             </div>
           )}
+
+          {/* Cuerpo / condiciones definidas por la empresa */}
+          {(cot.cuerpo ?? []).filter(s => s.titulo || s.contenido).map((s, idx) => {
+            const lineas = s.contenido.split("\n").map(l => l.trim()).filter(Boolean);
+            return (
+              <div key={idx} className="rounded-xl border border-slate-200 p-4">
+                {s.titulo && (
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">{s.titulo}</p>
+                )}
+                {lineas.length > 1 ? (
+                  <ul className="list-disc pl-5 space-y-1 text-sm text-slate-600">
+                    {lineas.map((l, i) => <li key={i}>{l}</li>)}
+                  </ul>
+                ) : (
+                  lineas.map((l, i) => <p key={i} className="text-sm text-slate-600 whitespace-pre-line">{l}</p>)
+                )}
+              </div>
+            );
+          })}
 
           {/* Estado */}
           {confirmado || yaRespondida ? (

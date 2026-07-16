@@ -8,8 +8,10 @@ import {
   IconBuilding, IconUsers, IconChartFunnel, IconCalendar, IconFileText,
   IconReportAnalytics, IconUsersGroup, IconDownload, IconTrash, IconCheck,
   IconKey, IconCopy, IconRefresh, IconGripVertical, IconEye, IconEyeOff,
+  IconFileDescription, IconPlus, IconArrowUp, IconArrowDown, IconX,
   type Icon,
 } from "@tabler/icons-react";
+import { SECCIONES_SUGERIDAS, type SeccionCuerpo } from "@/lib/cuerpo-cotizacion";
 
 type EtapaPipeline = { id: string; key: string; nombre: string; orden: number; oculta: boolean };
 
@@ -76,6 +78,9 @@ export default function ConfiguracionPage() {
   const [guardandoLogo, setGuardandoLogo] = useState(false);
   const [logoOk, setLogoOk] = useState(false);
   const [logoError, setLogoError] = useState("");
+  const [cuerpo, setCuerpo] = useState<SeccionCuerpo[]>([]);
+  const [guardandoCuerpo, setGuardandoCuerpo] = useState(false);
+  const [cuerpoOk, setCuerpoOk] = useState(false);
 
   const LOGO_MAX_BYTES = 2 * 1024 * 1024; // 2MB
 
@@ -201,6 +206,7 @@ export default function ConfiguracionPage() {
         setLogoUrl(data.logoUrl ?? "");
         setLogoInput(data.logoUrl ?? "");
         setEmailsActivos(data.emailsActivos ?? true);
+        setCuerpo(Array.isArray(data.cuerpoCotizacion) ? data.cuerpoCotizacion : []);
         setCargando(false);
       });
   }, []);
@@ -229,6 +235,49 @@ export default function ConfiguracionPage() {
     setLogoUrl(logoInput);
     setLogoOk(true);
     setTimeout(() => setLogoOk(false), 2500);
+  }
+
+  function addSeccion() {
+    setCuerpo(prev => [...prev, { titulo: "", contenido: "" }]);
+  }
+  function updateSeccion(i: number, campo: keyof SeccionCuerpo, valor: string) {
+    setCuerpo(prev => prev.map((s, idx) => idx === i ? { ...s, [campo]: valor } : s));
+  }
+  function removeSeccion(i: number) {
+    setCuerpo(prev => prev.filter((_, idx) => idx !== i));
+  }
+  function moverSeccion(i: number, dir: -1 | 1) {
+    setCuerpo(prev => {
+      const j = i + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const copia = [...prev];
+      [copia[i], copia[j]] = [copia[j], copia[i]];
+      return copia;
+    });
+  }
+  function cargarSugeridas() {
+    setCuerpo(SECCIONES_SUGERIDAS.map(s => ({ ...s })));
+  }
+
+  async function guardarCuerpo() {
+    setGuardandoCuerpo(true);
+    const limpio = cuerpo
+      .map(s => ({ titulo: s.titulo.trim(), contenido: s.contenido.trim() }))
+      .filter(s => s.titulo || s.contenido);
+    const res = await fetch("/api/configuracion", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cuerpoCotizacion: limpio }),
+    });
+    setGuardandoCuerpo(false);
+    if (!res.ok) {
+      toast.error("No se pudo guardar el cuerpo de la cotización. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
+    const data = await res.json().catch(() => ({}));
+    setCuerpo(Array.isArray(data.cuerpoCotizacion) ? data.cuerpoCotizacion : limpio);
+    setCuerpoOk(true);
+    setTimeout(() => setCuerpoOk(false), 2500);
   }
 
   async function toggleEmails(valor: boolean) {
@@ -329,6 +378,95 @@ export default function ConfiguracionPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Cuerpo y condiciones de la cotización */}
+      <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+            <IconFileDescription size={16} stroke={1.75} />Cuerpo y condiciones de la cotización
+          </h2>
+          {cuerpoOk && <span className="text-xs text-emerald-600 font-medium">✓ Guardado</span>}
+        </div>
+        <p className="text-xs text-slate-400 mb-4">
+          Define las secciones fijas de tus cotizaciones (información de la empresa, solución, alcance, condiciones
+          comerciales y legales, términos y plazos…). Se repiten igual en <strong>todas</strong> tus cotizaciones, tanto en el PDF
+          como en el enlace que ve el cliente. Lo específico de cada cliente sigue yendo en el campo "Notas" de cada cotización.
+          {" "}Si dejas esto vacío, se usan unas condiciones comerciales por defecto.
+        </p>
+
+        {cuerpo.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+            <p className="text-sm text-slate-500 mb-3">Aún no has configurado el cuerpo de tus cotizaciones.</p>
+            {esAdmin && (
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <button onClick={cargarSugeridas}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
+                  <IconFileDescription size={16} stroke={1.75} /> Usar secciones sugeridas
+                </button>
+                <button onClick={addSeccion}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                  <IconPlus size={16} stroke={1.75} /> Empezar de cero
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {cuerpo.map((s, i) => (
+              <div key={i} className="rounded-xl border border-slate-200 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <input
+                    value={s.titulo}
+                    onChange={e => updateSeccion(i, "titulo", e.target.value)}
+                    disabled={!esAdmin}
+                    placeholder="Título de la sección (ej: Condiciones comerciales)"
+                    className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-800 outline-none focus:border-brand-500 disabled:opacity-60"
+                  />
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    <button onClick={() => moverSeccion(i, -1)} disabled={!esAdmin || i === 0}
+                      className="p-1.5 text-slate-400 hover:text-slate-700 disabled:opacity-30" title="Subir">
+                      <IconArrowUp size={16} stroke={1.75} />
+                    </button>
+                    <button onClick={() => moverSeccion(i, 1)} disabled={!esAdmin || i === cuerpo.length - 1}
+                      className="p-1.5 text-slate-400 hover:text-slate-700 disabled:opacity-30" title="Bajar">
+                      <IconArrowDown size={16} stroke={1.75} />
+                    </button>
+                    <button onClick={() => removeSeccion(i)} disabled={!esAdmin}
+                      className="p-1.5 text-slate-300 hover:text-red-500 disabled:opacity-30" title="Quitar sección">
+                      <IconX size={16} stroke={1.75} />
+                    </button>
+                  </div>
+                </div>
+                <textarea
+                  value={s.contenido}
+                  onChange={e => updateSeccion(i, "contenido", e.target.value)}
+                  disabled={!esAdmin}
+                  rows={4}
+                  placeholder="Escribe el texto de esta sección. Cada salto de línea se muestra como un punto/párrafo."
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-brand-500 disabled:opacity-60 resize-y"
+                />
+              </div>
+            ))}
+            {esAdmin && (
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <button onClick={addSeccion}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                  <IconPlus size={16} stroke={1.75} /> Agregar sección
+                </button>
+                <button onClick={guardarCuerpo} disabled={guardandoCuerpo}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                  {guardandoCuerpo ? "Guardando..." : "Guardar cuerpo de cotización"}
+                </button>
+                {cuerpoOk && (
+                  <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                    <IconCheck size={14} stroke={2} /> Guardado
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="mb-8">

@@ -39,7 +39,7 @@ export async function PATCH(
   const body = await req.json();
   const { data, error } = parseOrError(editarPlantillaSchema, body);
   if (error) return error;
-  const { nombre, items } = data;
+  const { nombre, notas, items } = data;
 
   const existente = await prisma.plantillaCotizacion.findFirst({
     where: { id: params.id, tenantId: session.user.tenantId },
@@ -50,6 +50,7 @@ export async function PATCH(
     where: { id: params.id },
     data: {
       nombre: nombre.trim(),
+      ...(notas !== undefined && { notas: notas?.trim() || null }),
       ...(items !== undefined && {
         items: {
           deleteMany: {},

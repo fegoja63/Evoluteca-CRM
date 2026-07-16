@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { renderToBuffer, Document, Page, Text, View, StyleSheet, Font, Image } from "@react-pdf/renderer";
 import { MODALIDAD_LABEL } from "@/lib/cotizaciones";
+import { seccionesCotizacion } from "@/lib/cuerpo-cotizacion";
 import React from "react";
 
 export const dynamic = "force-dynamic";
@@ -12,12 +13,13 @@ const styles = StyleSheet.create({
   header:      { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32, paddingBottom: 20, borderBottomWidth: 2, borderBottomColor: "#2563eb" },
   logoBox:     { backgroundColor: "#1e3a8a", borderRadius: 6, padding: 8, width: 44, height: 44, alignItems: "center", justifyContent: "center" },
   logoText:    { color: "#ffffff", fontSize: 20, fontFamily: "Helvetica-Bold" },
-  tenantName:  { fontSize: 14, fontFamily: "Helvetica-Bold", color: "#1e293b", marginBottom: 2 },
-  tenantSub:   { fontSize: 8, color: "#64748b" },
+  tenantName:  { fontSize: 15, fontFamily: "Helvetica-Bold", color: "#0f172a", marginBottom: 3 },
+  tenantSub:   { fontSize: 7.5, color: "#64748b", textTransform: "uppercase", letterSpacing: 1.5 },
   cotNumBox:   { alignItems: "flex-end" },
-  cotLabel:    { fontSize: 8, color: "#64748b", marginBottom: 2 },
-  cotNum:      { fontSize: 20, fontFamily: "Helvetica-Bold", color: "#2563eb" },
-  badge:       { backgroundColor: "#dbeafe", borderRadius: 4, paddingHorizontal: 8, paddingVertical: 2, marginTop: 4 },
+  cotLabel:    { fontSize: 9, fontFamily: "Helvetica-Bold", color: "#2563eb", letterSpacing: 2, marginBottom: 3 },
+  cotNum:      { fontSize: 16, fontFamily: "Helvetica-Bold", color: "#0f172a" },
+  cotMeta:     { fontSize: 7.5, color: "#64748b", marginTop: 3 },
+  badge:       { backgroundColor: "#dbeafe", borderRadius: 4, paddingHorizontal: 8, paddingVertical: 2, marginTop: 5 },
   badgeText:   { fontSize: 8, color: "#1d4ed8", fontFamily: "Helvetica-Bold" },
   section:     { marginBottom: 20 },
   sectionTitle:{ fontSize: 8, fontFamily: "Helvetica-Bold", color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 },
@@ -52,21 +54,19 @@ const styles = StyleSheet.create({
 
 const ESTADO: Record<string, string> = { BORRADOR: "Borrador", ENVIADA: "Enviada", ACEPTADA: "Aceptada", RECHAZADA: "Rechazada" };
 
-const CONDICIONES_COMERCIALES: [string, string][] = [
-  ["Vigencia de la cotización:", "30 días calendario a partir de la fecha de emisión."],
-  ["Moneda:", "Los precios están expresados en pesos colombianos e incluyen impuestos."],
-  ["Forma de pago:", "50% de anticipo y 50% contra entrega."],
-  ["Modificaciones:", "Cualquier modificación al alcance será cotizada por separado."],
-  ["Aceptación:", "La aceptación de esta propuesta se realizará mediante la emisión de una orden de compra o la aceptación de la presente cotización."],
-  ["Intereses:", "Los pagos vencidos generarán intereses moratorios a la máxima tasa legal permitida en Colombia."],
-];
-
-function CondLI({ titulo, texto }: { titulo: string; texto: string }) {
-  return React.createElement(View, { style: styles.condLi },
-    React.createElement(Text, { style: styles.condBullet }, "•"),
-    React.createElement(Text, { style: styles.condTx },
-      React.createElement(Text, { style: styles.condStrong }, `${titulo} `),
-      texto,
+// Renderiza una sección del cuerpo de cotización (título + contenido). Cada
+// salto de línea del contenido se muestra como un punto/párrafo aparte. Si el
+// contenido es una sola línea, se muestra como un párrafo simple sin viñeta.
+function SeccionCotBox({ titulo, contenido }: { titulo: string; contenido: string }) {
+  const lineas = contenido.split("\n").map(l => l.trim()).filter(Boolean);
+  return React.createElement(View, { style: styles.condBox, wrap: false },
+    titulo ? React.createElement(Text, { style: styles.condLabel }, titulo) : null,
+    ...(lineas.length > 1
+      ? lineas.map((linea, i) => React.createElement(View, { key: i, style: styles.condLi },
+          React.createElement(Text, { style: styles.condBullet }, "•"),
+          React.createElement(Text, { style: styles.condTx }, linea),
+        ))
+      : lineas.map((linea, i) => React.createElement(Text, { key: i, style: styles.condTx }, linea))
     ),
   );
 }
@@ -100,7 +100,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       oportunidad: { select: { titulo: true } },
       items:       { orderBy: { id: "asc" } },
       lineasAhorro:{ orderBy: { id: "asc" } },
-      tenant:      { select: { nombre: true, logoUrl: true } },
+      tenant:      { select: { nombre: true, logoUrl: true, cuerpoCotizacion: true } },
     },
   });
   if (!cot) return new NextResponse("No encontrada", { status: 404 });
@@ -155,12 +155,13 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
               ),
           React.createElement(View, null,
             React.createElement(Text, { style: styles.tenantName }, cot.tenant.nombre),
-            React.createElement(Text, { style: styles.tenantSub }, "Desarrollado con Evoluteca CRM")
+            React.createElement(Text, { style: styles.tenantSub }, "Propuesta comercial")
           )
         ),
         React.createElement(View, { style: styles.cotNumBox },
           React.createElement(Text, { style: styles.cotLabel }, "COTIZACIÓN"),
-          React.createElement(Text, { style: styles.cotNum }, `#${String(cot.numero).padStart(4, "0")}`),
+          React.createElement(Text, { style: styles.cotNum }, `N.º ${String(cot.numero).padStart(4, "0")}`),
+          React.createElement(Text, { style: styles.cotMeta }, `Emitida el ${fmtFecha(cot.creadoEn)}`),
           React.createElement(View, { style: styles.badge },
             React.createElement(Text, { style: styles.badgeText }, ESTADO[cot.estado] ?? cot.estado)
           )
@@ -264,10 +265,11 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
         React.createElement(Text, { style: styles.notesTx }, cot.notas),
       ) : null,
 
-      // Condiciones comerciales
-      React.createElement(View, { style: styles.condBox, wrap: false },
-        React.createElement(Text, { style: styles.condLabel }, "Condiciones comerciales"),
-        ...CONDICIONES_COMERCIALES.map(([titulo, texto]) => React.createElement(CondLI, { key: titulo, titulo, texto })),
+      // Cuerpo / condiciones de la cotización (configurable por tenant; si no
+      // hay nada configurado, seccionesCotizacion() devuelve las condiciones
+      // comerciales por defecto).
+      ...seccionesCotizacion(cot.tenant.cuerpoCotizacion).map((s, i) =>
+        React.createElement(SeccionCotBox, { key: i, titulo: s.titulo, contenido: s.contenido })
       ),
 
       // Footer
