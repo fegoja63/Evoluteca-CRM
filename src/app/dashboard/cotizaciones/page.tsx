@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   IconFilePlus, IconSearch, IconX, IconDownload, IconChartFunnel,
-  IconTarget, IconCircleCheck, IconFileText, IconArrowsExchange, IconPencil,
+  IconTarget, IconCircleCheck, IconFileText, IconArrowsExchange, IconPencil, IconTrash,
   type Icon,
 } from "@tabler/icons-react";
+import { useSession } from "next-auth/react";
+import { puedeEliminar } from "@/lib/permisos";
 import { toast } from "@/lib/toast";
 
 type Oportunidad = {
@@ -201,6 +203,24 @@ export default function CotizacionesPage() {
   const [editando, setEditando] = useState<Oportunidad | null>(null);
   const [formEdit, setFormEdit] = useState({ titulo: "", empresaId: "", contactoId: "", valor: "", etapa: "PROPUESTA" });
   const [guardandoEdit, setGuardandoEdit] = useState(false);
+  const { data: session } = useSession();
+  const puedeBorrar = puedeEliminar(session?.user?.rol);
+
+  async function handleEliminar(o: Oportunidad) {
+    if (!confirm(`¿Eliminar la cotización "${o.titulo}"? Se moverá a la Papelera y podrás restaurarla desde ahí.`)) return;
+    try {
+      const res = await fetch(`/api/oportunidades/${o.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error ?? "No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+        return;
+      }
+    } catch {
+      toast.error("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
+    cargar();
+  }
 
   function abrirEdicion(o: Oportunidad) {
     setEditando(o);
@@ -578,7 +598,7 @@ export default function CotizacionesPage() {
                 <th className="px-4 py-1 text-left">Trimestre</th>
                 <th className="px-4 py-1 text-right">Valor cotizado</th>
                 <th className="px-4 py-1 text-center">Etapa</th>
-                <th className="px-4 py-1 text-center">Editar</th>
+                <th className="px-4 py-1 text-center">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -637,10 +657,18 @@ export default function CotizacionesPage() {
                     </select>
                   </td>
                   <td className="px-4 py-1 text-center">
-                    <button onClick={() => abrirEdicion(o)} title="Editar cotización"
-                      className="text-slate-300 hover:text-brand-600 inline-flex">
-                      <IconPencil size={15} stroke={1.75} />
-                    </button>
+                    <div className="inline-flex items-center gap-3">
+                      <button onClick={() => abrirEdicion(o)} title="Editar cotización"
+                        className="text-slate-300 hover:text-brand-600 inline-flex">
+                        <IconPencil size={15} stroke={1.75} />
+                      </button>
+                      {puedeBorrar && (
+                        <button onClick={() => handleEliminar(o)} title="Eliminar cotización"
+                          className="text-slate-300 hover:text-red-600 inline-flex">
+                          <IconTrash size={15} stroke={1.75} />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

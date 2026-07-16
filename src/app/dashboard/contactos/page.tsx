@@ -5,9 +5,11 @@ import Link from "next/link";
 import { Pager } from "@/components/pager";
 import {
   IconUsers, IconBuilding, IconAlertTriangle, IconMail, IconUserCircle, IconX,
-  IconPencil,
+  IconPencil, IconTrash,
   type Icon,
 } from "@tabler/icons-react";
+import { useSession } from "next-auth/react";
+import { puedeEliminar } from "@/lib/permisos";
 import { toast } from "@/lib/toast";
 
 const TAKE = 30;
@@ -43,6 +45,8 @@ export default function ContactosPage() {
   const [editando, setEditando] = useState<Contacto | null>(null);
   const [formEdit, setFormEdit] = useState({ nombre: "", email: "", telefono: "", cargo: "", empresaId: "" });
   const [guardandoEdit, setGuardandoEdit] = useState(false);
+  const { data: session } = useSession();
+  const puedeBorrar = puedeEliminar(session?.user?.rol);
 
   const duplicados = todosContactos.filter(c => {
     const nombreMatch = form.nombre.trim().length >= 3 &&
@@ -172,6 +176,24 @@ export default function ContactosPage() {
     }
     setEditando(null);
     setGuardandoEdit(false);
+    cargar(busqueda, page);
+    cargarStats(busqueda);
+    fetch("/api/contactos").then(res => res.json()).then(setTodosContactos);
+  }
+
+  async function handleEliminar(c: Contacto) {
+    if (!confirm(`¿Eliminar el contacto "${c.nombre}"? Se moverá a la Papelera y podrás restaurarlo desde ahí.`)) return;
+    try {
+      const res = await fetch(`/api/contactos/${c.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error ?? "No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+        return;
+      }
+    } catch {
+      toast.error("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
     cargar(busqueda, page);
     cargarStats(busqueda);
     fetch("/api/contactos").then(res => res.json()).then(setTodosContactos);
@@ -399,10 +421,18 @@ export default function ContactosPage() {
                   <td className="px-4 py-1 text-neutral-500">{c.email ?? "—"}</td>
                   <td className="px-4 py-1 text-neutral-500">{c.empresa?.nombre ?? "—"}</td>
                   <td className="px-4 py-1 text-right">
-                    <button onClick={() => abrirEdicion(c)} title="Editar"
-                      className="text-neutral-300 hover:text-brand-600 inline-flex">
-                      <IconPencil size={15} stroke={1.75} />
-                    </button>
+                    <div className="inline-flex items-center gap-3">
+                      <button onClick={() => abrirEdicion(c)} title="Editar"
+                        className="text-neutral-300 hover:text-brand-600 inline-flex">
+                        <IconPencil size={15} stroke={1.75} />
+                      </button>
+                      {puedeBorrar && (
+                        <button onClick={() => handleEliminar(c)} title="Eliminar"
+                          className="text-neutral-300 hover:text-red-600 inline-flex">
+                          <IconTrash size={15} stroke={1.75} />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

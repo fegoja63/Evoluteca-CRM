@@ -5,9 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Pager } from "@/components/pager";
 import {
-  IconBuilding, IconUsers, IconAlertTriangle, IconLink, IconBuildingPlus, IconX,
+  IconBuilding, IconUsers, IconAlertTriangle, IconLink, IconBuildingPlus, IconX, IconTrash, IconPencil,
   type Icon,
 } from "@tabler/icons-react";
+import { useSession } from "next-auth/react";
+import { puedeEliminar } from "@/lib/permisos";
+import { toast } from "@/lib/toast";
 
 const TAKE = 30;
 
@@ -18,6 +21,7 @@ type Empresa = {
   sector: string | null;
   telefono: string | null;
   sitioWeb: string | null;
+  notas: string | null;
   creadoEn: string;
   etiquetas: string[];
   _count: { contactos: number };
@@ -44,6 +48,11 @@ export default function ClientesPage() {
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [stats, setStats] = useState({ total: 0, conContactos: 0, sinContactos: 0, contactosVinculados: 0 });
+  const [editando, setEditando] = useState<Empresa | null>(null);
+  const [formEdit, setFormEdit] = useState({ nombre: "", email: "", telefono: "", sector: "", sitioWeb: "", notas: "" });
+  const [guardandoEdit, setGuardandoEdit] = useState(false);
+  const { data: session } = useSession();
+  const puedeBorrar = puedeEliminar(session?.user?.rol);
 
   // Duplicados: busca por nombre similar o email exacto
   const duplicados = todasEmpresas.filter(e => {
@@ -86,6 +95,64 @@ export default function ClientesPage() {
   function cambiarPagina(p: number) {
     setPage(p);
     cargar(busqueda, p);
+  }
+
+  function abrirEdicion(e: Empresa) {
+    setEditando(e);
+    setFormEdit({
+      nombre: e.nombre,
+      email: e.email ?? "",
+      telefono: e.telefono ?? "",
+      sector: e.sector ?? "",
+      sitioWeb: e.sitioWeb ?? "",
+      notas: e.notas ?? "",
+    });
+  }
+
+  async function handleGuardarEdicion(ev: React.FormEvent) {
+    ev.preventDefault();
+    if (!editando) return;
+    setGuardandoEdit(true);
+    try {
+      const res = await fetch(`/api/empresas/${editando.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formEdit),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error ?? "No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+        setGuardandoEdit(false);
+        return;
+      }
+    } catch {
+      toast.error("No se pudieron guardar los cambios. Revisa tu conexión e inténtalo de nuevo.");
+      setGuardandoEdit(false);
+      return;
+    }
+    setEditando(null);
+    setGuardandoEdit(false);
+    cargar(busqueda, page);
+    cargarStats(busqueda);
+    fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
+  }
+
+  async function handleEliminar(e: Empresa) {
+    if (!confirm(`¿Eliminar el cliente "${e.nombre}"? Se moverá a la Papelera y podrás restaurarlo desde ahí.`)) return;
+    try {
+      const res = await fetch(`/api/empresas/${e.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error ?? "No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+        return;
+      }
+    } catch {
+      toast.error("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
+    cargar(busqueda, page);
+    cargarStats(busqueda);
+    fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
   }
 
   async function handleGuardar(e: React.FormEvent) {
@@ -301,6 +368,7 @@ export default function ClientesPage() {
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Teléfono</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Sector</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Contactos</th>
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -315,11 +383,91 @@ export default function ClientesPage() {
                   <td className="px-4 py-1 text-slate-500 whitespace-nowrap">{e.telefono ?? "—"}</td>
                   <td className="px-4 py-1 text-slate-500">{e.sector ?? "—"}</td>
                   <td className="px-4 py-1 text-slate-500">{e._count.contactos}</td>
+                  <td className="px-4 py-1 text-right">
+                    <div className="inline-flex items-center gap-3">
+                      <button onClick={() => abrirEdicion(e)} title="Editar"
+                        className="text-slate-300 hover:text-brand-600 inline-flex">
+                        <IconPencil size={15} stroke={1.75} />
+                      </button>
+                      {puedeBorrar && (
+                        <button onClick={() => handleEliminar(e)} title="Eliminar cliente"
+                          className="text-slate-300 hover:text-red-600 inline-flex">
+                          <IconTrash size={15} stroke={1.75} />
+                        </button>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
           <Pager page={page} take={TAKE} total={totalCount} onChange={cambiarPagina} />
+        </div>
+      )}
+
+      {editando && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setEditando(null)}>
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
+            onClick={(ev) => ev.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-slate-800">Editar cliente</h2>
+              <button onClick={() => setEditando(null)} className="text-slate-400 hover:text-slate-600">
+                <IconX size={18} stroke={1.75} />
+              </button>
+            </div>
+            <form onSubmit={handleGuardarEdicion} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label className="mb-1 block text-xs text-slate-500">Nombre *</label>
+                <input required value={formEdit.nombre}
+                  onChange={ev => setFormEdit({ ...formEdit, nombre: ev.target.value })}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-slate-500">Email</label>
+                <input type="email" value={formEdit.email}
+                  onChange={ev => setFormEdit({ ...formEdit, email: ev.target.value })}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-slate-500">Teléfono</label>
+                <input value={formEdit.telefono}
+                  onChange={ev => setFormEdit({ ...formEdit, telefono: ev.target.value })}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-slate-500">Sector</label>
+                <select value={formEdit.sector}
+                  onChange={ev => setFormEdit({ ...formEdit, sector: ev.target.value })}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
+                  <option value="">Sin sector</option>
+                  {SECTORES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-slate-500">Sitio web</label>
+                <input value={formEdit.sitioWeb}
+                  onChange={ev => setFormEdit({ ...formEdit, sitioWeb: ev.target.value })}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div className="col-span-2">
+                <label className="mb-1 block text-xs text-slate-500">Notas</label>
+                <textarea value={formEdit.notas} rows={3}
+                  onChange={ev => setFormEdit({ ...formEdit, notas: ev.target.value })}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div className="col-span-2 flex justify-end gap-2 pt-1">
+                <button type="button" onClick={() => setEditando(null)}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={guardandoEdit}
+                  className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                  {guardandoEdit ? "Guardando..." : "Guardar cambios"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
