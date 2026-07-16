@@ -15,6 +15,7 @@ import { ExtrasPanel } from "@/components/extras-panel";
 import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 import { TimelineCliente } from "@/components/timeline-cliente";
 import { NotasRapidas } from "@/components/notas-rapidas";
+import { numeroCotizacion } from "@/lib/cotizaciones";
 import { Adjuntos } from "@/components/adjuntos";
 import { Etiquetas } from "@/components/etiquetas";
 import { guardarJson } from "@/lib/guardar";
@@ -35,7 +36,7 @@ type Detalle = {
   contactos: { id: string; nombre: string; cargo: string | null; telefono: string | null }[];
   oportunidades: { id: string; titulo: string; etapa: string; valor: string | null; motivoPerdida: string | null }[];
   actividades: { id: string; titulo: string; fecha: string; completada: boolean }[];
-  cotizaciones: { id: string; numero: number; estado: string; items: { cantidad: number; precioUnit: string }[] }[];
+  cotizaciones: { id: string; numero: number; numeroManual: string | null; estado: string; items: { cantidad: number; precioUnit: string }[] }[];
 };
 
 const ETAPA_COLOR: Record<string, string> = {
@@ -344,7 +345,7 @@ export default function FichaClientePage() {
                 return (
                   <li key={c.id} className="text-slate-700">
                     <Link href={`/dashboard/cotizaciones-formales/${c.id}`} className="hover:text-brand-600">
-                      #{c.numero}
+                      {numeroCotizacion(c)}
                     </Link>
                     <span className="text-slate-400 text-xs ml-1">· {c.estado}</span>
                     <span className="text-xs font-semibold text-emerald-700 ml-1">· {fmt(String(total))}</span>

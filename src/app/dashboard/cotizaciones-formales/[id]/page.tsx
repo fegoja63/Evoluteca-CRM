@@ -2,16 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
-import { ahorroMensualTotal, valorCotizacion, valorFeeMensual, MODALIDAD_LABEL } from "@/lib/cotizaciones";
+import { ahorroMensualTotal, valorCotizacion, valorFeeMensual, MODALIDAD_LABEL, numeroCotizacion } from "@/lib/cotizaciones";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { IconLink, IconMail, IconCheck, IconBrandWhatsapp, IconStar, IconDownload, IconCopy, IconArrowLeft } from "@tabler/icons-react";
+import { IconLink, IconMail, IconCheck, IconBrandWhatsapp, IconStar, IconDownload, IconCopy, IconArrowLeft, IconPencil } from "@tabler/icons-react";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type LineaAhorro = { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string };
 type Cotizacion = {
   id: string;
   numero: number;
+  numeroManual: string | null;
   estado: string;
   modalidad: string;
   porcentajeHonorarios: string | null;
@@ -92,6 +93,9 @@ export default function CotizacionDetailPage() {
   const [impuesto2Nombre, setImpuesto2Nombre] = useState("");
   const [impuesto2Porcentaje, setImpuesto2Porcentaje] = useState("");
   const [guardandoImpuesto, setGuardandoImpuesto] = useState(false);
+  const [editNumero, setEditNumero] = useState(false);
+  const [numeroManual, setNumeroManual] = useState("");
+  const [guardandoNumero, setGuardandoNumero] = useState(false);
   const [linkPublico, setLinkPublico] = useState("");
   const [copiado, setCopiado]     = useState(false);
   const [motivoRechazo, setMotivoRechazo] = useState("");
@@ -106,6 +110,7 @@ export default function CotizacionDetailPage() {
     const data = await res.json();
     setCot(data);
     setNotas(data.notas ?? "");
+    setNumeroManual(data.numeroManual ?? "");
     setEmailDestino(prev => prev || data.contacto?.email || data.empresa?.email || "");
     setTelefonoDestino(prev => prev || data.contacto?.telefono || data.empresa?.telefono || "");
     setImpuestoNombre(data.impuestoNombre ?? "IVA");
@@ -120,7 +125,7 @@ export default function CotizacionDetailPage() {
       const tot = data.modalidad && data.modalidad !== "FEE_FIJO"
         ? valorCotizacion(data)
         : sub + sub * (pct1 / 100) + sub * (pct2 / 100);
-      const numero = `#${String(data.numero).padStart(4, "0")}`;
+      const numero = numeroCotizacion(data);
       const cliente = data.empresa?.nombre ?? "";
       const saludo = data.contacto?.nombre ? `Hola ${data.contacto.nombre}` : "Hola";
       return `${saludo}, te comparto la cotización ${numero}${cliente ? ` de ${cliente}` : ""}. Total: ${fmt(tot)}. Cualquier duda me cuentas.`;
@@ -181,6 +186,25 @@ export default function CotizacionDetailPage() {
     cargar();
   }
 
+  async function guardarNumero() {
+    setGuardandoNumero(true);
+    try {
+      const res = await fetch(`/api/cotizaciones/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ numeroManual: numeroManual.trim() || null }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      toast.error("No se pudo guardar el número. Revisa tu conexión e inténtalo de nuevo.");
+      setGuardandoNumero(false);
+      return;
+    }
+    setEditNumero(false);
+    setGuardandoNumero(false);
+    cargar();
+  }
+
   async function guardarImpuesto() {
     setGuardandoImpuesto(true);
     try {
@@ -237,7 +261,7 @@ export default function CotizacionDetailPage() {
 
   async function guardarComoPlantilla() {
     if (!cot || cot.items.length === 0) return;
-    const nombre = prompt("Nombre para la plantilla:", `Plantilla #${String(cot.numero).padStart(4, "0")}`);
+    const nombre = prompt("Nombre para la plantilla:", `Plantilla ${numeroCotizacion(cot)}`);
     if (!nombre?.trim()) return;
     setGuardandoPlantilla(true);
     await fetch("/api/plantillas-cotizacion", {
@@ -293,7 +317,7 @@ export default function CotizacionDetailPage() {
         </Link>
         <span className="text-slate-300">/</span>
         <span className="text-sm font-mono font-bold text-slate-600">
-          #{String(cot.numero).padStart(4, "0")}
+          {numeroCotizacion(cot)}
         </span>
       </div>
 
@@ -316,9 +340,46 @@ export default function CotizacionDetailPage() {
               Esta cotización fue reemplazada por una versión más reciente del mismo negocio. Se conserva como historial, pero la versión vigente es otra.
             </p>
           )}
-          <h1 className="text-2xl font-bold text-slate-900">
-            Cotización #{String(cot.numero).padStart(4, "0")}
-          </h1>
+          {editNumero ? (
+            <div className="flex flex-col gap-1.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  type="text"
+                  value={numeroManual}
+                  onChange={e => setNumeroManual(e.target.value)}
+                  placeholder={`#${String(cot.numero).padStart(4, "0")}`}
+                  maxLength={40}
+                  autoFocus
+                  onKeyDown={e => { if (e.key === "Enter") guardarNumero(); if (e.key === "Escape") { setEditNumero(false); setNumeroManual(cot.numeroManual ?? ""); } }}
+                  className="w-56 rounded-lg border border-slate-300 px-3 py-1.5 text-lg font-bold text-slate-900 outline-none focus:border-brand-500"
+                />
+                <button onClick={guardarNumero} disabled={guardandoNumero}
+                  className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+                  {guardandoNumero ? "Guardando…" : "Guardar"}
+                </button>
+                <button onClick={() => { setEditNumero(false); setNumeroManual(cot.numeroManual ?? ""); }}
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-50">
+                  Cancelar
+                </button>
+              </div>
+              <p className="text-xs text-slate-400">
+                Número propio del cliente (ej. COT-2026-045). Déjalo vacío para usar el consecutivo automático #{String(cot.numero).padStart(4, "0")}.
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-slate-900">
+                Cotización {numeroCotizacion(cot)}
+              </h1>
+              <button onClick={() => setEditNumero(true)} title="Editar número"
+                className="text-slate-400 hover:text-brand-600 transition-colors">
+                <IconPencil size={16} stroke={1.75} />
+              </button>
+            </div>
+          )}
+          {!editNumero && cot.numeroManual && (
+            <p className="text-xs text-slate-400 mt-0.5">Consecutivo interno #{String(cot.numero).padStart(4, "0")}</p>
+          )}
           {cot.empresa && (
             <p className="text-slate-500 text-sm mt-1">{cot.empresa.nombre}</p>
           )}

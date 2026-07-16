@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { IconDownload, IconPlus, IconX, IconPackage, IconTarget } from "@tabler/icons-react";
+import { MoneyInput } from "@/components/money-input";
 
 type Producto = { id: string; nombre: string; descripcion: string | null; precioBase: string; activo: boolean };
 
@@ -126,7 +127,7 @@ export default function CatalogoPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Precio base (COP)</label>
-              <input type="number" min={0} step={1000} value={form.precioBase} onChange={e => setForm(f => ({ ...f, precioBase: e.target.value }))}
+              <MoneyInput value={form.precioBase} onChange={v => setForm(f => ({ ...f, precioBase: v }))}
                 placeholder="0"
                 className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>

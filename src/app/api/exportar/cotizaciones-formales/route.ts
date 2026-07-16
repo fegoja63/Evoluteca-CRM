@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { numeroCotizacion } from "@/lib/cotizaciones";
 import ExcelJS from "exceljs";
 
 export async function GET() {
@@ -44,7 +45,7 @@ export async function GET() {
   for (const c of cotizaciones) {
     const total = c.items.reduce((acc, i) => acc + i.cantidad * Number(i.precioUnit), 0);
     ws.addRow({
-      numero:       String(c.numero).padStart(4, "0"),
+      numero:       numeroCotizacion(c),
       estado:       c.estado,
       cliente:      c.empresa?.nombre ?? "",
       contacto:     c.contacto?.nombre ?? "",

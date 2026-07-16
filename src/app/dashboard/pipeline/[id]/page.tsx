@@ -5,6 +5,7 @@ import { toast } from "@/lib/toast";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { MoneyInput } from "@/components/money-input";
 import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 import { NotasRapidas } from "@/components/notas-rapidas";
 import { guardarJson } from "@/lib/guardar";
@@ -274,7 +275,7 @@ export default function OportunidadDetallePage() {
               </div>
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">Valor (COP)</label>
-                <input type="number" value={form.valor} onChange={e => setForm({...form, valor: e.target.value})}
+                <MoneyInput value={form.valor} onChange={v => setForm({...form, valor: v})}
                   className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               </div>
               <div>

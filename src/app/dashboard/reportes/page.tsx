@@ -13,6 +13,7 @@ import {
   IconX,
   type Icon,
 } from "@tabler/icons-react";
+import { MoneyInput } from "@/components/money-input";
 
 type ResAnio = { ganadas: number; perdidas: number; activas: number; valorGanado: number; valorPerdido: number; valorActivo: number; total: number };
 type ResMes  = { ganadas: number; perdidas: number; valorGanado: number; total: number };
@@ -529,9 +530,10 @@ export default function ReportesPage() {
 
   // ── Funnel de conversión ──
   function Funnel() {
-    const etapasFunnel = ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION","GANADA"];
-    const colores = ["#94a3b8","#60a5fa","#8b5cf6","#fbbf24","#10b981"];
-    const vals = etapasFunnel.map(e => r!.oportunidadesPorEtapa[e] ?? 0);
+    // Sigue el orden configurable del pipeline (ETAPAS), excluyendo "Perdida"
+    // que no forma parte del flujo de conversión.
+    const etapasFunnel = ETAPAS.filter(e => e.key !== "PERDIDA");
+    const vals = etapasFunnel.map(e => r!.oportunidadesPorEtapa[e.key] ?? 0);
     const maxV = Math.max(...vals, 1);
     const W = 260, H = 220, rowH = H / etapasFunnel.length;
 
@@ -548,13 +550,13 @@ export default function ReportesPage() {
             const anchoSig = i < etapasFunnel.length - 1 ? Math.max(0.15, vals[i + 1] / maxV) : ancho * 0.6;
             const xIzqSig = W / 2 - (W * anchoSig) / 2;
             const xDerSig = W / 2 + (W * anchoSig) / 2;
-            const label = ETAPAS.find(e => e.key === etapa)?.label ?? etapa;
+            const label = etapa.label;
             const conv = i > 0 && vals[i - 1] > 0 ? Math.round((v / vals[i - 1]) * 100) : null;
             return (
-              <g key={etapa}>
+              <g key={etapa.key}>
                 <polygon
                   points={`${xIzq},${y + 2} ${xDer},${y + 2} ${xDerSig},${y + rowH - 2} ${xIzqSig},${y + rowH - 2}`}
-                  fill={colores[i]}
+                  fill={etapa.colorBar}
                   opacity={0.85}
                 />
                 <text x={W / 2} y={y + rowH / 2 - 4} textAnchor="middle" fontSize={9} fill="white" fontWeight="700">{label}</text>
@@ -920,8 +922,8 @@ export default function ReportesPage() {
               </div>
               <div>
                 <p className="text-xs text-slate-500 mb-1">Valor objetivo (COP)</p>
-                <input type="number" min={0} step={1000000} value={metaForm.valorObjetivo}
-                  onChange={e => setMetaForm(f => ({ ...f, valorObjetivo: e.target.value }))}
+                <MoneyInput value={metaForm.valorObjetivo}
+                  onChange={v => setMetaForm(f => ({ ...f, valorObjetivo: v }))}
                   placeholder="Ej: 50000000"
                   className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm w-44 outline-none focus:border-amber-400" />
               </div>

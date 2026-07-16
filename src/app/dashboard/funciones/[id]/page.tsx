@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { MoneyInput } from "@/components/money-input";
 
 type NpsRespuesta = {
   id: string;
@@ -238,7 +239,7 @@ export default function FichaFuncionPage() {
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Ingreso estimado (COP)</label>
-              <input type="number" value={form.ingresoEstimado} onChange={e => setForm({...form, ingresoEstimado: e.target.value})}
+              <MoneyInput value={form.ingresoEstimado} onChange={v => setForm({...form, ingresoEstimado: v})}
                 className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div className="col-span-2">

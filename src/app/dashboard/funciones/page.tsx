@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
 import { KpiCard } from "@/components/kpi-card";
+import { MoneyInput } from "@/components/money-input";
 import { Pager } from "@/components/pager";
 import {
   IconTheater, IconArmchair, IconCoin, IconStar, IconDownload, IconPlus,
@@ -219,7 +220,7 @@ export default function FuncionesPage() {
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Ingreso estimado (COP)</label>
-              <input type="number" value={form.ingresoEstimado} onChange={e => setForm({ ...form, ingresoEstimado: e.target.value })}
+              <MoneyInput value={form.ingresoEstimado} onChange={v => setForm({ ...form, ingresoEstimado: v })}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div className="col-span-2">
@@ -291,8 +292,8 @@ export default function FuncionesPage() {
                     </select>
                   </td>
                   <td className="px-2 py-2">
-                    <input type="number" value={editForm.ingresoEstimado}
-                      onChange={e => setEditForm({ ...editForm, ingresoEstimado: e.target.value })}
+                    <MoneyInput value={editForm.ingresoEstimado}
+                      onChange={v => setEditForm({ ...editForm, ingresoEstimado: v })}
                       className="w-full rounded-lg border border-brand-300 px-2 py-1 text-sm outline-none" />
                   </td>
                   <td className="px-2 py-2 text-slate-400">{f._count.npsList > 0 ? `${f._count.npsList} resp.` : "—"}</td>

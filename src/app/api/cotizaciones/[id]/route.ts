@@ -44,7 +44,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const body = await request.json();
   const { data: parsedBody, error } = parseOrError(editarCotizacionSchema, body);
   if (error) return error;
-  const { estado, notas, empresaId, motivoRechazo, fechaEvento, horaInicio, horaFin, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje } = parsedBody;
+  const { estado, numeroManual, notas, empresaId, motivoRechazo, fechaEvento, horaInicio, horaFin, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje } = parsedBody;
 
   if (empresaId) {
     const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId, eliminadoEn: null } });
@@ -55,6 +55,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
     data: {
       ...(estado !== undefined && { estado }),
+      ...(numeroManual !== undefined && { numeroManual: numeroManual?.trim() || null }),
       ...(notas !== undefined && { notas: notas || null }),
       ...(empresaId !== undefined && { empresaId: empresaId || null }),
       ...(motivoRechazo !== undefined && { motivoRechazo: motivoRechazo || null }),

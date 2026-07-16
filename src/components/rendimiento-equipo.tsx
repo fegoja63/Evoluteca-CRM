@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { MoneyInput } from "@/components/money-input";
 
 type Vendedor = {
   id: string;
@@ -167,10 +168,9 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
                     {editando && (
                       <div className="flex items-center gap-2 pl-8 mt-2">
                         <span className="text-xs text-slate-500">Meta {MESES[mesActual-1]}:</span>
-                        <input
-                          type="number"
+                        <MoneyInput
                           value={valorMeta}
-                          onChange={e => setValorMeta(e.target.value)}
+                          onChange={val => setValorMeta(val)}
                           placeholder="ej: 5000000"
                           className="w-36 rounded-lg border border-slate-300 px-2 py-1 text-xs focus:outline-none focus:border-blue-400"
                           onKeyDown={e => e.key === "Enter" && guardarMeta(v.id)}

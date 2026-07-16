@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { IconPlus, IconX, IconClipboardText, IconStar, IconInfoCircle } from "@tabler/icons-react";
+import { MoneyInput } from "@/components/money-input";
 
 type ItemPlantilla = { id: string; descripcion: string; cantidad: string | number; precioUnit: string | number };
 type Plantilla = { id: string; nombre: string; notas: string | null; creadoEn: string; items: ItemPlantilla[] };
@@ -40,8 +41,8 @@ function LineasEditor({ lineas, onChange }: { lineas: Linea[]; onChange: (lineas
             <input type="number" min={1} value={linea.cantidad}
               onChange={e => updateLinea(i, "cantidad", e.target.value)}
               className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 text-center" />
-            <input type="number" min={0} placeholder="0" value={linea.precioUnit}
-              onChange={e => updateLinea(i, "precioUnit", e.target.value)}
+            <MoneyInput placeholder="0" value={linea.precioUnit}
+              onChange={v => updateLinea(i, "precioUnit", v)}
               className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 text-right" />
             <button type="button" onClick={() => removeLinea(i)} disabled={lineas.length === 1}
               className="text-slate-300 hover:text-red-500 disabled:opacity-30 text-lg font-bold leading-none">

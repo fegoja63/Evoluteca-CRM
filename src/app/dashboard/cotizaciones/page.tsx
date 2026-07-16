@@ -10,6 +10,7 @@ import {
 import { useSession } from "next-auth/react";
 import { puedeEliminar } from "@/lib/permisos";
 import { toast } from "@/lib/toast";
+import { MoneyInput } from "@/components/money-input";
 
 type Oportunidad = {
   id: string;
@@ -466,8 +467,8 @@ export default function CotizacionesPage() {
 
               <div>
                 <label className="mb-1 block text-xs text-slate-500">Valor cotizado (COP)</label>
-                <input type="number" step="1000" placeholder="0" value={form.valor}
-                  onChange={e => setForm({ ...form, valor: e.target.value })}
+                <MoneyInput placeholder="0" value={form.valor}
+                  onChange={v => setForm({ ...form, valor: v })}
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               </div>
 
@@ -725,8 +726,8 @@ export default function CotizacionesPage() {
               </div>
               <div>
                 <label className="mb-1 block text-xs text-slate-500">Valor cotizado (COP)</label>
-                <input type="number" step="1000" placeholder="0" value={formEdit.valor}
-                  onChange={e => setFormEdit({ ...formEdit, valor: e.target.value })}
+                <MoneyInput placeholder="0" value={formEdit.valor}
+                  onChange={v => setFormEdit({ ...formEdit, valor: v })}
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               </div>
               <div>

@@ -6,7 +6,7 @@ import {
   IconFilePlus, IconSearch, IconX, IconDownload, IconAlertTriangle, IconFileText,
   IconSend, IconBan, IconTrash, IconArchive,
 } from "@tabler/icons-react";
-import { idsReemplazadas, valorCotizacion, MODALIDAD_LABEL } from "@/lib/cotizaciones";
+import { idsReemplazadas, valorCotizacion, MODALIDAD_LABEL, numeroCotizacion } from "@/lib/cotizaciones";
 import { guardarJson } from "@/lib/guardar";
 import { toast } from "@/lib/toast";
 
@@ -15,6 +15,7 @@ type LineaAhorro = { id: string; area: string; gastoBaseMensual: string; ahorroE
 type Cotizacion = {
   id: string;
   numero: number;
+  numeroManual: string | null;
   estado: string;
   modalidad: string;
   fechaEvento: string | null;
@@ -151,7 +152,7 @@ export default function CotizacionesFormalesPage() {
     if (soloVencidas && validezBadge(c.fechaValidez, c.estado) === null) return false;
     if (busqueda) {
       const q = busqueda.toLowerCase();
-      const campos = [c.empresa?.nombre, c.contacto?.nombre, c.sede, String(c.numero)].filter(Boolean).map(v => v!.toLowerCase());
+      const campos = [c.empresa?.nombre, c.contacto?.nombre, c.sede, String(c.numero), c.numeroManual, numeroCotizacion(c)].filter(Boolean).map(v => v!.toLowerCase());
       if (!campos.some(v => v.includes(q))) return false;
     }
     return true;
@@ -292,7 +293,7 @@ export default function CotizacionesFormalesPage() {
                   <td className="px-4 py-1">
                     <Link href={`/dashboard/cotizaciones-formales/${c.id}`}>
                       <span className="font-mono text-xs font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-lg">
-                        #{String(c.numero).padStart(4, "0")}
+                        {numeroCotizacion(c)}
                       </span>
                     </Link>
                   </td>

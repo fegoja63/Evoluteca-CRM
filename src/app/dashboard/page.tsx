@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { plazoVencido } from "@/lib/plazo-legal";
+import { numeroCotizacion } from "@/lib/cotizaciones";
 import Link from "next/link";
 import {
   IconBuilding, IconUsers, IconChartFunnel, IconClipboardList, IconActivityHeartbeat,
@@ -95,13 +96,13 @@ export default async function DashboardPage() {
     }),
     prisma.cotizacion.findMany({
       where: { tenantId, eliminadoEn: null, estado: "ENVIADA", creadoEn: { lt: hace3dias } },
-      select: { id: true, numero: true, creadoEn: true, empresa: { select: { nombre: true } } },
+      select: { id: true, numero: true, numeroManual: true, creadoEn: true, empresa: { select: { nombre: true } } },
       orderBy: { creadoEn: "asc" },
       take: 5,
     }),
     prisma.cotizacion.findMany({
       where: { tenantId, eliminadoEn: null, estado: { in: ["BORRADOR","ENVIADA"] }, fechaValidez: { lte: new Date(Date.now() + 7 * 86_400_000) } },
-      select: { id: true, numero: true, fechaValidez: true, empresa: { select: { nombre: true } } },
+      select: { id: true, numero: true, numeroManual: true, fechaValidez: true, empresa: { select: { nombre: true } } },
       orderBy: { fechaValidez: "asc" },
       take: 5,
     }),
@@ -573,7 +574,7 @@ export default async function DashboardPage() {
                     const dias = Math.floor((hoy.getTime()-new Date(c.creadoEn).getTime())/86_400_000);
                     return (
                       <Link key={c.id} href={`/dashboard/cotizaciones-formales/${c.id}`} className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-2.5 py-1.5 mb-1 hover:border-amber-300 transition-colors">
-                        <span className="text-xs font-medium text-slate-800 truncate flex-1">#{String(c.numero).padStart(4,"0")} {c.empresa?.nombre??""}</span>
+                        <span className="text-xs font-medium text-slate-800 truncate flex-1">{numeroCotizacion(c)} {c.empresa?.nombre??""}</span>
                         <span className="text-xs text-amber-600 font-semibold shrink-0">{dias}d</span>
                       </Link>
                     );

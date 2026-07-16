@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { IconRestore, IconTrash, IconInboxOff } from "@tabler/icons-react";
+import { numeroCotizacion } from "@/lib/cotizaciones";
 
 type Item = { id: string; nombre: string; email: string | null; eliminadoEn: string };
 type ItemEmpresa = Item & { sector: string | null };
 type ItemContacto = Item & { cargo: string | null };
 type ItemOportunidad = { id: string; titulo: string; valor: string | null; etapa: string; empresa: { nombre: string } | null; eliminadoEn: string };
-type ItemCotizacion = { id: string; numero: number; estado: string; empresa: { nombre: string } | null; eliminadoEn: string };
+type ItemCotizacion = { id: string; numero: number; numeroManual: string | null; estado: string; empresa: { nombre: string } | null; eliminadoEn: string };
 
 type Tipo = "empresa" | "contacto" | "oportunidad" | "cotizacion";
 
@@ -272,7 +273,7 @@ export default function PapeleraPage() {
                   <tbody className="divide-y divide-slate-100">
                     {cotizaciones.map(c => (
                       <tr key={c.id} className="hover:bg-slate-50">
-                        <td className="px-4 py-2 font-medium text-slate-900">#{String(c.numero).padStart(4, "0")}</td>
+                        <td className="px-4 py-2 font-medium text-slate-900">{numeroCotizacion(c)}</td>
                         <td className="px-4 py-2 text-slate-500">{c.empresa?.nombre ?? "—"}</td>
                         <td className="px-4 py-2 text-slate-500">{c.estado}</td>
                         <td className="px-4 py-2 text-slate-500 whitespace-nowrap">{fmt(c.eliminadoEn)}</td>
@@ -289,7 +290,7 @@ export default function PapeleraPage() {
                             {esAdministrador && (
                               <button
                                 disabled={procesando === c.id}
-                                onClick={() => borrarDefinitivo("cotizacion", c.id, `Cotización #${String(c.numero).padStart(4, "0")}`)}
+                                onClick={() => borrarDefinitivo("cotizacion", c.id, `Cotización ${numeroCotizacion(c)}`)}
                                 className="inline-flex items-center gap-1 rounded-lg border border-red-100 px-2.5 py-1 text-xs text-red-500 hover:bg-red-50 disabled:opacity-50"
                               >
                                 <IconTrash size={13} stroke={1.75} />

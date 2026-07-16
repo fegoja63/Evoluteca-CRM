@@ -5,6 +5,17 @@ export type CotizacionResumen = {
   oportunidadId: string | null;
 };
 
+/**
+ * Etiqueta a mostrar del número de cotización. Si el cliente definió un
+ * consecutivo propio (`numeroManual`), se usa tal cual; si no, el consecutivo
+ * automático formateado como "#0001". Centraliza la lógica para que lista,
+ * detalle, PDF, correo y vista pública sean consistentes.
+ */
+export function numeroCotizacion(cot: { numero: number; numeroManual?: string | null }): string {
+  const manual = cot.numeroManual?.trim();
+  return manual ? manual : `#${String(cot.numero).padStart(4, "0")}`;
+}
+
 // --- Modalidad SUCCESS_FEE (honorarios como % del ahorro estimado) ---
 
 export type LineaAhorroCalc = {

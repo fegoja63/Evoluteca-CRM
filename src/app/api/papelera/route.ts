@@ -28,7 +28,7 @@ export async function GET() {
     }),
     prisma.cotizacion.findMany({
       where: { tenantId, eliminadoEn: { not: null } },
-      select: { id: true, numero: true, estado: true, empresa: { select: { nombre: true } }, eliminadoEn: true },
+      select: { id: true, numero: true, numeroManual: true, estado: true, empresa: { select: { nombre: true } }, eliminadoEn: true },
       orderBy: { eliminadoEn: "desc" },
     }),
   ]);

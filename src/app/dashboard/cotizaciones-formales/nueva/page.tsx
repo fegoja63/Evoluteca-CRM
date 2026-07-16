@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { IconArrowLeft, IconAlertTriangle } from "@tabler/icons-react";
+import { MoneyInput } from "@/components/money-input";
 
 type Empresa  = { id: string; nombre: string };
 type Contacto = { id: string; nombre: string; email: string | null; empresa: { id: string } | null };
@@ -39,6 +40,7 @@ export default function NuevaCotizacionPage() {
   const [contactoId, setContactoId]       = useState("");
   const [oportunidadId, setOportunidadId] = useState("");
   const [salonId, setSalonId]         = useState("");
+  const [numeroManual, setNumeroManual] = useState("");
   const [sede, setSede]               = useState("");
   const [fechaEvento, setFechaEvento] = useState("");
   const [horaInicio, setHoraInicio] = useState("");
@@ -88,6 +90,9 @@ export default function NuevaCotizacionPage() {
     setContactoId("");
     setOportunidadId("");
     setModoEmpresa("existente");
+    // Un cliente recién creado no tiene contactos existentes: guiamos al usuario
+    // directo a "+ Nuevo" para que pueda crear el contacto de ese cliente.
+    setModoContacto("nuevo");
     setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
     setCreandoEmpresaLoading(false);
   }
@@ -302,6 +307,7 @@ export default function NuevaCotizacionPage() {
         contactoId:   contactoId   || null,
         oportunidadId: oportunidadId || null,
         salonId:      salonId      || null,
+        numeroManual: numeroManual.trim() || null,
         sede:         sede.trim()  || null,
         fechaEvento:  fechaEvento  || null,
         horaInicio:   horaInicio   || null,
@@ -572,6 +578,13 @@ export default function NuevaCotizacionPage() {
               <input type="date" value={fechaValidez} onChange={e => setFechaValidez(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Número del cliente</label>
+              <input type="text" value={numeroManual} onChange={e => setNumeroManual(e.target.value)}
+                placeholder="Automático" maxLength={40}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              <p className="text-[11px] text-slate-400 mt-1">Opcional — si el cliente lleva su propio consecutivo (ej. COT-2026-045). Vacío usa el automático.</p>
+            </div>
           </div>
         </div>
 
@@ -625,13 +638,10 @@ export default function NuevaCotizacionPage() {
                   onChange={e => updateLinea(i, "cantidad", e.target.value)}
                   className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 text-center"
                 />
-                <input
-                  type="number"
-                  min={0}
-                  step="1000"
+                <MoneyInput
                   placeholder="0"
                   value={linea.precioUnit}
-                  onChange={e => updateLinea(i, "precioUnit", e.target.value)}
+                  onChange={v => updateLinea(i, "precioUnit", v)}
                   className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 text-right"
                 />
                 <button type="button" onClick={() => removeLinea(i)} disabled={lineas.length === 1}
@@ -731,11 +741,11 @@ export default function NuevaCotizacionPage() {
                   <input type="text" placeholder="Ej: Telecomunicaciones" value={l.area}
                     onChange={e => updateLineaAhorro(i, "area", e.target.value)}
                     className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
-                  <input type="number" min={0} step="1000" placeholder="0" value={l.gastoBaseMensual}
-                    onChange={e => updateLineaAhorro(i, "gastoBaseMensual", e.target.value)}
+                  <MoneyInput placeholder="0" value={l.gastoBaseMensual}
+                    onChange={v => updateLineaAhorro(i, "gastoBaseMensual", v)}
                     className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 text-right" />
-                  <input type="number" min={0} step="1000" placeholder="0" value={l.ahorroEstimadoMensual}
-                    onChange={e => updateLineaAhorro(i, "ahorroEstimadoMensual", e.target.value)}
+                  <MoneyInput placeholder="0" value={l.ahorroEstimadoMensual}
+                    onChange={v => updateLineaAhorro(i, "ahorroEstimadoMensual", v)}
                     className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 text-right" />
                   <button type="button" onClick={() => removeLineaAhorro(i)} disabled={lineasAhorro.length === 1}
                     className="text-slate-300 hover:text-red-500 disabled:opacity-30 text-lg font-bold leading-none">×</button>
@@ -776,8 +786,8 @@ export default function NuevaCotizacionPage() {
               <div className="flex gap-2">
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Fee mensual (COP)</label>
-                  <input type="number" min={0} step="1000" placeholder="0" value={feeMensual}
-                    onChange={e => setFeeMensual(e.target.value)}
+                  <MoneyInput placeholder="0" value={feeMensual}
+                    onChange={v => setFeeMensual(v)}
                     className="w-40 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 text-right" />
                 </div>
                 <div>

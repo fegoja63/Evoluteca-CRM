@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { renderToBuffer, Document, Page, Text, View, StyleSheet, Font, Image } from "@react-pdf/renderer";
-import { MODALIDAD_LABEL } from "@/lib/cotizaciones";
+import { MODALIDAD_LABEL, numeroCotizacion } from "@/lib/cotizaciones";
 import { seccionesCotizacion } from "@/lib/cuerpo-cotizacion";
 import React from "react";
 
@@ -142,7 +142,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     }
   }
 
-  const doc = React.createElement(Document, { title: `Cotización #${String(cot.numero).padStart(4, "0")}` },
+  const numEtiqueta = numeroCotizacion(cot);
+  const doc = React.createElement(Document, { title: `Cotización ${numEtiqueta}` },
     React.createElement(Page, { size: "A4", style: styles.page },
 
       // Header
@@ -160,7 +161,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
         ),
         React.createElement(View, { style: styles.cotNumBox },
           React.createElement(Text, { style: styles.cotLabel }, "COTIZACIÓN"),
-          React.createElement(Text, { style: styles.cotNum }, `N.º ${String(cot.numero).padStart(4, "0")}`),
+          React.createElement(Text, { style: styles.cotNum }, `N.º ${numEtiqueta.replace(/^#/, "")}`),
           React.createElement(Text, { style: styles.cotMeta }, `Emitida el ${fmtFecha(cot.creadoEn)}`),
           React.createElement(View, { style: styles.badge },
             React.createElement(Text, { style: styles.badgeText }, ESTADO[cot.estado] ?? cot.estado)
@@ -274,7 +275,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
       // Footer
       React.createElement(View, { style: styles.footer },
-        React.createElement(Text, { style: styles.footerTx }, `Cotización #${String(cot.numero).padStart(4,"0")} · ${cot.tenant.nombre}`),
+        React.createElement(Text, { style: styles.footerTx }, `Cotización ${numEtiqueta} · ${cot.tenant.nombre}`),
         React.createElement(Text, { style: styles.footerTx }, `Generado el ${new Date().toLocaleDateString("es-CO")}`),
       )
     )
@@ -285,7 +286,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   return new NextResponse(buffer as unknown as BodyInit, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="cotizacion-${String(cot.numero).padStart(4,"0")}.pdf"`,
+      "Content-Disposition": `attachment; filename="cotizacion-${numEtiqueta.replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || String(cot.numero).padStart(4, "0")}.pdf"`,
     },
   });
 }

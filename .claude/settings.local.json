@@ -113,7 +113,19 @@
       "Bash(python -c ' *)",
       "Bash(mkdir -p media)",
       "Bash(npx vitest *)",
-      "Bash(echo \"=== EXIT: $? ===\")"
+      "Bash(echo \"=== EXIT: $? ===\")",
+      "Bash(git fetch *)",
+      "Bash(npx tsx *)",
+      "Bash(git commit -m '@ *)",
+      "Bash(grep -iv \"import\\\\|//\")",
+      "Bash(echo \"EXIT=$?\")",
+      "PowerShell(Test-NetConnection -ComputerName \"ep-holy-leaf-acuk9jd0.sa-east-1.aws.neon.tech\" -Port 5432 -WarningAction SilentlyContinue)",
+      "Bash(cp /tmp/testzod.mjs ./_testzod.mjs)",
+      "Bash(node ./_testzod.mjs)",
+      "Bash(rm -f ./_testzod.mjs)",
+      "Bash(docker --version)",
+      "Bash(psql --version)",
+      "Bash(git restore *)"
     ]
   }
 }

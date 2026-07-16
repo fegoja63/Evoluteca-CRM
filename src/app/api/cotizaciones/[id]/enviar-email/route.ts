@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
 import { enviarEmailCotizacionSchema } from "@/lib/validations/cotizaciones";
 import { parseOrError } from "@/lib/validations/helpers";
+import { numeroCotizacion } from "@/lib/cotizaciones";
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
@@ -38,7 +39,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const pctImpuesto2 = Number(cot.impuesto2Porcentaje ?? 0);
   const valorImpuesto2 = subtotal * (pctImpuesto2 / 100);
   const total = subtotal + valorImpuesto + valorImpuesto2;
-  const numero = `#${String(cot.numero).padStart(4, "0")}`;
+  const numero = numeroCotizacion(cot);
   const cliente = cot.empresa?.nombre ?? "Cliente";
   const contacto = cot.contacto?.nombre ?? "";
 

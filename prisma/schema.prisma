@@ -372,6 +372,10 @@ enum ModalidadCotizacion {
 model Cotizacion {
   id              String            @id @default(uuid())
   numero          Int               @default(autoincrement())
+  // Consecutivo personalizado del cliente (alfanumérico). Cuando está presente
+  // se muestra en lugar del consecutivo automático `numero`; el interno se
+  // conserva para orden y búsquedas.
+  numeroManual    String?
   estado          EstadoCotizacion  @default(BORRADOR)
   modalidad       ModalidadCotizacion @default(FEE_FIJO)
   // Success fee (SUCCESS_FEE) y fee mensual (FEE_MENSUAL):

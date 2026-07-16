@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { data: parsed, error } = parseOrError(crearCotizacionSchema, body);
   if (error) return error;
-  const { empresaId, contactoId, oportunidadId, salonId, fechaEvento, horaInicio, horaFin, sede, notas, fechaValidez, items, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje, modalidad, lineasAhorro, porcentajeHonorarios, horizonteMeses, feeMensual } = parsed;
+  const { empresaId, contactoId, oportunidadId, salonId, numeroManual, fechaEvento, horaInicio, horaFin, sede, notas, fechaValidez, items, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje, modalidad, lineasAhorro, porcentajeHonorarios, horizonteMeses, feeMensual } = parsed;
 
   // Cada relación opcional debe pertenecer al mismo tenant — sin esto, un
   // usuario podría enlazar (y luego ver los datos de) una empresa/contacto/
@@ -100,6 +100,7 @@ export async function POST(request: Request) {
         contactoId: contactoId || null,
         oportunidadId: opId,
         salonId: salonId || null,
+        numeroManual: numeroManual?.trim() || null,
         fechaEvento: fechaEventoDate,
         horaInicio: horaInicio || null,
         horaFin: horaFin || null,

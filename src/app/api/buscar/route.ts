@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
+import { numeroCotizacion } from "@/lib/cotizaciones";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -59,9 +60,10 @@ export async function GET(req: NextRequest) {
           { empresa: { nombre: { contains: q, mode: "insensitive" } } },
           { sede:    { contains: q, mode: "insensitive" } },
           { notas:   { contains: q, mode: "insensitive" } },
+          { numeroManual: { contains: q, mode: "insensitive" } },
         ],
       },
-      select: { id: true, numero: true, estado: true, empresa: { select: { nombre: true } } },
+      select: { id: true, numero: true, numeroManual: true, estado: true, empresa: { select: { nombre: true } } },
       take: 4,
     }),
     prisma.actividad.findMany({
@@ -115,7 +117,7 @@ export async function GET(req: NextRequest) {
     ...cotizaciones.map(c => ({
       tipo: "cotizacion" as const,
       id: c.id,
-      titulo: `Cotización #${String(c.numero).padStart(4,"0")}`,
+      titulo: `Cotización ${numeroCotizacion(c)}`,
       sub: [ESTADO_COT[c.estado], c.empresa?.nombre].filter(Boolean).join(" · "),
       href: `/dashboard/cotizaciones-formales/${c.id}`,
     })),

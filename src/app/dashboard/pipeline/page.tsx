@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/toast";
+import { MoneyInput } from "@/components/money-input";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
@@ -214,8 +215,11 @@ export default function PipelinePage() {
     }
     const nueva = await res.json();
     setEmpresas(prev => [{ id: nueva.id, nombre: nueva.nombre }, ...prev]);
-    setForm(f => ({ ...f, empresaId: nueva.id }));
+    setForm(f => ({ ...f, empresaId: nueva.id, contactoId: "" }));
     setModoEmpresa("existente");
+    // Un cliente recién creado no tiene contactos existentes: guiamos al usuario
+    // directo a "+ Nuevo" para que pueda crear el contacto de ese cliente.
+    setModoContacto("nuevo");
     setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
     setCreandoEmpresaLoading(false);
   }
@@ -550,7 +554,7 @@ export default function PipelinePage() {
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Valor estimado (COP)</label>
-              <input type="number" value={form.valor} onChange={e => setForm({...form, valor: e.target.value})}
+              <MoneyInput value={form.valor} onChange={v => setForm({...form, valor: v})}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div>

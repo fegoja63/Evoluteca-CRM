@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { numeroCotizacion } from "@/lib/cotizaciones";
 
 export async function GET(_req: Request, { params }: { params: { empresaId: string } }) {
   const session = await auth();
@@ -21,7 +22,7 @@ export async function GET(_req: Request, { params }: { params: { empresaId: stri
     }),
     prisma.cotizacion.findMany({
       where: { tenantId: tid, empresaId: eid, eliminadoEn: null },
-      select: { id: true, numero: true, estado: true, creadoEn: true },
+      select: { id: true, numero: true, numeroManual: true, estado: true, creadoEn: true },
       orderBy: { creadoEn: "desc" }, take: 50,
     }),
     prisma.eventoTimeline.findMany({
@@ -35,7 +36,7 @@ export async function GET(_req: Request, { params }: { params: { empresaId: stri
   const items: Item[] = [
     ...actividades.map(a => ({ id: `act-${a.id}`, fecha: new Date(a.fecha), categoria: "ACTIVIDAD", titulo: a.titulo, subtitulo: a.tipo, meta: { completada: a.completada, notas: a.notas } })),
     ...oportunidades.map(o => ({ id: `opo-${o.id}`, fecha: o.creadoEn, categoria: "OPORTUNIDAD", titulo: o.titulo, subtitulo: o.etapa, meta: { valor: Number(o.valor ?? 0), oportunidadId: o.id } })),
-    ...cotizaciones.map(c => ({ id: `cot-${c.id}`, fecha: c.creadoEn, categoria: "COTIZACION", titulo: `Cotización #${String(c.numero).padStart(4,"0")}`, subtitulo: c.estado, meta: { cotizacionId: c.id } })),
+    ...cotizaciones.map(c => ({ id: `cot-${c.id}`, fecha: c.creadoEn, categoria: "COTIZACION", titulo: `Cotización ${numeroCotizacion(c)}`, subtitulo: c.estado, meta: { cotizacionId: c.id } })),
     ...eventos.map(e => ({ id: `evt-${e.id}`, fecha: e.creadoEn, categoria: "EVENTO", titulo: e.titulo, subtitulo: e.tipo, meta: { descripcion: e.descripcion, contacto: e.contacto?.nombre, eventoId: e.id } })),
   ];
 

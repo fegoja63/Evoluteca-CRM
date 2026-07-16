@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { numeroCotizacion } from "@/lib/cotizaciones";
 
 type Item = { descripcion: string; cantidad: number; precioUnit: string };
 type Cotizacion = {
   id: string;
   numero: number;
+  numeroManual: string | null;
   estado: string;
   fechaEvento: string | null;
   fechaValidez: string | null;
@@ -140,7 +142,7 @@ export default function CotizacionPublicaPage() {
           <div className="mt-5 pt-4 border-t border-white/15 flex flex-wrap items-center gap-x-8 gap-y-1.5">
             <div className="text-xs">
               <span className="text-blue-300 uppercase tracking-wide">Cotización</span>
-              <span className="text-white font-semibold ml-2">N.º {String(cot.numero).padStart(4, "0")}</span>
+              <span className="text-white font-semibold ml-2">N.º {numeroCotizacion(cot).replace(/^#/, "")}</span>
             </div>
             {cot.fechaValidez && (
               <div className="text-xs">

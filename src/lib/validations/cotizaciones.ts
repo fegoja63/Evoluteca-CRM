@@ -24,6 +24,7 @@ export const crearCotizacionSchema = z.object({
   contactoId: idOpcional,
   oportunidadId: idOpcional,
   salonId: idOpcional,
+  numeroManual: textoOpcional(40),
   fechaEvento: fechaOpcional,
   horaInicio: horaOpcional,
   horaFin: horaOpcional,
@@ -61,6 +62,7 @@ export const crearCotizacionSchema = z.object({
 
 export const editarCotizacionSchema = z.object({
   estado: z.enum(["BORRADOR", "ENVIADA", "ACEPTADA", "RECHAZADA"], { error: "Estado inválido" }).optional(),
+  numeroManual: textoOpcional(40),
   notas: textoOpcional(2000),
   empresaId: idOpcional,
   motivoRechazo: textoOpcional(1000),
