@@ -22,8 +22,30 @@ function fmt(v: number) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
 }
 
+// Borrador autoguardado en el navegador para que no se pierda lo escrito
+// al devolverse (botón atrás, "Cancelar" o enlace) antes de guardar.
+const DRAFT_KEY = "evoluteca:nueva-cotizacion-draft";
+
+function loadDraft(): Record<string, unknown> | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(DRAFT_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function NuevaCotizacionPage() {
   const router = useRouter();
+  const [draft] = useState(loadDraft);
+  const d = (draft ?? {}) as Record<string, any>;
+  const [borradorRestaurado, setBorradorRestaurado] = useState(draft !== null);
+
+  function empezarEnBlanco() {
+    try { window.localStorage.removeItem(DRAFT_KEY); } catch {}
+    window.location.reload();
+  }
 
   const [empresas, setEmpresas]       = useState<Empresa[]>([]);
   const [contactos, setContactos]     = useState<Contacto[]>([]);
@@ -36,36 +58,36 @@ export default function NuevaCotizacionPage() {
   const [enviando, setEnviando]       = useState(false);
   const [error, setError]             = useState("");
 
-  const [empresaId, setEmpresaId]         = useState("");
-  const [contactoId, setContactoId]       = useState("");
-  const [oportunidadId, setOportunidadId] = useState("");
-  const [salonId, setSalonId]         = useState("");
-  const [numeroManual, setNumeroManual] = useState("");
-  const [sede, setSede]               = useState("");
-  const [fechaEvento, setFechaEvento] = useState("");
-  const [horaInicio, setHoraInicio] = useState("");
-  const [horaFin, setHoraFin]       = useState("");
-  const [fechaValidez, setFechaValidez] = useState("");
-  const [notas, setNotas]             = useState("");
-  const [impuestoNombre, setImpuestoNombre] = useState("IVA");
-  const [impuestoPorcentaje, setImpuestoPorcentaje] = useState("");
-  const [impuesto2Nombre, setImpuesto2Nombre] = useState("");
-  const [impuesto2Porcentaje, setImpuesto2Porcentaje] = useState("");
+  const [empresaId, setEmpresaId]         = useState<string>(d.empresaId ?? "");
+  const [contactoId, setContactoId]       = useState<string>(d.contactoId ?? "");
+  const [oportunidadId, setOportunidadId] = useState<string>(d.oportunidadId ?? "");
+  const [salonId, setSalonId]         = useState<string>(d.salonId ?? "");
+  const [numeroManual, setNumeroManual] = useState<string>(d.numeroManual ?? "");
+  const [sede, setSede]               = useState<string>(d.sede ?? "");
+  const [fechaEvento, setFechaEvento] = useState<string>(d.fechaEvento ?? "");
+  const [horaInicio, setHoraInicio] = useState<string>(d.horaInicio ?? "");
+  const [horaFin, setHoraFin]       = useState<string>(d.horaFin ?? "");
+  const [fechaValidez, setFechaValidez] = useState<string>(d.fechaValidez ?? "");
+  const [notas, setNotas]             = useState<string>(d.notas ?? "");
+  const [impuestoNombre, setImpuestoNombre] = useState<string>(d.impuestoNombre ?? "IVA");
+  const [impuestoPorcentaje, setImpuestoPorcentaje] = useState<string>(d.impuestoPorcentaje ?? "");
+  const [impuesto2Nombre, setImpuesto2Nombre] = useState<string>(d.impuesto2Nombre ?? "");
+  const [impuesto2Porcentaje, setImpuesto2Porcentaje] = useState<string>(d.impuesto2Porcentaje ?? "");
   const [disponibilidad, setDisponibilidad] = useState<Disponibilidad | null>(null);
   const disponibilidadClaveRef = useRef("");
 
-  const [modoEmpresa, setModoEmpresa] = useState<"existente" | "nueva">("existente");
-  const [nuevaEmpresaForm, setNuevaEmpresaForm] = useState({ nombre: "", email: "", telefono: "" });
+  const [modoEmpresa, setModoEmpresa] = useState<"existente" | "nueva">(d.modoEmpresa ?? "existente");
+  const [nuevaEmpresaForm, setNuevaEmpresaForm] = useState<{ nombre: string; email: string; telefono: string }>(d.nuevaEmpresaForm ?? { nombre: "", email: "", telefono: "" });
   const [creandoEmpresaLoading, setCreandoEmpresaLoading] = useState(false);
   const [creandoEmpresaError, setCreandoEmpresaError] = useState("");
 
-  const [modoContacto, setModoContacto] = useState<"existente" | "nuevo">("existente");
-  const [nuevoContactoForm, setNuevoContactoForm] = useState({ nombre: "", email: "", telefono: "", cargo: "" });
+  const [modoContacto, setModoContacto] = useState<"existente" | "nuevo">(d.modoContacto ?? "existente");
+  const [nuevoContactoForm, setNuevoContactoForm] = useState<{ nombre: string; email: string; telefono: string; cargo: string }>(d.nuevoContactoForm ?? { nombre: "", email: "", telefono: "", cargo: "" });
   const [creandoContactoLoading, setCreandoContactoLoading] = useState(false);
   const [creandoContactoError, setCreandoContactoError] = useState("");
 
-  const [modoOportunidad, setModoOportunidad] = useState<"existente" | "nueva">("existente");
-  const [nuevaOportunidadForm, setNuevaOportunidadForm] = useState({ titulo: "" });
+  const [modoOportunidad, setModoOportunidad] = useState<"existente" | "nueva">(d.modoOportunidad ?? "existente");
+  const [nuevaOportunidadForm, setNuevaOportunidadForm] = useState<{ titulo: string }>(d.nuevaOportunidadForm ?? { titulo: "" });
   const [creandoOportunidadLoading, setCreandoOportunidadLoading] = useState(false);
   const [creandoOportunidadError, setCreandoOportunidadError] = useState("");
 
@@ -163,28 +185,32 @@ export default function NuevaCotizacionPage() {
     return () => clearTimeout(t);
   }, [salonId, fechaEvento, horaInicio, horaFin]);
 
-  const [lineas, setLineas] = useState<Linea[]>([
+  const [lineas, setLineas] = useState<Linea[]>(d.lineas ?? [
     { descripcion: "", cantidad: "1", precioUnit: "" },
   ]);
 
   // Modalidad de cobro (módulo "Facturación por resultados").
   const [moduloAhorros, setModuloAhorros] = useState(false);
-  const [modalidad, setModalidad] = useState<"FEE_FIJO" | "SUCCESS_FEE" | "FEE_MENSUAL">("FEE_FIJO");
-  const [lineasAhorro, setLineasAhorro] = useState<LineaAhorro[]>([
+  const [modalidad, setModalidad] = useState<"FEE_FIJO" | "SUCCESS_FEE" | "FEE_MENSUAL">(d.modalidad ?? "FEE_FIJO");
+  const [lineasAhorro, setLineasAhorro] = useState<LineaAhorro[]>(d.lineasAhorro ?? [
     { area: "", gastoBaseMensual: "", ahorroEstimadoMensual: "" },
   ]);
-  const [porcentajeHonorarios, setPorcentajeHonorarios] = useState("50");
-  const [horizonteMeses, setHorizonteMeses] = useState("18");
-  const [feeMensual, setFeeMensual] = useState("");
+  const [porcentajeHonorarios, setPorcentajeHonorarios] = useState<string>(d.porcentajeHonorarios ?? "50");
+  const [horizonteMeses, setHorizonteMeses] = useState<string>(d.horizonteMeses ?? "18");
+  const [feeMensual, setFeeMensual] = useState<string>(d.feeMensual ?? "");
 
   const dirty =
     empresaId !== "" || contactoId !== "" || oportunidadId !== "" || salonId !== "" ||
+    numeroManual !== "" ||
     sede !== "" || fechaEvento !== "" || horaInicio !== "" || horaFin !== "" || fechaValidez !== "" || notas !== "" ||
     impuestoNombre !== "IVA" || impuestoPorcentaje !== "" || impuesto2Nombre !== "" || impuesto2Porcentaje !== "" ||
     lineas.some(l => l.descripcion !== "" || l.cantidad !== "1" || l.precioUnit !== "") || lineas.length > 1 ||
     modoEmpresa !== "existente" || nuevaEmpresaForm.nombre !== "" || nuevaEmpresaForm.email !== "" || nuevaEmpresaForm.telefono !== "" ||
     modoContacto !== "existente" || nuevoContactoForm.nombre !== "" || nuevoContactoForm.email !== "" || nuevoContactoForm.telefono !== "" || nuevoContactoForm.cargo !== "" ||
-    modoOportunidad !== "existente" || nuevaOportunidadForm.titulo !== "";
+    modoOportunidad !== "existente" || nuevaOportunidadForm.titulo !== "" ||
+    modalidad !== "FEE_FIJO" ||
+    lineasAhorro.some(l => l.area !== "" || l.gastoBaseMensual !== "" || l.ahorroEstimadoMensual !== "") || lineasAhorro.length > 1 ||
+    porcentajeHonorarios !== "50" || horizonteMeses !== "18" || feeMensual !== "";
 
   useEffect(() => {
     function avisarSiHayCambios(e: BeforeUnloadEvent) {
@@ -195,6 +221,32 @@ export default function NuevaCotizacionPage() {
     window.addEventListener("beforeunload", avisarSiHayCambios);
     return () => window.removeEventListener("beforeunload", avisarSiHayCambios);
   }, [dirty]);
+
+  // Autoguarda el borrador en el navegador mientras haya cambios, para que no
+  // se pierda al devolverse (atrás, "Cancelar" o enlace). Se limpia al guardar.
+  useEffect(() => {
+    if (!dirty) {
+      try { window.localStorage.removeItem(DRAFT_KEY); } catch {}
+      return;
+    }
+    try {
+      window.localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        empresaId, contactoId, oportunidadId, salonId, numeroManual, sede,
+        fechaEvento, horaInicio, horaFin, fechaValidez, notas,
+        impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje,
+        modoEmpresa, nuevaEmpresaForm, modoContacto, nuevoContactoForm,
+        modoOportunidad, nuevaOportunidadForm,
+        lineas, modalidad, lineasAhorro, porcentajeHonorarios, horizonteMeses, feeMensual,
+      }));
+    } catch {}
+  }, [
+    dirty, empresaId, contactoId, oportunidadId, salonId, numeroManual, sede,
+    fechaEvento, horaInicio, horaFin, fechaValidez, notas,
+    impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje,
+    modoEmpresa, nuevaEmpresaForm, modoContacto, nuevoContactoForm,
+    modoOportunidad, nuevaOportunidadForm,
+    lineas, modalidad, lineasAhorro, porcentajeHonorarios, horizonteMeses, feeMensual,
+  ]);
 
   useEffect(() => {
     Promise.all([
@@ -343,6 +395,7 @@ export default function NuevaCotizacionPage() {
     }
 
     const cot = await res.json();
+    try { window.localStorage.removeItem(DRAFT_KEY); } catch {}
     router.push(`/dashboard/cotizaciones-formales/${cot.id}`);
   }
 
@@ -382,6 +435,20 @@ export default function NuevaCotizacionPage() {
           </div>
         )}
       </div>
+
+      {borradorRestaurado && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2.5 text-sm text-brand-800">
+          <span>Recuperamos el borrador que estabas escribiendo.</span>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={empezarEnBlanco} className="font-medium text-brand-700 hover:underline">
+              Empezar en blanco
+            </button>
+            <button type="button" onClick={() => setBorradorRestaurado(false)} className="text-brand-400 hover:text-brand-600" aria-label="Cerrar aviso">
+              ×
+            </button>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         {/* Cliente */}

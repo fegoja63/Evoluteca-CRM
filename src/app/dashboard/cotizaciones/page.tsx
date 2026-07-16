@@ -67,23 +67,14 @@ const ETAPA_PILL_INACTIVE: Record<string, string> = {
   PERDIDA:     "bg-red-50 text-red-600 hover:bg-red-100",
 };
 
-const FORM_VACIO = {
-  titulo: "", empresaId: "", contactoId: "",
-  fechaEvento: "", sede: "", segmento: "",
-  valor: "", etapa: "PROPUESTA", notas: "",
-};
-
 export default function CotizacionesPage() {
   const [cotizaciones, setCotizaciones] = useState<Oportunidad[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [contactos, setContactos] = useState<Contacto[]>([]);
   const [cargando, setCargando] = useState(true);
-  const [mostrarForm, setMostrarForm] = useState(false);
-  const [guardando, setGuardando] = useState(false);
   const [exportando, setExportando] = useState(false);
   const [filtroEtapa, setFiltroEtapa] = useState("TODAS");
   const [filtroEdad, setFiltroEdad] = useState("TODAS");
-  const [form, setForm] = useState(FORM_VACIO);
 
   async function cargar() {
     setCargando(true);
@@ -102,27 +93,6 @@ export default function CotizacionesPage() {
   }
 
   useEffect(() => { cargar(); }, []);
-
-  async function handleGuardar(e: React.FormEvent) {
-    e.preventDefault();
-    setGuardando(true);
-    await fetch("/api/oportunidades", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        titulo: form.titulo,
-        valor: form.valor || null,
-        etapa: form.etapa,
-        notas: form.notas || null,
-        empresaId: form.empresaId || null,
-        contactoId: form.contactoId || null,
-      }),
-    });
-    setForm(FORM_VACIO);
-    setMostrarForm(false);
-    setGuardando(false);
-    cargar();
-  }
 
   async function exportarExcel() {
     setExportando(true);
@@ -232,6 +202,21 @@ export default function CotizacionesPage() {
       valor: o.valor ?? "",
       etapa: o.etapa,
     });
+  }
+
+  function edicionSucia() {
+    if (!editando) return false;
+    return formEdit.titulo !== editando.titulo
+      || formEdit.empresaId !== (editando.empresa?.id ?? "")
+      || formEdit.contactoId !== (editando.contacto?.id ?? "")
+      || formEdit.valor !== (editando.valor ?? "")
+      || formEdit.etapa !== editando.etapa;
+  }
+
+  // Evita perder lo editado al cerrar el modal sin querer (clic afuera, X o Cancelar).
+  function cerrarEdicion() {
+    if (edicionSucia() && !confirm("Tienes cambios sin guardar. ¿Descartarlos?")) return;
+    setEditando(null);
   }
 
   async function handleGuardarEdicion(e: React.FormEvent) {
@@ -415,92 +400,6 @@ export default function CotizacionesPage() {
           </div>
         )}
       </div>
-
-      {/* Formulario nueva cotización */}
-      {mostrarForm && (
-        <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-slate-800">Nueva cotización</h2>
-            <button onClick={() => setMostrarForm(false)} className="text-slate-400 hover:text-slate-600">
-              <IconX size={18} stroke={1.75} />
-            </button>
-          </div>
-          <form onSubmit={handleGuardar}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-
-              <div className="col-span-2">
-                <label className="mb-1 block text-xs text-slate-500">Tipo de evento / Negocio *</label>
-                <input required placeholder="Ej: Graduación Universidad Nacional" value={form.titulo}
-                  onChange={e => setForm({ ...form, titulo: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs text-slate-500">Empresa / Cliente</label>
-                <select value={form.empresaId} onChange={e => setForm({ ...form, empresaId: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
-                  <option value="">Sin empresa</option>
-                  {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
-                </select>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs text-slate-500">Contacto</label>
-                <select value={form.contactoId} onChange={e => setForm({ ...form, contactoId: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
-                  <option value="">Sin contacto</option>
-                  {contactos.map(c => <option key={c.id} value={c.id}>{c.nombre}{c.email ? ` — ${c.email}` : ""}</option>)}
-                </select>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs text-slate-500">Fecha del evento</label>
-                <input type="date" value={form.fechaEvento} onChange={e => setForm({ ...form, fechaEvento: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs text-slate-500">Sede / Sala</label>
-                <input placeholder="Ej: Sala Principal" value={form.sede} onChange={e => setForm({ ...form, sede: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs text-slate-500">Valor cotizado (COP)</label>
-                <MoneyInput placeholder="0" value={form.valor}
-                  onChange={v => setForm({ ...form, valor: v })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs text-slate-500">Etapa</label>
-                <select value={form.etapa} onChange={e => setForm({ ...form, etapa: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
-                  {ETAPAS_ACTIVAS.map(e => <option key={e} value={e}>{ETAPA_LABEL[e]}</option>)}
-                </select>
-              </div>
-
-              <div className="col-span-2">
-                <label className="mb-1 block text-xs text-slate-500">Notas</label>
-                <input placeholder="Observaciones, condiciones, etc." value={form.notas}
-                  onChange={e => setForm({ ...form, notas: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
-              </div>
-            </div>
-
-            <div className="flex gap-2 justify-end">
-              <button type="button" onClick={() => setMostrarForm(false)}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
-                Cancelar
-              </button>
-              <button type="submit" disabled={guardando}
-                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
-                {guardando ? "Guardando..." : "Guardar cotización"}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
 
       {/* ── Filtros de etapa (pills) + búsqueda ── */}
       <div className="mb-4 space-y-3">
@@ -692,12 +591,12 @@ export default function CotizacionesPage() {
 
       {editando && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          onClick={() => setEditando(null)}>
+          onClick={cerrarEdicion}>
           <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
             onClick={(e) => e.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-800">Editar cotización</h2>
-              <button onClick={() => setEditando(null)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={cerrarEdicion} className="text-slate-400 hover:text-slate-600">
                 <IconX size={18} stroke={1.75} />
               </button>
             </div>
@@ -738,7 +637,7 @@ export default function CotizacionesPage() {
                 </select>
               </div>
               <div className="col-span-2 flex justify-end gap-2 pt-1">
-                <button type="button" onClick={() => setEditando(null)}
+                <button type="button" onClick={cerrarEdicion}
                   className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
                   Cancelar
                 </button>
