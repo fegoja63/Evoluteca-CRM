@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/toast";
 import { MoneyInput } from "@/components/money-input";
+import { ResumenPipelineIA } from "@/components/resumen-pipeline-ia";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
@@ -443,6 +444,8 @@ export default function PipelinePage() {
           );
         })}
       </div>
+
+      <ResumenPipelineIA />
 
       {/* ── FILTROS + TOGGLE ── */}
       <div className="flex flex-wrap items-center gap-3 mb-5 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3">
