@@ -9,7 +9,7 @@ import {
   IconPinned,
   IconChevronLeft, IconChevronRight, IconTrash, IconLayoutList, IconCalendar,
   IconFileExport, IconFileSpreadsheet, IconPlus, IconBell, IconCircleCheck,
-  IconAlertTriangle, IconPencil,
+  IconAlertTriangle, IconPencil, IconUsers,
 } from "@tabler/icons-react";
 import { tiposActividadVisibles, tipoActividadDef, type TipoActividadDef } from "@/lib/tipos-actividad";
 
@@ -244,6 +244,8 @@ function AgendaContent() {
   const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null);
   const [notificando, setNotificando] = useState<string | null>(null);
   const [notifOk, setNotifOk] = useState<string | null>(null);
+  // Id de la tarea cuyo menú de "Reasignar" está abierto (null = ninguno).
+  const [reasignandoId, setReasignandoId] = useState<string | null>(null);
 
   async function exportarExcel() {
     setExportando(true);
@@ -398,6 +400,30 @@ function AgendaContent() {
     } catch {
       setActividades(previas);
       toast.error("No se pudo guardar el cambio. Revisa tu conexión e inténtalo de nuevo.");
+    }
+  }
+
+  async function reasignar(id: string, nuevoResponsableId: string) {
+    setReasignandoId(null);
+    const nuevo = usuarios.find((u) => u.id === nuevoResponsableId);
+    if (!nuevo) return;
+    const previas = actividades;
+    setActividades((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, responsable: { id: nuevo.id, nombre: nuevo.nombre } } : a))
+    );
+    try {
+      const res = await fetch(`/api/actividades/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ responsableId: nuevoResponsableId }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(
+        nuevo.id === miId ? "Tarea reasignada a ti." : `Tarea reasignada a ${nuevo.nombre}.`
+      );
+    } catch {
+      setActividades(previas);
+      toast.error("No se pudo reasignar. Revisa tu conexión e inténtalo de nuevo.");
     }
   }
 
@@ -784,6 +810,35 @@ function AgendaContent() {
                   {a.contacto && ` · ${a.contacto.nombre}`}
                   {a.oportunidad && ` · ${a.oportunidad.titulo}`}
                 </p>
+              </div>
+              <div className="relative shrink-0">
+                <button
+                  onClick={() => setReasignandoId(reasignandoId === a.id ? null : a.id)}
+                  title="Reasignar a otra persona"
+                  className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-50"
+                >
+                  <IconUsers size={13} stroke={1.75} />
+                  Reasignar
+                </button>
+                {reasignandoId === a.id && (
+                  <>
+                    {/* Capa invisible para cerrar el menú al hacer clic fuera */}
+                    <div className="fixed inset-0 z-10" onClick={() => setReasignandoId(null)} />
+                    <div className="absolute right-0 z-20 mt-1 w-52 rounded-lg border border-neutral-200 bg-white p-1 shadow-lg">
+                      <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">Asignar a</p>
+                      {usuarios.map((u) => (
+                        <button
+                          key={u.id}
+                          onClick={() => reasignar(a.id, u.id)}
+                          className={`flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-xs hover:bg-brand-50 ${a.responsable?.id === u.id ? "font-semibold text-brand-700" : "text-neutral-700"}`}
+                        >
+                          <span>{u.id === miId ? `${u.nombre} (yo)` : u.nombre}</span>
+                          {a.responsable?.id === u.id && <IconCircleCheck size={13} stroke={1.75} className="text-brand-600" />}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
               <select
                 value={a.estado}
