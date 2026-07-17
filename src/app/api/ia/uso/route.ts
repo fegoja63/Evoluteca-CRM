@@ -22,10 +22,13 @@ export async function GET() {
     }),
   ]);
 
-  return NextResponse.json({
-    limite: tenant?.limiteResumenesIA ?? null, // null = ilimitado
-    usados: uso?.cantidad ?? 0,
-    periodo,
-    iaConfigurada: !!process.env.ANTHROPIC_API_KEY,
-  });
+  return NextResponse.json(
+    {
+      limite: tenant?.limiteResumenesIA ?? null, // null = ilimitado
+      usados: uso?.cantidad ?? 0,
+      periodo,
+      iaConfigurada: !!process.env.ANTHROPIC_API_KEY,
+    },
+    { headers: { "Cache-Control": "no-store" } },
+  );
 }

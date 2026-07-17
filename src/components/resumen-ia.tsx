@@ -18,7 +18,7 @@ export function ResumenIA({ empresaId }: { empresaId: string }) {
 
   async function cargarUso() {
     try {
-      const res = await fetch("/api/ia/uso");
+      const res = await fetch("/api/ia/uso", { cache: "no-store" });
       if (res.ok) setUso(await res.json());
     } catch { /* silencioso */ }
   }
@@ -74,13 +74,17 @@ export function ResumenIA({ empresaId }: { empresaId: string }) {
             </div>
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-sm font-bold text-slate-800">Resumen con IA</h2>
               <span className="rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">IA</span>
+              {usoTexto && (
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${topeAlcanzado ? "bg-accent-100 text-accent-700" : "bg-brand-100 text-brand-700"}`}>
+                  {usoTexto}
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
               Panorama, valor, oportunidades, señales, contactos y próximas acciones de la cuenta.
-              {usoTexto && <span className="text-slate-400"> · {usoTexto}</span>}
             </p>
           </div>
         </div>
