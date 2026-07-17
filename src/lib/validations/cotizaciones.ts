@@ -75,6 +75,9 @@ export const editarCotizacionSchema = z.object({
   impuestoPorcentaje: porcentajeOpcional.nullable(),
   impuesto2Nombre: textoOpcional(60),
   impuesto2Porcentaje: porcentajeOpcional.nullable(),
+  // Si viene, reemplaza por completo los ítems de la cotización (corregir
+  // producto/cantidad/precio después de creada). Debe tener al menos uno.
+  items: z.array(itemSchema).min(1, "La cotización debe tener al menos un ítem").optional(),
 });
 
 export const enviarEmailCotizacionSchema = z.object({

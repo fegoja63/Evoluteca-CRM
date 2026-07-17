@@ -6,6 +6,7 @@ import { ahorroMensualTotal, valorCotizacion, valorFeeMensual, MODALIDAD_LABEL, 
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { IconLink, IconMail, IconCheck, IconBrandWhatsapp, IconStar, IconDownload, IconCopy, IconArrowLeft, IconPencil } from "@tabler/icons-react";
+import { LineasEditor, type Linea } from "@/components/lineas-editor";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type LineaAhorro = { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string };
@@ -97,6 +98,9 @@ export default function CotizacionDetailPage() {
   const [impuesto2Nombre, setImpuesto2Nombre] = useState("");
   const [impuesto2Porcentaje, setImpuesto2Porcentaje] = useState("");
   const [guardandoImpuesto, setGuardandoImpuesto] = useState(false);
+  const [editItems, setEditItems] = useState(false);
+  const [lineasItems, setLineasItems] = useState<Linea[]>([]);
+  const [guardandoItems, setGuardandoItems] = useState(false);
   const [editNumero, setEditNumero] = useState(false);
   const [numeroManual, setNumeroManual] = useState("");
   const [guardandoNumero, setGuardandoNumero] = useState(false);
@@ -248,6 +252,47 @@ export default function CotizacionDetailPage() {
     }
     setEditImpuesto(false);
     setGuardandoImpuesto(false);
+    cargar();
+  }
+
+  function iniciarEdicionItems() {
+    if (!cot) return;
+    setLineasItems(
+      cot.items.length
+        ? cot.items.map(it => ({ descripcion: it.descripcion, cantidad: String(it.cantidad), precioUnit: String(it.precioUnit) }))
+        : [{ descripcion: "", cantidad: "1", precioUnit: "" }],
+    );
+    setEditItems(true);
+  }
+
+  async function guardarItems() {
+    const items = lineasItems
+      .filter(l => l.descripcion.trim())
+      .map(l => ({ descripcion: l.descripcion.trim(), cantidad: Number(l.cantidad) || 1, precioUnit: Number(l.precioUnit) || 0 }));
+    if (items.length === 0) {
+      toast.error("La cotización debe tener al menos un ítem con descripción.");
+      return;
+    }
+    setGuardandoItems(true);
+    try {
+      const res = await fetch(`/api/cotizaciones/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        toast.error(d.error ?? "No se pudieron guardar los ítems. Inténtalo de nuevo.");
+        setGuardandoItems(false);
+        return;
+      }
+    } catch {
+      toast.error("No se pudieron guardar los ítems. Revisa tu conexión e inténtalo de nuevo.");
+      setGuardandoItems(false);
+      return;
+    }
+    setEditItems(false);
+    setGuardandoItems(false);
     cargar();
   }
 
@@ -617,9 +662,32 @@ export default function CotizacionDetailPage() {
         {/* Ítems (solo modalidad fee fijo) */}
         {cot.modalidad === "FEE_FIJO" && (
         <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100">
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <h2 className="text-sm font-bold text-slate-700">Servicios / Ítems</h2>
+            {!editItems && (
+              <button onClick={iniciarEdicionItems}
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-brand-400 hover:text-brand-600 transition-colors">
+                <IconPencil size={13} stroke={1.75} /> Editar ítems
+              </button>
+            )}
           </div>
+          {editItems ? (
+            <div className="p-5">
+              <LineasEditor lineas={lineasItems} onChange={setLineasItems} />
+              <p className="mt-2 text-xs text-slate-400">Los impuestos y el total se recalculan al guardar.</p>
+              <div className="mt-4 flex gap-2">
+                <button onClick={guardarItems} disabled={guardandoItems}
+                  className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                  {guardandoItems ? "Guardando..." : "Guardar ítems"}
+                </button>
+                <button onClick={() => setEditItems(false)}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          ) : (
+          <>
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-400 uppercase tracking-wide">
@@ -717,6 +785,8 @@ export default function CotizacionDetailPage() {
               </button>
             )}
           </div>
+          </>
+          )}
         </div>
         )}
 

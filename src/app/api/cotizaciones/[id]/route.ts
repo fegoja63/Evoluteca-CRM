@@ -44,11 +44,32 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const body = await request.json();
   const { data: parsedBody, error } = parseOrError(editarCotizacionSchema, body);
   if (error) return error;
-  const { estado, numeroManual, notas, condicionesComerciales, empresaId, motivoRechazo, fechaEvento, horaInicio, horaFin, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje } = parsedBody;
+  const { estado, numeroManual, notas, condicionesComerciales, empresaId, motivoRechazo, fechaEvento, horaInicio, horaFin, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje, items } = parsedBody;
 
   if (empresaId) {
     const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId, eliminadoEn: null } });
     if (!empresa) return NextResponse.json({ error: "Empresa no encontrada" }, { status: 400 });
+  }
+
+  // Reemplazo de ítems (corregir producto/cantidad/precio tras crear). Se hace
+  // en transacción y solo si la cotización pertenece al tenant.
+  if (items !== undefined) {
+    const propia = await prisma.cotizacion.findFirst({
+      where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
+      select: { id: true },
+    });
+    if (!propia) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
+    await prisma.$transaction([
+      prisma.itemCotizacion.deleteMany({ where: { cotizacionId: params.id } }),
+      prisma.itemCotizacion.createMany({
+        data: items.map(it => ({
+          cotizacionId: params.id,
+          descripcion: it.descripcion,
+          cantidad: it.cantidad ?? 1,
+          precioUnit: it.precioUnit,
+        })),
+      }),
+    ]);
   }
 
   await prisma.cotizacion.updateMany({

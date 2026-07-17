@@ -868,8 +868,9 @@ function AgendaContent() {
                 </button>
               )}
               <button onClick={() => iniciarEdicion(a)}
-                className="text-neutral-300 hover:text-brand-600" title="Editar">
-                <IconPencil size={15} stroke={1.75} />
+                className="flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-600 hover:border-brand-400 hover:text-brand-600 shrink-0" title="Editar tarea">
+                <IconPencil size={13} stroke={1.75} />
+                Editar
               </button>
               <button onClick={() => eliminarActividad(a.id)}
                 className="flex items-center gap-1 rounded-md border border-red-300 bg-white px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 shrink-0" title="Borrar tarea">

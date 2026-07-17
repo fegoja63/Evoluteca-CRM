@@ -1,14 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IconPlus, IconX, IconClipboardText, IconStar, IconInfoCircle } from "@tabler/icons-react";
-import { MoneyInput } from "@/components/money-input";
+import { IconPlus, IconX, IconClipboardText, IconStar, IconInfoCircle, IconPencil, IconTrash } from "@tabler/icons-react";
+import { LineasEditor, LINEA_VACIA, type Linea } from "@/components/lineas-editor";
 
 type ItemPlantilla = { id: string; descripcion: string; cantidad: string | number; precioUnit: string | number };
 type Plantilla = { id: string; nombre: string; notas: string | null; creadoEn: string; items: ItemPlantilla[] };
-type Linea = { descripcion: string; cantidad: string; precioUnit: string };
-
-const LINEA_VACIA: Linea = { descripcion: "", cantidad: "1", precioUnit: "" };
 
 function fmt(v: string | number) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(Number(v));
@@ -16,46 +13,6 @@ function fmt(v: string | number) {
 
 function totalPlantilla(p: Plantilla) {
   return p.items.reduce((acc, it) => acc + Number(it.precioUnit) * Number(it.cantidad), 0);
-}
-
-function LineasEditor({ lineas, onChange }: { lineas: Linea[]; onChange: (lineas: Linea[]) => void }) {
-  function updateLinea(i: number, campo: keyof Linea, val: string) {
-    onChange(lineas.map((l, idx) => idx === i ? { ...l, [campo]: val } : l));
-  }
-  function addLinea() {
-    onChange([...lineas, { ...LINEA_VACIA }]);
-  }
-  function removeLinea(i: number) {
-    onChange(lineas.filter((_, idx) => idx !== i));
-  }
-
-  return (
-    <div>
-      <label className="block text-xs font-medium text-slate-600 mb-2">Ítems</label>
-      <div className="flex flex-col gap-2">
-        {lineas.map((linea, i) => (
-          <div key={i} className="grid grid-cols-[1fr_90px_130px_auto] gap-2 items-center">
-            <input type="text" placeholder="Ej: Iluminación escénica" value={linea.descripcion}
-              onChange={e => updateLinea(i, "descripcion", e.target.value)}
-              className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
-            <input type="number" min={1} value={linea.cantidad}
-              onChange={e => updateLinea(i, "cantidad", e.target.value)}
-              className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 text-center" />
-            <MoneyInput placeholder="0" value={linea.precioUnit}
-              onChange={v => updateLinea(i, "precioUnit", v)}
-              className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 text-right" />
-            <button type="button" onClick={() => removeLinea(i)} disabled={lineas.length === 1}
-              className="text-slate-300 hover:text-red-500 disabled:opacity-30 text-lg font-bold leading-none">
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
-      <button type="button" onClick={addLinea} className="mt-3 inline-flex items-center gap-1 text-sm text-brand-600 hover:underline">
-        <IconPlus size={14} stroke={2} /> Línea vacía
-      </button>
-    </div>
-  );
 }
 
 export default function PlantillasPage() {
@@ -271,9 +228,15 @@ export default function PlantillasPage() {
                         <p className="text-xs text-slate-400">{p.items.length} ítem(s) · creada el {new Date(p.creadoEn).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })}</p>
                       </button>
                     </div>
-                    <div className="flex gap-3 shrink-0">
-                      <button onClick={() => iniciarEdicion(p)} className="text-xs text-brand-600 hover:underline">Editar</button>
-                      <button onClick={() => eliminar(p.id, p.nombre)} className="text-xs text-red-400 hover:underline">Eliminar</button>
+                    <div className="flex gap-2 shrink-0">
+                      <button onClick={() => iniciarEdicion(p)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-brand-400 hover:text-brand-600 hover:bg-brand-50 transition-colors">
+                        <IconPencil size={14} stroke={1.75} />Editar
+                      </button>
+                      <button onClick={() => eliminar(p.id, p.nombre)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors">
+                        <IconTrash size={14} stroke={1.75} />Eliminar
+                      </button>
                     </div>
                   </div>
                   {expandidoId === p.id && (
