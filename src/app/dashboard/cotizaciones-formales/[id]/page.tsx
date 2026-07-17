@@ -23,6 +23,7 @@ type Cotizacion = {
   fechaValidez: string | null;
   sede: string | null;
   notas: string | null;
+  condicionesComerciales: string | null;
   impuestoNombre: string | null;
   impuestoPorcentaje: string | null;
   impuesto2Nombre: string | null;
@@ -77,6 +78,9 @@ export default function CotizacionDetailPage() {
   const [cargando, setCargando] = useState(true);
   const [editNotas, setEditNotas] = useState(false);
   const [notas, setNotas]       = useState("");
+  const [editCondiciones, setEditCondiciones] = useState(false);
+  const [condiciones, setCondiciones] = useState("");
+  const [guardandoCondiciones, setGuardandoCondiciones] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [duplicando, setDuplicando] = useState(false);
   const [enviando, setEnviando]   = useState(false);
@@ -110,6 +114,7 @@ export default function CotizacionDetailPage() {
     const data = await res.json();
     setCot(data);
     setNotas(data.notas ?? "");
+    setCondiciones(data.condicionesComerciales ?? "");
     setNumeroManual(data.numeroManual ?? "");
     setEmailDestino(prev => prev || data.contacto?.email || data.empresa?.email || "");
     setTelefonoDestino(prev => prev || data.contacto?.telefono || data.empresa?.telefono || "");
@@ -183,6 +188,25 @@ export default function CotizacionDetailPage() {
     }
     setEditNotas(false);
     setGuardando(false);
+    cargar();
+  }
+
+  async function guardarCondiciones() {
+    setGuardandoCondiciones(true);
+    try {
+      const res = await fetch(`/api/cotizaciones/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ condicionesComerciales: condiciones }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      toast.error("No se pudieron guardar las condiciones. Revisa tu conexión e inténtalo de nuevo.");
+      setGuardandoCondiciones(false);
+      return;
+    }
+    setEditCondiciones(false);
+    setGuardandoCondiciones(false);
     cargar();
   }
 
@@ -695,6 +719,45 @@ export default function CotizacionDetailPage() {
           </div>
         </div>
         )}
+
+        {/* Condiciones comerciales (salen en el PDF y el enlace público) */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-sm font-bold text-slate-700">Condiciones comerciales</h2>
+            {!editCondiciones && (
+              <button onClick={() => setEditCondiciones(true)}
+                className="text-xs text-brand-600 hover:underline">
+                Editar
+              </button>
+            )}
+          </div>
+          <p className="text-xs text-slate-400 mb-3">Salen en el PDF y el enlace público de esta cotización.</p>
+          {editCondiciones ? (
+            <div>
+              <textarea
+                rows={5}
+                value={condiciones}
+                onChange={e => setCondiciones(e.target.value)}
+                placeholder="Forma de pago, plazos, cláusulas específicas de este cliente..."
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 resize-none mb-3"
+              />
+              <div className="flex gap-2">
+                <button onClick={guardarCondiciones} disabled={guardandoCondiciones}
+                  className="rounded-xl bg-accent-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-60">
+                  {guardandoCondiciones ? "Guardando..." : "Guardar"}
+                </button>
+                <button onClick={() => { setEditCondiciones(false); setCondiciones(cot.condicionesComerciales ?? ""); }}
+                  className="rounded-xl border border-slate-200 px-4 py-1.5 text-sm text-slate-600 hover:bg-slate-50">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className={cot.condicionesComerciales ? "text-sm text-slate-700 whitespace-pre-wrap" : "text-sm text-slate-300 italic"}>
+              {cot.condicionesComerciales || "Sin condiciones comerciales"}
+            </p>
+          )}
+        </div>
 
         {/* Notas */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">

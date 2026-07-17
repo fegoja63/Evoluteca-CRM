@@ -139,6 +139,10 @@ model Empresa {
   sitioWeb    String?
   telefono    String?
   notas       String?
+  // Condiciones comerciales propias de este cliente (forma de pago, plazos,
+  // cláusulas negociadas). Se precargan al crear una cotización para él y
+  // quedan editables en cada cotización.
+  condicionesComerciales String?
   etiquetas   String[]  @default([])
   extras      Json?
   creadoEn    DateTime  @default(now())
@@ -405,6 +409,10 @@ model Cotizacion {
   horizonteMeses       Int? // horizonte en meses (ambas)
   feeMensual           Decimal?            @db.Decimal(14, 2) // honorario fijo mensual (fee mensual)
   notas                String?
+  // Condiciones comerciales de ESTA cotización. Se copian del cliente al crear
+  // y pueden ajustarse por cotización; es lo que se muestra en el PDF y el
+  // enlace público (separado de las notas/observaciones).
+  condicionesComerciales String?
   fechaEvento          DateTime?
   sede                 String?
   fechaValidez         DateTime?

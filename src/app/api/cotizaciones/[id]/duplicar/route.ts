@@ -24,6 +24,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
       oportunidadId: original.oportunidadId,
       sede:          original.sede,
       notas:         original.notas,
+      condicionesComerciales: original.condicionesComerciales,
       items: {
         create: original.items.map(i => ({
           descripcion: i.descripcion,

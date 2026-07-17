@@ -6,7 +6,7 @@ import Link from "next/link";
 import { IconArrowLeft, IconAlertTriangle, IconTemplate, IconCheck } from "@tabler/icons-react";
 import { MoneyInput } from "@/components/money-input";
 
-type Empresa  = { id: string; nombre: string };
+type Empresa  = { id: string; nombre: string; condicionesComerciales?: string | null };
 type Contacto = { id: string; nombre: string; email: string | null; empresa: { id: string } | null };
 type Oportunidad = { id: string; titulo: string; empresa: { id: string } | null };
 type Producto = { id: string; nombre: string; precioBase: string; descripcion: string | null };
@@ -71,6 +71,10 @@ export default function NuevaCotizacionPage() {
   const [horaFin, setHoraFin]       = useState<string>(d.horaFin ?? "");
   const [fechaValidez, setFechaValidez] = useState<string>(d.fechaValidez ?? "");
   const [notas, setNotas]             = useState<string>(d.notas ?? "");
+  const [condicionesComerciales, setCondicionesComerciales] = useState<string>(d.condicionesComerciales ?? "");
+  // Marca si el usuario editó a mano las condiciones; si no, al cambiar de
+  // cliente se reemplazan con las del cliente elegido sin miedo a pisar algo.
+  const [condicionesTocadas, setCondicionesTocadas] = useState<boolean>(d.condicionesComerciales != null && d.condicionesComerciales !== "");
   const [impuestoNombre, setImpuestoNombre] = useState<string>(d.impuestoNombre ?? "IVA");
   const [impuestoPorcentaje, setImpuestoPorcentaje] = useState<string>(d.impuestoPorcentaje ?? "");
   const [impuesto2Nombre, setImpuesto2Nombre] = useState<string>(d.impuesto2Nombre ?? "");
@@ -109,7 +113,7 @@ export default function NuevaCotizacionPage() {
       return;
     }
     const nueva = await res.json();
-    setEmpresas(prev => [{ id: nueva.id, nombre: nueva.nombre }, ...prev]);
+    setEmpresas(prev => [{ id: nueva.id, nombre: nueva.nombre, condicionesComerciales: nueva.condicionesComerciales ?? null }, ...prev]);
     setEmpresaId(nueva.id);
     setContactoId("");
     setOportunidadId("");
@@ -204,7 +208,7 @@ export default function NuevaCotizacionPage() {
   const dirty =
     empresaId !== "" || contactoId !== "" || oportunidadId !== "" || salonId !== "" ||
     numeroManual !== "" ||
-    sede !== "" || fechaEvento !== "" || horaInicio !== "" || horaFin !== "" || fechaValidez !== "" || notas !== "" ||
+    sede !== "" || fechaEvento !== "" || horaInicio !== "" || horaFin !== "" || fechaValidez !== "" || notas !== "" || condicionesComerciales !== "" ||
     impuestoNombre !== "IVA" || impuestoPorcentaje !== "" || impuesto2Nombre !== "" || impuesto2Porcentaje !== "" ||
     lineas.some(l => l.descripcion !== "" || l.cantidad !== "1" || l.precioUnit !== "") || lineas.length > 1 ||
     modoEmpresa !== "existente" || nuevaEmpresaForm.nombre !== "" || nuevaEmpresaForm.email !== "" || nuevaEmpresaForm.telefono !== "" ||
@@ -234,7 +238,7 @@ export default function NuevaCotizacionPage() {
     try {
       window.localStorage.setItem(DRAFT_KEY, JSON.stringify({
         empresaId, contactoId, oportunidadId, salonId, numeroManual, sede,
-        fechaEvento, horaInicio, horaFin, fechaValidez, notas,
+        fechaEvento, horaInicio, horaFin, fechaValidez, notas, condicionesComerciales,
         impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje,
         modoEmpresa, nuevaEmpresaForm, modoContacto, nuevoContactoForm,
         modoOportunidad, nuevaOportunidadForm,
@@ -363,6 +367,7 @@ export default function NuevaCotizacionPage() {
         salonId:      salonId      || null,
         numeroManual: numeroManual.trim() || null,
         sede:         sede.trim()  || null,
+        condicionesComerciales: condicionesComerciales.trim() || null,
         fechaEvento:  fechaEvento  || null,
         horaInicio:   horaInicio   || null,
         horaFin:      horaFin      || null,
@@ -492,7 +497,16 @@ export default function NuevaCotizacionPage() {
                 </div>
               </div>
               {modoEmpresa === "existente" ? (
-                <select value={empresaId} onChange={e => { setEmpresaId(e.target.value); setContactoId(""); setOportunidadId(""); }}
+                <select value={empresaId} onChange={e => {
+                    const id = e.target.value;
+                    setEmpresaId(id); setContactoId(""); setOportunidadId("");
+                    // Precarga las condiciones comerciales del cliente elegido,
+                    // salvo que el usuario ya las haya editado a mano.
+                    if (!condicionesTocadas) {
+                      const emp = empresas.find(x => x.id === id);
+                      setCondicionesComerciales(emp?.condicionesComerciales ?? "");
+                    }
+                  }}
                   className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-brand-500">
                   <option value="">— Sin empresa —</option>
                   {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
@@ -891,6 +905,28 @@ export default function NuevaCotizacionPage() {
             </div>
           </div>
         )}
+
+        {/* Condiciones comerciales (por cliente, salen en el PDF y el enlace público) */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-sm font-bold text-slate-700">Condiciones comerciales</h2>
+            {empresaId && (
+              <span className="text-[11px] text-slate-400">
+                {condicionesComerciales ? "Precargadas del cliente — editables" : "Este cliente no tiene condiciones guardadas"}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-slate-400 mb-3">
+            Forma de pago, plazos, cláusulas específicas de este cliente. Salen en el PDF y el enlace público.
+          </p>
+          <textarea
+            value={condicionesComerciales}
+            onChange={e => { setCondicionesComerciales(e.target.value); setCondicionesTocadas(true); }}
+            rows={5}
+            placeholder="Ej: Forma de pago 50% anticipo y 50% contra entrega. Vigencia 30 días. Retención en la fuente según ley..."
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 resize-none"
+          />
+        </div>
 
         {/* Notas */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">

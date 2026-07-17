@@ -41,7 +41,7 @@ export async function PATCH(
   const body = await request.json();
   const { data: parsed, error } = parseOrError(editarEmpresaSchema, body);
   if (error) return error;
-  const { nombre, email, sector, sitioWeb, telefono, notas, etiquetas } = parsed;
+  const { nombre, email, sector, sitioWeb, telefono, notas, condicionesComerciales, etiquetas } = parsed;
 
   if (etiquetas !== undefined && !nombre) {
     const empresa = await prisma.empresa.update({
@@ -64,6 +64,7 @@ export async function PATCH(
       sitioWeb: sitioWeb?.trim() || null,
       telefono: telefono?.trim() || null,
       notas: notas?.trim() || null,
+      condicionesComerciales: condicionesComerciales?.trim() || null,
       ...(etiquetas !== undefined ? { etiquetas } : {}),
     },
   });

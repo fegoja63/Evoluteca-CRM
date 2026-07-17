@@ -8,6 +8,7 @@ export const crearEmpresaSchema = z.object({
   sitioWeb: urlOpcional,
   telefono: telefonoOpcional,
   notas: textoOpcional(2000),
+  condicionesComerciales: textoOpcional(4000),
 });
 
 export const editarEmpresaSchema = z.object({
@@ -17,5 +18,6 @@ export const editarEmpresaSchema = z.object({
   sitioWeb: urlOpcional,
   telefono: telefonoOpcional,
   notas: textoOpcional(2000),
+  condicionesComerciales: textoOpcional(4000),
   etiquetas: z.array(z.string().trim().max(40)).max(20, "Máximo 20 etiquetas").optional(),
 });

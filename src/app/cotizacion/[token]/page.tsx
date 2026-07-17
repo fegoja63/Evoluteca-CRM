@@ -14,6 +14,7 @@ type Cotizacion = {
   fechaValidez: string | null;
   sede: string | null;
   notas: string | null;
+  condicionesComerciales: string | null;
   motivoRechazo: string | null;
   impuestoNombre: string | null;
   impuestoPorcentaje: string | null;
@@ -264,6 +265,23 @@ export default function CotizacionPublicaPage() {
               <strong className="text-slate-700">Notas:</strong> {cot.notas}
             </div>
           )}
+
+          {/* Condiciones comerciales propias de este cliente */}
+          {cot.condicionesComerciales && (() => {
+            const lineas = cot.condicionesComerciales.split("\n").map(l => l.trim()).filter(Boolean);
+            return (
+              <div className="rounded-xl border border-slate-200 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Condiciones comerciales</p>
+                {lineas.length > 1 ? (
+                  <ul className="list-disc pl-5 space-y-1 text-sm text-slate-600">
+                    {lineas.map((l, i) => <li key={i}>{l}</li>)}
+                  </ul>
+                ) : (
+                  lineas.map((l, i) => <p key={i} className="text-sm text-slate-600 whitespace-pre-line">{l}</p>)
+                )}
+              </div>
+            );
+          })()}
 
           {/* Cuerpo / condiciones definidas por la empresa */}
           {(cot.cuerpo ?? []).filter(s => s.titulo || s.contenido).map((s, idx) => {

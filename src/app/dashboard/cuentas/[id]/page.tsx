@@ -32,6 +32,7 @@ type Detalle = {
   sitioWeb: string | null;
   telefono: string | null;
   notas: string | null;
+  condicionesComerciales: string | null;
   etiquetas: string[];
   contactos: { id: string; nombre: string; cargo: string | null; telefono: string | null }[];
   oportunidades: { id: string; titulo: string; etapa: string; valor: string | null; motivoPerdida: string | null }[];
@@ -57,7 +58,7 @@ export default function FichaClientePage() {
   const [cargando, setCargando] = useState(true);
   const [editando, setEditando] = useState(false);
   const [guardando, setGuardando] = useState(false);
-  const [form, setForm] = useState({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "" });
+  const [form, setForm] = useState({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "", condicionesComerciales: "" });
   const [quickTipo, setQuickTipo] = useState<string | undefined>(undefined);
   const [quickKey, setQuickKey] = useState(0);
 
@@ -74,6 +75,7 @@ export default function FichaClientePage() {
         sitioWeb: data.sitioWeb ?? "",
         telefono: data.telefono ?? "",
         notas: data.notas ?? "",
+        condicionesComerciales: data.condicionesComerciales ?? "",
       });
     }
     if (!silencioso) setCargando(false);
@@ -203,6 +205,13 @@ export default function FichaClientePage() {
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
             </div>
             <div className="col-span-2">
+              <label className="mb-1 block text-xs text-slate-500">Condiciones comerciales</label>
+              <textarea value={form.condicionesComerciales} onChange={e => setForm({ ...form, condicionesComerciales: e.target.value })} rows={4}
+                placeholder="Forma de pago, plazos de entrega, cláusulas negociadas con este cliente..."
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              <p className="mt-1 text-[11px] text-slate-400">Se precargan al crear una cotización para este cliente (editables por cotización) y salen en el PDF y el enlace público.</p>
+            </div>
+            <div className="col-span-2">
               <button type="submit" disabled={guardando}
                 className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                 {guardando ? "Guardando..." : "Guardar cambios"}
@@ -218,6 +227,9 @@ export default function FichaClientePage() {
           <div className="flex gap-2"><span className="text-slate-400 w-20 shrink-0">Sector</span><span className="text-slate-800">{empresa.sector ?? "—"}</span></div>
           {empresa.notas && (
             <div className="col-span-2 flex gap-2"><span className="text-slate-400 w-20 shrink-0">Notas</span><span className="text-slate-800">{empresa.notas}</span></div>
+          )}
+          {empresa.condicionesComerciales && (
+            <div className="col-span-2 flex gap-2"><span className="text-slate-400 w-28 shrink-0">Condiciones</span><span className="text-slate-800 whitespace-pre-wrap">{empresa.condicionesComerciales}</span></div>
           )}
         </div>
       )}

@@ -266,6 +266,13 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
         React.createElement(Text, { style: styles.notesTx }, cot.notas),
       ) : null,
 
+      // Condiciones comerciales propias de esta cotización (heredadas del
+      // cliente y editables por cotización). Van antes del cuerpo general del
+      // tenant, como bloque específico de este cliente.
+      cot.condicionesComerciales
+        ? React.createElement(SeccionCotBox, { titulo: "Condiciones comerciales", contenido: cot.condicionesComerciales })
+        : null,
+
       // Cuerpo / condiciones de la cotización (configurable por tenant; si no
       // hay nada configurado, seccionesCotizacion() devuelve las condiciones
       // comerciales por defecto).

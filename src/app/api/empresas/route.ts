@@ -56,7 +56,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { data: parsed, error } = parseOrError(crearEmpresaSchema, body);
   if (error) return error;
-  const { nombre, email, sector, sitioWeb, telefono, notas } = parsed;
+  const { nombre, email, sector, sitioWeb, telefono, notas, condicionesComerciales } = parsed;
 
   const empresa = await prisma.empresa.create({
     data: {
@@ -66,6 +66,7 @@ export async function POST(request: Request) {
       sitioWeb: sitioWeb?.trim() || null,
       telefono: telefono?.trim() || null,
       notas: notas?.trim() || null,
+      condicionesComerciales: condicionesComerciales?.trim() || null,
       tenantId: session.user.tenantId,
       creadoBy: session.user.id,
     },
