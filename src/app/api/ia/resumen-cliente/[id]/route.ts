@@ -10,16 +10,20 @@ export const maxDuration = 60;
 const fmt = (v: unknown) =>
   new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(Number(v || 0));
 const fecha = (d: Date) => new Date(d).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
+const diasDesde = (d: Date) => Math.floor((Date.now() - new Date(d).getTime()) / 86_400_000);
 
-const SYSTEM = `Eres un asistente comercial dentro de un CRM. Recibes los datos de UN cliente (empresa, sus contactos, oportunidades de negocio, actividades y cotizaciones) y produces un resumen breve y accionable para el vendedor que va a atender la cuenta.
+const SYSTEM = `Eres un asistente comercial dentro de un CRM. Recibes los datos completos de UN cliente (empresa, contactos, oportunidades abiertas/ganadas/perdidas, actividades y cotizaciones, con varias métricas ya calculadas) y produces un informe breve pero rico y accionable para el vendedor que va a atender la cuenta.
 
-Responde SOLO con el resumen en español, sin preámbulos ni frases como "Aquí está" ni comentarios sobre tu proceso. Usa estas tres secciones cortas con estos títulos exactos, cada una de 1 a 3 frases:
+Responde SOLO con el informe en español, sin preámbulos ni frases como "Aquí está" ni comentarios sobre tu proceso. Usa estas seis secciones con estos títulos exactos, cada una de 1 a 3 frases (usa viñetas con "- " cuando enumeres varios elementos):
 
-**Estado de la relación** — antigüedad aproximada, nivel de actividad, valor en juego.
-**Señales** — riesgos (inactividad, cotizaciones sin cerrar, negocios perdidos y por qué) u oportunidades (negocios calientes, recompra).
-**Próxima acción** — la acción concreta más recomendable ahora, específica para este cliente.
+**Panorama de la cuenta** — antigüedad de la relación, sector, valor ya ganado con este cliente, valor en juego ahora y si hay recurrencia.
+**Relación y actividad** — hace cuánto fue la última interacción, nivel de actividad, y tareas pendientes o vencidas que requieren seguimiento.
+**Oportunidades y cotizaciones** — qué negocios están abiertos, en qué etapa y con qué probabilidad; y el estado de las cotizaciones (enviadas sin cerrar, aceptadas, vencidas).
+**Señales** — riesgos (inactividad, cotizaciones sin respuesta o vencidas, negocios perdidos y su motivo) y oportunidades (recompra, negocios calientes, alta probabilidad).
+**Contactos clave** — con quién conviene hablar y quién parece decidir, según los cargos; menciona si faltan datos de contacto.
+**Próximas acciones** — 2 o 3 acciones concretas y priorizadas, específicas para este cliente y su situación actual.
 
-Sé concreto y apóyate solo en los datos dados. Si faltan datos para una sección, dilo en una frase. No inventes cifras.`;
+Sé concreto y apóyate solo en los datos dados. No inventes cifras ni nombres. Si faltan datos para una sección, dilo en una frase corta.`;
 
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
@@ -67,44 +71,112 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
     include: {
       contactos: { where: { eliminadoEn: null } },
       oportunidades: { where: { eliminadoEn: null }, orderBy: { creadoEn: "asc" } },
-      actividades: { orderBy: { fecha: "desc" }, take: 15 },
+      actividades: { orderBy: { fecha: "desc" }, take: 25 },
       cotizaciones: { where: { eliminadoEn: null }, include: { items: true } },
     },
   });
   if (!empresa) return NextResponse.json({ error: "Cliente no encontrado" }, { status: 404 });
 
-  // Contexto compacto en texto plano para el modelo.
+  // ── Métricas calculadas (para que el modelo no tenga que inferir cifras) ──
+  const ops = empresa.oportunidades;
+  const abiertas = ops.filter(o => o.etapa !== "GANADA" && o.etapa !== "PERDIDA");
+  const ganadas  = ops.filter(o => o.etapa === "GANADA");
+  const perdidas = ops.filter(o => o.etapa === "PERDIDA");
+  const sumaValor = (arr: typeof ops) => arr.reduce((a, o) => a + Number(o.valor ?? 0), 0);
+  const valorGanado   = sumaValor(ganadas);
+  const valorEnJuego  = sumaValor(abiertas);
+  const valorPonderado = abiertas.reduce((a, o) => a + Number(o.valor ?? 0) * ((o.probabilidad ?? 50) / 100), 0);
+  const valorPerdido  = sumaValor(perdidas);
+  const cerrados = ganadas.length + perdidas.length;
+  const tasaConversion = cerrados > 0 ? Math.round((ganadas.length / cerrados) * 100) : null;
+  const hayRecurrencia = ops.some(o => o.recurrente === true);
+
+  // Actividad: última interacción pasada, pendientes y vencidas.
+  const hoy = Date.now();
+  const pasadas = empresa.actividades.filter(a => new Date(a.fecha).getTime() <= hoy);
+  const ultimaInteraccion = pasadas[0]; // ya vienen ordenadas por fecha desc
+  const pendientes = empresa.actividades.filter(a => a.estado !== "COMPLETADA" && !a.completada);
+  const vencidas = pendientes.filter(a => new Date(a.fecha).getTime() < hoy);
+
+  // Cotizaciones: total por ítems, estado y vencimiento.
+  const cots = empresa.cotizaciones.map(c => {
+    const total = c.items.reduce((acc, it) => acc + it.cantidad * Number(it.precioUnit), 0);
+    const vencida = c.estado === "ENVIADA" && c.fechaValidez != null && new Date(c.fechaValidez).getTime() < hoy;
+    return { numero: c.numero, estado: c.estado, total, vencida, motivoRechazo: c.motivoRechazo, creadoEn: c.creadoEn, fechaValidez: c.fechaValidez };
+  });
+  const enviadasSinCerrar = cots.filter(c => c.estado === "ENVIADA");
+  const aceptadas = cots.filter(c => c.estado === "ACEPTADA");
+  const rechazadas = cots.filter(c => c.estado === "RECHAZADA");
+  const decididas = aceptadas.length + rechazadas.length;
+  const tasaAceptacion = decididas > 0 ? Math.round((aceptadas.length / decididas) * 100) : null;
+
+  // ── Contexto compacto en texto plano para el modelo ──
   const partes: string[] = [];
   partes.push(`CLIENTE: ${empresa.nombre}`);
   if (empresa.sector) partes.push(`Sector: ${empresa.sector}`);
-  partes.push(`Registrado el: ${fecha(empresa.creadoEn)}`);
+  const canales = [empresa.telefono && `tel ${empresa.telefono}`, empresa.email, empresa.sitioWeb].filter(Boolean);
+  if (canales.length) partes.push(`Contacto empresa: ${canales.join(" · ")}`);
+  if (empresa.etiquetas?.length) partes.push(`Etiquetas: ${empresa.etiquetas.join(", ")}`);
+  partes.push(`Antigüedad de la relación: ${diasDesde(empresa.creadoEn)} días (registrado el ${fecha(empresa.creadoEn)})`);
+  if (empresa.condicionesComerciales) partes.push(`Condiciones comerciales pactadas: ${empresa.condicionesComerciales}`);
   if (empresa.notas) partes.push(`Notas internas: ${empresa.notas}`);
+
+  partes.push(`\nRESUMEN DE VALOR:`);
+  partes.push(`- Valor ya ganado con este cliente: ${fmt(valorGanado)} (${ganadas.length} negocios ganados)`);
+  partes.push(`- Valor en juego ahora (abiertos): ${fmt(valorEnJuego)} · ponderado por probabilidad: ${fmt(valorPonderado)} (${abiertas.length} abiertos)`);
+  partes.push(`- Valor perdido: ${fmt(valorPerdido)} (${perdidas.length} negocios perdidos)`);
+  if (tasaConversion != null) partes.push(`- Tasa de conversión histórica: ${tasaConversion}% (${ganadas.length} ganados de ${cerrados} cerrados)`);
+  partes.push(`- Recurrencia: ${hayRecurrencia ? "sí, hay negocios marcados como recurrentes" : "no registrada"}`);
 
   partes.push(`\nCONTACTOS (${empresa.contactos.length}):`);
   partes.push(empresa.contactos.length
-    ? empresa.contactos.map(c => `- ${c.nombre}${c.cargo ? ` (${c.cargo})` : ""}`).join("\n")
-    : "- (ninguno)");
-
-  partes.push(`\nOPORTUNIDADES (${empresa.oportunidades.length}):`);
-  partes.push(empresa.oportunidades.length
-    ? empresa.oportunidades.map(o =>
-        `- ${o.titulo} | etapa: ${o.etapa}${o.valor ? ` | valor: ${fmt(o.valor)}` : ""}` +
-        `${o.etapa === "PERDIDA" && o.motivoPerdida ? ` | motivo pérdida: ${o.motivoPerdida}` : ""} | creada: ${fecha(o.creadoEn)}`
-      ).join("\n")
-    : "- (ninguna)");
-
-  partes.push(`\nACTIVIDADES recientes (${empresa.actividades.length}, más nuevas primero):`);
-  partes.push(empresa.actividades.length
-    ? empresa.actividades.map(a => `- ${fecha(a.fecha)} | ${a.titulo}${a.completada ? " [hecha]" : " [pendiente]"}`).join("\n")
-    : "- (ninguna)");
-
-  partes.push(`\nCOTIZACIONES (${empresa.cotizaciones.length}):`);
-  partes.push(empresa.cotizaciones.length
-    ? empresa.cotizaciones.map(c => {
-        const total = c.items.reduce((acc, it) => acc + it.cantidad * Number(it.precioUnit), 0);
-        return `- #${c.numero} | estado: ${c.estado} | total: ${fmt(total)} | ${fecha(c.creadoEn)}`;
+    ? empresa.contactos.map(c => {
+        const datos = [c.cargo, c.email, c.telefono].filter(Boolean).join(" · ");
+        return `- ${c.nombre}${datos ? ` — ${datos}` : " — (sin cargo ni datos de contacto)"}`;
       }).join("\n")
-    : "- (ninguna)");
+    : "- (ninguno registrado)");
+
+  partes.push(`\nOPORTUNIDADES ABIERTAS (${abiertas.length}):`);
+  partes.push(abiertas.length
+    ? abiertas.map(o =>
+        `- ${o.titulo} | etapa: ${o.etapa} | prob: ${o.probabilidad ?? 50}%` +
+        `${o.valor ? ` | valor: ${fmt(o.valor)}` : ""}` +
+        `${o.fechaCierre ? ` | cierre estimado: ${fecha(o.fechaCierre)}` : ""}` +
+        ` | creada hace ${diasDesde(o.creadoEn)}d`
+      ).join("\n")
+    : "- (ninguna abierta)");
+
+  if (ganadas.length) {
+    partes.push(`\nOPORTUNIDADES GANADAS (${ganadas.length}):`);
+    partes.push(ganadas.map(o => `- ${o.titulo}${o.valor ? ` | ${fmt(o.valor)}` : ""} | creada ${fecha(o.creadoEn)}`).join("\n"));
+  }
+  if (perdidas.length) {
+    partes.push(`\nOPORTUNIDADES PERDIDAS (${perdidas.length}):`);
+    partes.push(perdidas.map(o => `- ${o.titulo}${o.valor ? ` | ${fmt(o.valor)}` : ""} | motivo: ${o.motivoPerdida ?? "no registrado"}`).join("\n"));
+  }
+
+  partes.push(`\nACTIVIDAD:`);
+  partes.push(ultimaInteraccion
+    ? `- Última interacción: "${ultimaInteraccion.titulo}" (${ultimaInteraccion.tipo}) hace ${diasDesde(ultimaInteraccion.fecha)} días.`
+    : "- Sin interacciones pasadas registradas.");
+  partes.push(`- Tareas pendientes: ${pendientes.length}${vencidas.length ? ` (${vencidas.length} VENCIDAS)` : ""}.`);
+  if (pendientes.length) {
+    partes.push(pendientes.slice(0, 8).map(a =>
+      `  · ${a.titulo} (${a.tipo}) — ${fecha(a.fecha)}${new Date(a.fecha).getTime() < hoy ? " [vencida]" : ""}`
+    ).join("\n"));
+  }
+
+  partes.push(`\nCOTIZACIONES (${cots.length}):`);
+  if (cots.length) {
+    partes.push(`- Enviadas sin cerrar: ${enviadasSinCerrar.length}${enviadasSinCerrar.some(c => c.vencida) ? ` (${enviadasSinCerrar.filter(c => c.vencida).length} con validez vencida)` : ""} · Aceptadas: ${aceptadas.length} · Rechazadas: ${rechazadas.length}`);
+    if (tasaAceptacion != null) partes.push(`- Tasa de aceptación: ${tasaAceptacion}%`);
+    partes.push(cots.map(c =>
+      `  · #${c.numero} | ${c.estado}${c.vencida ? " (VENCIDA)" : ""} | ${fmt(c.total)} | ${fecha(c.creadoEn)}` +
+      `${c.motivoRechazo ? ` | motivo rechazo: ${c.motivoRechazo}` : ""}`
+    ).join("\n"));
+  } else {
+    partes.push("- (ninguna)");
+  }
 
   partes.push(`\n(Hoy es ${fecha(new Date())}.)`);
 
@@ -117,7 +189,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
       try {
         const ms = client.messages.stream({
           model: "claude-opus-4-8",
-          max_tokens: 1024,
+          max_tokens: 1500,
           output_config: { effort: "low" },
           system: SYSTEM,
           messages: [{ role: "user", content: contexto }],

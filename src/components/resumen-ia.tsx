@@ -64,16 +64,22 @@ export function ResumenIA({ empresaId }: { empresaId: string }) {
   const topeAlcanzado = uso?.limite != null && uso.limite > 0 && uso.usados >= uso.limite;
 
   return (
-    <div className="mt-4 rounded-2xl border border-brand-200 bg-brand-50/40 p-5">
+    <div className="mt-4 rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50 via-white to-brand-100/60 p-5 shadow-sm">
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-brand-100 flex items-center justify-center">
-            <IconSparkles size={18} stroke={1.75} className="text-brand-600" />
+        <div className="flex items-center gap-3">
+          <div className="relative shrink-0">
+            <div className="absolute -inset-1 rounded-xl bg-brand-400/30 blur-md animate-pulse" aria-hidden />
+            <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-md shadow-brand-600/30">
+              <IconSparkles size={22} stroke={1.75} className="text-white" />
+            </div>
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-slate-800">Resumen con IA</h2>
-            <p className="text-xs text-slate-500">
-              Un vistazo rápido de la cuenta y la siguiente acción sugerida.
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-slate-800">Resumen con IA</h2>
+              <span className="rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">IA</span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Panorama, valor, oportunidades, señales, contactos y próximas acciones de la cuenta.
               {usoTexto && <span className="text-slate-400"> · {usoTexto}</span>}
             </p>
           </div>
@@ -82,9 +88,10 @@ export function ResumenIA({ empresaId }: { empresaId: string }) {
           onClick={generar}
           disabled={cargando || sinPlan || topeAlcanzado}
           title={sinPlan ? "No incluido en tu plan" : topeAlcanzado ? "Alcanzaste tu límite del mes" : undefined}
-          className="shrink-0 rounded-xl bg-brand-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-brand-600/20 hover:from-brand-700 hover:to-brand-600 disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {cargando ? "Generando…" : sinPlan ? "No disponible" : topeAlcanzado ? "Límite alcanzado" : texto || error ? "Regenerar" : "Generar resumen"}
+          <IconSparkles size={15} stroke={2} className="shrink-0" />
+          <span>{cargando ? "Generando…" : sinPlan ? "No disponible" : topeAlcanzado ? "Límite alcanzado" : texto || error ? "Regenerar" : "Generar resumen"}</span>
         </button>
       </div>
 
