@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
 import { editarActividadSchema } from "@/lib/validations/actividades";
 import { parseOrError } from "@/lib/validations/helpers";
+import { notificarTareaAsignada } from "@/lib/notificar-tarea";
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const session = await auth();
@@ -33,6 +34,15 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     if (!valido) return NextResponse.json({ error: "Responsable inválido" }, { status: 400 });
   }
 
+  // Se lee la tarea actual (dentro del tenant) para: (a) detectar si el
+  // responsable cambió y avisar por correo solo en ese caso, y (b) tener los
+  // datos que no vengan en el PATCH para armar el correo.
+  const previa = await prisma.actividad.findFirst({
+    where: { id: params.id, tenantId: session.user.tenantId },
+    select: { responsableId: true, titulo: true, tipo: true, fecha: true, notas: true },
+  });
+  if (!previa) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
+
   await prisma.actividad.updateMany({
     where: { id: params.id, tenantId: session.user.tenantId },
     data: {
@@ -47,6 +57,23 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       ...(oportunidadId !== undefined && { oportunidadId: oportunidadId || null }),
     },
   });
+
+  // Fase 2: avisar por correo solo si la tarea quedó asignada a alguien nuevo
+  // (responsable distinto al que tenía). Best-effort.
+  if (responsableId && responsableId !== previa.responsableId) {
+    await notificarTareaAsignada({
+      responsableId,
+      asignadorId: session.user.id,
+      asignadorNombre: session.user.name ?? "Un compañero",
+      tenantId: session.user.tenantId,
+      actividad: {
+        titulo: titulo ?? previa.titulo,
+        tipo: tipo ?? previa.tipo,
+        fecha: (fecha || previa.fecha) as Date,
+        notas: notas !== undefined ? notas : previa.notas,
+      },
+    });
+  }
 
   return NextResponse.json({ ok: true });
 }

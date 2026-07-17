@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { filtroOwnerActividad } from "@/lib/permisos";
 import { crearActividadSchema } from "@/lib/validations/actividades";
 import { parseOrError } from "@/lib/validations/helpers";
+import { notificarTareaAsignada } from "@/lib/notificar-tarea";
 
 export async function GET() {
   const session = await auth();
@@ -68,6 +69,16 @@ export async function POST(request: Request) {
       oportunidad: { select: { id: true, titulo: true } },
       responsable: { select: { id: true, nombre: true } },
     },
+  });
+
+  // Fase 2: si la tarea se asignó a otra persona, avisarle por correo.
+  // Es best-effort (no lanza) — no debe afectar la respuesta de creación.
+  await notificarTareaAsignada({
+    responsableId: responsableFinal,
+    asignadorId: session.user.id,
+    asignadorNombre: session.user.name ?? "Un compañero",
+    tenantId: session.user.tenantId,
+    actividad: { titulo: actividad.titulo, tipo: actividad.tipo, fecha: actividad.fecha, notas: actividad.notas },
   });
 
   return NextResponse.json(actividad, { status: 201 });
