@@ -209,9 +209,10 @@ function CalendarioActividades({
                     className="text-slate-300 hover:text-brand-600 shrink-0">
                     <IconPencil size={14} stroke={1.75} />
                   </button>
-                  <button onClick={() => onEliminar(a.id)} title="Eliminar"
-                    className="text-slate-300 hover:text-red-500 shrink-0">
-                    <IconTrash size={14} stroke={1.75} />
+                  <button onClick={() => onEliminar(a.id)} title="Borrar tarea"
+                    className="flex items-center gap-1 rounded-md border border-red-300 bg-white px-1.5 py-1 text-[11px] font-medium text-red-600 hover:bg-red-50 shrink-0">
+                    <IconTrash size={12} stroke={1.75} />
+                    Borrar
                   </button>
                 </div>
               ))}
@@ -825,7 +826,7 @@ function AgendaContent() {
                 <button
                   onClick={() => setReasignandoId(reasignandoId === a.id ? null : a.id)}
                   title="Reasignar a otra persona"
-                  className="flex items-center gap-1 rounded-md border border-red-300 bg-white px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                  className="flex items-center gap-1 rounded-md border border-brand-300 bg-white px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50"
                 >
                   <IconUsers size={13} stroke={1.75} />
                   Reasignar
@@ -871,8 +872,9 @@ function AgendaContent() {
                 <IconPencil size={15} stroke={1.75} />
               </button>
               <button onClick={() => eliminarActividad(a.id)}
-                className="text-neutral-300 hover:text-red-600" title="Eliminar">
-                <IconTrash size={15} stroke={1.75} />
+                className="flex items-center gap-1 rounded-md border border-red-300 bg-white px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 shrink-0" title="Borrar tarea">
+                <IconTrash size={13} stroke={1.75} />
+                Borrar
               </button>
             </div>
             );
