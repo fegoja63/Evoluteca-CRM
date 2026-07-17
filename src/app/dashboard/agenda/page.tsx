@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
+import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { KpiCard } from "@/components/kpi-card";
 import {
@@ -27,10 +28,25 @@ type Actividad = {
   fecha: string;
   notas: string | null;
   completada: boolean;
+  estado: string;
+  creadoBy: string | null;
   empresa: { id: string; nombre: string } | null;
   contacto: { id: string; nombre: string } | null;
   oportunidad: { id: string; titulo: string } | null;
+  responsable: { id: string; nombre: string } | null;
 };
+
+type UsuarioEquipo = { id: string; nombre: string; activo: boolean };
+
+const ESTADOS_ACTIVIDAD = [
+  { key: "PENDIENTE", label: "Pendiente", badge: "bg-slate-100 text-slate-600" },
+  { key: "EN_PROGRESO", label: "En progreso", badge: "bg-amber-100 text-amber-700" },
+  { key: "COMPLETADA", label: "Completada", badge: "bg-emerald-100 text-emerald-700" },
+] as const;
+
+function estadoDef(estado: string) {
+  return ESTADOS_ACTIVIDAD.find((e) => e.key === estado) ?? ESTADOS_ACTIVIDAD[0];
+}
 
 type Empresa = { id: string; nombre: string };
 type Contacto = { id: string; nombre: string; empresa?: { id: string; nombre: string } | null };
@@ -204,7 +220,10 @@ function CalendarioActividades({
 }
 
 function AgendaContent() {
+  const { data: session } = useSession();
+  const miId = session?.user?.id;
   const [actividades, setActividades] = useState<Actividad[]>([]);
+  const [usuarios, setUsuarios] = useState<UsuarioEquipo[]>([]);
   const [modulos, setModulos] = useState<Record<string, boolean>>({});
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [contactos, setContactos] = useState<Contacto[]>([]);
@@ -215,7 +234,7 @@ function AgendaContent() {
   const [guardando, setGuardando] = useState(false);
   const [exportando, setExportando] = useState(false);
   const searchParams = useSearchParams();
-  const [filtro, setFiltro] = useState<"pendientes" | "todas" | "vencidas">(
+  const [filtro, setFiltro] = useState<"pendientes" | "todas" | "vencidas" | "asignadas">(
     searchParams.get("vencidas") === "1" ? "vencidas" : "pendientes"
   );
   const [vista, setVista] = useState<"lista" | "calendario">("lista");
@@ -240,6 +259,7 @@ function AgendaContent() {
   }
   const [form, setForm] = useState({
     tipo: "TAREA", titulo: "", fecha: "", notas: "", empresaId: "", contactoId: "", oportunidadId: "",
+    responsableId: "", estado: "PENDIENTE",
   });
   const [nuevoContacto, setNuevoContacto] = useState(false);
   const [nuevoContactoNombre, setNuevoContactoNombre] = useState("");
@@ -281,14 +301,18 @@ function AgendaContent() {
   }
 
   async function cargarRelaciones() {
-    const [resEmp, resCon, resOp] = await Promise.all([
+    const [resEmp, resCon, resOp, resUsr] = await Promise.all([
       fetch("/api/empresas"),
       fetch("/api/contactos"),
       fetch("/api/oportunidades"),
+      fetch("/api/usuarios"),
     ]);
     setEmpresas(await resEmp.json());
     setContactos(await resCon.json());
     setOportunidades(await resOp.json());
+    const usr: UsuarioEquipo[] = await resUsr.json();
+    // Solo usuarios activos como posibles responsables.
+    setUsuarios(Array.isArray(usr) ? usr.filter((u) => u.activo) : []);
   }
 
   useEffect(() => {
@@ -307,7 +331,7 @@ function AgendaContent() {
   function cerrarForm() {
     setMostrarForm(false);
     setEditandoId(null);
-    setForm({ tipo: "TAREA", titulo: "", fecha: "", notas: "", empresaId: "", contactoId: "", oportunidadId: "" });
+    setForm({ tipo: "TAREA", titulo: "", fecha: "", notas: "", empresaId: "", contactoId: "", oportunidadId: "", responsableId: "", estado: "PENDIENTE" });
     setNuevoContacto(false);
     setNuevoContactoNombre("");
   }
@@ -322,6 +346,8 @@ function AgendaContent() {
       empresaId: a.empresa?.id ?? "",
       contactoId: a.contacto?.id ?? "",
       oportunidadId: a.oportunidad?.id ?? "",
+      responsableId: a.responsable?.id ?? "",
+      estado: a.estado ?? "PENDIENTE",
     });
     setMostrarForm(true);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
@@ -359,12 +385,32 @@ function AgendaContent() {
 
   async function toggleCompletada(id: string, completada: boolean) {
     const previas = actividades;
-    setActividades((prev) => prev.map((a) => (a.id === id ? { ...a, completada } : a)));
+    // `estado` y `completada` van juntos (igual que en el backend).
+    const estado = completada ? "COMPLETADA" : "PENDIENTE";
+    setActividades((prev) => prev.map((a) => (a.id === id ? { ...a, completada, estado } : a)));
     try {
       const res = await fetch(`/api/actividades/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ completada }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      setActividades(previas);
+      toast.error("No se pudo guardar el cambio. Revisa tu conexión e inténtalo de nuevo.");
+    }
+  }
+
+  async function cambiarEstado(id: string, estado: string) {
+    const previas = actividades;
+    setActividades((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, estado, completada: estado === "COMPLETADA" } : a))
+    );
+    try {
+      const res = await fetch(`/api/actividades/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ estado }),
       });
       if (!res.ok) throw new Error();
     } catch {
@@ -415,8 +461,14 @@ function AgendaContent() {
   const visibles = actividades.filter((a) => {
     if (filtro === "vencidas") return !a.completada && new Date(a.fecha) < new Date();
     if (filtro === "pendientes") return !a.completada;
+    if (filtro === "asignadas") return a.responsable?.id === miId && !a.completada;
     return true;
   });
+
+  // Cuántas tareas pendientes me asignaron otros (para el badge del filtro).
+  const asignadasAmi = actividades.filter(
+    (a) => a.responsable?.id === miId && a.creadoBy !== miId && !a.completada
+  ).length;
 
   return (
     <div>
@@ -458,7 +510,7 @@ function AgendaContent() {
             className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 flex items-center gap-1.5">
             {exportando ? "Exportando..." : (<><IconFileSpreadsheet size={15} stroke={1.75} />Excel</>)}
           </button>
-          <button onClick={() => { setEditandoId(null); setForm({ tipo: "TAREA", titulo: "", fecha: "", notas: "", empresaId: "", contactoId: "", oportunidadId: "" }); setMostrarForm(true); }}
+          <button onClick={() => { setEditandoId(null); setForm({ tipo: "TAREA", titulo: "", fecha: "", notas: "", empresaId: "", contactoId: "", oportunidadId: "", responsableId: miId ?? "", estado: "PENDIENTE" }); setMostrarForm(true); }}
             className="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 flex items-center gap-1.5">
             <IconPlus size={15} stroke={1.75} />Nueva actividad
           </button>
@@ -470,6 +522,15 @@ function AgendaContent() {
           <button onClick={() => setFiltro("pendientes")}
             className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "pendientes" ? "bg-brand-50 text-brand-700" : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"}`}>
             Pendientes
+          </button>
+          <button onClick={() => setFiltro("asignadas")}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 ${filtro === "asignadas" ? "bg-brand-50 text-brand-700" : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"}`}>
+            Asignadas a mí
+            {asignadasAmi > 0 && (
+              <span className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-brand-600 text-white text-[10px] font-bold leading-none">
+                {asignadasAmi}
+              </span>
+            )}
           </button>
           <button onClick={() => setFiltro("todas")}
             className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "todas" ? "bg-brand-50 text-brand-700" : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"}`}>
@@ -516,6 +577,33 @@ function AgendaContent() {
                 onChange={(e) => setForm({ ...form, fecha: e.target.value })}
                 className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
               />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-neutral-500">Responsable</label>
+              <select
+                value={form.responsableId}
+                onChange={(e) => setForm({ ...form, responsableId: e.target.value })}
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
+              >
+                <option value="">Yo mismo</option>
+                {usuarios.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.id === miId ? `${u.nombre} (yo)` : u.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-neutral-500">Estado</label>
+              <select
+                value={form.estado}
+                onChange={(e) => setForm({ ...form, estado: e.target.value })}
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
+              >
+                {ESTADOS_ACTIVIDAD.map((e) => (
+                  <option key={e.key} value={e.key}>{e.label}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="mb-1 block text-xs text-neutral-500">Empresa</label>
@@ -657,7 +745,11 @@ function AgendaContent() {
       ) : visibles.length === 0 ? (
         <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
           <p className="text-sm text-neutral-500">
-            {filtro === "pendientes" ? "No tienes actividades pendientes." : "Aún no tienes actividades."}
+            {filtro === "asignadas"
+              ? "No tienes tareas asignadas pendientes."
+              : filtro === "pendientes"
+              ? "No tienes actividades pendientes."
+              : "Aún no tienes actividades."}
           </p>
         </div>
       ) : (
@@ -687,11 +779,22 @@ function AgendaContent() {
                 </p>
                 <p className={`text-xs ${esHoy ? "text-red-500" : "text-neutral-500"}`}>
                   {formatoFecha(a.fecha)}
+                  {a.responsable && ` · 👤 ${a.responsable.id === miId ? "Yo" : a.responsable.nombre}`}
                   {a.empresa && ` · ${a.empresa.nombre}`}
                   {a.contacto && ` · ${a.contacto.nombre}`}
                   {a.oportunidad && ` · ${a.oportunidad.titulo}`}
                 </p>
               </div>
+              <select
+                value={a.estado}
+                onChange={(e) => cambiarEstado(a.id, e.target.value)}
+                title="Cambiar estado"
+                className={`shrink-0 rounded-full border-0 px-2 py-1 text-xs font-semibold cursor-pointer outline-none ${estadoDef(a.estado).badge}`}
+              >
+                {ESTADOS_ACTIVIDAD.map((e) => (
+                  <option key={e.key} value={e.key}>{e.label}</option>
+                ))}
+              </select>
               {!a.completada && new Date(a.fecha) < new Date() && (
                 <button onClick={() => enviarRecordatorio(a)} disabled={notificando === a.id}
                   className="text-amber-400 hover:text-amber-600 disabled:opacity-50" title="Enviarme recordatorio">

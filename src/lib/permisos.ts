@@ -11,6 +11,16 @@ export function filtroOwner(rol: string | undefined, userId: string) {
   return esComercial(rol) ? { creadoBy: userId } : {};
 }
 
+/**
+ * Igual que `filtroOwner` pero para actividades: un COMERCIAL ve las que creó
+ * O las que le fueron asignadas como responsable. Admin/Gerente ven todo.
+ */
+export function filtroOwnerActividad(rol: string | undefined, userId: string) {
+  return esComercial(rol)
+    ? { OR: [{ creadoBy: userId }, { responsableId: userId }] }
+    : {};
+}
+
 /** Verifica si un módulo opcional (Tenant.modulos) está activo. */
 export function moduloActivo(modulos: unknown, key: string): boolean {
   if (!modulos || typeof modulos !== "object") return false;

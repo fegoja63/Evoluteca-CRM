@@ -12,12 +12,32 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const body = await request.json();
   const { data: parsed, error } = parseOrError(editarActividadSchema, body);
   if (error) return error;
-  const { completada, titulo, tipo, fecha, notas, empresaId, contactoId, oportunidadId } = parsed;
+  const { completada, estado, responsableId, titulo, tipo, fecha, notas, empresaId, contactoId, oportunidadId } = parsed;
+
+  // `estado` y `completada` son dos vistas del mismo dato y deben ir juntos.
+  // Si llega `estado`, manda: sincroniza `completada`. Si solo llega `completada`
+  // (checkbox heredado), se deriva el estado (COMPLETADA o vuelta a PENDIENTE).
+  let estadoSync: { estado?: "PENDIENTE" | "EN_PROGRESO" | "COMPLETADA"; completada?: boolean } = {};
+  if (estado !== undefined) {
+    estadoSync = { estado, completada: estado === "COMPLETADA" };
+  } else if (completada !== undefined) {
+    estadoSync = { completada, estado: completada ? "COMPLETADA" : "PENDIENTE" };
+  }
+
+  // El responsable debe pertenecer al mismo tenant. Un valor vacío desasigna.
+  if (responsableId) {
+    const valido = await prisma.usuario.findFirst({
+      where: { id: responsableId, tenantId: session.user.tenantId },
+      select: { id: true },
+    });
+    if (!valido) return NextResponse.json({ error: "Responsable inválido" }, { status: 400 });
+  }
 
   await prisma.actividad.updateMany({
     where: { id: params.id, tenantId: session.user.tenantId },
     data: {
-      ...(completada !== undefined && { completada }),
+      ...estadoSync,
+      ...(responsableId !== undefined && { responsableId: responsableId || null }),
       ...(titulo !== undefined && { titulo }),
       ...(tipo !== undefined && { tipo }),
       ...(fecha !== undefined && { fecha: fecha || undefined }),
