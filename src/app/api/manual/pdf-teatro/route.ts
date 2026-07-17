@@ -165,7 +165,7 @@ export async function GET() {
             React.createElement(Text, { style: { fontSize: 11, color: "#ddd6fe", marginBottom: 6 } }, "Contenido de este anexo:"),
             ...[
               "1. Para quién es este anexo",
-              "2. Módulo Funciones — registro de asistencia",
+              "2. Módulo Funciones — asistencia, importación y temporadas",
               "3. Alerta de ocupación baja",
               "4. Módulo Audiencia — retención y recencia",
               "5. Niveles de membresía (club de fidelización)",
@@ -174,7 +174,7 @@ export async function GET() {
             ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#e9d5ff", marginBottom: 3 } }, item)),
           ),
           React.createElement(View, { style: { marginTop: 40 } },
-            React.createElement(Text, { style: s.portadaVer }, `Versión 1.0 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+            React.createElement(Text, { style: s.portadaVer }, `Versión 1.1 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
           ),
         ),
       ),
@@ -188,7 +188,7 @@ export async function GET() {
       React.createElement(P, null, "Este documento complementa el Manual de Usuario general de Evoluteca CRM y describe únicamente las funcionalidades adicionales pensadas para teatros, salas de espectáculos y espacios que venden boletería por función. Si tu empresa no gestiona funciones ni público asistente, este anexo no te aplica — todo lo que necesitas está en el manual general."),
       React.createElement(Nota, null, "Los módulos Funciones y Audiencia son opcionales y se activan desde Configuración > Módulos opcionales. Si no los ves en tu menú lateral, pide a tu Administrador que los active."),
 
-      React.createElement(H1, null, "2. Módulo Funciones — registro de asistencia"),
+      React.createElement(H1, null, "2. Módulo Funciones — asistencia, importación y temporadas"),
       React.createElement(P, null, "Cada función registrada (título, fecha, aforo, canal de venta e ingreso estimado) ahora incluye una sección de Asistentes para registrar quién estuvo en la sala, no solo cuántas sillas se vendieron. Este dato es la base de todo lo demás en este anexo: sin asistencia registrada por persona no es posible medir retención."),
 
       React.createElement(H2, null, "2.1 Registrar un asistente"),
@@ -200,6 +200,23 @@ export async function GET() {
 
       React.createElement(H2, null, "2.2 KPI de asistentes en la ficha de función"),
       React.createElement(P, null, "La ficha de cada función muestra, junto a la ocupación, el número de 'Asistentes registrados' y cuántos de ellos son recurrentes — una primera señal de fidelización función por función."),
+
+      React.createElement(H2, null, "2.3 Importar asistentes desde Excel"),
+      React.createElement(P, null, "Cuando tienes la planilla de público de una obra en Excel (por ejemplo, la lista de compradores de boletería), puedes cargarla completa a una función sin digitar uno por uno. En la sección Asistentes de la ficha de la función usa la opción de importar asistentes:"),
+      React.createElement(Paso, { n: 1, titulo: "Subir el Excel", desc: "Abre la función, entra a importar asistentes y sube la planilla (.xlsx) del público de la obra." }),
+      React.createElement(Paso, { n: 2, titulo: "Asignar columnas", desc: "Indica qué columna del Excel corresponde al nombre del asistente (obligatorio) y, si la tienes, al email y teléfono. El sistema confirma \"Columna de nombre asignada\" cuando ya puedes continuar." }),
+      React.createElement(Paso, { n: 3, titulo: "Importar", desc: "El sistema registra la asistencia de cada persona a esa función y da de alta en Audiencia a quienes no existían todavía." }),
+      React.createElement(P, null, "Para no duplicar, el importador busca coincidencia primero por email y, si no hay, por nombre; a quien ya estaba registrado en esa misma función lo salta. Al terminar muestra el desglose: asistencias registradas, espectadores nuevos, duplicados saltados y errores."),
+      React.createElement(Nota, null, "Importar asistentes a una función registra la asistencia solo a esa función. Si la misma persona asiste a varias funciones, impórtala (o regístrala) en cada una — así el historial de recompra y recencia queda correcto."),
+      React.createElement(Tip, null, "Es la forma más rápida de cargar el histórico: sube la planilla de cada función pasada y en minutos tendrás la base de retención y recencia (ver capítulo 4) construida sobre datos reales."),
+
+      React.createElement(H2, null, "2.4 Crear una temporada completa de una vez"),
+      React.createElement(P, null, "Cuando una obra se presenta muchas veces (por ejemplo, todos los fines de semana durante dos meses), no hace falta crear cada función a mano. En Funciones, al crear una función nueva, cambia del modo \"Función única\" al modo \"Temporada\":"),
+      React.createElement(Paso, { n: 1, titulo: "Definir el patrón", desc: "Ingresa el título de la obra, el rango de fechas (Desde / Hasta), los días de la semana en que hay función y uno o varios horarios (con \"+ Agregar horario\")." }),
+      React.createElement(Paso, { n: 2, titulo: "Datos comunes", desc: "Define el canal de venta, las sillas totales, el ingreso estimado por función y notas — se aplican a todas las funciones generadas." }),
+      React.createElement(Paso, { n: 3, titulo: "Revisar y generar", desc: "El sistema muestra cuántas funciones se crearán y las fechas de la primera y la última. Haz clic en \"Generar temporada\"." }),
+      React.createElement(P, null, "Cada función generada queda como una función individual e independiente: puedes editarla, registrar su ocupación, sus asistentes y su NPS por separado."),
+      React.createElement(Nota, null, "Una temporada puede generar hasta 100 funciones de una vez. Si el patrón supera ese tope (por ejemplo, un rango muy largo con varios horarios diarios), el sistema te avisa y no genera hasta que acortes el rango o reduzcas los horarios."),
     ),
 
     // ── CAPÍTULO 3 ──

@@ -104,7 +104,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.17"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.18"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -236,7 +236,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.17 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.18 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -513,6 +513,9 @@ export async function GET() {
       React.createElement(LI, null, "REUNIÓN — Reunión presencial o virtual"),
       React.createElement(LI, null, "TAREA — Acción interna (preparar propuesta, enviar info, etc.)"),
       React.createElement(LI, null, "EMAIL — Seguimiento por correo electrónico"),
+      React.createElement(LI, null, "VISITA COMERCIAL — Visita al espacio con fines de venta (recorrido, cotización en sitio)"),
+      React.createElement(LI, null, "VISITA TÉCNICA — Visita de coordinación técnica del evento (montaje, sonido, requerimientos)"),
+      React.createElement(Nota, null, "Los tipos Visita comercial y Visita técnica solo aparecen en el selector de tenants con el módulo Funciones o Salones activo (vertical de teatros y alquiler de espacios). En los demás tenants no se muestran."),
 
       React.createElement(H2, null, "4.2 Crear una actividad"),
       React.createElement(P, null, 'Desde la Agenda haz clic en "+ Nueva actividad". También puedes crear actividades directamente desde la ficha de un cliente, contacto u oportunidad usando el formulario inline.'),
@@ -544,6 +547,14 @@ export async function GET() {
 
       React.createElement(H2, null, "4.7 Actividades de hoy resaltadas en rojo"),
       React.createElement(P, null, "En la vista de lista de la Agenda, cualquier actividad pendiente cuya fecha sea el día de hoy se resalta con fondo y borde rojo y una etiqueta \"Hoy\", para que no se pierda entre el resto de actividades pasadas o futuras. El mismo resaltado se usa en la tarjeta \"Actividades de hoy\" del Dashboard (ver 8.7)."),
+
+      React.createElement(H2, null, "4.8 Estado y responsable de la actividad"),
+      React.createElement(P, null, "Además de completarla, cada actividad tiene un estado que puedes cambiar en el formulario o directamente desde la lista:"),
+      React.createElement(LI, null, "Pendiente — aún no iniciada (badge gris)"),
+      React.createElement(LI, null, "En progreso — se está trabajando en ella (badge ámbar)"),
+      React.createElement(LI, null, "Completada — terminada (badge verde); equivale a marcar el checkbox de completada"),
+      React.createElement(P, null, "El campo \"Responsable\" permite asignar la actividad a otra persona del equipo en vez de a ti mismo. Por defecto queda a tu nombre (\"Yo mismo\"); en el selector puedes elegir a cualquier miembro del equipo para delegarla."),
+      React.createElement(Tip, null, "El estado \"En progreso\" es útil para tareas que toman varios días (preparar una propuesta grande, coordinar un evento): ves de un vistazo qué está arrancado y qué sigue sin tocar, sin tener que marcarlo como completado antes de tiempo."),
     ),
 
     // ── CAPÍTULO 5: COTIZACIONES ──
@@ -605,6 +616,7 @@ export async function GET() {
 
       React.createElement(H2, null, "5.9 Catálogo de servicios"),
       React.createElement(P, null, 'Ve a Catálogo para crear servicios reutilizables con nombre, descripción y precio base. Al crear una cotización, aparece el selector "Agregar servicio del catálogo" que carga los datos automáticamente en una nueva línea.'),
+      React.createElement(P, null, 'Puedes cargar varios servicios de una sola vez: con "+ Agregar otra línea" añades tantas filas como necesites en el formulario, cada una con su nombre, descripción y precio, y con "Agregar al catálogo" se guardan todas juntas. Usa "Quitar línea" para descartar una fila antes de guardar.'),
       React.createElement(Nota, null, "El precio del catálogo es un precio base. Puedes modificarlo libremente en cada cotización sin afectar el catálogo."),
 
       React.createElement(H2, null, "5.10 Fecha de validez y alertas de vencimiento"),
@@ -621,6 +633,14 @@ export async function GET() {
       React.createElement(Paso, { n: 2, titulo: "Editar una plantilla", desc: 'Botón "Editar" sobre cualquier plantilla de la lista. Puedes cambiar el nombre y modificar, agregar o quitar cualquier línea de ítems — no solo renombrarla. Al guardar, la lista de ítems de la plantilla se reemplaza por completo con lo que dejaste en el formulario.' }),
       React.createElement(Paso, { n: 3, titulo: "Usar una plantilla en una cotización", desc: 'Desde una cotización existente, el botón "Guardar plantilla" también te permite crear una plantilla nueva a partir de los ítems que ya cargaste.' }),
       React.createElement(Nota, null, "Editar o eliminar una plantilla no afecta las cotizaciones que ya se crearon a partir de ella — cada cotización guarda su propia copia de los ítems al momento de crearse."),
+
+      React.createElement(H2, null, "5.12 Número propio del cliente"),
+      React.createElement(P, null, "Cada cotización lleva un consecutivo automático del sistema, pero además tiene un campo opcional \"Número del cliente\" para registrar el consecutivo que use tu empresa o tu cliente (por ejemplo COT-2026-045). Lo puedes escribir al crear la cotización o editarlo después desde su detalle; si lo dejas vacío, se usa el número automático."),
+      React.createElement(P, null, "Cuando ingresas un número propio, este aparece en la lista de cotizaciones, el detalle, el PDF, el correo al cliente, el mensaje de WhatsApp, la vista pública, la Papelera, el timeline, la exportación a Excel, el Dashboard y la ficha del cliente. El consecutivo automático se conserva como referencia interna."),
+      React.createElement(Tip, null, "La búsqueda global (ver 1.6) también encuentra cotizaciones por el número del cliente, no solo por el automático."),
+
+      React.createElement(H2, null, "5.13 Separador de miles en los campos de dinero"),
+      React.createElement(P, null, "Todos los campos de dinero del CRM (precios de cotización, catálogo, plantillas, valor de oportunidades, funciones, metas y reportes) muestran el separador de miles en formato colombiano mientras escribes (por ejemplo, 1.500.000), para que sea más fácil verificar cifras grandes sin contar ceros. El valor se guarda como número, sin los puntos."),
     ),
 
     // ── CAPÍTULO 6: IMPORTACIÓN ──

@@ -175,7 +175,7 @@ export async function GET() {
             ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#ccfbf1", marginBottom: 3 } }, item)),
           ),
           React.createElement(View, { style: { marginTop: 40 } },
-            React.createElement(Text, { style: s.portadaVer }, `Versión 1.1 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+            React.createElement(Text, { style: s.portadaVer }, `Versión 1.2 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
           ),
         ),
       ),
@@ -235,6 +235,12 @@ export async function GET() {
       React.createElement(LI, null, "Aviso ámbar — hay cotizaciones pendientes (no aceptadas todavía) interesadas en la misma fecha y salón, sin que sea todavía un choque confirmado."),
       React.createElement(P, null, "Una reserva registrada sin horario (día completo) siempre se considera en conflicto con cualquier otro horario ese mismo día en el mismo salón, ya que ocupa el espacio por completo."),
       React.createElement(Nota, null, "El aviso es informativo: el sistema no bloquea guardar una cotización aunque haya choque. La decisión final de aceptar dos eventos superpuestos (o no) queda en manos del equipo comercial."),
+
+      React.createElement(H2, null, "4.3 Registrar visitas al espacio en la Agenda"),
+      React.createElement(P, null, "Por tener el módulo Salones activo, tu Agenda ofrece dos tipos de actividad adicionales pensados para el alquiler de espacios, además de Llamada, Reunión, Tarea y Email:"),
+      React.createElement(LI, null, "Visita comercial — recorrido del cliente por el salón con fines de venta (mostrar el espacio, cotizar en sitio)"),
+      React.createElement(LI, null, "Visita técnica — coordinación técnica del evento (montaje, sonido, requerimientos de producción)"),
+      React.createElement(P, null, "Se crean como cualquier otra actividad de la Agenda y se vinculan al cliente, contacto y/o oportunidad del alquiler. Ver el detalle general de la Agenda en el Manual de Usuario."),
     ),
 
     // ── CAPÍTULO 5 ──
