@@ -57,6 +57,7 @@ export default async function DashboardPage() {
     ultimoContacto,
     terminosProximos,
     funcionesProximas,
+    etapasPipeline,
   ] = await Promise.all([
     prisma.empresa.count({ where: { tenantId, eliminadoEn: null, ...ownerFiltro } }),
     prisma.contacto.count({ where: { tenantId, eliminadoEn: null } }),
@@ -154,6 +155,14 @@ export default async function DashboardPage() {
       select: { id: true, titulo: true, fecha: true, sillasTotales: true, sillasVendidas: true },
       orderBy: { fecha: "asc" },
     }),
+    // Orden y nombres de las etapas los personaliza cada tenant en
+    // Configuración → Etapas del pipeline (tabla EtapaPipeline). Si no hay
+    // filas configuradas, se usa el orden/nombre por defecto de abajo.
+    prisma.etapaPipeline.findMany({
+      where: { tenantId },
+      orderBy: { orden: "asc" },
+      select: { key: true, nombre: true, oculta: true },
+    }),
   ]);
 
   // Funciones a <=5 días con ocupación por debajo del umbral del plan de Belarte
@@ -238,10 +247,21 @@ export default async function DashboardPage() {
   }
 
   const TIPO_ICON: Record<string,Icon> = { LLAMADA:IconPhone, REUNION:IconUsers, TAREA:IconCheck, EMAIL:IconMail };
-  const ETAPA_LABEL: Record<string,string> = { PROSPECTO:"Prospecto", CALIFICADO:"Calificado", PROPUESTA:"Cotización", NEGOCIACION:"Negociación", GANADA:"Ganada", PERDIDA:"Perdida" };
+  // El color y texto de cada etapa quedan fijos por "key"; el nombre visible y
+  // el orden los personaliza el tenant (EtapaPipeline). Igual patrón que el
+  // kanban en /dashboard/pipeline.
+  const ETAPA_LABEL_DEFAULT: Record<string,string> = { PROSPECTO:"Prospecto", CALIFICADO:"Calificado", PROPUESTA:"Cotización", NEGOCIACION:"Negociación", GANADA:"Ganada", PERDIDA:"Perdida" };
   const ETAPA_COLOR: Record<string,string> = { PROSPECTO:"bg-slate-400", CALIFICADO:"bg-blue-500", PROPUESTA:"bg-violet-500", NEGOCIACION:"bg-amber-500", GANADA:"bg-emerald-500", PERDIDA:"bg-red-400" };
   const ETAPA_TEXT: Record<string,string>  = { PROSPECTO:"text-slate-600", CALIFICADO:"text-blue-700", PROPUESTA:"text-violet-700", NEGOCIACION:"text-amber-700", GANADA:"text-emerald-700", PERDIDA:"text-red-600" };
-  const ETAPAS_PIPELINE = ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION","GANADA","PERDIDA"];
+
+  // Nombres visibles: los personalizados del tenant sobreescriben los de por
+  // defecto (para que "Oportunidades calientes" y las alertas también los usen).
+  const ETAPA_LABEL: Record<string,string> = { ...ETAPA_LABEL_DEFAULT, ...Object.fromEntries(etapasPipeline.map(e => [e.key, e.nombre])) };
+  // El embudo respeta el orden del tenant y omite las etapas ocultas; si no hay
+  // configuración, cae al orden por defecto.
+  const ETAPAS_PIPELINE = etapasPipeline.length > 0
+    ? etapasPipeline.filter(e => !e.oculta).map(e => e.key)
+    : ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION","GANADA","PERDIDA"];
 
   const nombre = session?.user?.name?.split(" ")[0] ?? "";
   const horaColombia = new Date(hoy.toLocaleString("en-US",{timeZone:"America/Bogota"})).getHours();
