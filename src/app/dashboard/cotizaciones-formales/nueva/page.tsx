@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { IconArrowLeft, IconAlertTriangle } from "@tabler/icons-react";
+import { IconArrowLeft, IconAlertTriangle, IconTemplate, IconCheck } from "@tabler/icons-react";
 import { MoneyInput } from "@/components/money-input";
 
 type Empresa  = { id: string; nombre: string };
@@ -57,6 +57,8 @@ export default function NuevaCotizacionPage() {
   const [cargando, setCargando]       = useState(true);
   const [enviando, setEnviando]       = useState(false);
   const [error, setError]             = useState("");
+  const [plantillaCargada, setPlantillaCargada] = useState("");
+  const [plantillaCargadaId, setPlantillaCargadaId] = useState("");
 
   const [empresaId, setEmpresaId]         = useState<string>(d.empresaId ?? "");
   const [contactoId, setContactoId]       = useState<string>(d.contactoId ?? "");
@@ -403,37 +405,12 @@ export default function NuevaCotizacionPage() {
 
   return (
     <div className="max-w-3xl">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard/cotizaciones-formales" className="text-slate-400 hover:text-slate-700 text-sm inline-flex items-center gap-1">
-            <IconArrowLeft size={14} stroke={1.75} /> Cotizaciones
-          </Link>
-          <span className="text-slate-300">/</span>
-          <h1 className="text-xl font-semibold text-slate-900">Nueva cotización</h1>
-        </div>
-        {plantillas.length > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400">Cargar plantilla:</span>
-            <select
-              className="rounded-xl border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs text-violet-700 outline-none focus:border-violet-400"
-              onChange={e => {
-                const p = plantillas.find(x => x.id === e.target.value);
-                if (!p) return;
-                setLineas(p.items.map(it => ({
-                  descripcion: it.descripcion,
-                  cantidad: String(it.cantidad),
-                  precioUnit: String(it.precioUnit),
-                })));
-                if (p.notas) setNotas(p.notas);
-                e.target.value = "";
-              }}>
-              <option value="">— Elegir plantilla —</option>
-              {plantillas.map(p => (
-                <option key={p.id} value={p.id}>{p.nombre} ({p.items.length} ítems)</option>
-              ))}
-            </select>
-          </div>
-        )}
+      <div className="mb-6 flex items-center gap-3">
+        <Link href="/dashboard/cotizaciones-formales" className="text-slate-400 hover:text-slate-700 text-sm inline-flex items-center gap-1">
+          <IconArrowLeft size={14} stroke={1.75} /> Cotizaciones
+        </Link>
+        <span className="text-slate-300">/</span>
+        <h1 className="text-xl font-semibold text-slate-900">Nueva cotización</h1>
       </div>
 
       {borradorRestaurado && (
@@ -451,6 +428,49 @@ export default function NuevaCotizacionPage() {
       )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        {/* Cargar plantilla — destacado para que no pase desapercibido */}
+        {plantillas.length > 0 && (
+          <div className="rounded-2xl border-2 border-violet-300 bg-violet-50 p-5">
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white">
+                <IconTemplate size={20} stroke={1.75} />
+              </span>
+              <div className="flex-1">
+                <h2 className="text-sm font-bold text-violet-900">¿Empezar desde una plantilla?</h2>
+                <p className="text-xs text-violet-700 mt-0.5 mb-3">
+                  Carga los ítems y notas de una plantilla guardada y ahorra tiempo. Luego ajusta lo que sea específico de este cliente.
+                </p>
+                <label className="block text-xs font-medium text-violet-800 mb-1">Elegir plantilla</label>
+                <select
+                  value={plantillaCargadaId}
+                  className="w-full rounded-xl border border-violet-300 bg-white px-3 py-2.5 text-sm text-violet-900 font-medium outline-none focus:border-violet-500"
+                  onChange={e => {
+                    const p = plantillas.find(x => x.id === e.target.value);
+                    if (!p) { setPlantillaCargada(""); setPlantillaCargadaId(""); return; }
+                    setLineas(p.items.map(it => ({
+                      descripcion: it.descripcion,
+                      cantidad: String(it.cantidad),
+                      precioUnit: String(it.precioUnit),
+                    })));
+                    if (p.notas) setNotas(p.notas);
+                    setPlantillaCargada(p.nombre);
+                    setPlantillaCargadaId(p.id);
+                  }}>
+                  <option value="">— Selecciona una plantilla para cargarla —</option>
+                  {plantillas.map(p => (
+                    <option key={p.id} value={p.id}>{p.nombre} ({p.items.length} ítems)</option>
+                  ))}
+                </select>
+                {plantillaCargada && (
+                  <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
+                    <IconCheck size={14} stroke={2} /> Plantilla «{plantillaCargada}» cargada. Revisa los ítems y notas abajo antes de guardar.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Cliente */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <h2 className="text-sm font-bold text-slate-700 mb-4">Cliente y oportunidad</h2>
