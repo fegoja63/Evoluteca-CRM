@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { IconUpload } from "@tabler/icons-react";
 import { MoneyInput } from "@/components/money-input";
 
 type NpsRespuesta = {
@@ -327,7 +328,13 @@ export default function FichaFuncionPage() {
 
       {/* Asistentes */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-5">
-        <h2 className="text-sm font-bold text-slate-900 mb-4">Asistentes</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold text-slate-900">Asistentes</h2>
+          <Link href={`/dashboard/funciones/${id}/importar-asistentes`}
+            className="flex items-center gap-1.5 rounded-xl border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-100">
+            <IconUpload size={14} stroke={1.75} />Importar lista (Excel)
+          </Link>
+        </div>
 
         <form onSubmit={handleAgregarAsistente} className="mb-6 pb-6 border-b border-slate-100">
           <div className="flex gap-3 items-end flex-wrap">
