@@ -36,6 +36,8 @@ export const FAQS: Faq[] = [
     respuesta: "Sí. Al eliminar un cliente o contacto no se borra de inmediato: se mueve a la Papelera (menú lateral), desde donde Administrador o Gerente pueden restaurarlo con todos sus datos e historial intactos, o eliminarlo definitivamente (esto último no se puede deshacer)." },
   { categoria: "Clientes y contactos", pregunta: "¿Puedo adjuntar archivos a un cliente, contacto u oportunidad?",
     respuesta: "Sí, en la sección \"Archivos adjuntos\" de cada ficha puedes subir contratos, cédulas, fotos o cotizaciones firmadas (máximo 5MB por archivo). Los archivos se guardan de forma segura dentro del CRM, no se comparten entre organizaciones distintas." },
+  { categoria: "Clientes y contactos", pregunta: "¿Qué es el Resumen con IA de un cliente?",
+    respuesta: "En la ficha de cada cliente, el panel \"Resumen con IA\" genera en segundos un informe accionable de seis secciones: Panorama de la cuenta, Relación y actividad, Oportunidades y cotizaciones, Señales, Contactos clave y Próximas acciones. Usa solo los datos reales de ese cliente en tu CRM (contactos, oportunidades, actividades y cotizaciones) con métricas ya calculadas — no consulta información externa ni inventa cifras. Descuenta del cupo mensual de IA, compartido con el Brief del pipeline; el panel muestra tu consumo (por ejemplo \"12 / 100 este mes\")." },
 
   // ── Pipeline de ventas ──
   { categoria: "Pipeline de ventas", pregunta: "¿Qué significan las etapas del pipeline?",
@@ -48,6 +50,8 @@ export const FAQS: Faq[] = [
     respuesta: "Al mover una oportunidad a Perdida (arrastrando la tarjeta o desde su ficha), el sistema muestra un modal para elegir el motivo (precio, competencia, evento cancelado, sin respuesta, presupuesto, fuera de fechas, u otro personalizado) antes de completar el cambio. Si cancelas el modal, la oportunidad no se mueve." },
   { categoria: "Pipeline de ventas", pregunta: "¿El pipeline tiene una vista de tabla además del kanban?",
     respuesta: "Sí. Usa el toggle Kanban / Tabla en la barra de filtros. La vista tabla muestra todas las oportunidades en filas con columnas ordenables (empresa, etapa, valor, probabilidad, fecha de cierre)." },
+  { categoria: "Pipeline de ventas", pregunta: "¿Qué es el Brief del pipeline con IA?",
+    respuesta: "En la parte superior del Pipeline, el panel \"Brief del pipeline con IA\" genera en segundos un resumen ejecutivo para la reunión de ventas, con cinco secciones: Panorama, Calientes, En riesgo, Meta y Prioridades de la semana. Respeta tu rol (un Comercial ve solo su pipeline y su meta; Gerente y Administrador ven todo el equipo) y usa los nombres de etapa personalizados de tu organización. Comparte el mismo cupo mensual de IA con el Resumen con IA de cliente." },
   { categoria: "Pipeline de ventas", pregunta: "¿El CRM guarda el historial de cambios de etapa de una oportunidad?",
     respuesta: "Sí, automáticamente. En la ficha de la oportunidad, el panel \"Historial de etapas\" muestra cada cambio con fecha, días en la etapa anterior y el usuario que lo hizo — no requiere ninguna acción manual." },
   { categoria: "Pipeline de ventas", pregunta: "¿Puedo ver solo las oportunidades de un vendedor específico?",

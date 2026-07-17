@@ -393,14 +393,17 @@ export async function GET() {
       React.createElement(Nota, null, "Los archivos se guardan de forma segura dentro del CRM, no en un servicio externo. No se comparten entre organizaciones distintas."),
 
       React.createElement(H2, null, "2.10 Resumen con IA"),
-      React.createElement(P, null, "En la ficha de cada cliente encontrarás el panel \"Resumen con IA\". Al hacer clic en \"Generar resumen\", el CRM analiza toda la información de esa cuenta (contactos, oportunidades y su etapa, actividades recientes, cotizaciones y su estado) y redacta en segundos un resumen breve y accionable. El texto va apareciendo a medida que se escribe."),
-      React.createElement(P, null, "El resumen siempre trae tres secciones cortas:"),
-      React.createElement(LI, null, "Estado de la relación — antigüedad de la cuenta, nivel de actividad y valor en juego"),
-      React.createElement(LI, null, "Señales — riesgos (inactividad, cotizaciones sin cerrar, negocios perdidos) u oportunidades (negocios calientes, recompra)"),
-      React.createElement(LI, null, "Próxima acción — la gestión concreta más recomendable ahora para ese cliente"),
+      React.createElement(P, null, "En la ficha de cada cliente encontrarás el panel \"Resumen con IA\". Al hacer clic en \"Generar resumen\", el CRM analiza toda la información de esa cuenta (contactos, oportunidades abiertas/ganadas/perdidas, actividades, cotizaciones y su estado) junto con métricas ya calculadas (valor ya ganado, valor en juego, tasa de conversión, cotizaciones vencidas, días desde la última interacción) y redacta en segundos un informe accionable. El texto va apareciendo a medida que se escribe."),
+      React.createElement(P, null, "El informe trae seis secciones:"),
+      React.createElement(LI, null, "Panorama de la cuenta — antigüedad de la relación, sector, valor ya ganado, valor en juego y recurrencia"),
+      React.createElement(LI, null, "Relación y actividad — hace cuánto fue la última interacción y tareas pendientes o vencidas"),
+      React.createElement(LI, null, "Oportunidades y cotizaciones — negocios abiertos con su etapa y probabilidad, y el estado de las cotizaciones (enviadas, aceptadas, vencidas)"),
+      React.createElement(LI, null, "Señales — riesgos (inactividad, cotizaciones sin respuesta, negocios perdidos y su motivo) u oportunidades (recompra, negocios calientes)"),
+      React.createElement(LI, null, "Contactos clave — con quién conviene hablar y quién parece decidir, según los cargos"),
+      React.createElement(LI, null, "Próximas acciones — 2 o 3 gestiones concretas y priorizadas para ese cliente"),
       React.createElement(P, null, "Puedes volver a pulsar \"Regenerar\" para obtener una nueva versión con los datos más recientes. El panel muestra tu consumo del mes (por ejemplo \"12 / 100 este mes\")."),
-      React.createElement(Nota, null, "Los Resúmenes con IA dependen del plan de tu organización: pueden ser ilimitados o tener un tope mensual. Si tu plan no los incluye, o si ya alcanzaste el tope del mes, el botón aparece deshabilitado con el aviso correspondiente. Escríbenos para ampliar tu plan."),
-      React.createElement(Tip, null, "Úsalo antes de una llamada o reunión para ponerte al día de una cuenta en 5 segundos sin tener que leer todo el historial. El resumen se apoya solo en los datos reales del CRM — no inventa cifras."),
+      React.createElement(Nota, null, "Los Resúmenes con IA dependen del plan de tu organización: pueden ser ilimitados o tener un tope mensual. Ese cupo mensual es compartido con el Brief del pipeline con IA (ver 3.12): ambas funciones descuentan del mismo contador. Si tu plan no las incluye, o si ya alcanzaste el tope del mes, el botón aparece deshabilitado con el aviso correspondiente. Escríbenos para ampliar tu plan."),
+      React.createElement(Tip, null, "Úsalo antes de una llamada o reunión para ponerte al día de una cuenta en 5 segundos sin tener que leer todo el historial. El informe se apoya solo en los datos reales del CRM — no inventa cifras."),
 
       React.createElement(H2, null, "2.11 Editar y eliminar desde las listas"),
       React.createElement(P, null, "No necesitas abrir la ficha completa para corregir o eliminar un registro. En las listas de Clientes, Contactos y Cotizaciones, cada fila tiene dos botones de acción rápida:"),
@@ -499,6 +502,17 @@ export async function GET() {
       React.createElement(H2, null, "3.11 Número de cotización al avanzar de etapa"),
       React.createElement(P, null, "Al mover una oportunidad desde Prospecto o Calificado hacia cualquier otra etapa (excepto Perdida) — ya sea arrastrando la tarjeta o cambiando la etapa desde la ficha — el sistema pregunta opcionalmente el número de cotización asociado a ese negocio."),
       React.createElement(Nota, null, "Es completamente opcional: si dejas el campo vacío o cancelas, la oportunidad avanza de etapa igual. El número, si lo ingresas, queda guardado junto con los demás datos adicionales de la oportunidad y se puede consultar y buscar más adelante."),
+
+      React.createElement(H2, null, "3.12 Brief del pipeline con IA"),
+      React.createElement(P, null, "En la parte superior del Pipeline encontrarás el panel \"Brief del pipeline con IA\". Al hacer clic en \"Generar brief\", el CRM analiza todo el pipeline (o solo el tuyo, según tu rol) y produce en segundos un resumen ejecutivo para la reunión de ventas. El texto va apareciendo a medida que se escribe."),
+      React.createElement(P, null, "El brief trae cinco secciones:"),
+      React.createElement(LI, null, "Panorama — tamaño del pipeline abierto, valor total y valor ponderado por probabilidad, y dónde se concentra"),
+      React.createElement(LI, null, "Calientes — los negocios con mayor probabilidad de cierre próximo"),
+      React.createElement(LI, null, "En riesgo — negocios estancados (muchos días en la misma etapa), inactividad o patrones de pérdida reciente"),
+      React.createElement(LI, null, "Meta — avance del mes contra el objetivo y si el pipeline alcanza para cerrar la brecha"),
+      React.createElement(LI, null, "Prioridades de la semana — 2 o 3 acciones concretas para estos datos"),
+      React.createElement(Nota, null, "Respeta los permisos por rol: un COMERCIAL ve solo su propio pipeline y su meta; el Gerente y el Administrador ven todo el equipo. Usa los nombres de etapa personalizados de tu organización. Comparte el mismo cupo mensual de IA con el Resumen con IA de cliente (ver 2.10)."),
+      React.createElement(Tip, null, "Genéralo antes del stand-up o la reunión semanal para llegar con el panorama, los riesgos y las prioridades ya listos, sin armarlos a mano."),
     ),
 
     // ── CAPÍTULO 4: AGENDA ──
@@ -883,8 +897,8 @@ export async function GET() {
       React.createElement(H2, null, "¿Qué pasa si cierro el navegador mientras creo una cotización?"),
       React.createElement(P, null, "Los datos se guardan solo al hacer clic en el botón de guardar. Si cierras antes, se perderán los datos no guardados. Guarda frecuentemente como borrador."),
 
-      React.createElement(H2, null, "¿Qué es el Resumen con IA y qué datos usa?"),
-      React.createElement(P, null, "Es un resumen breve y accionable de una cuenta que genera la inteligencia artificial en la ficha del cliente (ver 2.10). Solo usa los datos reales de ese cliente dentro de tu CRM (contactos, oportunidades, actividades y cotizaciones) — no consulta información externa ni comparte tus datos con otras organizaciones. Según tu plan puede ser ilimitado o tener un tope mensual, visible en el mismo panel."),
+      React.createElement(H2, null, "¿Qué funciones de IA tiene el CRM y qué datos usan?"),
+      React.createElement(P, null, "Hay dos: el Resumen con IA en la ficha del cliente (ver 2.10), que produce un informe de seis secciones sobre una cuenta, y el Brief del pipeline con IA en la pantalla de Pipeline (ver 3.12), que produce un resumen ejecutivo de tus oportunidades abiertas. Ambas usan solo los datos reales dentro de tu CRM — no consultan información externa ni comparten tus datos con otras organizaciones. Ambas descuentan del mismo cupo mensual de IA: según tu plan puede ser ilimitado o tener un tope, visible en cada panel (por ejemplo \"12 / 100 este mes\")."),
 
       React.createElement(Sep, null),
 

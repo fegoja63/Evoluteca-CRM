@@ -223,6 +223,7 @@ export async function GET() {
       React.createElement(Paso, { n: 5, titulo: "Agenda", desc: "Revisa la Agenda: hay actividades vencidas (para que veas cómo se ven las alertas rojas) y próximas, vinculadas a los negocios del pipeline." }),
       React.createElement(Paso, { n: 6, titulo: "Reportes", desc: "Ve a Reportes para ver el embudo de conversión, top de clientes y el cumplimiento de la meta mensual y anual ya configuradas en esta cuenta." }),
       React.createElement(Tip, null, "Todo lo anterior funciona exactamente igual sin importar el tipo de negocio. Es la base que ya tendrías funcionando desde el primer día, incluso antes de activar nada específico de teatros."),
+      React.createElement(Nota, null, "Nuevo — asistentes de IA: en la ficha de cualquier cliente, el panel \"Resumen con IA\" redacta en segundos un informe de la cuenta (panorama, señales, contactos clave y próximas acciones); y en Pipeline, el panel \"Brief del pipeline con IA\" produce un resumen ejecutivo (negocios calientes, en riesgo, avance de la meta y prioridades de la semana). Ambos usan solo los datos reales de tu CRM y comparten un cupo mensual."),
     ),
 
     // ── CAPÍTULO 4: RECORRIDO FUNCIONES + AUDIENCIA ──
