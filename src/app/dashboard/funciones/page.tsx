@@ -33,6 +33,44 @@ const CANALES = [
 
 const FORM_VACIO = { titulo: "", fecha: "", sillasTotales: "239", sillasVendidas: "", canal: "PLATAFORMA", ingresoEstimado: "", notas: "" };
 
+// Días de la semana en convención JS getDay() (0=domingo … 6=sábado),
+// ordenados de lunes a domingo para mostrarlos como L M X J V S D.
+const DIAS = [
+  { n: 1, label: "L" }, { n: 2, label: "M" }, { n: 3, label: "X" }, { n: 4, label: "J" },
+  { n: 5, label: "V" }, { n: 6, label: "S" }, { n: 0, label: "D" },
+];
+
+const TEMP_VACIO = {
+  titulo: "", desde: "", hasta: "", dias: [] as number[], horarios: ["19:00"] as string[],
+  sillasTotales: "239", canal: "PLATAFORMA", ingresoEstimado: "", notas: "",
+};
+
+type TempForm = typeof TEMP_VACIO;
+
+// Genera (en horario local, para el preview) todas las fechas que produciría
+// el patrón de temporada. El backend regenera y valida por su cuenta; esto es
+// solo para mostrar "Se crearán N funciones" antes de confirmar.
+function fechasDeTemporada(t: TempForm): Date[] {
+  const horarios = t.horarios.filter(Boolean);
+  if (!t.desde || !t.hasta || t.dias.length === 0 || horarios.length === 0) return [];
+  const inicio = new Date(`${t.desde}T00:00:00`);
+  const fin = new Date(`${t.hasta}T00:00:00`);
+  if (isNaN(inicio.getTime()) || isNaN(fin.getTime()) || inicio > fin) return [];
+  const horariosUnicos = Array.from(new Set(horarios)).sort();
+  const out: Date[] = [];
+  for (const d = new Date(inicio); d <= fin; d.setDate(d.getDate() + 1)) {
+    if (!t.dias.includes(d.getDay())) continue;
+    for (const h of horariosUnicos) {
+      const [hh, mm] = h.split(":");
+      const f = new Date(d);
+      f.setHours(Number(hh), Number(mm), 0, 0);
+      out.push(f);
+    }
+    if (out.length > 200) break; // corta el preview ante rangos absurdos
+  }
+  return out;
+}
+
 export default function FuncionesPage() {
   const [funciones, setFunciones] = useState<Funcion[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -42,6 +80,8 @@ export default function FuncionesPage() {
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState(FORM_VACIO);
   const [form, setForm] = useState(FORM_VACIO);
+  const [modoNueva, setModoNueva] = useState<"unica" | "temporada">("unica");
+  const [formTemp, setFormTemp] = useState<TempForm>(TEMP_VACIO);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [stats, setStats] = useState({ total: 0, promOcupacion: 0, totalIngreso: 0, npsTotal: 0 });
@@ -84,6 +124,46 @@ export default function FuncionesPage() {
     setMostrarForm(false);
     cargar(page);
     cargarStats();
+  }
+
+  async function handleCrearTemporada(e: React.FormEvent) {
+    e.preventDefault();
+    const fechas = fechasDeTemporada(formTemp);
+    if (fechas.length === 0) {
+      toast.error("El patrón no genera funciones. Revisa el rango, los días y los horarios.");
+      return;
+    }
+    if (fechas.length > 100) {
+      toast.error("La temporada generaría más de 100 funciones. Acorta el rango o reduce los horarios.");
+      return;
+    }
+    setGuardando(true);
+    const res = await fetch("/api/funciones/temporada", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...formTemp, horarios: formTemp.horarios.filter(Boolean) }),
+    });
+    setGuardando(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.error ?? "No se pudo crear la temporada. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
+    const data = await res.json();
+    toast.success(`Se crearon ${data.creadas} funciones de la temporada.`);
+    setFormTemp(TEMP_VACIO);
+    setMostrarForm(false);
+    setModoNueva("unica");
+    cargar(1);
+    setPage(1);
+    cargarStats();
+  }
+
+  function toggleDia(n: number) {
+    setFormTemp(t => ({
+      ...t,
+      dias: t.dias.includes(n) ? t.dias.filter(d => d !== n) : [...t.dias, n],
+    }));
   }
 
   function iniciarEdicion(f: Funcion) {
@@ -189,7 +269,20 @@ export default function FuncionesPage() {
 
       {mostrarForm && (
         <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-          <h2 className="mb-4 text-sm font-semibold text-slate-800">Nueva función</h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-slate-800">Nueva función</h2>
+            <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-xs font-medium">
+              <button type="button" onClick={() => setModoNueva("unica")}
+                className={`rounded-md px-3 py-1 ${modoNueva === "unica" ? "bg-accent-600 text-white" : "text-slate-500 hover:text-slate-700"}`}>
+                Función única
+              </button>
+              <button type="button" onClick={() => setModoNueva("temporada")}
+                className={`rounded-md px-3 py-1 ${modoNueva === "temporada" ? "bg-accent-600 text-white" : "text-slate-500 hover:text-slate-700"}`}>
+                Temporada
+              </button>
+            </div>
+          </div>
+          {modoNueva === "unica" ? (
           <form onSubmit={handleCrear} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Título / Obra *</label>
@@ -239,6 +332,108 @@ export default function FuncionesPage() {
               </button>
             </div>
           </form>
+          ) : (
+          <form onSubmit={handleCrearTemporada} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <p className="col-span-1 sm:col-span-2 -mt-1 text-xs text-slate-500">
+              Crea todas las funciones de una temporada de una vez. Cada una queda editable por separado, con su propia ocupación y NPS.
+            </p>
+            <div className="col-span-1 sm:col-span-2">
+              <label className="mb-1 block text-xs text-slate-500">Título / Obra *</label>
+              <input required value={formTemp.titulo} onChange={e => setFormTemp({ ...formTemp, titulo: e.target.value })}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-slate-500">Desde *</label>
+              <input required type="date" value={formTemp.desde} onChange={e => setFormTemp({ ...formTemp, desde: e.target.value })}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-slate-500">Hasta *</label>
+              <input required type="date" value={formTemp.hasta} onChange={e => setFormTemp({ ...formTemp, hasta: e.target.value })}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+            </div>
+            <div className="col-span-1 sm:col-span-2">
+              <label className="mb-1 block text-xs text-slate-500">Días de la semana *</label>
+              <div className="flex flex-wrap gap-1.5">
+                {DIAS.map(d => (
+                  <button key={d.n} type="button" onClick={() => toggleDia(d.n)}
+                    className={`h-9 w-9 rounded-lg border text-sm font-medium ${formTemp.dias.includes(d.n)
+                      ? "border-accent-600 bg-accent-600 text-white"
+                      : "border-slate-200 bg-white text-slate-500 hover:bg-slate-100"}`}>
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="col-span-1 sm:col-span-2">
+              <label className="mb-1 block text-xs text-slate-500">Horarios *</label>
+              <div className="flex flex-wrap items-center gap-2">
+                {formTemp.horarios.map((h, i) => (
+                  <div key={i} className="flex items-center gap-1">
+                    <input type="time" value={h}
+                      onChange={e => setFormTemp(t => ({ ...t, horarios: t.horarios.map((x, j) => j === i ? e.target.value : x) }))}
+                      className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:border-brand-500" />
+                    {formTemp.horarios.length > 1 && (
+                      <button type="button" title="Quitar horario"
+                        onClick={() => setFormTemp(t => ({ ...t, horarios: t.horarios.filter((_, j) => j !== i) }))}
+                        className="text-slate-300 hover:text-red-500">×</button>
+                    )}
+                  </div>
+                ))}
+                <button type="button" onClick={() => setFormTemp(t => ({ ...t, horarios: [...t.horarios, ""] }))}
+                  className="rounded-lg border border-dashed border-slate-300 px-2.5 py-1.5 text-xs text-slate-500 hover:bg-slate-100">
+                  + Agregar horario
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-slate-500">Canal de venta</label>
+              <select value={formTemp.canal} onChange={e => setFormTemp({ ...formTemp, canal: e.target.value })}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                {CANALES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-slate-500">Sillas totales</label>
+              <input type="number" value={formTemp.sillasTotales} onChange={e => setFormTemp({ ...formTemp, sillasTotales: e.target.value })}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-slate-500">Ingreso estimado por función (COP)</label>
+              <MoneyInput value={formTemp.ingresoEstimado} onChange={v => setFormTemp({ ...formTemp, ingresoEstimado: v })}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-slate-500">Notas (se copian a todas)</label>
+              <input value={formTemp.notas} onChange={e => setFormTemp({ ...formTemp, notas: e.target.value })}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+            </div>
+            {(() => {
+              const fechas = fechasDeTemporada(formTemp);
+              if (fechas.length === 0) return null;
+              const excede = fechas.length > 100;
+              return (
+                <div className={`col-span-1 sm:col-span-2 rounded-lg border px-3 py-2 text-xs ${excede
+                  ? "border-red-200 bg-red-50 text-red-600"
+                  : "border-brand-200 bg-brand-50 text-brand-700"}`}>
+                  {excede
+                    ? `Se generarían más de 100 funciones (${fechas.length}). Acorta el rango o reduce los horarios.`
+                    : <>Se crearán <strong>{fechas.length} funciones</strong>. Primera: {fechas[0].toLocaleString("es-CO", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })} · Última: {fechas[fechas.length - 1].toLocaleString("es-CO", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</>}
+                </div>
+              );
+            })()}
+            <div className="col-span-1 sm:col-span-2 flex gap-2">
+              <button type="submit" disabled={guardando}
+                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                {guardando ? "Generando..." : "Generar temporada"}
+              </button>
+              <button type="button" onClick={() => setMostrarForm(false)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
+                Cancelar
+              </button>
+            </div>
+          </form>
+          )}
         </div>
       )}
 
