@@ -277,7 +277,7 @@ export default function FuncionesPage() {
                 Función única
               </button>
               <button type="button" onClick={() => setModoNueva("temporada")}
-                className={`rounded-md px-3 py-1 transition-colors ${modoNueva === "temporada" ? "bg-brand-600 text-white shadow-sm" : "text-slate-600 hover:text-slate-900"}`}>
+                className={`rounded-md px-3 py-1 transition-colors ${modoNueva === "temporada" ? "bg-brand-600 text-white shadow-sm" : "font-semibold text-brand-700 hover:text-brand-800"}`}>
                 Temporada
               </button>
             </div>
