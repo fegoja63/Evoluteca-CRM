@@ -189,8 +189,12 @@ function CalendarioActividades({
             <div className="flex flex-col gap-2">
               {actsDia.sort((a,b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime()).map(a => (
                 <div key={a.id} className="flex items-center gap-3 rounded-xl border border-neutral-200 p-3 text-sm">
-                  <input type="checkbox" checked={a.completada}
-                    onChange={e => onToggle(a.id, e.target.checked)} className="h-4 w-4" />
+                  <label className="flex flex-col items-center gap-0.5 shrink-0 cursor-pointer"
+                    title="Marca la tarea como completada. No la borra.">
+                    <input type="checkbox" checked={a.completada}
+                      onChange={e => onToggle(a.id, e.target.checked)} className="h-4 w-4" />
+                    <span className="text-[10px] leading-none text-slate-400">Hecha</span>
+                  </label>
                   <span className={`w-2 h-2 rounded-full shrink-0 ${tipoActividadDef(a.tipo)?.dot ?? "bg-slate-400"}`} />
                   <div className="flex-1 min-w-0">
                     <p className={a.completada ? "text-slate-400 line-through text-xs" : "font-medium text-slate-900 text-xs"}>
@@ -788,8 +792,14 @@ function AgendaContent() {
             return (
             <div key={a.id}
               className={`flex items-center gap-3 rounded-xl border p-3 text-sm hover:bg-neutral-50 ${esHoy ? "border-red-200 bg-red-50" : "border-neutral-200"}`}>
-              <input type="checkbox" checked={a.completada}
-                onChange={(e) => toggleCompletada(a.id, e.target.checked)} className="h-4 w-4" />
+              {/* Casilla para marcar COMPLETADA (no borra ni selecciona). El
+                  rótulo debajo y el tooltip evitan que se confunda con borrar. */}
+              <label className="flex flex-col items-center gap-0.5 shrink-0 cursor-pointer"
+                title="Marca la tarea como completada. No la borra.">
+                <input type="checkbox" checked={a.completada}
+                  onChange={(e) => toggleCompletada(a.id, e.target.checked)} className="h-4 w-4" />
+                <span className="text-[10px] leading-none text-neutral-400">Hecha</span>
+              </label>
               <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600 flex items-center gap-1">
                 <IconoTipo size={12} stroke={1.75} />
                 {tipoActividadDef(a.tipo)?.label}
@@ -815,7 +825,7 @@ function AgendaContent() {
                 <button
                   onClick={() => setReasignandoId(reasignandoId === a.id ? null : a.id)}
                   title="Reasignar a otra persona"
-                  className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-50"
+                  className="flex items-center gap-1 rounded-md border border-red-300 bg-white px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
                 >
                   <IconUsers size={13} stroke={1.75} />
                   Reasignar
