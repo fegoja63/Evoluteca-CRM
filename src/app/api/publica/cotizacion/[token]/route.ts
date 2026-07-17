@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { permitirYRegistrar } from "@/lib/rate-limit";
 import { accionCotizacionPublicaSchema } from "@/lib/validations/publica";
 import { parseOrError } from "@/lib/validations/helpers";
-import { seccionesCotizacion } from "@/lib/cuerpo-cotizacion";
+import { seccionesVisibles } from "@/lib/cuerpo-cotizacion";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,7 @@ export async function GET(_req: Request, { params }: { params: { token: string }
   // respuesta pública.
   const { cuerpoCotizacion, ...tenant } = cot.tenant;
   void cuerpoCotizacion;
-  return NextResponse.json({ ...cot, tenant, cuerpo: seccionesCotizacion(cot.tenant.cuerpoCotizacion) });
+  return NextResponse.json({ ...cot, tenant, cuerpo: seccionesVisibles(cot.tenant.cuerpoCotizacion, !!cot.condicionesComerciales) });
 }
 
 export async function PATCH(req: Request, { params }: { params: { token: string } }) {

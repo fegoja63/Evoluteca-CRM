@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { renderToBuffer, Document, Page, Text, View, StyleSheet, Font, Image } from "@react-pdf/renderer";
 import { MODALIDAD_LABEL, numeroCotizacion } from "@/lib/cotizaciones";
-import { seccionesCotizacion } from "@/lib/cuerpo-cotizacion";
+import { seccionesVisibles } from "@/lib/cuerpo-cotizacion";
 import React from "react";
 
 export const dynamic = "force-dynamic";
@@ -274,9 +274,10 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
         : null,
 
       // Cuerpo / condiciones de la cotización (configurable por tenant; si no
-      // hay nada configurado, seccionesCotizacion() devuelve las condiciones
-      // comerciales por defecto).
-      ...seccionesCotizacion(cot.tenant.cuerpoCotizacion).map((s, i) =>
+      // hay nada configurado devuelve las condiciones por defecto). Si esta
+      // cotización trae condiciones propias del cliente, se omite la sección
+      // genérica "Condiciones comerciales" para no duplicar el título.
+      ...seccionesVisibles(cot.tenant.cuerpoCotizacion, !!cot.condicionesComerciales).map((s, i) =>
         React.createElement(SeccionCotBox, { key: i, titulo: s.titulo, contenido: s.contenido })
       ),
 

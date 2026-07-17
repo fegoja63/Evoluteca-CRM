@@ -63,3 +63,19 @@ export function seccionesCotizacion(cuerpoTenant: unknown): SeccionCuerpo[] {
   const propio = normalizarCuerpo(cuerpoTenant);
   return propio.length > 0 ? propio : CONDICIONES_DEFAULT;
 }
+
+// Normaliza un título para compararlo sin distinguir mayúsculas ni acentos.
+function normalizarTitulo(s: string): string {
+  // ̀-ͯ = marcas diacríticas combinantes (acentos) que deja normalize("NFD").
+  return s.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
+// Secciones del cuerpo del tenant a mostrar en ESTA cotización. Si la cotización
+// trae condiciones comerciales propias del cliente, se omite la sección genérica
+// "Condiciones comerciales" del cuerpo del tenant para no mostrar dos bloques con
+// el mismo título (lo específico del cliente reemplaza al genérico).
+export function seccionesVisibles(cuerpoTenant: unknown, tieneCondicionesPropias: boolean): SeccionCuerpo[] {
+  const secciones = seccionesCotizacion(cuerpoTenant);
+  if (!tieneCondicionesPropias) return secciones;
+  return secciones.filter(s => normalizarTitulo(s.titulo) !== "condiciones comerciales");
+}
