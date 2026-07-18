@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { permitirYRegistrar } from "@/lib/rate-limit";
 import { filtroOwner } from "@/lib/permisos";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
+import { seriesTendencias } from "@/lib/tendencias";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -97,60 +98,11 @@ export async function POST() {
     prisma.actividad.count({ where: { tenantId, ...ownerFiltro, creadoEn: { gte: new Date(Date.now() - 14 * 864e5), lt: new Date(Date.now() - 7 * 864e5) } } }),
   ]);
 
-  // ── Serie mensual de los últimos 12 meses ──
-  type Mes = { anio: number; mes: number; label: string; ganado: number; ganadas: number; perdidas: number; creadas: number };
-  const meses: Mes[] = [];
-  const idx = new Map<string, Mes>();
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(anioActual, mesActual - 1 - i, 1);
-    const m: Mes = {
-      anio: d.getFullYear(), mes: d.getMonth() + 1,
-      label: d.toLocaleDateString("es-CO", { month: "short", year: "2-digit" }),
-      ganado: 0, ganadas: 0, perdidas: 0, creadas: 0,
-    };
-    meses.push(m);
-    idx.set(`${m.anio}-${m.mes}`, m);
-  }
-
-  const abiertas = ops.filter(o => o.etapa !== "GANADA" && o.etapa !== "PERDIDA");
-  for (const o of ops) {
-    const ef = fechaEfectiva(o);
-    const bucket = idx.get(`${ef.getFullYear()}-${ef.getMonth() + 1}`);
-    if (bucket) {
-      if (o.etapa === "GANADA") { bucket.ganado += Number(o.valor ?? 0); bucket.ganadas++; }
-      if (o.etapa === "PERDIDA") bucket.perdidas++;
-    }
-    // "Pipeline nuevo" = oportunidades creadas ese mes (fecha real de creación).
-    const cb = idx.get(`${o.creadoEn.getFullYear()}-${o.creadoEn.getMonth() + 1}`);
-    if (cb) cb.creadas++;
-  }
-
-  const tasaMes = (m: Mes) => (m.ganadas + m.perdidas > 0 ? Math.round((m.ganadas / (m.ganadas + m.perdidas)) * 100) : null);
-
-  // Tendencia trimestral: últimos 3 meses vs. 3 anteriores.
-  const ult3 = meses.slice(-3), prev3 = meses.slice(-6, -3);
-  const sum = (arr: Mes[], f: (m: Mes) => number) => arr.reduce((a, m) => a + f(m), 0);
-  const ganadoUlt3 = sum(ult3, m => m.ganado), ganadoPrev3 = sum(prev3, m => m.ganado);
-  const creadasUlt3 = sum(ult3, m => m.creadas), creadasPrev3 = sum(prev3, m => m.creadas);
-
-  // Pipeline abierto por etapa.
-  const porEtapa = etapasBase
-    .filter(e => e.key !== "GANADA" && e.key !== "PERDIDA")
-    .map(e => {
-      const g = abiertas.filter(o => o.etapa === e.key);
-      return {
-        nombre: e.nombre, cantidad: g.length,
-        valor: g.reduce((a, o) => a + Number(o.valor ?? 0), 0),
-        ponderado: g.reduce((a, o) => a + Number(o.valor ?? 0) * ((o.probabilidad ?? 50) / 100), 0),
-      };
-    })
-    .filter(g => g.cantidad > 0);
-  const valorAbierto = porEtapa.reduce((a, g) => a + g.valor, 0);
-  const valorPonderado = porEtapa.reduce((a, g) => a + g.ponderado, 0);
+  // Series de tendencia — misma fuente que las gráficas de Reportes (src/lib/tendencias.ts).
+  const { meses, porEtapa, valorAbierto, valorPonderado, ganadoMesActual, ganadoAnio, trimestre } =
+    seriesTendencias(ops, etapasBase, ahora);
 
   // Meta del mes y del año.
-  const ganadoMesActual = idx.get(`${anioActual}-${mesActual}`)?.ganado ?? 0;
-  const ganadoAnio = meses.filter(m => m.anio === anioActual).reduce((a, m) => a + m.ganado, 0);
   let metaMes: number | null = null, metaAnio: number | null = null;
   if (esComercial) {
     const mv = await prisma.metaVendedor.findUnique({
@@ -186,12 +138,12 @@ export async function POST() {
   partes.push(`\nSERIE MENSUAL (últimos 12 meses):`);
   partes.push(`mes | ganado | #ganadas | #perdidas | tasa cierre | pipeline nuevo`);
   for (const m of meses) {
-    partes.push(`${m.label} | ${fmt(m.ganado)} | ${m.ganadas} | ${m.perdidas} | ${tasaMes(m) == null ? "s/d" : tasaMes(m) + "%"} | ${m.creadas}`);
+    partes.push(`${m.label} | ${fmt(m.ganado)} | ${m.ganadas} | ${m.perdidas} | ${m.tasa == null ? "s/d" : m.tasa + "%"} | ${m.creadas}`);
   }
 
   partes.push(`\nTENDENCIA TRIMESTRAL:`);
-  partes.push(`- Ganado últimos 3 meses: ${fmt(ganadoUlt3)} vs. 3 meses previos: ${fmt(ganadoPrev3)} (${signo(pct(ganadoUlt3, ganadoPrev3))}).`);
-  partes.push(`- Pipeline nuevo (oportunidades creadas) últimos 3 meses: ${creadasUlt3} vs. previos: ${creadasPrev3} (${signo(pct(creadasUlt3, creadasPrev3))}).`);
+  partes.push(`- Ganado últimos 3 meses: ${fmt(trimestre.ganadoUlt3)} vs. 3 meses previos: ${fmt(trimestre.ganadoPrev3)} (${signo(pct(trimestre.ganadoUlt3, trimestre.ganadoPrev3))}).`);
+  partes.push(`- Pipeline nuevo (oportunidades creadas) últimos 3 meses: ${trimestre.creadasUlt3} vs. previos: ${trimestre.creadasPrev3} (${signo(pct(trimestre.creadasUlt3, trimestre.creadasPrev3))}).`);
 
   partes.push(`\nPIPELINE ABIERTO POR ETAPA:`);
   partes.push(porEtapa.length
