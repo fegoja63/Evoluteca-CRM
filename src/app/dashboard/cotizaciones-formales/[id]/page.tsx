@@ -7,6 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { IconLink, IconMail, IconCheck, IconBrandWhatsapp, IconStar, IconDownload, IconCopy, IconArrowLeft, IconPencil } from "@tabler/icons-react";
 import { LineasEditor, type Linea } from "@/components/lineas-editor";
+import { RedactorEmailIA } from "@/components/redactor-email-ia";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type LineaAhorro = { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string };
@@ -536,6 +537,11 @@ export default function CotizacionDetailPage() {
           )}
         </div>
       )}
+
+      {/* Redactor de correos con IA */}
+      <div className="mb-5">
+        <RedactorEmailIA cotizacionId={cot.id} />
+      </div>
 
       {/* Panel enviar WhatsApp */}
       {mostrarWhatsappPanel && (

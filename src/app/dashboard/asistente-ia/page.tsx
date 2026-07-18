@@ -54,20 +54,24 @@ const DISPONIBLES: Funcion[] = [
     href: "/dashboard/preguntar",
     cta: "Preguntar",
   },
-];
-
-const PROXIMAMENTE: Funcion[] = [
   {
     titulo: "Redactor de correos",
     desc: "Redacta el correo de envío, el seguimiento y el cierre de una cotización, con tu tono.",
     icon: IconMail,
+    href: "/dashboard/cotizaciones-formales",
+    cta: "Elegir cotización",
+    contexto: "También en cada cotización",
   },
   {
     titulo: "Informe ejecutivo mensual",
     desc: "El cierre del mes anterior con sus tendencias, generado solo, listo para la junta.",
     icon: IconReportAnalytics,
+    href: "/dashboard/informe-mensual",
+    cta: "Generar informe",
   },
 ];
+
+const PROXIMAMENTE: Funcion[] = [];
 
 export default function AsistenteIAPage() {
   const [uso, setUso] = useState<Uso | null>(null);
@@ -105,10 +109,14 @@ export default function AsistenteIAPage() {
         {DISPONIBLES.map(f => <Tarjeta key={f.titulo} f={f} />)}
       </div>
 
-      <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">Próximamente</h2>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {PROXIMAMENTE.map(f => <Tarjeta key={f.titulo} f={f} />)}
-      </div>
+      {PROXIMAMENTE.length > 0 && (
+        <>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">Próximamente</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {PROXIMAMENTE.map(f => <Tarjeta key={f.titulo} f={f} />)}
+          </div>
+        </>
+      )}
     </div>
   );
 }
