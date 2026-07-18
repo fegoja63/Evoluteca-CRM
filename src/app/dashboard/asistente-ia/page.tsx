@@ -190,7 +190,7 @@ function Tarjeta({ f }: { f: Funcion }) {
       <div className="flex items-center justify-between mt-1">
         <span className="text-[11px] text-slate-400">{f.contexto ?? ""}</span>
         {disponible ? (
-          <span className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm">
+          <span className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 group-hover:bg-accent-700 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors">
             <IconSparkles size={13} stroke={2} /> {f.cta}
           </span>
         ) : (
@@ -203,7 +203,7 @@ function Tarjeta({ f }: { f: Funcion }) {
   );
 
   return disponible ? (
-    <Link href={f.href as string} className="block">{cuerpo}</Link>
+    <Link href={f.href as string} className="group block">{cuerpo}</Link>
   ) : (
     cuerpo
   );
