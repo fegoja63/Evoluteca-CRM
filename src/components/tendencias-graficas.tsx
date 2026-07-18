@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-type Mes = { label: string; ganado: number; tasa: number | null; creadas: number };
-type Etapa = { nombre: string; valor: number; cantidad: number };
-type Datos = { meses: Mes[]; porEtapa: Etapa[]; valorAbierto: number; trimestre: { ganadoUlt3: number; ganadoPrev3: number } };
+type Mes = { label: string; ganado: number; tasa: number | null; creadas: number; ganadas: number; perdidas: number };
+type Datos = { meses: Mes[]; valorAbierto: number; trimestre: { ganadoUlt3: number; ganadoPrev3: number } };
 
 const fmtK = (v: number) => {
   const n = Math.abs(v);
@@ -13,7 +12,6 @@ const fmtK = (v: number) => {
   if (n >= 1e3) return `$${Math.round(v / 1e3)}k`;
   return `$${Math.round(v)}`;
 };
-const fmtMoneda = (v: number) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
 
 // Tres gráficas de tendencia (últimos 12 meses + pipeline por etapa) que
 // acompañan al análisis con IA en Reportes. Los datos son deterministas
@@ -60,11 +58,11 @@ export function TendenciasGraficas() {
         </Card>
 
         <Card
-          titulo="Pipeline abierto por etapa"
-          kpi={fmtK(d.valorAbierto)}
-          subtitulo="ponderado por probabilidad excluido"
+          titulo="Cierres por mes"
+          kpi={`${d.meses.reduce((a, m) => a + m.ganadas, 0)} ganados`}
+          subtitulo="ganados vs. perdidos"
         >
-          <EtapasBarras etapas={d.porEtapa} />
+          <Apiladas meses={d.meses} />
         </Card>
       </div>
     </div>
@@ -149,21 +147,37 @@ function Linea({ meses }: { meses: Mes[] }) {
   );
 }
 
-// Barras horizontales por etapa.
-function EtapasBarras({ etapas }: { etapas: Etapa[] }) {
-  if (!etapas.length) return <p className="text-xs text-slate-400 py-6 text-center">Sin oportunidades abiertas</p>;
-  const max = Math.max(...etapas.map(e => e.valor), 1);
+// Barras apiladas de cierres por mes: ganados (verde) sobre perdidos (rojo).
+function Apiladas({ meses }: { meses: Mes[] }) {
+  const W = 320, H = 150, base = 118, top = 14;
+  const max = Math.max(...meses.map(m => m.ganadas + m.perdidas), 1);
+  const slot = W / meses.length;
+  const barW = Math.min(20, slot * 0.62);
+  const sinDatos = meses.every(m => m.ganadas + m.perdidas === 0);
   return (
-    <div className="flex flex-col gap-2.5 pt-1">
-      {etapas.map((e, i) => (
-        <div key={i} className="flex items-center gap-2">
-          <span className="w-20 shrink-0 truncate text-[11px] text-slate-600" title={e.nombre}>{e.nombre}</span>
-          <div className="flex-1 h-5 rounded-md bg-slate-100 overflow-hidden">
-            <div className="h-full rounded-md bg-gradient-to-r from-brand-500 to-brand-600" style={{ width: `${Math.max(3, Math.round((e.valor / max) * 100))}%` }} />
-          </div>
-          <span className="w-24 shrink-0 text-right text-[11px] font-semibold text-slate-700 tabular-nums" title={fmtMoneda(e.valor)}>{fmtK(e.valor)}</span>
-        </div>
-      ))}
-    </div>
+    <>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ overflow: "visible" }}>
+        <line x1="0" y1={base} x2={W} y2={base} stroke="#e2e8f0" />
+        {meses.map((m, i) => {
+          const total = m.ganadas + m.perdidas;
+          const hTot = (total / max) * (base - top);
+          const hGan = total > 0 ? (m.ganadas / total) * hTot : 0;
+          const hPer = hTot - hGan;
+          const x = i * slot + (slot - barW) / 2;
+          return (
+            <g key={i}>
+              {hPer > 0 && <rect x={x} y={base - hTot} width={barW} height={hPer} rx={2} fill="#f87171" />}
+              {hGan > 0 && <rect x={x} y={base - hGan} width={barW} height={hGan} rx={2} fill="#10b981" />}
+              {i % 2 === 0 && <text x={i * slot + slot / 2} y={H - 2} textAnchor="middle" fontSize="8" fill="#94a3b8">{m.label}</text>}
+            </g>
+          );
+        })}
+        {sinDatos && <text x={W / 2} y={base / 2} textAnchor="middle" fontSize="10" fill="#94a3b8">Sin cierres registrados</text>}
+      </svg>
+      <div className="flex items-center gap-4 mt-1 text-[11px] text-slate-500">
+        <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500" />Ganados</span>
+        <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-red-400" />Perdidos</span>
+      </div>
+    </>
   );
 }

@@ -39,8 +39,7 @@ export async function GET() {
 
   return NextResponse.json(
     {
-      meses: t.meses.map(m => ({ label: m.label, ganado: m.ganado, tasa: m.tasa, creadas: m.creadas })),
-      porEtapa: t.porEtapa.map(e => ({ nombre: e.nombre, valor: e.valor, cantidad: e.cantidad })),
+      meses: t.meses.map(m => ({ label: m.label, ganado: m.ganado, tasa: m.tasa, creadas: m.creadas, ganadas: m.ganadas, perdidas: m.perdidas })),
       valorAbierto: t.valorAbierto,
       trimestre: t.trimestre,
     },
