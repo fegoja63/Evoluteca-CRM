@@ -264,7 +264,7 @@ export default function BienvenidaPage() {
             <div className="flex-1">
               <h2 className="text-sm font-bold text-slate-900 mb-1">Manual de pruebas — Cuenta Demo</h2>
               <p className="text-xs text-slate-500 mb-4">
-                Recorrido guiado paso a paso por esta cuenta de demostración: CRM comercial general y las 5 novedades recientes (filtro por vendedor, motivo de pérdida, archivos adjuntos, captura externa de leads y etapas de pipeline configurables), con las credenciales de los roles.
+                Recorrido completo para probar todo lo que hace el CRM: recorridos por los 3 roles (administrador, gerente y comercial), un flujo de venta de punta a punta que ejecutas tú mismo, el detalle de cada módulo (pipeline, cotizaciones, reportes, agenda, IA) y un checklist de cobertura, con las credenciales de acceso.
               </p>
               <div className="flex gap-3">
                 <a href="/api/manual/pdf-demo-evoluteca" target="_blank" rel="noopener noreferrer"

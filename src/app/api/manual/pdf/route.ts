@@ -104,7 +104,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.18"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.19"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -232,11 +232,12 @@ export async function GET() {
             "7. Reportes y metas",
             "8. Dashboard — alertas, salud comercial y productividad",
             "9. Configuración, equipo y perfiles",
-            "10. Preguntas frecuentes",
+            "10. Inteligencia Artificial",
+            "11. Preguntas frecuentes",
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.18 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.19 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -874,10 +875,43 @@ export async function GET() {
       React.createElement(Paso, { n: 3, titulo: "Verificar en el Pipeline", desc: "Cada lead recibido aparece de inmediato como una oportunidad nueva en la columna Prospecto, con el cliente y contacto ya creados." }),
       React.createElement(Nota, null, "Rotar la clave (botón \"Rotar clave\") invalida la anterior de inmediato. Cualquier formulario o automatización que siga usando la clave vieja dejará de funcionar hasta que se actualice con la nueva — úsalo solo si sospechas que la clave se filtró."),
       React.createElement(Tip, null, "Si el mismo correo de cliente ya existe en tu CRM, el sistema reutiliza ese cliente en vez de duplicarlo — así un mismo lead que llena el formulario dos veces no genera registros repetidos."),
+    ),
+
+    // ── CAPÍTULO 10: INTELIGENCIA ARTIFICIAL ──
+    React.createElement(Page, { size: "A4", style: s.page },
+      React.createElement(PageHeader, null),
+      React.createElement(Footer, { numero: 11 }),
+      React.createElement(H1, null, "10. Inteligencia Artificial"),
+      React.createElement(P, null, "El CRM reúne todas sus funciones de IA en una sola pestaña: 'Asistente IA', en el menú lateral (debajo de Reportes). Todas trabajan únicamente con los datos reales dentro de tu CRM — no consultan información externa ni comparten tus datos con otras organizaciones — y comparten un mismo cupo mensual de uso."),
+
+      React.createElement(H2, null, "10.1 El Asistente IA: todo en un lugar"),
+      React.createElement(P, null, "La pestaña Asistente IA es la vitrina y el lanzador de las funciones de IA. Muestra una tarjeta por cada función y, arriba a la derecha, el medidor 'Acciones de IA · este mes' con lo que llevas consumido. Las funciones ligadas a un registro (como el Resumen de cliente o el Redactor de correos) también viven en su propia pantalla; las globales nacen desde aquí."),
+
+      React.createElement(H2, null, "10.2 Resumen de cliente"),
+      React.createElement(P, null, "Genera un informe accionable de seis secciones sobre una cuenta: panorama, relación y actividad, oportunidades y cotizaciones, señales, contactos clave y próximas acciones. Disponible desde el Asistente IA y desde la ficha de cada cliente (ver 2.10)."),
+
+      React.createElement(H2, null, "10.3 Brief del pipeline"),
+      React.createElement(P, null, "Un resumen ejecutivo de tus oportunidades abiertas: negocios calientes, en riesgo, avance de la meta y prioridades de la semana. Disponible desde el Asistente IA y desde la pantalla de Pipeline (ver 3.12)."),
+
+      React.createElement(H2, null, "10.4 Análisis de tendencias"),
+      React.createElement(P, null, "En Reportes, la IA lee tus reportes de los últimos meses y explica qué cambió, por qué, la proyección hacia adelante y qué conviene hacer. El análisis se acompaña de gráficas de tendencia para verlo de un vistazo."),
+
+      React.createElement(H2, null, "10.5 Pregúntale a tus datos"),
+      React.createElement(P, null, "Escribe una pregunta en lenguaje natural — por ejemplo '¿Cuáles son mis 5 clientes con más ventas este año?' — y la IA responde con el dato exacto y su gráfica al instante, sin que tengas que construir un reporte a mano."),
+
+      React.createElement(H2, null, "10.6 Redactor de correos"),
+      React.createElement(P, null, "Desde la ficha de una cotización, el panel 'Redactor de correos con IA' redacta el correo que necesitas en tres variantes — Envío, Seguimiento o Cierre — usando el contexto de esa cotización. El borrador es editable y se copia con un clic; revísalo siempre antes de enviarlo."),
+
+      React.createElement(H2, null, "10.7 Informe ejecutivo mensual"),
+      React.createElement(P, null, "Genera el cierre del mes anterior con sus tendencias, redactado y listo para presentar en la junta directiva o en la reunión de equipo, sin armarlo manualmente."),
+
+      React.createElement(H2, null, "10.8 Cupo mensual y privacidad"),
+      React.createElement(P, null, "Todas las funciones descuentan del mismo cupo mensual de IA. Según tu plan puede ser ilimitado o tener un tope; cada panel muestra cuánto llevas usado (por ejemplo \"12 / 100 este mes\"). La IA solo usa los datos que ya están en tu CRM y no los comparte con nadie más."),
+      React.createElement(Tip, null, "La IA es un asistente, no un reemplazo: acelera el borrador y el análisis, pero la decisión — y la revisión final de cada correo o informe — siguen siendo tuyas."),
 
       React.createElement(Sep, null),
 
-      React.createElement(H1, null, "10. Preguntas frecuentes"),
+      React.createElement(H1, null, "11. Preguntas frecuentes"),
 
       React.createElement(H2, null, "¿Puedo importar el mismo archivo dos veces?"),
       React.createElement(P, null, "Sí, pero creará duplicados. Si el cliente ya existe con el mismo nombre, el sistema lo reutiliza, pero si el nombre varía (mayúsculas, espacios extra) creará uno nuevo. Limpia los datos antes de importar."),
@@ -898,7 +932,7 @@ export async function GET() {
       React.createElement(P, null, "Los datos se guardan solo al hacer clic en el botón de guardar. Si cierras antes, se perderán los datos no guardados. Guarda frecuentemente como borrador."),
 
       React.createElement(H2, null, "¿Qué funciones de IA tiene el CRM y qué datos usan?"),
-      React.createElement(P, null, "Hay dos: el Resumen con IA en la ficha del cliente (ver 2.10), que produce un informe de seis secciones sobre una cuenta, y el Brief del pipeline con IA en la pantalla de Pipeline (ver 3.12), que produce un resumen ejecutivo de tus oportunidades abiertas. Ambas usan solo los datos reales dentro de tu CRM — no consultan información externa ni comparten tus datos con otras organizaciones. Ambas descuentan del mismo cupo mensual de IA: según tu plan puede ser ilimitado o tener un tope, visible en cada panel (por ejemplo \"12 / 100 este mes\")."),
+      React.createElement(P, null, "El CRM reúne seis funciones de IA en la pestaña 'Asistente IA' del menú (ver capítulo 10): Resumen de cliente, Brief del pipeline, Análisis de tendencias, Pregúntale a tus datos, Redactor de correos e Informe ejecutivo mensual. Todas usan únicamente los datos reales dentro de tu CRM — no consultan información externa ni comparten tus datos con otras organizaciones — y descuentan del mismo cupo mensual, visible en cada panel (por ejemplo \"12 / 100 este mes\"); según tu plan puede ser ilimitado o tener un tope."),
 
       React.createElement(Sep, null),
 
