@@ -14,6 +14,7 @@ import {
   type Icon,
 } from "@tabler/icons-react";
 import { MoneyInput } from "@/components/money-input";
+import { AnalisisTendenciasIA } from "@/components/analisis-tendencias-ia";
 
 type ResAnio = { ganadas: number; perdidas: number; activas: number; valorGanado: number; valorPerdido: number; valorActivo: number; total: number };
 type ResMes  = { ganadas: number; perdidas: number; valorGanado: number; total: number };
@@ -678,6 +679,8 @@ export default function ReportesPage() {
           })}
         </div>
       </div>
+
+      <AnalisisTendenciasIA />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
 

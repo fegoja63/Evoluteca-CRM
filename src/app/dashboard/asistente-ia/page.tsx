@@ -39,14 +39,17 @@ const DISPONIBLES: Funcion[] = [
     cta: "Abrir en Pipeline",
     contexto: "También en Pipeline",
   },
-];
-
-const PROXIMAMENTE: Funcion[] = [
   {
     titulo: "Análisis de tendencias",
     desc: "Lee tus reportes de los últimos meses y explica qué cambió, por qué, la proyección y qué hacer.",
     icon: IconTrendingUp,
+    href: "/dashboard/reportes",
+    cta: "Abrir en Reportes",
+    contexto: "También en Reportes",
   },
+];
+
+const PROXIMAMENTE: Funcion[] = [
   {
     titulo: "Redactor de correos",
     desc: "Redacta el correo de envío, el seguimiento y el cierre de una cotización, con tu tono.",
@@ -96,7 +99,7 @@ export default function AsistenteIAPage() {
       </div>
 
       <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">Disponibles ahora</h2>
-      <div className="grid gap-4 sm:grid-cols-2 mb-8">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
         {DISPONIBLES.map(f => <Tarjeta key={f.titulo} f={f} />)}
       </div>
 
