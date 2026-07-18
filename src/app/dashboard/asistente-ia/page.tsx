@@ -47,6 +47,13 @@ const DISPONIBLES: Funcion[] = [
     cta: "Abrir en Reportes",
     contexto: "También en Reportes",
   },
+  {
+    titulo: "Pregúntale a tus datos",
+    desc: "Escribe una pregunta en lenguaje natural y obtén el dato con su gráfica al instante.",
+    icon: IconMessageChatbot,
+    href: "/dashboard/preguntar",
+    cta: "Preguntar",
+  },
 ];
 
 const PROXIMAMENTE: Funcion[] = [
@@ -54,11 +61,6 @@ const PROXIMAMENTE: Funcion[] = [
     titulo: "Redactor de correos",
     desc: "Redacta el correo de envío, el seguimiento y el cierre de una cotización, con tu tono.",
     icon: IconMail,
-  },
-  {
-    titulo: "Pregúntale a tus datos",
-    desc: "Escribe una pregunta en lenguaje natural y obtén el dato con su gráfica al instante.",
-    icon: IconMessageChatbot,
   },
   {
     titulo: "Informe ejecutivo mensual",
