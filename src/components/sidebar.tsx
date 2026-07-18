@@ -10,7 +10,7 @@ import {
   IconUsersGroup, IconTheater, IconTicket, IconScale, IconBuildingPavilion,
   IconDatabaseImport, IconTrash, IconRocket, IconLifebuoy, IconSettings,
   IconUserCircle, IconLogout, IconSearch, IconX, IconArrowsSort, IconCheck,
-  IconGripVertical, IconArrowBackUp, type Icon,
+  IconGripVertical, IconArrowBackUp, IconSparkles, type Icon,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/cn";
 
@@ -29,6 +29,7 @@ const navBase: NavItem[] = [
   { href: "/dashboard/catalogo", label: "Catálogo", icon: IconPackage },
   { href: "/dashboard/plantillas", label: "Plantillas", icon: IconTemplate },
   { href: "/dashboard/reportes", label: "Reportes", icon: IconReportAnalytics },
+  { href: "/dashboard/asistente-ia", label: "Asistente IA", icon: IconSparkles },
   { href: "/dashboard/equipo", label: "Equipo", icon: IconUsersGroup },
 ];
 
