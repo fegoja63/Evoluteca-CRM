@@ -190,7 +190,7 @@ function Tarjeta({ f }: { f: Funcion }) {
       <div className="flex items-center justify-between mt-1">
         <span className="text-[11px] text-slate-400">{f.contexto ?? ""}</span>
         {disponible ? (
-          <span className="inline-flex items-center gap-1.5 rounded-xl bg-accent-400 group-hover:bg-accent-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors">
+          <span className="inline-flex items-center gap-1.5 rounded-xl bg-accent-100 group-hover:bg-accent-200 px-3 py-1.5 text-xs font-semibold text-accent-700 transition-colors">
             <IconSparkles size={13} stroke={2} /> {f.cta}
           </span>
         ) : (
