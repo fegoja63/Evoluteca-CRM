@@ -120,6 +120,11 @@ model Usuario {
   // usuario eligió. Los ítems no listados aquí (nuevos módulos, etc.) se
   // agregan al final en su orden por defecto.
   ordenMenu        Json?
+  // Token secreto y revocable para suscribir la agenda personal a un calendario
+  // externo (Google/Outlook/Apple) vía /api/calendario/{token}.ics. null =
+  // sin suscripción activa. El feed es de solo lectura y solo expone las
+  // actividades que el usuario ya puede ver según su rol.
+  tokenCalendario  String?    @unique
 
   tenantId             String
   tenant               Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)

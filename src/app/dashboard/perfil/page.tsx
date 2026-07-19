@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { IconCircleCheck } from "@tabler/icons-react";
+import { IconCircleCheck, IconCalendar, IconCopy, IconCheck, IconRefresh, IconTrash } from "@tabler/icons-react";
 
 const ROL_LABEL: Record<string, string> = {
   ADMINISTRADOR: "Administrador",
@@ -37,6 +37,47 @@ export default function PerfilPage() {
   const [guardando, setGuardando]         = useState(false);
   const [exito, setExito]                 = useState("");
   const [error, setError]                 = useState("");
+
+  // ── Suscripción de calendario (feed .ics en vivo) ──
+  const [tokenCal, setTokenCal]     = useState<string | null>(null);
+  const [cargandoCal, setCargandoCal] = useState(true);
+  const [accionCal, setAccionCal]   = useState(false);
+  const [copiado, setCopiado]       = useState(false);
+
+  useEffect(() => {
+    fetch("/api/perfil/calendario-token")
+      .then(r => r.json())
+      .then(d => setTokenCal(d.token ?? null))
+      .catch(() => {})
+      .finally(() => setCargandoCal(false));
+  }, []);
+
+  const urlCal = tokenCal && typeof window !== "undefined"
+    ? `${window.location.origin}/api/calendario/${tokenCal}.ics`
+    : "";
+
+  async function generarCal() {
+    setAccionCal(true);
+    const res = await fetch("/api/perfil/calendario-token", { method: "POST" });
+    const data = await res.json();
+    setAccionCal(false);
+    if (res.ok) setTokenCal(data.token);
+  }
+
+  async function revocarCal() {
+    if (!confirm("¿Revocar el enlace de calendario? Los calendarios que ya lo tengan dejarán de actualizarse. Podrás generar uno nuevo cuando quieras.")) return;
+    setAccionCal(true);
+    const res = await fetch("/api/perfil/calendario-token", { method: "DELETE" });
+    setAccionCal(false);
+    if (res.ok) setTokenCal(null);
+  }
+
+  async function copiarCal() {
+    if (!urlCal) return;
+    await navigator.clipboard.writeText(urlCal);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
+  }
 
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
@@ -154,6 +195,68 @@ export default function PerfilPage() {
           {guardando ? "Guardando..." : "Guardar cambios"}
         </button>
       </form>
+
+      {/* Suscripción de calendario */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 mt-6">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-800 mb-1">
+          <IconCalendar size={16} stroke={1.75} /> Agenda en tu calendario
+        </h2>
+        <p className="text-xs text-slate-400 mb-4">
+          Suscribe tus actividades pendientes a Google Calendar, Outlook o Apple Calendar. A diferencia de la
+          exportación puntual, el enlace se mantiene actualizado solo: al agregar o cambiar actividades, tu
+          calendario las refresca cada pocas horas sin volver a importar nada.
+        </p>
+
+        {cargandoCal ? (
+          <p className="text-sm text-slate-400">Cargando...</p>
+        ) : tokenCal ? (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Tu enlace privado de suscripción</label>
+              <div className="flex gap-2">
+                <input type="text" readOnly value={urlCal} onFocus={e => e.target.select()}
+                  className="flex-1 min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-600 outline-none" />
+                <button type="button" onClick={copiarCal}
+                  className="shrink-0 flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-700 transition-colors">
+                  {copiado ? <><IconCheck size={15} stroke={2} /> Copiado</> : <><IconCopy size={15} stroke={1.75} /> Copiar</>}
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
+              <p className="text-xs text-amber-800 leading-relaxed">
+                <span className="font-semibold">Cualquiera con este enlace puede ver tu agenda.</span> No lo compartas.
+                Si crees que se filtró, genera uno nuevo: el anterior deja de funcionar al instante.
+              </p>
+            </div>
+
+            <details className="text-xs text-slate-500">
+              <summary className="cursor-pointer font-medium text-slate-600 select-none">¿Cómo lo suscribo?</summary>
+              <ul className="mt-2 space-y-1.5 list-disc pl-4">
+                <li><span className="font-medium text-slate-600">Google Calendar:</span> Otros calendarios → Suscribirse a un calendario (o Desde una URL) → pega el enlace.</li>
+                <li><span className="font-medium text-slate-600">Outlook:</span> Agregar calendario → Suscribirse desde la web → pega el enlace.</li>
+                <li><span className="font-medium text-slate-600">Apple Calendar:</span> Archivo → Nueva suscripción de calendario → pega el enlace.</li>
+              </ul>
+            </details>
+
+            <div className="flex gap-2 pt-1">
+              <button type="button" onClick={generarCal} disabled={accionCal}
+                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-colors">
+                <IconRefresh size={15} stroke={1.75} /> Generar uno nuevo
+              </button>
+              <button type="button" onClick={revocarCal} disabled={accionCal}
+                className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors">
+                <IconTrash size={15} stroke={1.75} /> Revocar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button type="button" onClick={generarCal} disabled={accionCal}
+            className="flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50 transition-colors">
+            <IconCalendar size={16} stroke={1.75} /> {accionCal ? "Generando..." : "Activar suscripción de calendario"}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
