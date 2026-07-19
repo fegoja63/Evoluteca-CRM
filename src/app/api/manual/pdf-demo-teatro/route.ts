@@ -302,7 +302,7 @@ export async function GET() {
   return new NextResponse(buffer as unknown as BodyInit, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": 'attachment; filename="manual-pruebas-demo-teatro.pdf"',
+      "Content-Disposition": `attachment; filename="manual-pruebas-demo-teatro-${new Date().toLocaleString("sv-SE", { timeZone: "America/Bogota" }).slice(0, 16).replace(" ", "-").replace(":", "")}.pdf"`,
     },
   });
 }

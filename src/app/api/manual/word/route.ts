@@ -618,7 +618,7 @@ export async function GET() {
   return new NextResponse(buffer as unknown as BodyInit, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "Content-Disposition": 'attachment; filename="manual-evoluteca-crm.docx"',
+      "Content-Disposition": `attachment; filename="manual-evoluteca-crm-${new Date().toLocaleString("sv-SE", { timeZone: "America/Bogota" }).slice(0, 16).replace(" ", "-").replace(":", "")}.docx"`,
     },
   });
 }
