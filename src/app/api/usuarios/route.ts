@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { registrarAuditoria } from "@/lib/auditoria";
 
 export async function GET() {
   const session = await auth();
@@ -67,6 +68,21 @@ export async function POST(request: Request) {
       tenantId: session.user.tenantId,
     },
     select: { id: true, nombre: true, email: true, rol: true, activo: true, creadoEn: true },
+  });
+
+  // Aquí no se puede usar una transacción como en el PATCH: el id del usuario
+  // recién creado hace falta para el registro, y solo existe después. Se
+  // registra aparte, best-effort: fallar la auditoría no debe deshacer un alta
+  // que ya ocurrió.
+  await registrarAuditoria({
+    tenantId: session.user.tenantId,
+    usuario: session.user,
+    accion: "CREAR",
+    entidad: "Usuario",
+    entidadId: usuario.id,
+    descripcion: `Creó al usuario ${usuario.email} con rol ${usuario.rol}`,
+    despues: usuario,
+    peticion: request,
   });
 
   return NextResponse.json(usuario, { status: 201 });

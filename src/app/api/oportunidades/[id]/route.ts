@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { editarOportunidadSchema } from "@/lib/validations/oportunidades";
 import { parseOrError } from "@/lib/validations/helpers";
 import { puedeEliminar } from "@/lib/permisos";
+import { operacionAuditoria } from "@/lib/auditoria";
 
 export async function GET(
   request: Request,
@@ -118,6 +119,18 @@ export async function DELETE(
 
   // Borrado suave: se mueve a la Papelera en vez de eliminarse de inmediato,
   // igual que Empresa/Contacto/Cotizacion — se puede restaurar desde ahí.
-  await prisma.oportunidad.update({ where: { id: params.id }, data: { eliminadoEn: new Date() } });
+  await prisma.$transaction([
+    prisma.oportunidad.update({ where: { id: params.id }, data: { eliminadoEn: new Date() } }),
+    operacionAuditoria({
+      tenantId: session.user.tenantId,
+      usuario: session.user,
+      accion: "ELIMINAR",
+      entidad: "Oportunidad",
+      entidadId: existente.id,
+      descripcion: `Envió a la papelera la oportunidad "${existente.titulo}"`,
+      antes: existente,
+      peticion: request,
+    }),
+  ]);
   return NextResponse.json({ ok: true });
 }

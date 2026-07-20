@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { operacionAuditoria, type AccionAuditada } from "@/lib/auditoria";
 
 export async function PATCH(
   request: Request,
@@ -65,11 +66,49 @@ export async function PATCH(
     data.passwordHash = await bcrypt.hash(nuevaPassword, 12);
   }
 
-  const actualizado = await prisma.usuario.update({
-    where: { id: params.id },
-    data,
-    select: { id: true, nombre: true, email: true, rol: true, activo: true, creadoEn: true },
-  });
+  // El cambio de rol y la baja/alta se registran con su propia acción, no como
+  // un "ACTUALIZAR" genérico: son las dos preguntas que de verdad se hacen en
+  // una auditoría ("¿quién le dio permisos de administrador a esta persona?").
+  const accion: AccionAuditada =
+    rol !== undefined && rol !== existente.rol
+      ? "CAMBIAR_ROL"
+      : activo === false && existente.activo
+        ? "DESACTIVAR_USUARIO"
+        : activo === true && !existente.activo
+          ? "ACTIVAR_USUARIO"
+          : "ACTUALIZAR";
+
+  const cambios = Object.keys(data);
+  const descripcion =
+    accion === "CAMBIAR_ROL"
+      ? `Cambió el rol de ${existente.email} de ${existente.rol} a ${rol}`
+      : accion === "DESACTIVAR_USUARIO"
+        ? `Desactivó al usuario ${existente.email}`
+        : accion === "ACTIVAR_USUARIO"
+          ? `Reactivó al usuario ${existente.email}`
+          : `Editó al usuario ${existente.email} (${cambios.join(", ") || "sin cambios"})`;
+
+  // En la misma transacción que el cambio: o quedan las dos cosas o ninguna.
+  // Un registro de auditoría que puede faltar justo cuando algo salió mal no
+  // sirve de nada.
+  const [actualizado] = await prisma.$transaction([
+    prisma.usuario.update({
+      where: { id: params.id },
+      data,
+      select: { id: true, nombre: true, email: true, rol: true, activo: true, creadoEn: true },
+    }),
+    operacionAuditoria({
+      tenantId: session.user.tenantId,
+      usuario: session.user,
+      accion,
+      entidad: "Usuario",
+      entidadId: existente.id,
+      descripcion,
+      antes: { nombre: existente.nombre, email: existente.email, rol: existente.rol, activo: existente.activo },
+      despues: { ...data, passwordHash: undefined },
+      peticion: request,
+    }),
+  ]);
 
   return NextResponse.json(actualizado);
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
+import { operacionAuditoria } from "@/lib/auditoria";
 import { editarEmpresaSchema } from "@/lib/validations/empresas";
 import { parseOrError } from "@/lib/validations/helpers";
 
@@ -89,6 +90,18 @@ export async function DELETE(
 
   // Borrado suave: el registro se guarda en la papelera (/dashboard/papelera)
   // y se puede restaurar. El borrado definitivo solo se hace desde ahí.
-  await prisma.empresa.update({ where: { id: params.id }, data: { eliminadoEn: new Date() } });
+  await prisma.$transaction([
+    prisma.empresa.update({ where: { id: params.id }, data: { eliminadoEn: new Date() } }),
+    operacionAuditoria({
+      tenantId: session.user.tenantId,
+      usuario: session.user,
+      accion: "ELIMINAR",
+      entidad: "Empresa",
+      entidadId: existente.id,
+      descripcion: `Envió a la papelera la empresa "${existente.nombre}"`,
+      antes: existente,
+      peticion: request,
+    }),
+  ]);
   return NextResponse.json({ ok: true });
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
+import { operacionAuditoria } from "@/lib/auditoria";
 import { editarContactoSchema } from "@/lib/validations/contactos";
 import { parseOrError } from "@/lib/validations/helpers";
 
@@ -58,11 +59,30 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     return NextResponse.json({ error: "No tienes permiso para eliminar" }, { status: 403 });
   }
 
-  // Borrado suave: el registro se guarda en la papelera y se puede restaurar.
-  await prisma.contacto.updateMany({
-    where: { id: params.id, tenantId: session.user.tenantId },
-    data: { eliminadoEn: new Date() },
+  // Se lee antes de borrar para poder dejar en la auditoría qué se borró y de
+  // paso responder 404 cuando no existe, en vez de un 200 silencioso.
+  const existente = await prisma.contacto.findFirst({
+    where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
   });
+  if (!existente) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+
+  // Borrado suave: el registro se guarda en la papelera y se puede restaurar.
+  await prisma.$transaction([
+    prisma.contacto.updateMany({
+      where: { id: params.id, tenantId: session.user.tenantId },
+      data: { eliminadoEn: new Date() },
+    }),
+    operacionAuditoria({
+      tenantId: session.user.tenantId,
+      usuario: session.user,
+      accion: "ELIMINAR",
+      entidad: "Contacto",
+      entidadId: existente.id,
+      descripcion: `Envió a la papelera el contacto "${existente.nombre}"`,
+      antes: existente,
+      peticion: _req,
+    }),
+  ]);
 
   return NextResponse.json({ ok: true });
 }

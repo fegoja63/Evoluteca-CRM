@@ -82,6 +82,7 @@ model Tenant {
   adjuntos             Adjunto[]
   etapasPipeline       EtapaPipeline[]
   usoIA                UsoIA[]
+  registrosAuditoria   RegistroAuditoria[]
 
   @@map("tenants")
 }
@@ -505,6 +506,53 @@ model ErrorLog {
 
   @@index([creadoEn])
   @@map("error_logs")
+}
+
+// Registro de auditoría: quién hizo qué, cuándo y sobre qué.
+//
+// La papelera y la línea de tiempo cuentan qué le pasó a un registro, pero
+// no quién lo hizo ni desde dónde. Sin eso nadie puede responder "¿quién
+// borró este cliente?", y en las compras de gobierno y sector financiero la
+// trazabilidad de auditoría suele ser requisito de pliego, no un extra.
+//
+// Estas filas NO se editan ni se borran desde la aplicación: solo se
+// insertan. Es lo que las hace valer como evidencia.
+model RegistroAuditoria {
+  id            String   @id @default(uuid())
+  // Quién. Se guardan copias del nombre/correo/rol además del id porque el
+  // usuario puede cambiar de rol o ser dado de baja después, y el registro
+  // debe seguir contando lo que era cierto EN SU MOMENTO.
+  usuarioId     String?
+  usuarioEmail  String?
+  usuarioNombre String?
+  usuarioRol    String?
+
+  // Qué: CREAR | ACTUALIZAR | ELIMINAR | RESTAURAR | ELIMINAR_DEFINITIVO |
+  //      INICIAR_SESION | INICIAR_SESION_FALLIDO | CAMBIAR_ROL | ...
+  accion      String
+  // Sobre qué: nombre del modelo ("Oportunidad", "Usuario") e id afectado.
+  entidad     String
+  entidadId   String?
+  // Resumen legible, para que la pantalla de auditoría se entienda sin
+  // tener que interpretar los JSON de abajo.
+  descripcion String?
+
+  // Estado antes y después del cambio. Los campos sensibles (contraseñas,
+  // tokens, llaves de API) se quitan antes de guardar — ver lib/auditoria.ts.
+  antes   Json?
+  despues Json?
+
+  ip        String?
+  userAgent String?
+  creadoEn  DateTime @default(now())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, creadoEn])
+  @@index([tenantId, entidad, entidadId])
+  @@index([tenantId, usuarioId])
+  @@map("registros_auditoria")
 }
 
 // ---- Plantillas de cotización ----
