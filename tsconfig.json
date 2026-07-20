@@ -1,5 +1,10 @@
 {
   "compilerOptions": {
+    // Sin "target" TypeScript asume ES5, y entonces rechaza cosas que este
+    // proyecto ya usa: await de nivel superior y recorrer el resultado de
+    // matchAll. Como `next build` type-chequea todo el proyecto, eso tumbaba
+    // el despliegue. ES2022 es lo estándar para Next 14 sobre Node 20+.
+    "target": "ES2022",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,

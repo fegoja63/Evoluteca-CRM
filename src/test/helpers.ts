@@ -40,7 +40,17 @@ export function sinSesion() {
   usarSesion(null);
 }
 
-type Handler = (peticion: Request, contexto: { params: Record<string, string> }) => Promise<Response>;
+/**
+ * Firma de un handler de ruta.
+ *
+ * El contexto va sin tipar a proposito: cada route.ts declara sus propios
+ * params ({ id: string }, { tipo: string; id: string }...), y con un
+ * Record<string, string> generico TypeScript los rechaza por contravarianza.
+ * Tiparlo aqui obligaria a poner un `as never` en cada llamada de cada
+ * prueba, que es peor: esconde errores de verdad ademas de este.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Handler = (peticion: Request, contexto: any) => Promise<Response>;
 
 type Opciones = {
   params?: Record<string, string>;
