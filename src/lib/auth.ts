@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
@@ -8,6 +8,21 @@ import { tieneDosFactores, codigoValido, consumirCodigoRespaldo } from "@/lib/do
 
 const VENTANA_LOGIN_MS = 15 * 60 * 1000; // 15 minutos
 const MAX_INTENTOS_LOGIN = 5;
+
+/**
+ * Señal para que el formulario de login pida el código del segundo factor.
+ *
+ * Tiene que ser una CredentialsSignin: NextAuth envuelve cualquier otro error
+ * y el navegador solo recibe un "credenciales inválidas" genérico. Solo el
+ * `code` de esta clase llega al cliente.
+ *
+ * Que ese código revele "aquí hace falta un segundo factor" no filtra nada
+ * util: para llegar hasta aqui hay que haber acertado ya la contraseña, y es
+ * como funciona cualquier login de dos pasos.
+ */
+class SegundoFactorRequerido extends CredentialsSignin {
+  code = "segundo_factor_requerido";
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: "jwt", maxAge: 12 * 60 * 60, updateAge: 60 * 60 }, // 12h de sesión, se renueva cada hora de uso activo
@@ -67,10 +82,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (tieneDosFactores(usuario)) {
           if (!codigoSegundoFactor) {
             await registrarIntentoFallido(clave, VENTANA_LOGIN_MS);
-            // Señal para que el formulario pida el código. No revela nada que
-            // el atacante no supiera ya: para llegar aquí necesitaba la
-            // contraseña correcta.
-            throw new Error("SE_REQUIERE_SEGUNDO_FACTOR");
+            throw new SegundoFactorRequerido();
           }
 
           const valido = await codigoValido(codigoSegundoFactor, usuario.totpSecret!);

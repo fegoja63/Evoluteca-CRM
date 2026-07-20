@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import QRCode from "qrcode";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { registrarAuditoria } from "@/lib/auditoria";
@@ -68,9 +69,16 @@ export async function POST(request: Request) {
     data: { totpSecret: secreto, totpActivadoEn: null },
   });
 
+  // El QR se genera aquí y se manda como imagen lista (data URI) en vez de
+  // pintarlo en el navegador: así no hace falta una librería más en el bundle
+  // del cliente, y el secreto no anda dando vueltas por el DOM más de lo justo.
+  const uri = await uriParaApp(usuario.email, secreto);
+  const qr = await QRCode.toDataURL(uri, { width: 240, margin: 1 });
+
   return NextResponse.json({
     secreto,
-    uri: await uriParaApp(usuario.email, secreto),
+    uri,
+    qr,
     instrucciones:
       "Escanea el código con tu aplicación de autenticación y luego confirma con el código de 6 dígitos que te muestre.",
   });

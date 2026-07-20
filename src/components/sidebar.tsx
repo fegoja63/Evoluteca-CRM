@@ -8,7 +8,7 @@ import {
   IconLayoutDashboard, IconBuilding, IconUsers, IconChartFunnel, IconCalendar,
   IconFileText, IconPackage, IconTemplate, IconReportAnalytics,
   IconUsersGroup, IconTheater, IconTicket, IconScale, IconBuildingPavilion,
-  IconDatabaseImport, IconTrash, IconRocket, IconLifebuoy, IconSettings,
+  IconDatabaseImport, IconTrash, IconRocket, IconLifebuoy, IconSettings, IconHistory,
   IconUserCircle, IconLogout, IconSearch, IconX, IconArrowsSort, IconCheck,
   IconGripVertical, IconArrowBackUp, IconSparkles, type Icon,
 } from "@tabler/icons-react";
@@ -114,6 +114,12 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
       .filter(Boolean),
     { href: "/dashboard/datos", label: "Datos", icon: IconDatabaseImport },
     { href: "/dashboard/papelera", label: "Papelera", icon: IconTrash },
+    // Solo para administradores: contiene la actividad de todo el equipo. La
+    // ruta lo vuelve a comprobar en el servidor — esconder el enlace es
+    // comodidad, no seguridad.
+    ...(session?.user?.rol === "ADMINISTRADOR"
+      ? [{ href: "/dashboard/auditoria", label: "Auditoría", icon: IconHistory }]
+      : []),
     { href: "/dashboard/bienvenida", label: "Guía de inicio", icon: IconRocket },
     { href: "/dashboard/ayuda", label: "Ayuda / Soporte", icon: IconLifebuoy },
     { href: "/dashboard/configuracion", label: "Configuración", icon: IconSettings },

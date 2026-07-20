@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { IconCircleCheck, IconCalendar, IconCopy, IconCheck, IconRefresh, IconTrash } from "@tabler/icons-react";
+import DosFactores from "./DosFactores";
 
 const ROL_LABEL: Record<string, string> = {
   ADMINISTRADOR: "Administrador",
@@ -195,6 +196,11 @@ export default function PerfilPage() {
           {guardando ? "Guardando..." : "Guardar cambios"}
         </button>
       </form>
+
+      {/* Verificación en dos pasos */}
+      <div className="mt-6">
+        <DosFactores />
+      </div>
 
       {/* Suscripción de calendario */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5 mt-6">

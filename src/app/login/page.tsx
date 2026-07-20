@@ -16,12 +16,38 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  // El campo del código solo aparece cuando el servidor lo pide, y solo lo
+  // pide a quien tenga la verificación en dos pasos activa. Para el resto de
+  // la gente el login sigue siendo exactamente igual que siempre.
+  const [pideCodigo, setPideCodigo] = useState(false);
+  const [codigo, setCodigo] = useState("");
+
   const onSubmit = async (data: LoginInput) => {
     setError(null);
     setCargando(true);
-    const resultado = await signIn("credentials", { ...data, redirect: false });
+    const resultado = await signIn("credentials", {
+      ...data,
+      ...(pideCodigo ? { codigo } : {}),
+      redirect: false,
+    });
     setCargando(false);
-    if (resultado?.error) { setError("Correo o contraseña incorrectos."); return; }
+
+    if (resultado?.error) {
+      // NextAuth solo deja pasar al navegador el "code" de un error
+      // CredentialsSignin; el mensaje se queda en el servidor.
+      if (resultado.code === "segundo_factor_requerido") {
+        setPideCodigo(true);
+        setError("Escribe el código de tu aplicación de autenticación.");
+        return;
+      }
+      setError(
+        pideCodigo
+          ? "El código no es válido. Si perdiste el teléfono, usa uno de tus códigos de respaldo."
+          : "Correo o contraseña incorrectos."
+      );
+      return;
+    }
+
     router.push("/dashboard");
     router.refresh();
   };
@@ -65,6 +91,26 @@ export default function LoginPage() {
                 </a>
               </div>
             </div>
+
+            {pideCodigo && (
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                  Código de verificación
+                </label>
+                <input
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  autoFocus
+                  placeholder="000000"
+                  value={codigo}
+                  onChange={(e) => setCodigo(e.target.value)}
+                  className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 font-mono tracking-widest outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors"
+                />
+                <p className="mt-1.5 text-xs text-slate-400">
+                  Los 6 dígitos de tu aplicación, o uno de tus códigos de respaldo.
+                </p>
+              </div>
+            )}
 
             {error && (
               <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3">
