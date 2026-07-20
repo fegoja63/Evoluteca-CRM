@@ -7,7 +7,9 @@
     "build": "prisma migrate deploy && prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:reconstruir-db": "npx dotenv-cli -e .env.test -- npx prisma migrate reset --force --skip-seed --skip-generate",
+    "db:verificar-deriva": "node scripts/verificar-deriva.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.111.0",
