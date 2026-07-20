@@ -67,7 +67,12 @@ export async function DELETE(
     return NextResponse.json({ error: "El módulo Expedientes no está activo" }, { status: 403 });
   }
 
-  const { eventoId } = await req.json();
+  // Sin eventoId, Prisma ignoraría ese campo y el deleteMany borraría la
+  // bitácora entera del expediente devolviendo un 200 tranquilo.
+  const cuerpo = await req.json().catch(() => ({}));
+  const eventoId = typeof cuerpo?.eventoId === "string" ? cuerpo.eventoId.trim() : "";
+  if (!eventoId) return NextResponse.json({ error: "Falta eventoId" }, { status: 400 });
+
   await prisma.eventoExpediente.deleteMany({
     where: { id: eventoId, tenantId: session.user.tenantId, expedienteId: params.id },
   });

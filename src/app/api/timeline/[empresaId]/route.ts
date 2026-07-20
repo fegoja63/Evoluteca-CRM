@@ -65,7 +65,13 @@ export async function POST(req: Request, { params }: { params: { empresaId: stri
 export async function DELETE(req: Request, _ctx: { params: { empresaId: string } }) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  const { eventoId } = await req.json();
+  // Sin eventoId hay que parar aquí: Prisma ignora los campos undefined, así
+  // que el where se quedaría solo con tenantId y el deleteMany se llevaría por
+  // delante TODA la línea de tiempo del cliente, devolviendo un 200 tranquilo.
+  const cuerpo = await req.json().catch(() => ({}));
+  const eventoId = typeof cuerpo?.eventoId === "string" ? cuerpo.eventoId.trim() : "";
+  if (!eventoId) return NextResponse.json({ error: "Falta eventoId" }, { status: 400 });
+
   await prisma.eventoTimeline.deleteMany({ where: { id: eventoId, tenantId: session.user.tenantId } });
   return NextResponse.json({ ok: true });
 }
