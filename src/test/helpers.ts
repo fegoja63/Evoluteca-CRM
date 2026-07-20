@@ -47,6 +47,11 @@ type Opciones = {
   body?: unknown;
   /** Se agrega como query string: { todas: "1" } -> ?todas=1 */
   query?: Record<string, string>;
+  /**
+   * Metodo HTTP. Por defecto se deduce del cuerpo (GET sin cuerpo, POST con).
+   * El barrido si lo necesita explicito, porque invoca PATCH y DELETE.
+   */
+  metodo?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 };
 
 /**
@@ -57,17 +62,24 @@ type Opciones = {
  */
 export async function llamar(handler: Handler, opciones: Opciones = {}) {
   const { params = {}, body, query } = opciones;
+  const metodo = opciones.metodo ?? (body === undefined ? "GET" : "POST");
 
   const url = new URL("http://pruebas.local/api");
   for (const [clave, valor] of Object.entries(query ?? {})) {
     url.searchParams.set(clave, valor);
   }
 
+  // GET y DELETE no admiten cuerpo: construir un Request asi lanza. Al resto
+  // se les manda "{}" cuando no se dio nada, porque casi todos los handlers
+  // arrancan con request.json() y se caerian con el cuerpo vacio.
+  const admiteCuerpo = metodo !== "GET" && metodo !== "DELETE";
+  const cuerpoEnviado = admiteCuerpo ? JSON.stringify(body ?? {}) : undefined;
+
   const peticion = new Request(url, {
-    method: body === undefined ? "GET" : "POST",
-    ...(body === undefined
+    method: metodo,
+    ...(cuerpoEnviado === undefined
       ? {}
-      : { body: JSON.stringify(body), headers: { "content-type": "application/json" } }),
+      : { body: cuerpoEnviado, headers: { "content-type": "application/json" } }),
   });
 
   const respuesta = await handler(peticion, { params });
