@@ -9,9 +9,98 @@ import {
   IconPinned,
   IconChevronLeft, IconChevronRight, IconTrash, IconLayoutList, IconCalendar,
   IconFileExport, IconFileSpreadsheet, IconPlus, IconBell, IconCircleCheck,
-  IconAlertTriangle, IconPencil, IconUsers,
+  IconAlertTriangle, IconPencil, IconUsers, IconCalendarPlus,
 } from "@tabler/icons-react";
 import { tiposActividadVisibles, tipoActividadDef, type TipoActividadDef } from "@/lib/tipos-actividad";
+
+// Nombre visible de cada filtro de la Agenda (se usa en el botón de exportar
+// para dejar claro qué bloque se va a descargar).
+const FILTRO_LABEL: Record<"pendientes" | "todas" | "vencidas" | "asignadas", string> = {
+  pendientes: "Pendientes",
+  todas:      "Todas",
+  vencidas:   "Vencidas",
+  asignadas:  "Asignadas a mí",
+};
+
+// ── Añadir UNA actividad al calendario personal ──
+// Abrir el .ics completo mete todas las actividades de golpe en el calendario
+// por defecto, sin dejar elegir cuál. Estos enlaces abren la pantalla de "nuevo
+// evento" de Google/Outlook ya rellenada, donde el usuario sí escoge el
+// calendario antes de guardar; el .ics individual queda para el resto de apps.
+
+// La actividad dura 1 hora por defecto, igual que en la exportación completa.
+function rangoEvento(fecha: string) {
+  const inicio = new Date(fecha);
+  return { inicio, fin: new Date(inicio.getTime() + 60 * 60 * 1000) };
+}
+
+// Marca UTC de iCalendar: 20260720T113300Z
+const marcaUtc = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+
+function tituloEvento(a: Actividad) {
+  return `${tipoActividadDef(a.tipo)?.label ?? a.tipo}: ${a.titulo}`;
+}
+
+function detalleEvento(a: Actividad) {
+  return [
+    a.empresa ? `Cliente: ${a.empresa.nombre}` : null,
+    a.oportunidad ? `Negocio: ${a.oportunidad.titulo}` : null,
+    a.notas ? `Notas: ${a.notas}` : null,
+  ].filter(Boolean).join("\n");
+}
+
+function urlGoogleCalendar(a: Actividad) {
+  const { inicio, fin } = rangoEvento(a.fecha);
+  const p = new URLSearchParams({
+    action: "TEMPLATE",
+    text: tituloEvento(a),
+    dates: `${marcaUtc(inicio)}/${marcaUtc(fin)}`,
+    details: detalleEvento(a),
+  });
+  return `https://calendar.google.com/calendar/render?${p.toString()}`;
+}
+
+function urlOutlookCalendar(a: Actividad) {
+  const { inicio, fin } = rangoEvento(a.fecha);
+  const p = new URLSearchParams({
+    path: "/calendar/action/compose",
+    rru: "addevent",
+    subject: tituloEvento(a),
+    startdt: inicio.toISOString(),
+    enddt: fin.toISOString(),
+    body: detalleEvento(a),
+  });
+  return `https://outlook.live.com/calendar/0/deeplink/compose?${p.toString()}`;
+}
+
+// Genera y descarga el .ics de una sola actividad, sin pasar por el servidor.
+function descargarIcsActividad(a: Actividad) {
+  const esc = (s: string) =>
+    s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+  const { inicio, fin } = rangoEvento(a.fecha);
+  const detalle = detalleEvento(a);
+  const ics = [
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Evoluteca CRM//ES",
+    "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `UID:${a.id}@evoluteca-crm.vercel.app`,
+    `DTSTAMP:${marcaUtc(new Date())}`,
+    `DTSTART:${marcaUtc(inicio)}`,
+    `DTEND:${marcaUtc(fin)}`,
+    `SUMMARY:${esc(tituloEvento(a))}`,
+    ...(detalle ? [`DESCRIPTION:${esc(detalle)}`] : []),
+    "STATUS:CONFIRMED", "END:VEVENT", "END:VCALENDAR",
+  ].join("\r\n");
+
+  const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
+  const enlace = document.createElement("a");
+  enlace.href = url;
+  enlace.download = `actividad-${a.titulo.slice(0, 40).replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.ics`;
+  document.body.appendChild(enlace);
+  enlace.click();
+  document.body.removeChild(enlace);
+  URL.revokeObjectURL(url);
+}
 
 // Convierte una fecha ISO al formato que espera <input type="datetime-local">
 // (YYYY-MM-DDTHH:mm) en hora local, para precargarla al editar.
@@ -262,6 +351,8 @@ function AgendaContent() {
   const [notifOk, setNotifOk] = useState<string | null>(null);
   // Id de la tarea cuyo menú de "Reasignar" está abierto (null = ninguno).
   const [reasignandoId, setReasignandoId] = useState<string | null>(null);
+  // Fila cuyo menú "Añadir a mi calendario" está abierto.
+  const [calendarioId, setCalendarioId] = useState<string | null>(null);
 
   async function exportarExcel() {
     setExportando(true);
@@ -609,6 +700,43 @@ function AgendaContent() {
             {notifOk === a.id ? <IconCircleCheck size={16} stroke={1.75} className="text-emerald-500" /> : notificando === a.id ? "..." : <IconBell size={16} stroke={1.75} />}
           </button>
         )}
+        <div className="relative shrink-0">
+          <button
+            onClick={() => setCalendarioId(calendarioId === a.id ? null : a.id)}
+            title="Añadir solo esta actividad a mi calendario"
+            className="flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-600 hover:border-brand-400 hover:text-brand-600"
+          >
+            <IconCalendarPlus size={13} stroke={1.75} />
+            Calendario
+          </button>
+          {calendarioId === a.id && (
+            <>
+              {/* Capa invisible para cerrar el menú al hacer clic fuera */}
+              <div className="fixed inset-0 z-10" onClick={() => setCalendarioId(null)} />
+              <div className="absolute right-0 z-20 mt-1 w-60 rounded-lg border border-neutral-200 bg-white p-1 shadow-lg">
+                <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">Añadir esta actividad a</p>
+                <a href={urlGoogleCalendar(a)} target="_blank" rel="noopener noreferrer"
+                  onClick={() => setCalendarioId(null)}
+                  className="block rounded px-2 py-1.5 text-left text-xs text-neutral-700 hover:bg-brand-50">
+                  Google Calendar
+                </a>
+                <a href={urlOutlookCalendar(a)} target="_blank" rel="noopener noreferrer"
+                  onClick={() => setCalendarioId(null)}
+                  className="block rounded px-2 py-1.5 text-left text-xs text-neutral-700 hover:bg-brand-50">
+                  Outlook
+                </a>
+                <button type="button"
+                  onClick={() => { descargarIcsActividad(a); setCalendarioId(null); }}
+                  className="block w-full rounded px-2 py-1.5 text-left text-xs text-neutral-700 hover:bg-brand-50">
+                  Descargar .ics
+                </button>
+                <p className="px-2 pt-1 pb-0.5 text-[10px] leading-snug text-neutral-400">
+                  Google y Outlook te dejan elegir en qué calendario guardarla.
+                </p>
+              </div>
+            </>
+          )}
+        </div>
         <button onClick={() => iniciarEdicion(a)}
           className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium shrink-0 ${editandoId === a.id ? "border-brand-500 bg-brand-50 text-brand-700" : "border-slate-300 bg-white text-slate-600 hover:border-brand-400 hover:text-brand-600"}`} title="Editar tarea">
           <IconPencil size={13} stroke={1.75} />
@@ -655,9 +783,15 @@ function AgendaContent() {
           </button>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <a href="/api/exportar/actividades-ics"
+          {/* Exporta el bloque que el usuario está viendo: en la lista, el
+              filtro activo; en la vista de calendario, las pendientes. */}
+          <a href={`/api/exportar/actividades-ics?filtro=${vista === "lista" ? filtro : "pendientes"}`}
+            title={vista === "lista"
+              ? `Descargar en un archivo .ics las actividades del filtro "${FILTRO_LABEL[filtro]}"`
+              : "Descargar en un archivo .ics tus actividades pendientes"}
             className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 flex items-center gap-1.5">
-            <IconFileExport size={15} stroke={1.75} />iCal
+            <IconFileExport size={15} stroke={1.75} />
+            iCal{vista === "lista" && filtro !== "pendientes" ? `: ${FILTRO_LABEL[filtro]}` : ""}
           </a>
           <button onClick={exportarExcel} disabled={exportando}
             className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 flex items-center gap-1.5">

@@ -1,5 +1,29 @@
 import { prisma } from "@/lib/prisma";
-import { filtroOwner } from "@/lib/permisos";
+import { filtroOwnerActividad } from "@/lib/permisos";
+
+/** Mismos filtros que ofrece la Agenda, para poder exportar solo lo que se ve. */
+export type FiltroAgenda = "pendientes" | "todas" | "vencidas" | "asignadas";
+
+export function esFiltroAgenda(v: string | null): v is FiltroAgenda {
+  return v === "pendientes" || v === "todas" || v === "vencidas" || v === "asignadas";
+}
+
+function condicionFiltro(filtro: FiltroAgenda, userId: string) {
+  switch (filtro) {
+    case "todas":     return {};
+    case "vencidas":  return { completada: false, fecha: { lt: new Date() } };
+    case "asignadas": return { completada: false, responsableId: userId };
+    case "pendientes":
+    default:          return { completada: false };
+  }
+}
+
+const ETIQUETA_FILTRO: Record<FiltroAgenda, string> = {
+  pendientes: "Pendientes",
+  todas:      "Todas",
+  vencidas:   "Vencidas",
+  asignadas:  "Asignadas a mí",
+};
 
 // Escapa los caracteres con significado especial en el formato iCalendar (RFC 5545).
 function escIcs(s: string) {
@@ -21,21 +45,26 @@ const TIPO_MAP: Record<string, string> = {
 };
 
 /**
- * Genera el calendario iCalendar (.ics) de la agenda de un usuario: sus
- * actividades pendientes, respetando el filtro por rol (un COMERCIAL solo ve
- * las suyas). Lo comparten la descarga puntual autenticada (/api/exportar/
- * actividades-ics) y la suscripción en vivo (/api/calendario/[token]).
+ * Genera el calendario iCalendar (.ics) de la agenda de un usuario, respetando
+ * el filtro por rol: un COMERCIAL ve las actividades que creó o que le fueron
+ * asignadas — el mismo criterio que usa la Agenda (/api/actividades), para que
+ * el calendario no se quede sin las tareas que otros le asignaron.
+ * Lo comparten la descarga puntual autenticada (/api/exportar/actividades-ics)
+ * y la suscripción en vivo (/api/calendario/[token]).
  */
 export async function generarIcsAgenda(opts: {
   tenantId: string;
   rol: string | undefined;
   userId: string;
   nombre: string | null;
+  /** Qué subconjunto exportar. Por defecto, las pendientes. */
+  filtro?: FiltroAgenda;
 }): Promise<string> {
-  const ownerFiltro = filtroOwner(opts.rol, opts.userId);
+  const filtro = opts.filtro ?? "pendientes";
+  const ownerFiltro = filtroOwnerActividad(opts.rol, opts.userId);
 
   const actividades = await prisma.actividad.findMany({
-    where: { tenantId: opts.tenantId, completada: false, ...ownerFiltro },
+    where: { tenantId: opts.tenantId, ...condicionFiltro(filtro, opts.userId), ...ownerFiltro },
     orderBy: { fecha: "asc" },
     include: {
       empresa:     { select: { nombre: true } },
@@ -76,7 +105,9 @@ export async function generarIcsAgenda(opts: {
     "PRODID:-//Evoluteca CRM//ES",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
-    `X-WR-CALNAME:Evoluteca CRM — ${opts.nombre ?? "Agenda"}`,
+    // La suscripción en vivo usa el filtro por defecto, así que conserva el
+    // nombre limpio de siempre; solo las descargas filtradas se etiquetan.
+    `X-WR-CALNAME:Evoluteca CRM — ${opts.nombre ?? "Agenda"}${filtro !== "pendientes" ? ` (${ETIQUETA_FILTRO[filtro]})` : ""}`,
     "X-WR-TIMEZONE:America/Bogota",
     // Sugiere a Google/Outlook cada cuánto refrescar la suscripción (1 hora).
     "REFRESH-INTERVAL;VALUE=DURATION:PT1H",
