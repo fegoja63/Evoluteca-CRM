@@ -5,6 +5,7 @@
  * POST...). No hace falta levantar un servidor: se importan y se llaman. Eso
  * hace que estas pruebas cuesten milisegundos, no segundos.
  */
+import { NextRequest } from "next/server";
 import type { RolUsuario } from "@prisma/client";
 import { usarSesion, type SesionPrueba } from "./auth-falso";
 import { A, B } from "./sembrar";
@@ -75,7 +76,9 @@ export async function llamar(handler: Handler, opciones: Opciones = {}) {
   const admiteCuerpo = metodo !== "GET" && metodo !== "DELETE";
   const cuerpoEnviado = admiteCuerpo ? JSON.stringify(body ?? {}) : undefined;
 
-  const peticion = new Request(url, {
+  // NextRequest y no Request a secas: varias rutas usan req.nextUrl, que solo
+  // existe en el tipo de Next. Ademas es lo que reciben en produccion.
+  const peticion = new NextRequest(url, {
     method: metodo,
     ...(cuerpoEnviado === undefined
       ? {}

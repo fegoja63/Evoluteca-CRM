@@ -99,31 +99,71 @@ export function sinAislamiento<T>(motivo: string, fn: () => Promise<T>): Promise
   return almacen.run(motivo, fn);
 }
 
-/** Busca `tenantId` en el where, incluyendo lo anidado en AND / OR / NOT. */
-function whereFiltraPorTenant(where: unknown): boolean {
-  if (!where || typeof where !== "object") return false;
+/**
+ * .El where acota por tenant, de la forma que sea?
+ *
+ * Hay mas formas validas de las que parece, y todas aparecen en este codigo:
+ *
+ *   { tenantId }                                  directo
+ *   { tenant: { ... } }                           por la relacion
+ *   { tenantId_periodo: { tenantId, periodo } }   clave unica compuesta
+ *   { empresa: { tenantId, ... } }                a traves de otra tabla
+ *   { AND: [ ... { tenantId } ... ] }             anidado
+ *
+ * Por eso se busca en profundidad en vez de mirar solo el primer nivel: al
+ * principio solo miraba arriba y marcaba como fuga tres consultas que estaban
+ * perfectamente acotadas.
+ *
+ * El OR es el unico caso que se trata aparte: basta con que UNA de sus ramas
+ * no acote para que la consulta entera se escape, asi que se exigen todas.
+ */
+function whereFiltraPorTenant(where: unknown, profundidad = 0): boolean {
+  if (!where || typeof where !== "object" || profundidad > 6) return false;
+
+  if (Array.isArray(where)) return where.some((x) => whereFiltraPorTenant(x, profundidad + 1));
 
   const w = where as Record<string, unknown>;
+
   if (w.tenantId !== undefined) return true;
-  // `tenant: { id: ... }` tambien aisla correctamente.
   if (w.tenant && typeof w.tenant === "object") return true;
 
-  for (const clave of ["AND", "OR", "NOT"] as const) {
-    const rama = w[clave];
-    if (Array.isArray(rama)) {
-      // En OR basta con que UNA rama no filtre para que la consulta se escape,
-      // asi que se exige que TODAS filtren. En AND basta con una.
-      if (clave === "OR") {
-        if (rama.length > 0 && rama.every(whereFiltraPorTenant)) return true;
-      } else if (rama.some(whereFiltraPorTenant)) {
-        return true;
-      }
-    } else if (rama && typeof rama === "object" && whereFiltraPorTenant(rama)) {
+  if (Array.isArray(w.OR)) {
+    // Todas las ramas del OR deben acotar; si una sola no lo hace, se escapa.
+    if (w.OR.length > 0 && w.OR.every((r) => whereFiltraPorTenant(r, profundidad + 1))) return true;
+  }
+
+  for (const [clave, valor] of Object.entries(w)) {
+    if (clave === "OR") continue; // ya se evaluo con su regla propia
+    if (valor && typeof valor === "object" && whereFiltraPorTenant(valor, profundidad + 1)) {
       return true;
     }
   }
 
   return false;
+}
+
+/**
+ * Consultas que se permiten aunque no acoten por tenant, con motivo.
+ *
+ * OJO CON ESTO: la exencion es por modelo y operacion, no por ruta — el
+ * vigilante no sabe desde donde lo llaman. Es decir, permite el patron "mi
+ * perfil" pero de paso deja pasar cualquier otro Usuario.findUnique por id
+ * suelto. El aislamiento de las rutas de usuarios hay que probarlo con datos
+ * (barrido de fuga y pruebas especificas), no confiando en esta capa.
+ *
+ * Se deja escrito para que la laguna sea visible y no una sorpresa.
+ */
+const PERMITIDAS: Array<{ modelo: string; operaciones: string[]; motivo: string }> = [
+  {
+    modelo: "Usuario",
+    operaciones: ["findUnique", "findUniqueOrThrow", "update"],
+    motivo:
+      "Patron 'mi perfil': el id sale de la sesion, que ya es del tenant correcto. Acotar por tenant ademas seria redundante.",
+  },
+];
+
+function estaPermitida(modelo: string, operacion: string): boolean {
+  return PERMITIDAS.some((p) => p.modelo === modelo && p.operaciones.includes(operacion));
 }
 
 /** En un create, el tenant puede venir como campo plano o como relacion. */
@@ -165,7 +205,7 @@ export const prisma = base.$extends({
 
         if (OPERACIONES_QUE_ESCRIBEN.has(operation)) baseTocada = true;
 
-        if (!exento && model && MODELOS_CON_TENANT.has(model)) {
+        if (!exento && model && MODELOS_CON_TENANT.has(model) && !estaPermitida(model, operation)) {
           const a = (args ?? {}) as Record<string, unknown>;
 
           if (OPERACIONES_CON_WHERE.has(operation) && !whereFiltraPorTenant(a.where)) {
