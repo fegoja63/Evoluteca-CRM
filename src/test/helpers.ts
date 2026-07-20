@@ -70,10 +70,10 @@ export async function llamar(handler: Handler, opciones: Opciones = {}) {
     url.searchParams.set(clave, valor);
   }
 
-  // GET y DELETE no admiten cuerpo: construir un Request asi lanza. Al resto
-  // se les manda "{}" cuando no se dio nada, porque casi todos los handlers
-  // arrancan con request.json() y se caerian con el cuerpo vacio.
-  const admiteCuerpo = metodo !== "GET" && metodo !== "DELETE";
+  // GET no admite cuerpo (construir el Request lanza). DELETE si, y hay rutas
+  // que lo usan. Al resto se les manda "{}" cuando no se dio nada, porque casi
+  // todos los handlers arrancan con request.json().
+  const admiteCuerpo = metodo !== "GET";
   const cuerpoEnviado = admiteCuerpo ? JSON.stringify(body ?? {}) : undefined;
 
   // NextRequest y no Request a secas: varias rutas usan req.nextUrl, que solo

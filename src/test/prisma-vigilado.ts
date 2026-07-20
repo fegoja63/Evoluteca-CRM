@@ -203,7 +203,6 @@ export const prisma = base.$extends({
       async $allOperations({ model, operation, args, query }) {
         const exento = almacen.getStore();
 
-        if (OPERACIONES_QUE_ESCRIBEN.has(operation)) baseTocada = true;
 
         if (!exento && model && MODELOS_CON_TENANT.has(model) && !estaPermitida(model, operation)) {
           const a = (args ?? {}) as Record<string, unknown>;
@@ -217,7 +216,22 @@ export const prisma = base.$extends({
           }
         }
 
-        return query(args);
+        const resultado = await query(args);
+
+        // Se marca DESPUES y mirando el resultado, no antes por el nombre de la
+        // operacion. La diferencia es enorme en tiempo: las peticiones cruzadas
+        // (cliente B apuntando a datos de A) intentan escribir constantemente y
+        // no tocan ni una fila; darlas por sucias obligaba a resembrar tras cada
+        // prueba, con un viaje a Neon de por medio cada vez.
+        if (OPERACIONES_QUE_ESCRIBEN.has(operation)) {
+          const cuenta = (resultado as { count?: number } | null)?.count;
+          // updateMany/deleteMany devuelven { count }. El resto (create, update
+          // y delete de un registro) solo llega aqui si escribio de verdad:
+          // Prisma lanza cuando no encuentra el registro.
+          if (typeof cuenta !== "number" || cuenta > 0) baseTocada = true;
+        }
+
+        return resultado;
       },
     },
   },
