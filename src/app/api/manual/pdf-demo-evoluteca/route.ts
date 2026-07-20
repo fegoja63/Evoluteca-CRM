@@ -442,7 +442,7 @@ export async function GET() {
       React.createElement(LI, null, "Tipos de actividad: llamada, reunión, email y tarea."),
       React.createElement(LI, null, "Vista Lista o Calendario (alterna entre ambas)."),
       React.createElement(LI, null, "Las actividades de hoy se resaltan en rojo; las vencidas alimentan las alertas."),
-      React.createElement(LI, null, "Llévala a tu calendario: exporta un .ics puntual, o suscribe un enlace en vivo desde Mi perfil que se mantiene actualizado solo en Google/Outlook/Apple. Además, notificaciones por email."),
+      React.createElement(LI, null, "Llévala a tu calendario de tres formas: una actividad suelta (botón Calendario de cada fila, que te deja elegir el calendario en Google u Outlook), un bloque completo según el filtro activo (botón iCal), o un enlace de suscripción en vivo desde Mi perfil que se mantiene actualizado solo. Además, notificaciones por email."),
 
       React.createElement(H2, null, "8.5 Otros módulos"),
       React.createElement(LI, null, "Catálogo: los 6 servicios base con su precio; edítalos o agrega los tuyos."),

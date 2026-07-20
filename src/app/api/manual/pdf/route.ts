@@ -553,13 +553,18 @@ export async function GET() {
       React.createElement(Tip, null, "Usa Calendario para ver de un vistazo cómo se distribuye tu carga del mes; usa Lista cuando quieras despachar tareas una por una con los filtros de Pendientes, Todas o Vencidas."),
 
       React.createElement(H2, null, "4.6 Llevar la agenda a tu calendario (Google, Outlook, Apple)"),
-      React.createElement(P, null, "Tienes dos formas de ver tus actividades en tu calendario personal:"),
-      React.createElement(P, null, "Opción 1 — Exportar (.ics): haz clic en el botón iCal en la parte superior de la Agenda para descargar todas tus actividades pendientes como archivo .ics. Este archivo es compatible con:"),
-      React.createElement(LI, null, "Google Calendar, importar desde Configuración > Importar"),
-      React.createElement(LI, null, "Apple Calendar (iPhone / Mac), abre directamente al descargar"),
-      React.createElement(LI, null, "Microsoft Outlook, Archivo > Abrir e importar"),
-      React.createElement(P, null, "Cada actividad se exporta con título, tipo, fecha y hora, nombre del cliente y oportunidad vinculada (duración por defecto: 1 hora). Es una fotografía del momento: descarga el .ics de nuevo cuando quieras volver a sincronizar."),
-      React.createElement(P, null, "Opción 2 — Suscripción en vivo (recomendada): desde Mi perfil, en la sección \"Agenda en tu calendario\", genera tu enlace privado y pégalo en Google, Outlook o Apple. A diferencia de la exportación, el enlace se mantiene actualizado solo: cuando agregas o cambias actividades, tu calendario las refresca cada pocas horas sin volver a importar nada."),
+      React.createElement(P, null, "Tienes tres formas de llevar tus actividades a tu calendario personal, según lo que necesites:"),
+
+      React.createElement(P, null, "Opción 1 — Una sola actividad: cada actividad de la lista tiene un botón Calendario con tres destinos:"),
+      React.createElement(LI, null, "Google Calendar — abre la pantalla de evento nuevo ya rellenada; ahí eliges en qué calendario guardarla"),
+      React.createElement(LI, null, "Outlook — igual que el anterior, en Outlook web"),
+      React.createElement(LI, null, "Descargar .ics — un archivo con esa única actividad"),
+
+      React.createElement(P, null, "Opción 2 — Un bloque (.ics): el botón iCal de la parte superior descarga las actividades del filtro que tengas activo (Pendientes, Todas, Vencidas o Asignadas a mí). El propio botón indica qué bloque va a descargar, por ejemplo \"iCal: Vencidas\". Cada actividad se exporta con título, tipo, fecha y hora, nombre del cliente y oportunidad vinculada (duración por defecto: 1 hora). Es una fotografía del momento: descarga el .ics de nuevo cuando quieras volver a sincronizar."),
+
+      React.createElement(P, null, "Opción 3 — Suscripción en vivo (recomendada): desde Mi perfil, en la sección \"Agenda en tu calendario\", genera tu enlace privado y pégalo en Google, Outlook o Apple. A diferencia de las anteriores, el enlace se mantiene actualizado solo: cuando agregas o cambias actividades, tu calendario las refresca cada pocas horas sin volver a importar nada."),
+
+      React.createElement(Tip, null, "Si abres directamente un .ics con muchas actividades, Windows lo importa al calendario por defecto sin preguntarte cuál. Para escoger el calendario de destino usa el botón Calendario de cada actividad (opción 1) o la suscripción (opción 3); si prefieres el archivo, en Google Calendar impórtalo desde Configuración > Importar y exportar, donde sí aparece el selector \"Añadir al calendario\"."),
       React.createElement(Nota, null, "El enlace de suscripción es privado: cualquiera que lo tenga puede ver tu agenda, así que no lo compartas. Si crees que se filtró, genera uno nuevo desde Mi perfil y el anterior deja de funcionar al instante."),
 
       React.createElement(H2, null, "4.7 Actividades de hoy resaltadas en rojo"),
