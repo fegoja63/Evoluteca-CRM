@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validations/auth";
 import { estaBloqueado, registrarIntentoFallido, limpiarIntentos } from "@/lib/rate-limit";
+import { tieneDosFactores, codigoValido, consumirCodigoRespaldo } from "@/lib/dos-factores";
 
 const VENTANA_LOGIN_MS = 15 * 60 * 1000; // 15 minutos
 const MAX_INTENTOS_LOGIN = 5;
@@ -18,10 +19,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         email: { label: "Correo", type: "email" },
         password: { label: "Contraseña", type: "password" },
+        // Segundo factor. Solo se exige a quien lo tenga activo; el resto
+        // entra igual que siempre.
+        codigo: { label: "Código de verificación", type: "text" },
       },
       authorize: async (credentials) => {
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) return null;
+
+        const codigoSegundoFactor =
+          typeof credentials?.codigo === "string" ? credentials.codigo : "";
 
         const { email, password } = parsed.data;
         const clave = `login:${email.toLowerCase()}`;
@@ -52,6 +59,40 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!passwordValida) {
           await registrarIntentoFallido(clave, VENTANA_LOGIN_MS);
           return null;
+        }
+
+        // Segundo factor, solo para quien lo tenga activo. Se comprueba
+        // DESPUÉS de la contraseña a propósito: así un atacante que solo
+        // prueba códigos no descubre por el camino si acertó la contraseña.
+        if (tieneDosFactores(usuario)) {
+          if (!codigoSegundoFactor) {
+            await registrarIntentoFallido(clave, VENTANA_LOGIN_MS);
+            // Señal para que el formulario pida el código. No revela nada que
+            // el atacante no supiera ya: para llegar aquí necesitaba la
+            // contraseña correcta.
+            throw new Error("SE_REQUIERE_SEGUNDO_FACTOR");
+          }
+
+          const valido = await codigoValido(codigoSegundoFactor, usuario.totpSecret!);
+
+          if (!valido) {
+            // Puede ser un código de respaldo, para quien perdió el teléfono.
+            const { valido: esRespaldo, restantes } = await consumirCodigoRespaldo(
+              codigoSegundoFactor,
+              usuario.codigosRespaldo
+            );
+
+            if (!esRespaldo) {
+              await registrarIntentoFallido(clave, VENTANA_LOGIN_MS);
+              return null;
+            }
+
+            // Un código de respaldo es de un solo uso: se gasta al entrar.
+            await prisma.usuario.update({
+              where: { id: usuario.id },
+              data: { codigosRespaldo: restantes },
+            });
+          }
         }
 
         await limpiarIntentos(clave);

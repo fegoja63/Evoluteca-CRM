@@ -127,6 +127,18 @@ model Usuario {
   // actividades que el usuario ya puede ver según su rol.
   tokenCalendario  String?    @unique
 
+  // --- Verificación en dos pasos (TOTP, opcional por usuario) ---
+  // Secreto compartido con la app de autenticación (Google Authenticator y
+  // similares). Se guarda desde que el usuario empieza a activarla, pero no
+  // cuenta hasta que confirma con un código válido: si no, un fallo a media
+  // activación lo dejaría fuera de su propia cuenta.
+  totpSecret       String?
+  totpActivadoEn   DateTime?
+  // Códigos de un solo uso para entrar si pierde el teléfono. Se guardan
+  // hasheados con bcrypt, igual que la contraseña: en claro serían una
+  // segunda contraseña escrita en la base de datos.
+  codigosRespaldo  String[]   @default([])
+
   tenantId             String
   tenant               Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   metasVendedor        MetaVendedor[]
