@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/toast";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -243,6 +243,17 @@ function AgendaContent() {
     searchParams.get("vencidas") === "1" ? "vencidas" : "pendientes"
   );
   const [vista, setVista] = useState<"lista" | "calendario">("lista");
+
+  // Al abrir el formulario de edición se desliza suavemente hasta él. En la
+  // vista de lista el formulario queda justo debajo de la actividad editada,
+  // así que el usuario no pierde de vista qué está editando (antes saltaba al
+  // tope de la página y era fácil no notar que el formulario se habia abierto).
+  const formRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (mostrarForm && editandoId) {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [mostrarForm, editandoId]);
   const [mesCalendario, setMesCalendario] = useState(() => {
     const h = new Date(); return { anio: h.getFullYear(), mes: h.getMonth() };
   });
@@ -357,7 +368,9 @@ function AgendaContent() {
       estado: a.estado ?? "PENDIENTE",
     });
     setMostrarForm(true);
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+    // No se salta al tope de la página: en la vista de lista el formulario se
+    // inserta justo debajo de la actividad que se está editando (ver
+    // filasAntes/filasDespues) y el efecto de abajo lo desliza a la vista.
   }
 
   async function handleGuardar(e: React.FormEvent) {
@@ -501,6 +514,115 @@ function AgendaContent() {
     (a) => a.responsable?.id === miId && a.creadoBy !== miId && !a.completada
   ).length;
 
+  // Al editar desde la vista de lista, la lista se parte en dos alrededor del
+  // formulario: así este aparece justo debajo de la actividad que se edita, en
+  // lugar de al inicio de la página. Al crear una actividad nueva (o en la
+  // vista de calendario) no se parte y el formulario queda arriba como siempre.
+  const idxEdicion =
+    mostrarForm && editandoId && vista === "lista"
+      ? visibles.findIndex((a) => a.id === editandoId)
+      : -1;
+  const filasAntes = idxEdicion >= 0 ? visibles.slice(0, idxEdicion + 1) : [];
+  const filasDespues = idxEdicion >= 0 ? visibles.slice(idxEdicion + 1) : visibles;
+
+  // Se extrae a función porque ahora la fila se dibuja en dos lugares: en el
+  // trozo de lista anterior al formulario y en el posterior.
+  function renderFila(a: Actividad) {
+    const IconoTipo = tipoActividadDef(a.tipo)?.icon ?? IconPinned;
+    // "Hoy" se resalta en rojo aunque aún no esté vencida — es la alerta
+    // del día, para que no se pierda entre el resto de la lista.
+    const esHoy = !a.completada && new Date(a.fecha).toDateString() === new Date().toDateString();
+    return (
+      <div key={a.id}
+        className={`flex items-center gap-3 rounded-xl border p-3 text-sm hover:bg-neutral-50 ${esHoy ? "border-red-200 bg-red-50" : "border-neutral-200"}`}>
+        {/* Casilla para marcar COMPLETADA (no borra ni selecciona). El
+            rótulo debajo y el tooltip evitan que se confunda con borrar. */}
+        <label className="flex flex-col items-center gap-0.5 shrink-0 cursor-pointer"
+          title="Marca la tarea como completada. No la borra.">
+          <input type="checkbox" checked={a.completada}
+            onChange={(e) => toggleCompletada(a.id, e.target.checked)} className="h-4 w-4" />
+          <span className="text-[10px] leading-none text-neutral-400">Hecha</span>
+        </label>
+        <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600 flex items-center gap-1">
+          <IconoTipo size={12} stroke={1.75} />
+          {tipoActividadDef(a.tipo)?.label}
+        </span>
+        {esHoy && (
+          <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+            Hoy
+          </span>
+        )}
+        <div className="flex-1">
+          <p className={a.completada ? "text-neutral-400 line-through" : esHoy ? "font-semibold text-red-700" : "font-medium text-neutral-900"}>
+            {a.titulo}
+          </p>
+          <p className={`text-xs ${esHoy ? "text-red-500" : "text-neutral-500"}`}>
+            {formatoFecha(a.fecha)}
+            {a.responsable && ` · 👤 ${a.responsable.id === miId ? "Yo" : a.responsable.nombre}`}
+            {a.empresa && ` · ${a.empresa.nombre}`}
+            {a.contacto && ` · ${a.contacto.nombre}`}
+            {a.oportunidad && ` · ${a.oportunidad.titulo}`}
+          </p>
+        </div>
+        <div className="relative shrink-0">
+          <button
+            onClick={() => setReasignandoId(reasignandoId === a.id ? null : a.id)}
+            title="Reasignar a otra persona"
+            className="flex items-center gap-1 rounded-md border border-brand-300 bg-white px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50"
+          >
+            <IconUsers size={13} stroke={1.75} />
+            Reasignar
+          </button>
+          {reasignandoId === a.id && (
+            <>
+              {/* Capa invisible para cerrar el menú al hacer clic fuera */}
+              <div className="fixed inset-0 z-10" onClick={() => setReasignandoId(null)} />
+              <div className="absolute right-0 z-20 mt-1 w-52 rounded-lg border border-neutral-200 bg-white p-1 shadow-lg">
+                <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">Asignar a</p>
+                {usuarios.map((u) => (
+                  <button
+                    key={u.id}
+                    onClick={() => reasignar(a.id, u.id)}
+                    className={`flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-xs hover:bg-brand-50 ${a.responsable?.id === u.id ? "font-semibold text-brand-700" : "text-neutral-700"}`}
+                  >
+                    <span>{u.id === miId ? `${u.nombre} (yo)` : u.nombre}</span>
+                    {a.responsable?.id === u.id && <IconCircleCheck size={13} stroke={1.75} className="text-brand-600" />}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+        <select
+          value={a.estado}
+          onChange={(e) => cambiarEstado(a.id, e.target.value)}
+          title="Cambiar estado"
+          className={`shrink-0 rounded-full border-0 px-2 py-1 text-xs font-semibold cursor-pointer outline-none ${estadoDef(a.estado).badge}`}
+        >
+          {ESTADOS_ACTIVIDAD.map((e) => (
+            <option key={e.key} value={e.key}>{e.label}</option>
+          ))}
+        </select>
+        {!a.completada && new Date(a.fecha) < new Date() && (
+          <button onClick={() => enviarRecordatorio(a)} disabled={notificando === a.id}
+            className="text-amber-400 hover:text-amber-600 disabled:opacity-50" title="Enviarme recordatorio">
+            {notifOk === a.id ? <IconCircleCheck size={16} stroke={1.75} className="text-emerald-500" /> : notificando === a.id ? "..." : <IconBell size={16} stroke={1.75} />}
+          </button>
+        )}
+        <button onClick={() => iniciarEdicion(a)}
+          className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium shrink-0 ${editandoId === a.id ? "border-brand-500 bg-brand-50 text-brand-700" : "border-slate-300 bg-white text-slate-600 hover:border-brand-400 hover:text-brand-600"}`} title="Editar tarea">
+          <IconPencil size={13} stroke={1.75} />
+          Editar
+        </button>
+        <button onClick={() => eliminarActividad(a.id)}
+          className="flex items-center gap-1 rounded-md border border-red-300 bg-white px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 shrink-0" title="Borrar tarea">
+          <IconTrash size={13} stroke={1.75} />
+          Borrar
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="mb-6">
@@ -574,8 +696,17 @@ function AgendaContent() {
         </div>
       )}
 
+      {/* Trozo de la lista que va ANTES del formulario: termina justo en la
+          actividad que se está editando, para que el formulario aparezca
+          inmediatamente debajo de ella. Vacío si no se está editando. */}
+      {filasAntes.length > 0 && (
+        <div className="mb-2 flex flex-col gap-2">
+          {filasAntes.map(renderFila)}
+        </div>
+      )}
+
       {mostrarForm && (
-        <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+        <div ref={formRef} className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
           <h2 className="mb-4 text-sm font-medium text-neutral-900">{editandoId ? "Editar actividad" : "Nueva actividad"}</h2>
           <form onSubmit={handleGuardar} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
@@ -785,101 +916,7 @@ function AgendaContent() {
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          {visibles.map((a) => {
-            const IconoTipo = tipoActividadDef(a.tipo)?.icon ?? IconPinned;
-            // "Hoy" se resalta en rojo aunque aún no esté vencida — es la alerta
-            // del día, para que no se pierda entre el resto de la lista.
-            const esHoy = !a.completada && new Date(a.fecha).toDateString() === new Date().toDateString();
-            return (
-            <div key={a.id}
-              className={`flex items-center gap-3 rounded-xl border p-3 text-sm hover:bg-neutral-50 ${esHoy ? "border-red-200 bg-red-50" : "border-neutral-200"}`}>
-              {/* Casilla para marcar COMPLETADA (no borra ni selecciona). El
-                  rótulo debajo y el tooltip evitan que se confunda con borrar. */}
-              <label className="flex flex-col items-center gap-0.5 shrink-0 cursor-pointer"
-                title="Marca la tarea como completada. No la borra.">
-                <input type="checkbox" checked={a.completada}
-                  onChange={(e) => toggleCompletada(a.id, e.target.checked)} className="h-4 w-4" />
-                <span className="text-[10px] leading-none text-neutral-400">Hecha</span>
-              </label>
-              <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600 flex items-center gap-1">
-                <IconoTipo size={12} stroke={1.75} />
-                {tipoActividadDef(a.tipo)?.label}
-              </span>
-              {esHoy && (
-                <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
-                  Hoy
-                </span>
-              )}
-              <div className="flex-1">
-                <p className={a.completada ? "text-neutral-400 line-through" : esHoy ? "font-semibold text-red-700" : "font-medium text-neutral-900"}>
-                  {a.titulo}
-                </p>
-                <p className={`text-xs ${esHoy ? "text-red-500" : "text-neutral-500"}`}>
-                  {formatoFecha(a.fecha)}
-                  {a.responsable && ` · 👤 ${a.responsable.id === miId ? "Yo" : a.responsable.nombre}`}
-                  {a.empresa && ` · ${a.empresa.nombre}`}
-                  {a.contacto && ` · ${a.contacto.nombre}`}
-                  {a.oportunidad && ` · ${a.oportunidad.titulo}`}
-                </p>
-              </div>
-              <div className="relative shrink-0">
-                <button
-                  onClick={() => setReasignandoId(reasignandoId === a.id ? null : a.id)}
-                  title="Reasignar a otra persona"
-                  className="flex items-center gap-1 rounded-md border border-brand-300 bg-white px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50"
-                >
-                  <IconUsers size={13} stroke={1.75} />
-                  Reasignar
-                </button>
-                {reasignandoId === a.id && (
-                  <>
-                    {/* Capa invisible para cerrar el menú al hacer clic fuera */}
-                    <div className="fixed inset-0 z-10" onClick={() => setReasignandoId(null)} />
-                    <div className="absolute right-0 z-20 mt-1 w-52 rounded-lg border border-neutral-200 bg-white p-1 shadow-lg">
-                      <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">Asignar a</p>
-                      {usuarios.map((u) => (
-                        <button
-                          key={u.id}
-                          onClick={() => reasignar(a.id, u.id)}
-                          className={`flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-xs hover:bg-brand-50 ${a.responsable?.id === u.id ? "font-semibold text-brand-700" : "text-neutral-700"}`}
-                        >
-                          <span>{u.id === miId ? `${u.nombre} (yo)` : u.nombre}</span>
-                          {a.responsable?.id === u.id && <IconCircleCheck size={13} stroke={1.75} className="text-brand-600" />}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-              <select
-                value={a.estado}
-                onChange={(e) => cambiarEstado(a.id, e.target.value)}
-                title="Cambiar estado"
-                className={`shrink-0 rounded-full border-0 px-2 py-1 text-xs font-semibold cursor-pointer outline-none ${estadoDef(a.estado).badge}`}
-              >
-                {ESTADOS_ACTIVIDAD.map((e) => (
-                  <option key={e.key} value={e.key}>{e.label}</option>
-                ))}
-              </select>
-              {!a.completada && new Date(a.fecha) < new Date() && (
-                <button onClick={() => enviarRecordatorio(a)} disabled={notificando === a.id}
-                  className="text-amber-400 hover:text-amber-600 disabled:opacity-50" title="Enviarme recordatorio">
-                  {notifOk === a.id ? <IconCircleCheck size={16} stroke={1.75} className="text-emerald-500" /> : notificando === a.id ? "..." : <IconBell size={16} stroke={1.75} />}
-                </button>
-              )}
-              <button onClick={() => iniciarEdicion(a)}
-                className="flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-600 hover:border-brand-400 hover:text-brand-600 shrink-0" title="Editar tarea">
-                <IconPencil size={13} stroke={1.75} />
-                Editar
-              </button>
-              <button onClick={() => eliminarActividad(a.id)}
-                className="flex items-center gap-1 rounded-md border border-red-300 bg-white px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 shrink-0" title="Borrar tarea">
-                <IconTrash size={13} stroke={1.75} />
-                Borrar
-              </button>
-            </div>
-            );
-          })}
+          {filasDespues.map(renderFila)}
         </div>
       )}
     </div>
