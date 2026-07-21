@@ -4,10 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
 import ExcelJS from "exceljs";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { modulo: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ modulo: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 

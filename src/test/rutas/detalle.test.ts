@@ -110,7 +110,19 @@ describe("el cliente B no alcanza el detalle de nada del cliente A", () => {
     comoUsuario(B, "ADMINISTRADOR");
 
     const esLectura = metodo === "GET";
-    const antes = esLectura ? null : await huellaDelCliente(A.tenantId);
+    // Se vigilan los DOS clientes, no solo el apuntado.
+    //
+    // Vigilar solo a A dejaba un punto ciego que se destapo migrando a Next
+    // 16: si una ruta lee mal su parametro y le queda `id: undefined`, Prisma
+    // ignora ese campo y el where se queda solo con el tenantId — con lo que
+    // la operacion arrasa con TODOS los registros de quien la pide. El dato
+    // de A queda intacto y la prueba pasaba tan tranquila.
+    //
+    // El invariante correcto es mas fuerte: una peticion de B apuntando a un
+    // dato de A no debe cambiar NADA, ni de A ni de B.
+    const antes = esLectura
+      ? null
+      : [await huellaDelCliente(A.tenantId), await huellaDelCliente(B.tenantId)].join("\n");
 
     const { status, respuesta } = await llamar(handlers[metodo] as never, {
       metodo,
@@ -127,11 +139,18 @@ describe("el cliente B no alcanza el detalle de nada del cliente A", () => {
     const filtradas = HUELLAS_DE_A.filter((h) => texto.includes(h));
     expect(filtradas, `La respuesta contiene datos del cliente A: ${filtradas.join(", ")}`).toEqual([]);
 
-    // 2. Y no cambio nada suyo. Esto es lo que de verdad importa en escrituras:
-    //    cubre tambien el borrado a la papelera, que no altera ningun total.
+    // 2. Y no cambio NADA. Esto es lo que de verdad importa en escrituras:
+    //    cubre el borrado a la papelera (que no altera ningun total) y tambien
+    //    el arrasado accidental sobre el propio cliente por un id mal leido.
     if (!esLectura) {
-      const despues = await huellaDelCliente(A.tenantId);
-      expect(despues, "Una peticion del cliente B modifico datos del cliente A").toBe(antes);
+      const despues = [
+        await huellaDelCliente(A.tenantId),
+        await huellaDelCliente(B.tenantId),
+      ].join("\n");
+      expect(
+        despues,
+        "Una peticion del cliente B apuntando a un dato del cliente A modifico datos"
+      ).toBe(antes);
     }
   });
 });

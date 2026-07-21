@@ -6,7 +6,8 @@ import { operacionAuditoria } from "@/lib/auditoria";
 import { editarContactoSchema } from "@/lib/validations/contactos";
 import { parseOrError } from "@/lib/validations/helpers";
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
@@ -23,7 +24,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   return NextResponse.json(contacto);
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
@@ -52,7 +54,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   return NextResponse.json(contacto);
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   if (!puedeEliminar(session.user.rol)) {

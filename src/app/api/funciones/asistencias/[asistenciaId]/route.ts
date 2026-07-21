@@ -3,10 +3,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: { asistenciaId: string } }
-) {
+export async function DELETE(_req: Request, props: { params: Promise<{ asistenciaId: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   if (!puedeEliminar(session.user.rol)) {

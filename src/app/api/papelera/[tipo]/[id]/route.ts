@@ -6,7 +6,8 @@ import { operacionAuditoria } from "@/lib/auditoria";
 // Borrado definitivo desde la papelera — más restrictivo que el borrado
 // suave (solo ADMINISTRADOR, no GERENTE), porque esta acción sí es
 // irreversible.
-export async function DELETE(_req: Request, { params }: { params: { tipo: string; id: string } }) {
+export async function DELETE(_req: Request, props: { params: Promise<{ tipo: string; id: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   if (session.user.rol !== "ADMINISTRADOR") {

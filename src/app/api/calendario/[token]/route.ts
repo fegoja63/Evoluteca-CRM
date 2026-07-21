@@ -8,10 +8,8 @@ import { generarIcsAgenda } from "@/lib/calendario-ics";
 // la ruta. El token se puede revocar/regenerar desde "Mi perfil".
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { token: string } },
-) {
+export async function GET(_req: Request, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   // La URL termina en ".ics" para que los clientes de calendario la reconozcan;
   // el token real es el segmento sin esa extensión.
   const token = params.token.replace(/\.ics$/i, "");

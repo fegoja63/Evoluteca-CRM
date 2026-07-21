@@ -11,10 +11,8 @@ const SEGMENTOS_VALIDOS = ["INDIVIDUAL", "GRUPO", "EMPRESA", "COLEGIO"] as const
 // da de alta a cada persona en la audiencia SIN duplicar (busca coincidencia
 // por email y, en su defecto, por nombre) y le registra la asistencia a esta
 // función. Si la persona ya estaba registrada en esta función, no la repite.
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 

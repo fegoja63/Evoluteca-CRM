@@ -5,10 +5,8 @@ import { puedeEliminar, moduloActivo } from "@/lib/permisos";
 import { editarTerminoSchema } from "@/lib/validations/expedientes";
 import { parseOrError } from "@/lib/validations/helpers";
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { terminoId: string } }
-) {
+export async function PATCH(request: Request, props: { params: Promise<{ terminoId: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
@@ -37,10 +35,8 @@ export async function PATCH(
   return NextResponse.json(actualizado);
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { terminoId: string } }
-) {
+export async function DELETE(request: Request, props: { params: Promise<{ terminoId: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   if (!puedeEliminar(session.user.rol)) {

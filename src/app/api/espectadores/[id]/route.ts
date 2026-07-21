@@ -5,7 +5,8 @@ import { puedeEliminar } from "@/lib/permisos";
 import { editarEspectadorSchema } from "@/lib/validations/espectadores";
 import { parseOrError } from "@/lib/validations/helpers";
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
@@ -27,7 +28,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
   return NextResponse.json(espectador);
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
@@ -57,7 +59,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   return NextResponse.json(espectador);
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 

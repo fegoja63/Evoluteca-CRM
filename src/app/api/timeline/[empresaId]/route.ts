@@ -3,7 +3,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { numeroCotizacion } from "@/lib/cotizaciones";
 
-export async function GET(_req: Request, { params }: { params: { empresaId: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ empresaId: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   const tid = session.user.tenantId;
@@ -44,7 +45,8 @@ export async function GET(_req: Request, { params }: { params: { empresaId: stri
   return NextResponse.json(items);
 }
 
-export async function POST(req: Request, { params }: { params: { empresaId: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ empresaId: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   const { tipo, titulo, descripcion, contactoId } = await req.json();
@@ -62,7 +64,7 @@ export async function POST(req: Request, { params }: { params: { empresaId: stri
   return NextResponse.json(ev, { status: 201 });
 }
 
-export async function DELETE(req: Request, _ctx: { params: { empresaId: string } }) {
+export async function DELETE(req: Request, _ctx: { params: Promise<{ empresaId: string }> }) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   // Sin eventoId hay que parar aquí: Prisma ignora los campos undefined, así

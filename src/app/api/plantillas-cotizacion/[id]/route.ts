@@ -6,10 +6,8 @@ import { editarPlantillaSchema } from "@/lib/validations/plantillas";
 import { parseOrError } from "@/lib/validations/helpers";
 
 // DELETE — eliminar plantilla
-export async function DELETE(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   if (!puedeEliminar(session.user.rol)) {
@@ -29,10 +27,8 @@ export async function DELETE(
 // en el body, reemplaza la lista completa (se borran los ítems actuales y
 // se crean los nuevos) — más simple y confiable que intentar hacer merge
 // ítem por ítem cuando el usuario pudo agregar, quitar y reordenar a la vez.
-export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 

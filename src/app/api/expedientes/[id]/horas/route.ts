@@ -5,10 +5,8 @@ import { moduloActivo } from "@/lib/permisos";
 import { registrarHorasSchema } from "@/lib/validations/expedientes";
 import { parseOrError } from "@/lib/validations/helpers";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
@@ -21,10 +19,8 @@ export async function GET(
   return NextResponse.json(registros);
 }
 
-export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 

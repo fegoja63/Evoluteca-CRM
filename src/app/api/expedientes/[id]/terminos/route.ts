@@ -5,10 +5,8 @@ import { moduloActivo } from "@/lib/permisos";
 import { crearTerminoSchema } from "@/lib/validations/expedientes";
 import { parseOrError } from "@/lib/validations/helpers";
 
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 

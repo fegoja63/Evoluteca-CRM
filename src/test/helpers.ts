@@ -98,7 +98,14 @@ export async function llamar(handler: Handler, opciones: Opciones = {}) {
       : { body: cuerpoEnviado, headers: { "content-type": "application/json" } }),
   });
 
-  const respuesta = await handler(peticion, { params });
+  // Los params van como PROMESA, que es como se los entrega Next 16.
+  //
+  // Antes se pasaba el objeto pelado y funcionaba igual, porque `await` sobre
+  // un objeto normal lo devuelve tal cual. Pero eso hacia las pruebas ciegas
+  // justo a lo que importaba en la migracion: una ruta que siguiera leyendo
+  // `params.id` de forma sincrona habria pasado las pruebas y fallado en
+  // produccion, donde recibe una promesa y `params.id` seria undefined.
+  const respuesta = await handler(peticion, { params: Promise.resolve(params) });
 
   let cuerpo: unknown = null;
   try {

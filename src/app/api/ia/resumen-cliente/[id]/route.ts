@@ -25,7 +25,8 @@ Responde SOLO con el informe en español, sin preámbulos ni frases como "Aquí 
 
 Sé concreto y apóyate solo en los datos dados. No inventes cifras ni nombres. Si faltan datos para una sección, dilo en una frase corta.`;
 
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
+export async function POST(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 

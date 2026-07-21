@@ -6,10 +6,8 @@ import { prisma } from "@/lib/prisma";
 // pueden ocultar (el Dashboard, Reportes y el cron de alertas dependen de
 // que siempre existan), y una etapa con oportunidades asignadas tampoco —
 // para no dejar negocios reales sin una columna donde mostrarse.
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   if (session.user.rol !== "ADMINISTRADOR") return NextResponse.json({ error: "Sin permiso" }, { status: 403 });

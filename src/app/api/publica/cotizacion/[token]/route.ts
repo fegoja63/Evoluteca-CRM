@@ -7,7 +7,8 @@ import { seccionesVisibles } from "@/lib/cuerpo-cotizacion";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(_req: Request, { params }: { params: { token: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   const cot = await prisma.cotizacion.findFirst({
     where: { tokenPublico: params.token, eliminadoEn: null },
     include: {
@@ -27,7 +28,8 @@ export async function GET(_req: Request, { params }: { params: { token: string }
   return NextResponse.json({ ...cot, tenant, cuerpo: seccionesVisibles(cot.tenant.cuerpoCotizacion, !!cot.condicionesComerciales) });
 }
 
-export async function PATCH(req: Request, { params }: { params: { token: string } }) {
+export async function PATCH(req: Request, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   // El token ya es la protección principal (alta entropía), pero se limita
   // por token para frenar abuso automatizado del enlace público.
   const permitido = await permitirYRegistrar(`cotpublica:${params.token}`, 10, 60 * 60 * 1000);

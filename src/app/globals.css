@@ -1,8 +1,12 @@
+/* El @import va PRIMERO, antes de las directivas de Tailwind.
+   La regla del CSS es que los @import preceden a cualquier otra regla, y
+   @tailwind base se expande a miles de lineas: puesto despues, el import
+   acababa en mitad del archivo. Next 14 lo toleraba; Next 16 no. */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
   --background: #f8fafc;

@@ -4,7 +4,8 @@ import { verificarClaveAdmin } from "@/lib/admin-evoluteca";
 import { editarTenantSchema } from "@/lib/validations/tenants";
 import { parseOrError } from "@/lib/validations/helpers";
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const denegado = await verificarClaveAdmin(req);
   if (denegado) return denegado;
 
