@@ -45,3 +45,9 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# Red de seguridad: cualquier .env queda fuera de git por defecto (lo agrego
+# el CLI de Vercel). La plantilla de ejemplo si debe versionarse — no lleva
+# credenciales, solo los nombres de las variables.
+.env*
+!.env.example
