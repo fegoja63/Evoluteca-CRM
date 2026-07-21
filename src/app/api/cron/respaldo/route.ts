@@ -88,6 +88,21 @@ export async function GET(req: Request) {
   const tamanoMb = comprimido.length / (1024 * 1024);
 
   const resend = new Resend(process.env.RESEND_API_KEY);
+
+  /**
+   * Envía y COMPRUEBA el resultado.
+   *
+   * El SDK de Resend no lanza excepción cuando el envío falla: devuelve un
+   * objeto con `error` dentro. La primera versión de esta ruta hacía
+   * `await resend.emails.send(...)` sin mirarlo, así que respondía 200 aunque
+   * el correo no hubiera salido — justo el fallo silencioso que este cron
+   * existe para evitar. El cron de notificaciones ya lo hacía bien.
+   */
+  async function enviar(params: Parameters<typeof resend.emails.send>[0]) {
+    const { error } = await resend.emails.send(params);
+    if (error) throw new Error(`Resend rechazó el envío: ${error.name} — ${error.message}`);
+  }
+
   const nombreArchivo = `respaldo-evoluteca-${fecha.slice(0, 10)}.json.gz`;
 
   const filasTotales = Object.values(resumen).reduce((a, b) => a + b, 0);
@@ -99,7 +114,7 @@ export async function GET(req: Request) {
   // Demasiado grande: se avisa en vez de mandar un adjunto que el correo
   // rechazaría. Un respaldo que falla en silencio es peor que no tenerlo.
   if (tamanoMb > MAXIMO_ADJUNTO_MB) {
-    await resend.emails.send({
+    await enviar({
       from: "Evoluteca CRM <noreply@evoluteca.com>",
       to: destino,
       subject: `⚠️ El respaldo diario ya no cabe en un correo (${tamanoMb.toFixed(1)} MB)`,
@@ -115,7 +130,8 @@ export async function GET(req: Request) {
     );
   }
 
-  await resend.emails.send({
+  try {
+    await enviar({
     from: "Evoluteca CRM <noreply@evoluteca.com>",
     to: destino,
     subject: `Respaldo Evoluteca CRM — ${fecha.slice(0, 10)}`,
@@ -127,11 +143,23 @@ export async function GET(req: Request) {
       `<p style="color:#64748b;font-size:12px">Guarda este correo. Para restaurarlo: ` +
       `descomprime el .gz y usa <code>scripts/restaurar-db.ts</code>.</p>`,
     attachments: [{ filename: nombreArchivo, content: comprimido.toString("base64") }],
-  });
+    });
+  } catch (e) {
+    // El motivo se devuelve en la respuesta y se deja en los logs de Vercel:
+    // la ruta solo la invoca el cron con CRON_SECRET, así que no hay a quién
+    // filtrarle nada, y sin el motivo el diagnóstico es adivinar.
+    const motivo = e instanceof Error ? e.message : String(e);
+    console.error("[respaldo] no se pudo enviar:", motivo);
+    return NextResponse.json(
+      { ok: false, motivo, destino, tamanoMb: Number(tamanoMb.toFixed(2)) },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({
     ok: true,
     fecha,
+    destino,
     tablas: Object.keys(resumen).length,
     filas: filasTotales,
     tamanoMb: Number(tamanoMb.toFixed(2)),
