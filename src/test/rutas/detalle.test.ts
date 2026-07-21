@@ -53,6 +53,7 @@ const PARAMS_DEL_CLIENTE_A: Record<string, Record<string, string>> = {
   "/api/salones/[id]": { id: A.salon },
   "/api/timeline/[empresaId]": { empresaId: A.empresa },
   "/api/usuarios/[id]": { id: A.comercial },
+  "/api/usuarios/[id]/reiniciar-2fa": { id: A.comercial },
 };
 
 /**

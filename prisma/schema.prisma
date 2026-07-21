@@ -138,6 +138,12 @@ model Usuario {
   // hasheados con bcrypt, igual que la contraseña: en claro serían una
   // segunda contraseña escrita en la base de datos.
   codigosRespaldo  String[]   @default([])
+  // Rescate cuando el usuario pierde el teléfono Y sus códigos de respaldo.
+  // Un administrador INICIA el reinicio, pero quien lo confirma es el propio
+  // usuario desde su correo: si el admin pudiera desactivarlo por su cuenta,
+  // el segundo factor no protegería contra un administrador comprometido.
+  reset2faToken    String?    @unique
+  reset2faExpiry   DateTime?
 
   tenantId             String
   tenant               Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)

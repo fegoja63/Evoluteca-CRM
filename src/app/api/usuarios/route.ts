@@ -11,10 +11,18 @@ export async function GET() {
   const usuarios = await prisma.usuario.findMany({
     where: { tenantId: session.user.tenantId },
     orderBy: { creadoEn: "asc" },
-    select: { id: true, nombre: true, email: true, rol: true, activo: true, creadoEn: true },
+    select: {
+      id: true, nombre: true, email: true, rol: true, activo: true, creadoEn: true,
+      // Solo la FECHA de activación, nunca el secreto ni los códigos de
+      // respaldo: con esos, cualquiera podría generar los códigos de otro.
+      totpActivadoEn: true,
+    },
   });
 
-  return NextResponse.json(usuarios);
+  // Se expone un simple sí/no. La fecha tampoco hace falta fuera de aquí.
+  return NextResponse.json(
+    usuarios.map(({ totpActivadoEn, ...u }) => ({ ...u, dosFactoresActiva: totpActivadoEn !== null }))
+  );
 }
 
 export async function POST(request: Request) {

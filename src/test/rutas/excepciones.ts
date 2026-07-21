@@ -25,6 +25,11 @@ export const RUTAS_SIN_SESION: Record<string, Exencion> = {
     guardian: "token de un solo uso con vencimiento",
     motivo: "Se llega desde el enlace del correo, sin sesion. El token es la credencial.",
   },
+  "/api/auth/reiniciar-2fa": {
+    guardian: "token de un solo uso con vencimiento (1 hora) + limite por IP",
+    motivo:
+      "Quien llega aqui NO puede iniciar sesion: perdio su aplicacion de codigos, que es justo lo que viene a resolver. El token solo existe en el buzon del usuario, y por eso un administrador que inicia el rescate no puede completarlo.",
+  },
   "/api/registro": {
     guardian: "ADMIN_REGISTRO_SECRET",
     motivo: "Crea tenants nuevos. Lo usa Evoluteca, no los clientes.",

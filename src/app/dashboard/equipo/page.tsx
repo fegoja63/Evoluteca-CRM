@@ -13,6 +13,8 @@ type Usuario = {
   rol: string;
   activo: boolean;
   creadoEn: string;
+  /** Si tiene la verificación en dos pasos activa (para ofrecer el rescate). */
+  dosFactoresActiva?: boolean;
 };
 
 const ROLES = [
@@ -34,6 +36,7 @@ export default function EquipoPage() {
   const [resetNombre, setResetNombre] = useState("");
   const [resetPass, setResetPass] = useState("");
   const [reseteando, setReseteando] = useState(false);
+  const [rescatando, setRescatando] = useState<string | null>(null);
   const [resetOk, setResetOk] = useState(false);
 
   const [editNombreId, setEditNombreId] = useState<string | null>(null);
@@ -148,6 +151,31 @@ export default function EquipoPage() {
     }
     setResetOk(true);
     setTimeout(() => { setResetId(null); setResetPass(""); setResetOk(false); }, 2000);
+  }
+
+  /**
+   * Inicia el rescate del segundo factor de otra persona.
+   *
+   * Deliberadamente NO desactiva nada aquí: manda un enlace al correo del
+   * usuario y es él quien confirma. Por eso el mensaje insiste en que hay que
+   * avisarle: si no abre el correo, no pasa nada.
+   */
+  async function rescatar2fa(id: string, nombre: string, email: string) {
+    if (!confirm(
+      `Se enviará un enlace a ${email} para que ${nombre} desactive su verificación en dos pasos.\n\n` +
+      `Tú no puedes desactivarla por él: tiene que abrir ese correo y confirmar. El enlace dura 1 hora.\n\n¿Continuar?`
+    )) return;
+
+    setRescatando(id);
+    const res = await fetch(`/api/usuarios/${id}/reiniciar-2fa`, { method: "POST" });
+    const data = await res.json().catch(() => ({}));
+    setRescatando(null);
+
+    if (!res.ok) {
+      toast.error(data.error ?? "No se pudo iniciar el rescate.");
+      return;
+    }
+    toast.success(data.mensaje ?? `Enlace enviado a ${email}.`);
   }
 
   async function reasignarRegistros() {
@@ -383,12 +411,26 @@ export default function EquipoPage() {
                     {esAdmin && (
                       <td className="px-4 py-1">
                         {!esUnoMismo && (
-                          <button
-                            onClick={() => { setResetId(u.id); setResetNombre(u.nombre); setResetPass(""); setResetOk(false); }}
-                            className="text-xs text-brand-600 hover:underline"
-                          >
-                            Resetear contraseña
-                          </button>
+                          <div className="flex flex-col items-start gap-0.5">
+                            <button
+                              onClick={() => { setResetId(u.id); setResetNombre(u.nombre); setResetPass(""); setResetOk(false); }}
+                              className="text-xs text-brand-600 hover:underline"
+                            >
+                              Resetear contraseña
+                            </button>
+                            {/* Rescate del segundo factor: solo aparece si el
+                                usuario lo tiene activo, porque si no, no hay
+                                nada que rescatar. */}
+                            {u.dosFactoresActiva && (
+                              <button
+                                onClick={() => rescatar2fa(u.id, u.nombre, u.email)}
+                                disabled={rescatando === u.id}
+                                className="text-xs text-amber-700 hover:underline disabled:opacity-50"
+                              >
+                                {rescatando === u.id ? "Enviando…" : "Perdió su verificación en 2 pasos"}
+                              </button>
+                            )}
+                          </div>
                         )}
                       </td>
                     )}

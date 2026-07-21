@@ -49,8 +49,11 @@ export function sinSesion() {
  * Tiparlo aqui obligaria a poner un `as never` en cada llamada de cada
  * prueba, que es peor: esconde errores de verdad ademas de este.
  */
+// La peticion tampoco se tipa: `llamar` construye un NextRequest (que ES un
+// Request), pero cada route.ts declara el que le conviene y TypeScript no
+// acepta que uno valga por el otro en la posicion de parametro.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Handler = (peticion: Request, contexto: any) => Promise<Response>;
+type Handler = (peticion: any, contexto: any) => Promise<Response>;
 
 type Opciones = {
   params?: Record<string, string>;
