@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { IconTrash } from "@tabler/icons-react";
 
 type ItemMeta = {
   completada?: boolean;
@@ -50,6 +51,7 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
 
   const [form, setForm] = useState({ tipo: "NOTA", titulo: "", descripcion: "", contactoId: "" });
   const [guardando, setGuardando] = useState(false);
+  const [borrando, setBorrando]   = useState<string | null>(null);
 
   async function cargar() {
     setCargando(true);
@@ -74,12 +76,24 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
     cargar();
   }
 
-  async function eliminarEvento(eventoId: string) {
-    await fetch(`/api/timeline/${empresaId}`, {
+  async function eliminarEvento(eventoId: string, titulo: string) {
+    // Se confirma antes: borrar una nota del historial no se puede deshacer,
+    // no pasa por la papelera.
+    if (!confirm(`¿Eliminar "${titulo}" del historial? Esta acción no se puede deshacer.`)) return;
+
+    setBorrando(eventoId);
+    const res = await fetch(`/api/timeline/${empresaId}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ eventoId }),
     });
+    setBorrando(null);
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error ?? "No se pudo eliminar la nota.");
+      return;
+    }
     cargar();
   }
 
@@ -197,10 +211,25 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <span className="text-xs text-slate-400 whitespace-nowrap">{fmtFecha(item.fecha)}</span>
+                        {/* Solo las notas manuales se pueden borrar: las entradas
+                            automáticas (actividades, cotizaciones) viven en otras
+                            tablas y quitarlas de aquí no las borraría de verdad.
+
+                            El botón está SIEMPRE visible. Antes era una "×" casi
+                            blanca con opacity-0 que solo aparecía al pasar el
+                            mouse: nadie la encontraba, y en tablet o celular —donde
+                            no existe el "pasar el mouse"— era sencillamente
+                            imposible de usar. */}
                         {item.meta?.eventoId && (
-                          <button onClick={() => eliminarEvento(item.meta!.eventoId!)}
-                            className="text-slate-200 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all text-base leading-none">
-                            ×
+                          <button
+                            type="button"
+                            onClick={() => eliminarEvento(item.meta!.eventoId!, item.titulo)}
+                            disabled={borrando === item.meta.eventoId}
+                            title="Eliminar esta nota del historial"
+                            aria-label={`Eliminar "${item.titulo}" del historial`}
+                            className="p-1 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-40 transition-colors"
+                          >
+                            <IconTrash size={15} stroke={1.75} />
                           </button>
                         )}
                       </div>
