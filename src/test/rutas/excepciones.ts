@@ -45,6 +45,11 @@ export const RUTAS_SIN_SESION: Record<string, Exencion> = {
     guardian: "CRON_SECRET",
     motivo: "La invoca el cron de Vercel, que no tiene sesion de usuario.",
   },
+  "/api/cron/respaldo": {
+    guardian: "CRON_SECRET",
+    motivo:
+      "La invoca el cron de Vercel, que no tiene sesion de usuario. Falla cerrado: sin CRON_SECRET configurado responde 503 y no atiende a nadie.",
+  },
   "/api/publico/leads": {
     guardian: "Tenant.apiKeyLeads",
     motivo:
