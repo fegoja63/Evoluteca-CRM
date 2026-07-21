@@ -6,6 +6,24 @@ import { prisma } from "@/lib/prisma";
 // El dato codificado en base64 pesa ~33% más que el archivo original.
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB
 
+/**
+ * Bytes reales que ocupa un data URI, calculados desde su contenido.
+ *
+ * Devuelve null si no tiene forma de data URI con base64. No se decodifica el
+ * archivo entero solo para medirlo: de la longitud del base64 se deduce el
+ * tamano exacto (cada 4 caracteres son 3 bytes, menos el relleno final).
+ */
+function tamanoDeDataUri(dataUri: string): number | null {
+  const coma = dataUri.indexOf(",");
+  if (coma === -1) return null;
+
+  const base64 = dataUri.slice(coma + 1);
+  if (!base64) return null;
+
+  const relleno = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+  return Math.floor((base64.length * 3) / 4) - relleno;
+}
+
 export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -44,7 +62,18 @@ export async function POST(request: Request) {
   if (!nombre?.trim() || !tipo?.trim() || typeof tamano !== "number" || !datos?.startsWith("data:")) {
     return NextResponse.json({ error: "Datos de archivo inválidos" }, { status: 400 });
   }
-  if (tamano > MAX_BYTES) {
+  // Se mide el contenido REAL, no el "tamano" que declara el cliente.
+  //
+  // Antes se comparaba `tamano > MAX_BYTES`, y ese numero viene del cuerpo de
+  // la peticion: quien sube el archivo podia declarar 100 bytes y mandar uno
+  // mucho mayor. El limite no se estaba aplicando, y aqui los adjuntos se
+  // guardan DENTRO de la base: si esa tabla crece de golpe, el CRM deja de
+  // funcionar para todos los clientes, no solo para quien subio el archivo.
+  const bytesReales = tamanoDeDataUri(datos);
+  if (bytesReales === null) {
+    return NextResponse.json({ error: "El archivo no se pudo leer" }, { status: 400 });
+  }
+  if (bytesReales > MAX_BYTES) {
     return NextResponse.json({ error: "El archivo no puede pesar más de 5MB" }, { status: 400 });
   }
   const destinos = [empresaId, contactoId, oportunidadId].filter(Boolean);
@@ -70,7 +99,9 @@ export async function POST(request: Request) {
     data: {
       nombre: nombre.trim(),
       tipo: tipo.trim(),
-      tamano,
+      // El medido, no el declarado: si se guardara el del cliente, cualquier
+      // cuenta de almacenamiento partiria de un dato que el cliente controla.
+      tamano: bytesReales,
       datos,
       tenantId,
       creadoBy: session.user.id,
