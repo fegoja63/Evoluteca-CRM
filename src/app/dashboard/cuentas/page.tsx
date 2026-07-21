@@ -367,7 +367,10 @@ export default function ClientesPage() {
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Email</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Teléfono</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Sector</th>
-                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Contactos</th>
+                {/* Centrada: es una columna de conteo, y un numero suelto
+                    alineado a la izquierda bajo un titulo largo se ve
+                    desalineado con las filas de al lado. */}
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide text-center">Contactos</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide text-right">Acciones</th>
               </tr>
             </thead>
@@ -382,7 +385,7 @@ export default function ClientesPage() {
                   <td className="px-4 py-1 text-slate-500">{e.email ?? "—"}</td>
                   <td className="px-4 py-1 text-slate-500 whitespace-nowrap">{e.telefono ?? "—"}</td>
                   <td className="px-4 py-1 text-slate-500">{e.sector ?? "—"}</td>
-                  <td className="px-4 py-1 text-slate-500">{e._count.contactos}</td>
+                  <td className="px-4 py-1 text-slate-500 text-center">{e._count.contactos}</td>
                   <td className="px-4 py-1 text-right">
                     <div className="inline-flex items-center gap-3">
                       <button onClick={() => abrirEdicion(e)} title="Editar"
