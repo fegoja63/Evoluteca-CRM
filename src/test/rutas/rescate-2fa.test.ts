@@ -16,10 +16,16 @@ import { comoUsuario, llamar, sinSesion } from "../helpers";
 import { prisma } from "../prisma-vigilado";
 import { generarSecreto } from "@/lib/dos-factores";
 
-// El envío de correo se simula: aquí se prueba la lógica del rescate, no
-// Gmail. Sin esto, cada prueba intentaría abrir una conexión SMTP real.
-vi.mock("nodemailer", () => ({
-  default: { createTransport: () => ({ sendMail: vi.fn(async () => ({ messageId: "simulado" })) }) },
+// El envío se simula: aquí se prueba la lógica del rescate, no Resend. Sin
+// esto, cada prueba intentaría una llamada real a su API.
+//
+// Ojo con el detalle que hizo fallar esta prueba al cambiar el envío: el SDK
+// devuelve { data, error } y NO lanza. La simulación tiene que devolver esa
+// misma forma, o el codigo creeria que hubo un error.
+vi.mock("resend", () => ({
+  Resend: class {
+    emails = { send: async () => ({ data: { id: "simulado" }, error: null }) };
+  },
 }));
 
 import { POST as iniciarRescate } from "@/app/api/usuarios/[id]/reiniciar-2fa/route";

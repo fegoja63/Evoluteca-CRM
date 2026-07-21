@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { operacionAuditoria } from "@/lib/auditoria";
@@ -22,10 +22,17 @@ import { tieneDosFactores } from "@/lib/dos-factores";
 
 const VIGENCIA_MS = 60 * 60 * 1000; // 1 hora, igual que el reseteo de contraseña
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
-});
+/**
+ * Se envía por Resend desde noreply@evoluteca.com, no por Gmail.
+ *
+ * La primera versión usaba Gmail SMTP (copiando el patrón de
+ * forgot-password) y el servidor de correo del destinatario lo rechazó con
+ * "550 This message was classified as SPAM": un mensaje que dice venir de
+ * Evoluteca pero sale de una cuenta de Gmail es justo lo que un filtro
+ * antispam debe frenar. El resto de la aplicación ya usaba Resend con el
+ * dominio propio, que sí entrega.
+ */
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   const session = await auth();
@@ -73,8 +80,12 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
   const enlace = `${process.env.NEXTAUTH_URL}/reiniciar-2fa?token=${token}`;
 
-  await transporter.sendMail({
-    from: `"Evoluteca CRM" <${process.env.GMAIL_USER}>`,
+  if (!resend) {
+    return NextResponse.json({ error: "RESEND_API_KEY no configurada" }, { status: 503 });
+  }
+
+  const { error: errorEnvio } = await resend.emails.send({
+    from: "Evoluteca CRM <noreply@evoluteca.com>",
     to: usuario.email,
     subject: "Desactivar la verificación en dos pasos — Evoluteca CRM",
     html: `
@@ -94,6 +105,16 @@ export async function POST(request: Request, { params }: { params: { id: string 
         </p>
       </div>`,
   });
+
+  // Se comprueba el resultado: Resend no lanza excepción cuando rechaza, y
+  // decirle al administrador "enlace enviado" cuando no salió lo dejaría
+  // esperando un correo que no va a llegar.
+  if (errorEnvio) {
+    return NextResponse.json(
+      { error: `No se pudo enviar el correo: ${errorEnvio.message}` },
+      { status: 502 }
+    );
+  }
 
   // No se devuelve el token ni el enlace: el único camino es el buzón del
   // usuario. Si el administrador pudiera verlo, volveríamos al problema.

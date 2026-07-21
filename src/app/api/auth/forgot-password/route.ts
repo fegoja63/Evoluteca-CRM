@@ -1,18 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import crypto from "crypto";
 import { permitirYRegistrar, obtenerIp } from "@/lib/rate-limit";
 import { forgotPasswordSchema } from "@/lib/validations/auth";
 import { parseOrError } from "@/lib/validations/helpers";
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-});
+/**
+ * Por Resend y con el dominio propio, no por Gmail.
+ *
+ * Antes salía por Gmail SMTP diciendo ser de Evoluteca, y los servidores de
+ * correo de los clientes lo rechazaban como spam ("550 This message was
+ * classified as SPAM"). Es decir: la recuperación de contraseña llevaba
+ * tiempo sin entregar, en silencio, porque esta ruta siempre responde ok
+ * para no revelar si un correo existe.
+ *
+ * El cliente se construye dentro del handler y no al cargar el módulo: su
+ * constructor lanza si falta la clave, y Next evalúa los módulos durante el
+ * build, donde esa variable no existe. Eso tumbaba la compilación entera.
+ */
+function clienteResend() {
+  return process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -45,8 +54,14 @@ export async function POST(req: NextRequest) {
 
   const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`;
 
-  await transporter.sendMail({
-    from: `"Evoluteca CRM" <${process.env.GMAIL_USER}>`,
+  const resend = clienteResend();
+  if (!resend) {
+    console.error("[forgot-password] RESEND_API_KEY no configurada: no se envió nada");
+    return NextResponse.json({ ok: true });
+  }
+
+  const { error: errorEnvio } = await resend.emails.send({
+    from: "Evoluteca CRM <noreply@evoluteca.com>",
     to: email,
     subject: "Recupera tu contraseña — Evoluteca CRM",
     html: `
@@ -60,6 +75,13 @@ export async function POST(req: NextRequest) {
       </div>
     `,
   });
+
+  // Al usuario se le responde ok pase lo que pase (no revelar si el correo
+  // existe), pero el fallo tiene que quedar en los logs del servidor: si no,
+  // nadie se entera de que la recuperacion de contraseñas dejó de entregar.
+  if (errorEnvio) {
+    console.error("[forgot-password] Resend rechazó el envío:", errorEnvio.message);
+  }
 
   return NextResponse.json({ ok: true });
 }
