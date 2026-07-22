@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import ExcelJS from "exceljs";
+import { excedeTope } from "@/lib/importar-limite";
 
 export async function POST(request: Request, props: { params: Promise<{ modulo: string }> }) {
   const params = await props.params;
@@ -49,6 +50,8 @@ export async function POST(request: Request, props: { params: Promise<{ modulo: 
   if (filas.length === 0) {
     return NextResponse.json({ error: "El archivo no tiene datos" }, { status: 400 });
   }
+  const tope = excedeTope(filas);
+  if (tope) return tope;
 
   let creados = 0;
   let errores = 0;

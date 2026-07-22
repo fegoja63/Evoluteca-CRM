@@ -7,9 +7,15 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
+  // select explicito: sin el, findMany carga el usuario entero en memoria
+  // -passwordHash, totpSecret, codigosRespaldo, tokens de reseteo-. Hoy el
+  // archivo solo escribe 5 columnas a mano, asi que no se filtra nada, pero
+  // no hay razon para tener los secretos a mano aqui: el dia que alguien
+  // agregue una columna volcando el objeto completo, se irian en el Excel.
   const usuarios = await prisma.usuario.findMany({
     where: { tenantId: session.user.tenantId },
     orderBy: { nombre: "asc" },
+    select: { nombre: true, email: true, rol: true, activo: true, creadoEn: true },
   });
 
   const ROL_LABEL: Record<string, string> = {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import ExcelJS from "exceljs";
+import { excedeTope } from "@/lib/importar-limite";
 
 type MapeoCompleto = {
   empresa?: string;
@@ -74,6 +75,9 @@ export async function POST(request: Request) {
     headerMap.forEach(({ col, nombre }) => { fila[nombre] = leerCelda(row.getCell(col)).trim(); });
     if (Object.values(fila).some((v) => v)) filas.push(fila);
   });
+
+  const tope = excedeTope(filas);
+  if (tope) return tope;
 
   function get(fila: Record<string, string>, campo: keyof MapeoCompleto): string | null {
     const col = mapeo[campo];
