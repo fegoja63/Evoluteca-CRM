@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CampoPassword } from "@/components/campo-password";
 
 const FORM_VACIO = { claveAdmin: "", nombreEmpresa: "", nombreUsuario: "", email: "", password: "" };
 
@@ -58,11 +59,11 @@ export default function NuevoClienteInternoPage() {
           <form onSubmit={crear} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">Clave de administrador</label>
-              <input
-                type="password"
+              <CampoPassword
                 value={form.claveAdmin}
                 onChange={e => set("claveAdmin", e.target.value)}
                 placeholder="ADMIN_REGISTRO_SECRET"
+                colorOjo="text-slate-400 hover:text-slate-200"
                 className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors"
                 required
               />
@@ -106,12 +107,12 @@ export default function NuevoClienteInternoPage() {
 
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">Contraseña inicial</label>
-              <input
-                type="password"
+              <CampoPassword
                 value={form.password}
                 onChange={e => set("password", e.target.value)}
                 placeholder="Mínimo 8 caracteres"
                 minLength={8}
+                colorOjo="text-slate-400 hover:text-slate-200"
                 className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors"
                 required
               />

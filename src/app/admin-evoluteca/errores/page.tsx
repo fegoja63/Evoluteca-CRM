@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CampoPassword } from "@/components/campo-password";
 
 const CLAVE_KEY = "admin-evoluteca-secret";
 
@@ -80,10 +81,12 @@ export default function ErroresInternoPage() {
         <div className="w-full max-w-sm bg-white rounded-2xl border border-slate-200 p-6">
           <h1 className="text-lg font-semibold text-slate-900 mb-1">Errores — Panel interno</h1>
           <p className="text-xs text-slate-500 mb-4">Ingresa la clave de administrador de Evoluteca.</p>
-          <input type="password" value={claveInput} onChange={e => setClaveInput(e.target.value)}
-            onKeyDown={e => { if (e.key === "Enter") entrar(); }}
-            placeholder="Clave" autoFocus
-            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-500 mb-3" />
+          <div className="mb-3">
+            <CampoPassword value={claveInput} onChange={e => setClaveInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") entrar(); }}
+              placeholder="Clave" autoFocus
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-500" />
+          </div>
           {claveError && <p className="text-xs text-red-600 mb-3">{claveError}</p>}
           <button onClick={entrar} className="w-full rounded-xl bg-brand-600 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">Entrar</button>
         </div>
