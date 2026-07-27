@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { CampoPassword } from "@/components/campo-password";
 
 function ResetForm() {
   const searchParams = useSearchParams();
@@ -69,8 +70,7 @@ function ResetForm() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
           <label className="block text-xs font-medium text-slate-600 mb-1">Nueva contraseña</label>
-          <input
-            type="password"
+          <CampoPassword
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
@@ -82,8 +82,7 @@ function ResetForm() {
 
         <div>
           <label className="block text-xs font-medium text-slate-600 mb-1">Confirmar contraseña</label>
-          <input
-            type="password"
+          <CampoPassword
             value={confirmar}
             onChange={e => setConfirmar(e.target.value)}
             required

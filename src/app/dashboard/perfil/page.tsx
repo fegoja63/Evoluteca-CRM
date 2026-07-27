@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { IconCircleCheck, IconCalendar, IconCopy, IconCheck, IconRefresh, IconTrash } from "@tabler/icons-react";
 import DosFactores from "./DosFactores";
+import { CampoPassword } from "@/components/campo-password";
 
 const ROL_LABEL: Record<string, string> = {
   ADMINISTRADOR: "Administrador",
@@ -165,19 +166,19 @@ export default function PerfilPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Contraseña actual</label>
-              <input type="password" value={passwordActual} onChange={e => setPasswordActual(e.target.value)}
+              <CampoPassword value={passwordActual} onChange={e => setPasswordActual(e.target.value)}
                 placeholder="••••••••"
                 className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Nueva contraseña</label>
-              <input type="password" value={nuevaPassword} onChange={e => setNuevaPassword(e.target.value)}
+              <CampoPassword value={nuevaPassword} onChange={e => setNuevaPassword(e.target.value)}
                 placeholder="Mínimo 8 caracteres"
                 className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Confirmar nueva contraseña</label>
-              <input type="password" value={confirmar} onChange={e => setConfirmar(e.target.value)}
+              <CampoPassword value={confirmar} onChange={e => setConfirmar(e.target.value)}
                 placeholder="Repite la contraseña"
                 className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100" />
             </div>
