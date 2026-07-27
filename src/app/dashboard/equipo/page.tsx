@@ -5,6 +5,7 @@ import { toast } from "@/lib/toast";
 import { useSession } from "next-auth/react";
 import { RendimientoEquipo } from "@/components/rendimiento-equipo";
 import { IconDownload, IconUserPlus, IconEdit, IconCircleCheck } from "@tabler/icons-react";
+import { CampoPassword } from "@/components/campo-password";
 
 type Usuario = {
   id: string;
@@ -282,9 +283,8 @@ export default function EquipoPage() {
             </div>
             <div>
               <label className="mb-1 block text-xs text-neutral-500">Contraseña temporal *</label>
-              <input
+              <CampoPassword
                 required
-                type="password"
                 minLength={8}
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}

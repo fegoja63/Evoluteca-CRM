@@ -6,6 +6,7 @@ import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, LoginInput } from "@/lib/validations/auth";
+import { CampoPassword } from "@/components/campo-password";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -78,9 +79,9 @@ export default function LoginPage() {
 
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">Contraseña</label>
-              <input
-                type="password"
+              <CampoPassword
                 placeholder="••••••••"
+                colorOjo="text-slate-400 hover:text-slate-200"
                 className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors"
                 {...register("password")}
               />
