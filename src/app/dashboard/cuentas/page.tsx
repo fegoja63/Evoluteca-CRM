@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Pager } from "@/components/pager";
 import {
-  IconBuilding, IconUsers, IconAlertTriangle, IconLink, IconBuildingPlus, IconX, IconTrash, IconPencil,
+  IconBuilding, IconUsers, IconAlertTriangle, IconLink, IconBuildingPlus, IconX, IconTrash, IconPencil, IconUserShare,
   type Icon,
 } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
@@ -23,9 +23,12 @@ type Empresa = {
   sitioWeb: string | null;
   notas: string | null;
   creadoEn: string;
+  creadoBy: string | null;
   etiquetas: string[];
   _count: { contactos: number };
 };
+
+type Vendedor = { id: string; nombre: string; rol: string };
 
 const SECTORES = [
   "Arte y Cultura", "Educación", "Entretenimiento", "Eventos corporativos",
@@ -53,6 +56,60 @@ export default function ClientesPage() {
   const [guardandoEdit, setGuardandoEdit] = useState(false);
   const { data: session } = useSession();
   const puedeBorrar = puedeEliminar(session?.user?.rol);
+  const esAdmin = session?.user?.rol === "ADMINISTRADOR";
+
+  // Reasignación individual de cliente a un vendedor (solo admin).
+  const [vendedores, setVendedores] = useState<Vendedor[]>([]);
+  const [reasignando, setReasignando] = useState<Empresa | null>(null);
+  const [reasignarVendedorId, setReasignarVendedorId] = useState("");
+  const [guardandoReasignar, setGuardandoReasignar] = useState(false);
+
+  useEffect(() => {
+    if (!esAdmin) return;
+    fetch("/api/usuarios")
+      .then(res => res.json())
+      .then(data => setVendedores(Array.isArray(data) ? data : []))
+      .catch(() => setVendedores([]));
+  }, [esAdmin]);
+
+  const nombreVendedor = (id: string | null) =>
+    id ? (vendedores.find(v => v.id === id)?.nombre ?? "—") : "Sin asignar";
+
+  function abrirReasignar(e: Empresa) {
+    setReasignando(e);
+    setReasignarVendedorId(e.creadoBy ?? "");
+  }
+
+  async function handleReasignar(ev: React.FormEvent) {
+    ev.preventDefault();
+    if (!reasignando || !reasignarVendedorId) return;
+    setGuardandoReasignar(true);
+    try {
+      const res = await fetch(`/api/empresas/${reasignando.id}/reasignar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuarioId: reasignarVendedorId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error ?? "No se pudo reasignar. Revisa tu conexión e inténtalo de nuevo.");
+        setGuardandoReasignar(false);
+        return;
+      }
+      toast.success(
+        `Cliente reasignado a ${nombreVendedor(reasignarVendedorId)} · ` +
+        `${data.oportunidades} oportunidades · ${data.actividades} actividades`
+      );
+    } catch {
+      toast.error("No se pudo reasignar. Revisa tu conexión e inténtalo de nuevo.");
+      setGuardandoReasignar(false);
+      return;
+    }
+    setReasignando(null);
+    setGuardandoReasignar(false);
+    cargar(busqueda, page);
+    fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
+  }
 
   // Duplicados: busca por nombre similar o email exacto
   const duplicados = todasEmpresas.filter(e => {
@@ -367,6 +424,7 @@ export default function ClientesPage() {
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Email</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Teléfono</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Sector</th>
+                {esAdmin && <th className="px-4 py-1 font-semibold uppercase tracking-wide">Vendedor</th>}
                 {/* Centrada: es una columna de conteo, y un numero suelto
                     alineado a la izquierda bajo un titulo largo se ve
                     desalineado con las filas de al lado. */}
@@ -385,9 +443,22 @@ export default function ClientesPage() {
                   <td className="px-4 py-1 text-slate-500">{e.email ?? "—"}</td>
                   <td className="px-4 py-1 text-slate-500 whitespace-nowrap">{e.telefono ?? "—"}</td>
                   <td className="px-4 py-1 text-slate-500">{e.sector ?? "—"}</td>
+                  {esAdmin && (
+                    <td className="px-4 py-1">
+                      {e.creadoBy
+                        ? <span className="text-slate-600">{nombreVendedor(e.creadoBy)}</span>
+                        : <span className="text-amber-600 font-medium">Sin asignar</span>}
+                    </td>
+                  )}
                   <td className="px-4 py-1 text-slate-500 text-center">{e._count.contactos}</td>
                   <td className="px-4 py-1 text-right">
                     <div className="inline-flex items-center gap-3">
+                      {esAdmin && (
+                        <button onClick={() => abrirReasignar(e)} title="Reasignar vendedor"
+                          className="text-slate-300 hover:text-brand-600 inline-flex">
+                          <IconUserShare size={15} stroke={1.75} />
+                        </button>
+                      )}
                       <button onClick={() => abrirEdicion(e)} title="Editar"
                         className="text-slate-300 hover:text-brand-600 inline-flex">
                         <IconPencil size={15} stroke={1.75} />
@@ -467,6 +538,46 @@ export default function ClientesPage() {
                 <button type="submit" disabled={guardandoEdit}
                   className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                   {guardandoEdit ? "Guardando..." : "Guardar cambios"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {reasignando && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setReasignando(null)}>
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
+            onClick={(ev) => ev.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-slate-800">Reasignar vendedor</h2>
+              <button onClick={() => setReasignando(null)} className="text-slate-400 hover:text-slate-600">
+                <IconX size={18} stroke={1.75} />
+              </button>
+            </div>
+            <p className="mb-4 text-xs text-slate-500">
+              El cliente <strong className="text-slate-700">{reasignando.nombre}</strong> pasará al vendedor que elijas,
+              arrastrando sus oportunidades, actividades y cotizaciones. Vendedor actual:{" "}
+              <strong className="text-slate-700">{nombreVendedor(reasignando.creadoBy)}</strong>.
+            </p>
+            <form onSubmit={handleReasignar}>
+              <label className="mb-1 block text-xs text-slate-500">Nuevo vendedor</label>
+              <select value={reasignarVendedorId} onChange={ev => setReasignarVendedorId(ev.target.value)}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
+                <option value="">Seleccionar vendedor...</option>
+                {vendedores.map(v => (
+                  <option key={v.id} value={v.id}>{v.nombre}</option>
+                ))}
+              </select>
+              <div className="mt-5 flex justify-end gap-2">
+                <button type="button" onClick={() => setReasignando(null)}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={!reasignarVendedorId || guardandoReasignar}
+                  className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                  {guardandoReasignar ? "Reasignando..." : "Reasignar"}
                 </button>
               </div>
             </form>
