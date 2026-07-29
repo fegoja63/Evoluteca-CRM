@@ -104,7 +104,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.19"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.20"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -237,7 +237,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.19 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.20 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -534,6 +534,10 @@ export async function GET() {
 
       React.createElement(H2, null, "4.2 Crear una actividad"),
       React.createElement(P, null, 'Desde la Agenda haz clic en "+ Nueva actividad". También puedes crear actividades directamente desde la ficha de un cliente, contacto u oportunidad usando el formulario inline.'),
+      React.createElement(P, null, "Al elegir una Empresa en el formulario, los campos Contacto y Oportunidad se filtran automáticamente para mostrar solo los que pertenecen a esa empresa — así no tienes que buscar entre toda la lista. Si cambias de empresa y el contacto u oportunidad que tenías seleccionado ya no corresponde, el campo se limpia solo para evitar combinaciones inconsistentes."),
+      React.createElement(P, null, 'Si el contacto que buscas todavía no existe, no necesitas salir de la Agenda: junto al campo Contacto hay un botón "+ Nuevo contacto". Al pulsarlo aparece un campo para escribir el nombre; haz clic en Agregar (o presiona Enter) y el contacto se crea al instante, queda asignado a la empresa seleccionada y se selecciona automáticamente en la actividad.'),
+      React.createElement(Tip, null, "Sin empresa seleccionada, los campos Contacto y Oportunidad muestran todas las opciones disponibles. El filtro solo actúa cuando eliges una empresa."),
+      React.createElement(Nota, null, "Los contactos sin empresa asignada no aparecen en el campo Contacto cuando hay una empresa seleccionada. Si necesitas uno de ellos, asígnale primero su empresa desde la ficha del contacto."),
 
       React.createElement(H2, null, "4.3 Marcar como completada"),
       React.createElement(P, null, 'Marca el checkbox junto a la actividad para marcarla como completada. Las actividades completadas se muestran tachadas. Usa el filtro "Solo pendientes" para enfocarte en lo que falta.'),
@@ -800,6 +804,7 @@ export async function GET() {
 
       React.createElement(H2, null, "8.7 Actividades de hoy"),
       React.createElement(P, null, "La tarjeta \"Actividades de hoy\" está en la primera fila del Dashboard, junto a Pipeline y Oportunidades calientes, para que lo más urgente del día quede visible de inmediato al entrar. Cada actividad pendiente de hoy se muestra resaltada en rojo, igual que en la Agenda (ver 4.7). Rendimiento del equipo (ver 8.3) pasa a la segunda fila."),
+      React.createElement(P, null, "Debajo de las actividades de hoy, la misma tarjeta incluye una sección \"Próximas actividades\" con las siguientes 5 actividades pendientes desde mañana en adelante (título, empresa o contacto y fecha), para que veas lo que viene sin salir del Dashboard. Si no tienes actividades futuras pendientes, la sección muestra el aviso \"No hay actividades próximas programadas\"."),
 
       React.createElement(H2, null, "8.8 Panel de alertas (\"Requieren atención\")"),
       React.createElement(P, null, "Reúne las situaciones que necesitan seguimiento: actividades vencidas, negocios sin actividad reciente, cierres previstos para esta semana, cotizaciones enviadas sin respuesta y, si el tenant tiene los módulos correspondientes activos, plazos procesales próximos a vencer o funciones con ocupación baja."),
