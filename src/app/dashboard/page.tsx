@@ -41,6 +41,7 @@ export default async function DashboardPage() {
     actividadesHoy,
     actividadesVencidas,
     actividadesSemana,
+    proximasActividades,
     actividadesCompletadasHoy,
     totalActividadesHoy,
     cotizacionesSinMovimiento,
@@ -87,6 +88,17 @@ export default async function DashboardPage() {
       orderBy: { fecha: "asc" },
       take: 5,
       include: { empresa: { select: { nombre: true } } },
+    }),
+    // Próximas actividades pendientes desde mañana en adelante (sin tope de 7
+    // días) — alimenta la sección "Próximas actividades" de la tarjeta de hoy.
+    prisma.actividad.findMany({
+      where: { tenantId, completada: false, fecha: { gte: finHoy }, ...ownerFiltro },
+      orderBy: { fecha: "asc" },
+      take: 5,
+      include: {
+        empresa:  { select: { id: true, nombre: true } },
+        contacto: { select: { id: true, nombre: true } },
+      },
     }),
     prisma.actividad.count({ where: { tenantId, completada: true, fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro } }),
     prisma.actividad.count({ where: { tenantId, fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro } }),
@@ -432,7 +444,7 @@ export default async function DashboardPage() {
             </div>
           )}
           {actividadesHoy.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="flex flex-col items-center justify-center py-6 text-center">
               <IconMoodSmile size={28} stroke={1.5} className="text-slate-300 mb-2" />
               <p className="text-xs font-semibold text-slate-700">¡Sin pendientes hoy!</p>
             </div>
@@ -453,6 +465,28 @@ export default async function DashboardPage() {
               })}
             </div>
           )}
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Próximas actividades</p>
+            {proximasActividades.length === 0 ? (
+              <p className="text-xs text-slate-400 py-2">No hay actividades próximas programadas.</p>
+            ) : (
+              <div className="flex flex-col gap-1.5">
+                {proximasActividades.map(a => {
+                  const IconoTipo = TIPO_ICON[a.tipo] ?? IconPinned;
+                  return (
+                  <div key={a.id} className="flex items-center gap-2 rounded-xl bg-slate-50 border border-slate-100 px-3 py-2">
+                    <IconoTipo size={16} stroke={1.75} className="text-brand-500 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-slate-800 truncate">{a.titulo}</p>
+                      <p className="text-xs text-slate-400 truncate">{a.empresa?.nombre ?? a.contacto?.nombre ?? ""}</p>
+                    </div>
+                    <p className="text-xs text-slate-400 shrink-0">{new Date(a.fecha).toLocaleDateString("es-CO",{day:"2-digit",month:"short"})}</p>
+                  </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Oportunidades calientes */}
