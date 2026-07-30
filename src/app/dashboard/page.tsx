@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
+import { componentesHoyBogota, medianocheBogota } from "@/lib/fecha-bogota";
 import { plazoVencido } from "@/lib/plazo-legal";
 import { numeroCotizacion } from "@/lib/cotizaciones";
 import Link from "next/link";
@@ -20,17 +21,25 @@ export default async function DashboardPage() {
   const tenantId = session?.user?.tenantId ?? "";
   const ownerFiltro = filtroOwner(session?.user?.rol, session?.user?.id ?? "");
 
+  // `hoy` es el instante actual (se usa tal cual donde se compara "desde ahora").
+  // Los límites de día/mes/año se calculan sobre la fecha real de BOGOTÁ, no la
+  // del servidor (UTC en producción), para que "hoy"/"este mes" no se adelanten
+  // por la noche. Ver src/lib/fecha-bogota.ts.
   const hoy = new Date();
-  const inicioHoy   = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
-  const finHoy      = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 1);
-  const inicioMes   = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-  const finMes      = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1);
-  const inicioAnio  = new Date(hoy.getFullYear(), 0, 1);
-  const finAnio     = new Date(hoy.getFullYear() + 1, 0, 1);
-  const fin7dias    = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 7);
-  const fin5dias    = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 5);
-  const hace60dias  = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 60);
-  const hace14dias  = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 14);
+  const { anio, mes } = componentesHoyBogota(hoy);
+  const inicioHoy   = medianocheBogota(0, hoy);
+  const finHoy      = medianocheBogota(1, hoy);
+  // Mes/año se construyen con los componentes de Bogotá manteniendo la misma
+  // convención (medianoche local del servidor) que usa fechaEfectiva/Reportes,
+  // para que el agrupamiento por mes siga cuadrando en toda la app.
+  const inicioMes   = new Date(anio, mes, 1);
+  const finMes      = new Date(anio, mes + 1, 1);
+  const inicioAnio  = new Date(anio, 0, 1);
+  const finAnio     = new Date(anio + 1, 0, 1);
+  const fin7dias    = medianocheBogota(7, hoy);
+  const fin5dias    = medianocheBogota(5, hoy);
+  const hace60dias  = medianocheBogota(-60, hoy);
+  const hace14dias  = medianocheBogota(-14, hoy);
   const hace3dias   = new Date(hoy.getTime() - 3 * 86_400_000);
 
   const [
@@ -297,7 +306,7 @@ export default async function DashboardPage() {
           {/* Saludo */}
           <div>
             <p className="text-brand-300 text-xs font-medium mb-1">
-              {hoy.toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
+              {hoy.toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric",timeZone:"America/Bogota"})}
             </p>
             <h1 className="text-2xl font-bold tracking-tight">{saludo}, {nombre}</h1>
             <p className="text-brand-300 mt-0.5 text-xs">{session?.user?.tenantNombre} · {session?.user?.rol ? session.user.rol.charAt(0)+session.user.rol.slice(1).toLowerCase() : ""}</p>
