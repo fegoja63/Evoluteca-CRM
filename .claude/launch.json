@@ -7,6 +7,13 @@
       "runtimeArgs": ["run", "dev"],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "analizador",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:/Users/felip/dev/analizador-infra-telecom", "run", "dev"],
+      "port": 3005,
+      "url": "http://localhost:3005"
     }
   ]
 }
