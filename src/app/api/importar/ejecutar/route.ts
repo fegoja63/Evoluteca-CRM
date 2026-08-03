@@ -75,55 +75,54 @@ export async function POST(request: Request) {
   let creados = 0;
   let errores = 0;
 
+  // Se inserta EN LOTE (createMany) en vez de fila por fila: un archivo de
+  // cientos/miles de filas hacía cientos/miles de viajes a la base (minutos);
+  // en lote es una sola operación (segundos). Las filas sin el campo obligatorio
+  // se descartan y se cuentan como errores antes de insertar.
   if (modulo === "empresas") {
+    const data = [];
     for (const fila of filas) {
       const nombre = getCol(fila, "nombre");
       if (!nombre) { errores++; continue; }
-      try {
-        await prisma.empresa.create({
-          data: {
-            nombre,
-            sector: getCol(fila, "sector"),
-            telefono: getCol(fila, "telefono"),
-            sitioWeb: getCol(fila, "sitioWeb"),
-            notas: getCol(fila, "notas"),
-            extras: getExtras(fila) ?? undefined,
-            tenantId,
-          },
-        });
-        creados++;
-      } catch { errores++; }
+      data.push({
+        nombre,
+        sector: getCol(fila, "sector"),
+        telefono: getCol(fila, "telefono"),
+        sitioWeb: getCol(fila, "sitioWeb"),
+        notas: getCol(fila, "notas"),
+        extras: getExtras(fila) ?? undefined,
+        tenantId,
+      });
     }
+    creados = (await prisma.empresa.createMany({ data, skipDuplicates: true })).count;
   } else if (modulo === "contactos") {
     const empresas = await prisma.empresa.findMany({ where: { tenantId }, select: { id: true, nombre: true } });
     const empresaMap = new Map(empresas.map((e) => [e.nombre.toLowerCase(), e.id]));
 
+    const data = [];
     for (const fila of filas) {
       const nombre = getCol(fila, "nombre");
       if (!nombre) { errores++; continue; }
       const empresaNombre = getCol(fila, "empresa");
       const empresaId = empresaNombre ? empresaMap.get(empresaNombre.toLowerCase()) : null;
-      try {
-        await prisma.contacto.create({
-          data: {
-            nombre,
-            email: getCol(fila, "email"),
-            telefono: getCol(fila, "telefono"),
-            cargo: getCol(fila, "cargo"),
-            notas: getCol(fila, "notas"),
-            extras: getExtras(fila) ?? undefined,
-            empresaId: empresaId || null,
-            tenantId,
-          },
-        });
-        creados++;
-      } catch { errores++; }
+      data.push({
+        nombre,
+        email: getCol(fila, "email"),
+        telefono: getCol(fila, "telefono"),
+        cargo: getCol(fila, "cargo"),
+        notas: getCol(fila, "notas"),
+        extras: getExtras(fila) ?? undefined,
+        empresaId: empresaId || null,
+        tenantId,
+      });
     }
+    creados = (await prisma.contacto.createMany({ data, skipDuplicates: true })).count;
   } else if (modulo === "oportunidades") {
     const empresas = await prisma.empresa.findMany({ where: { tenantId }, select: { id: true, nombre: true } });
     const empresaMap = new Map(empresas.map((e) => [e.nombre.toLowerCase(), e.id]));
     const ETAPAS_VALIDAS = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION", "GANADA", "PERDIDA"];
 
+    const data = [];
     for (const fila of filas) {
       const titulo = getCol(fila, "titulo");
       if (!titulo) { errores++; continue; }
@@ -133,43 +132,36 @@ export async function POST(request: Request) {
       const etapa = ETAPAS_VALIDAS.includes(etapaRaw) ? etapaRaw as "PROSPECTO" | "CALIFICADO" | "PROPUESTA" | "NEGOCIACION" | "GANADA" | "PERDIDA" : "PROSPECTO";
       const valorRaw = getCol(fila, "valor");
       const valor = valorRaw ? Number(valorRaw.replace(/[^0-9.]/g, "")) : null;
-      try {
-        await prisma.oportunidad.create({
-          data: {
-            titulo,
-            etapa,
-            valor: valor && !isNaN(valor) ? valor : null,
-            notas: getCol(fila, "notas"),
-            extras: getExtras(fila) ?? undefined,
-            empresaId: empresaId || null,
-            tenantId,
-          },
-        });
-        creados++;
-      } catch { errores++; }
+      data.push({
+        titulo,
+        etapa,
+        valor: valor && !isNaN(valor) ? valor : null,
+        notas: getCol(fila, "notas"),
+        extras: getExtras(fila) ?? undefined,
+        empresaId: empresaId || null,
+        tenantId,
+      });
     }
+    creados = (await prisma.oportunidad.createMany({ data, skipDuplicates: true })).count;
   } else if (modulo === "espectadores") {
     const SEGMENTOS_VALIDOS = ["INDIVIDUAL", "GRUPO", "EMPRESA", "COLEGIO"];
+    const data = [];
     for (const fila of filas) {
       const nombre = getCol(fila, "nombre");
       if (!nombre) { errores++; continue; }
       const segRaw = getCol(fila, "segmento")?.toUpperCase() ?? "";
       const segmento = SEGMENTOS_VALIDOS.includes(segRaw) ? segRaw as "INDIVIDUAL" | "GRUPO" | "EMPRESA" | "COLEGIO" : "INDIVIDUAL";
-      try {
-        await prisma.espectador.create({
-          data: {
-            nombre,
-            email: getCol(fila, "email"),
-            telefono: getCol(fila, "telefono"),
-            segmento,
-            notas: getCol(fila, "notas"),
-            extras: getExtras(fila) ?? undefined,
-            tenantId,
-          },
-        });
-        creados++;
-      } catch { errores++; }
+      data.push({
+        nombre,
+        email: getCol(fila, "email"),
+        telefono: getCol(fila, "telefono"),
+        segmento,
+        notas: getCol(fila, "notas"),
+        extras: getExtras(fila) ?? undefined,
+        tenantId,
+      });
     }
+    creados = (await prisma.espectador.createMany({ data, skipDuplicates: true })).count;
   } else {
     return NextResponse.json({ error: "Módulo no soportado" }, { status: 400 });
   }
