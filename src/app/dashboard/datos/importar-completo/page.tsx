@@ -367,7 +367,7 @@ export default function ImportarCompletoPage() {
                 disabled={cargando || faltanRequeridos.length > 0}
                 className="w-full rounded-xl bg-accent-600 px-5 py-3 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
               >
-                <IconUpload size={15} stroke={1.75} />{cargando ? "Importando... esto puede tomar unos segundos" : `Importar ${preview.totalFilas} filas al CRM`}
+                <IconUpload size={15} stroke={1.75} />{cargando ? "Importando... puede tardar de unos segundos a un par de minutos según el tamaño. No cierres esta ventana." : `Importar ${preview.totalFilas} filas al CRM`}
               </button>
             </div>
           </div>
