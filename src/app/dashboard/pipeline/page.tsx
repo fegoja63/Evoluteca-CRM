@@ -124,8 +124,13 @@ export default function PipelinePage() {
   const [motivoPerdidaSel, setMotivoPerdidaSel] = useState("");
   const [otroMotivoPerdida, setOtroMotivoPerdida] = useState("");
   const [busqueda, setBusqueda]   = useState("");
-  const [filtroAnio, setFiltroAnio] = useState("");
+  // Por defecto el pipeline abre en el AÑO ACTUAL (resultados del año en curso),
+  // no en todo el histórico. El usuario puede cambiarlo o poner "Todos".
+  const [filtroAnio, setFiltroAnio] = useState(String(new Date().getFullYear()));
   const [filtroMes, setFiltroMes]   = useState("");
+  // "Año puro": si está activo, el filtro de año/mes también recorta los negocios
+  // ACTIVOS. Si no (por defecto), los activos siempre se ven (pipeline en curso).
+  const [anioPuro, setAnioPuro] = useState(false);
   const [filtroEtapa, setFiltroEtapa] = useState("");
   const [filtroVendedor, setFiltroVendedor] = useState("");
   const [vista, setVista] = useState<"kanban" | "tabla">("kanban");
@@ -356,18 +361,24 @@ export default function PipelinePage() {
   // iso viene como "2026-07-10T05:00:00.000Z" — tomamos los primeros 7 chars "2026-07"
   const opConFecha = oportunidades.filter(o => !!o.fechaCierre);
 
-  const aniosDisponibles = Array.from(new Set(
-    opConFecha.map(o => o.fechaCierre!.substring(0, 4))
-  )).sort((a, b) => Number(b) - Number(a));
+  const aniosSet = new Set(opConFecha.map(o => o.fechaCierre!.substring(0, 4)));
+  aniosSet.add(String(new Date().getFullYear())); // el año actual siempre seleccionable
+  const aniosDisponibles = Array.from(aniosSet).sort((a, b) => Number(b) - Number(a));
 
   const mesesDisponibles = Array.from(new Set(
     opConFecha.map(o => String(Number(o.fechaCierre!.substring(5, 7))))
   )).sort((a, b) => Number(a) - Number(b));
 
   // ── Filtrado ──
+  // El filtro de año/mes aplica SIEMPRE a los negocios cerrados (ganado/perdido),
+  // donde el año tiene sentido. A los ACTIVOS solo aplica si se pide "año puro":
+  // así, por defecto, el pipeline en curso nunca se esconde por su fecha de cierre.
+  const ETAPAS_ACTIVAS = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];
   const filtradas = oportunidades.filter(o => {
-    if (filtroAnio && (!o.fechaCierre || o.fechaCierre.substring(0, 4) !== filtroAnio)) return false;
-    if (filtroMes  && (!o.fechaCierre || String(Number(o.fechaCierre.substring(5, 7))) !== filtroMes)) return false;
+    const esActiva = ETAPAS_ACTIVAS.includes(o.etapa);
+    const aplicaFecha = !esActiva || anioPuro;
+    if (aplicaFecha && filtroAnio && (!o.fechaCierre || o.fechaCierre.substring(0, 4) !== filtroAnio)) return false;
+    if (aplicaFecha && filtroMes  && (!o.fechaCierre || String(Number(o.fechaCierre.substring(5, 7))) !== filtroMes)) return false;
     if (filtroEtapa && o.etapa !== filtroEtapa) return false;
     if (filtroVendedor && o.creadoBy !== filtroVendedor) return false;
     if (busqueda) {
@@ -403,8 +414,7 @@ export default function PipelinePage() {
   });
 
   // ── KPIs ──
-  const etapasActivas = ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"];
-  const activas  = filtradas.filter(o => etapasActivas.includes(o.etapa));
+  const activas  = filtradas.filter(o => ETAPAS_ACTIVAS.includes(o.etapa));
   const ganadas  = filtradas.filter(o => o.etapa === "GANADA");
   const perdidas = filtradas.filter(o => o.etapa === "PERDIDA");
   const valorGanadas  = ganadas.reduce((acc,o)  => acc + Number(o.valor ?? 0), 0);
@@ -487,6 +497,16 @@ export default function PipelinePage() {
           </select>
         </div>
 
+        {/* Año puro: recorta también los negocios activos por el año/mes elegido */}
+        <label
+          title={filtroAnio ? "Muestra solo los negocios (activos y cerrados) del período elegido" : "Elige un año para activar esta opción"}
+          className={`flex items-center gap-1.5 text-xs font-medium ${filtroAnio ? "text-slate-600 cursor-pointer" : "text-slate-300 cursor-not-allowed"}`}>
+          <input type="checkbox" checked={anioPuro} disabled={!filtroAnio}
+            onChange={e => setAnioPuro(e.target.checked)}
+            className="w-3.5 h-3.5 accent-brand-600 disabled:cursor-not-allowed" />
+          Solo negocios de este período
+        </label>
+
         {/* Etapa (solo en tabla) */}
         {vista === "tabla" && (
           <div className="flex items-center gap-1.5">
@@ -515,7 +535,7 @@ export default function PipelinePage() {
         {hayFiltro && (
           <div className="flex items-center gap-3">
             <span className="text-xs text-slate-500">{filtradas.length} de {oportunidades.length}</span>
-            <button onClick={() => { setBusqueda(""); setFiltroAnio(""); setFiltroMes(""); setFiltroEtapa(""); setFiltroVendedor(""); }}
+            <button onClick={() => { setBusqueda(""); setFiltroAnio(""); setFiltroMes(""); setFiltroEtapa(""); setFiltroVendedor(""); setAnioPuro(false); }}
               className="text-xs text-brand-600 hover:underline flex items-center gap-0.5">
               <IconX size={12} stroke={2} />Limpiar
             </button>
