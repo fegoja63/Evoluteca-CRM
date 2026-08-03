@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Sidebar } from "@/components/sidebar";
@@ -17,9 +18,12 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  // Verificar aceptación de términos directamente en DB (el JWT puede estar desactualizado)
+  // Verificar aceptación de términos directamente en DB (el JWT puede estar desactualizado).
+  // La propia página de términos se excluye: si no, el layout la redirige a sí
+  // misma en bucle. El pathname llega por cabecera desde el middleware.
+  const pathname = (await headers()).get("x-pathname") ?? "";
   const esDemo = session.user.tenantNombre?.toLowerCase().includes("demo");
-  if (!esDemo) {
+  if (!esDemo && pathname !== "/dashboard/terminos") {
     const usuario = await prisma.usuario.findUnique({
       where: { id: session.user.id },
       select: { aceptoTerminosEn: true },
