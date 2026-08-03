@@ -52,6 +52,11 @@ export async function POST(request: Request) {
           passwordHash,
           rol: "ADMINISTRADOR",
           tenantId: tenant.id,
+          // Es el titular de la cuenta (único con autoridad para aceptar el
+          // contrato en nombre de la empresa) y debe cambiar en su primer
+          // ingreso la clave inicial que puso quien lo dio de alta.
+          esTitular: true,
+          debeCambiarPassword: true,
         },
       });
 

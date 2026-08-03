@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { estadoActivacion } from "@/lib/activacion";
 import { Sidebar } from "@/components/sidebar";
 import { MobileNav } from "@/components/mobile-nav";
 import { Fab } from "@/components/fab";
@@ -18,17 +18,15 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  // Verificar aceptación de términos directamente en DB (el JWT puede estar desactualizado).
-  // La propia página de términos se excluye: si no, el layout la redirige a sí
-  // misma en bucle. El pathname llega por cabecera desde el middleware.
+  // Gate de activación de cuenta (cambio de clave temporal y, para el titular,
+  // aceptación del contrato). Se consulta la DB directa (el JWT puede estar
+  // desactualizado). Se excluye la propia pantalla de activación para no
+  // redirigirla a sí misma en bucle; el pathname llega por cabecera del middleware.
   const pathname = (await headers()).get("x-pathname") ?? "";
   const esDemo = session.user.tenantNombre?.toLowerCase().includes("demo");
   if (!esDemo && pathname !== "/dashboard/terminos") {
-    const usuario = await prisma.usuario.findUnique({
-      where: { id: session.user.id },
-      select: { aceptoTerminosEn: true },
-    });
-    if (!usuario?.aceptoTerminosEn) {
+    const { necesitaActivar } = await estadoActivacion(session.user.id);
+    if (necesitaActivar) {
       redirect("/dashboard/terminos");
     }
   }

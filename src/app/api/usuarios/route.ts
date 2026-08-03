@@ -74,6 +74,9 @@ export async function POST(request: Request) {
       passwordHash,
       rol,
       tenantId: session.user.tenantId,
+      // La clave la puso el administrador y se comparte por un canal externo;
+      // el usuario debe cambiarla en su primer ingreso.
+      debeCambiarPassword: true,
     },
     select: { id: true, nombre: true, email: true, rol: true, activo: true, creadoEn: true },
   });

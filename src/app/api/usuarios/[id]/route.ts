@@ -62,6 +62,9 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
       return NextResponse.json({ error: "La contraseña debe tener al menos 6 caracteres" }, { status: 400 });
     }
     data.passwordHash = await bcrypt.hash(nuevaPassword, 12);
+    // Es una clave temporal que pone el administrador y comparte por un canal
+    // externo: el usuario debe cambiarla en su próximo ingreso.
+    data.debeCambiarPassword = true;
   }
 
   // El cambio de rol y la baja/alta se registran con su propia acción, no como
