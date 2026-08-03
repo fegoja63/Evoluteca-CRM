@@ -1,16 +1,15 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { estadoActivacion } from "@/lib/activacion";
 
-export default async function TerminosLayout({ children }: { children: React.ReactNode }) {
+export default async function ActivarLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
-  if (!session?.user) redirect("/login");
+  if (!session?.user?.id) redirect("/login");
 
-  const usuario = await prisma.usuario.findUnique({
-    where: { id: session.user.id },
-    select: { aceptoTerminosEn: true },
-  });
-  if (usuario?.aceptoTerminosEn) redirect("/dashboard");
+  // Si la cuenta ya está activada (clave cambiada y, si es titular, términos
+  // aceptados), no hay nada que hacer aquí: al dashboard.
+  const { necesitaActivar } = await estadoActivacion(session.user.id);
+  if (!necesitaActivar) redirect("/dashboard");
 
   return <>{children}</>;
 }
