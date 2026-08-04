@@ -179,6 +179,19 @@ export default function PipelinePage() {
 
   useEffect(() => { cargar(); cargarRelaciones(); }, []);
 
+  // Drill-down desde Reportes (?etapa=GANADA&anio=&mes=): filtra por esa etapa y
+  // período y abre la vista de tabla para ver cada negocio de la etapa.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const etapa = params.get("etapa");
+    if (etapa) {
+      setFiltroEtapa(etapa);
+      setFiltroAnio(params.get("anio") ?? "");
+      setFiltroMes(params.get("mes") ?? "");
+      setVista("tabla");
+    }
+  }, []);
+
   useEffect(() => {
     fetch("/api/etapas-pipeline").then(r => r.json()).then(data => {
       if (!Array.isArray(data) || data.length === 0) return;

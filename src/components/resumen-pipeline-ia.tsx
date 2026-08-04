@@ -106,8 +106,13 @@ export function ResumenPipelineIA() {
             <p className="text-sm text-red-600">{error}</p>
           ) : (
             <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-              {renderResumen(texto)}
-              {cargando && <span className="inline-block w-1.5 h-4 align-text-bottom bg-brand-400 animate-pulse ml-0.5" />}
+              {cargando && !texto ? (
+                <span className="flex items-center gap-2 text-slate-500 italic">
+                  <IconSparkles size={15} stroke={2} className="animate-pulse text-brand-500 shrink-0" />
+                  Analizando tu pipeline… esto suele tardar unos 20 segundos. No cierres la ventana.
+                </span>
+              ) : renderResumen(texto)}
+              {cargando && texto && <span className="inline-block w-1.5 h-4 align-text-bottom bg-brand-400 animate-pulse ml-0.5" />}
             </div>
           )}
         </div>

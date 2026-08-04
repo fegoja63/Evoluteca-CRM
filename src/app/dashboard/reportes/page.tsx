@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
   IconBuilding,
@@ -697,8 +698,8 @@ export default function ReportesPage() {
               const qty = r.oportunidadesPorEtapa[etapa.key] ?? 0;
               const val = r.valorPorEtapa[etapa.key] ?? 0;
               const pct = Math.round((qty / maxEtapa) * 100);
-              return (
-                <div key={etapa.key} className="flex items-center gap-4">
+              const fila = (
+                <div className="flex items-center gap-4">
                   <div className="w-24 shrink-0">
                     <span className="text-xs font-medium text-slate-600">{etapa.label}</span>
                   </div>
@@ -713,6 +714,18 @@ export default function ReportesPage() {
                     <span className="text-xs font-semibold text-slate-700">{val > 0 ? fmtK(val) : "—"}</span>
                   </div>
                 </div>
+              );
+              // Con negocios, la barra es un enlace: lleva al Pipeline (vista tabla)
+              // filtrado por esa etapa y el mismo período, para ver cada negocio.
+              return qty > 0 ? (
+                <Link key={etapa.key}
+                  href={`/dashboard/pipeline?etapa=${etapa.key}&anio=${anio}&mes=${mes}`}
+                  title={`Ver los ${qty} negocios en ${etapa.label}`}
+                  className="block -mx-2 px-2 py-0.5 rounded-xl hover:bg-slate-50 transition-colors">
+                  {fila}
+                </Link>
+              ) : (
+                <div key={etapa.key}>{fila}</div>
               );
             })}
           </div>
