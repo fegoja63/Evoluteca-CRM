@@ -405,6 +405,12 @@ export default function PipelinePage() {
 
   const hayFiltro = busqueda || filtroAnio || filtroMes || filtroEtapa || filtroVendedor;
 
+  // Etiqueta del período activo — se muestra bien grande en la barra oscura del
+  // header para que el año/mes filtrado no quede escondido entre los filtros.
+  const periodoLabel = filtroAnio
+    ? (filtroMes ? `${MESES_NOMBRE[Number(filtroMes) - 1]} ${filtroAnio}` : `Año ${filtroAnio}`)
+    : "Todo el tiempo";
+
   // ── Ordenamiento para vista tabla ──
   function ordenar(col: string) {
     setOrden(prev => prev.col === col ? { col, dir: prev.dir === "asc" ? "desc" : "asc" } : { col, dir: "asc" });
@@ -439,9 +445,54 @@ export default function PipelinePage() {
 
   return (
     <div>
-      <div className="mb-5">
-        <h1 className="text-2xl font-semibold text-slate-900">Pipeline</h1>
-        <p className="text-slate-500 text-sm mt-1">Oportunidades de venta por etapa</p>
+      {/* ── HEADER: barra oscura horizontal con el PERÍODO bien visible + filtros ── */}
+      <div className="bg-gradient-to-br from-brand-800 via-brand-900 to-brand-950 px-6 sm:px-8 py-4 mb-6 rounded-2xl">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <h1 className="text-2xl font-bold text-white">Pipeline</h1>
+            <span className="hidden sm:block h-6 w-px bg-white/20" />
+            <span className="text-brand-300 text-sm">Período:</span>
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/25 px-3 py-1 text-sm font-bold text-white">
+              <IconCalendarEvent size={15} stroke={2} className="text-brand-300" />
+              {periodoLabel}
+            </span>
+            {anioPuro && filtroAnio && (
+              <span className="rounded-lg bg-amber-400/20 border border-amber-300/40 px-2 py-1 text-xs font-medium text-amber-100">
+                Solo negocios del período
+              </span>
+            )}
+          </div>
+
+          {/* Filtros de período dentro de la barra oscura */}
+          <div className="flex flex-wrap items-center gap-2 bg-white/10 border border-white/20 rounded-2xl px-4 py-2">
+            <div>
+              <p className="text-brand-300 text-xs mb-1">Año de cierre</p>
+              <select value={filtroAnio} onChange={e => { setFiltroAnio(e.target.value); setFiltroMes(""); }}
+                className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1.5 outline-none cursor-pointer">
+                <option value="">Todos</option>
+                {aniosDisponibles.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+            <div>
+              <p className="text-brand-300 text-xs mb-1">Mes de cierre</p>
+              <select value={filtroMes} onChange={e => setFiltroMes(e.target.value)}
+                className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1.5 outline-none cursor-pointer">
+                <option value="">Todos</option>
+                {mesesDisponibles.map(m => <option key={m} value={m}>{MESES_NOMBRE[Number(m) - 1]}</option>)}
+              </select>
+            </div>
+            {session?.user?.rol !== "COMERCIAL" && vendedores.length > 0 && (
+              <div>
+                <p className="text-brand-300 text-xs mb-1">Vendedor</p>
+                <select value={filtroVendedor} onChange={e => setFiltroVendedor(e.target.value)}
+                  className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1.5 outline-none cursor-pointer">
+                  <option value="">Todos</option>
+                  {vendedores.map(v => <option key={v.id} value={v.id}>{v.nombre}</option>)}
+                </select>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
@@ -490,26 +541,6 @@ export default function PipelinePage() {
           )}
         </div>
 
-        {/* Año */}
-        <div className="flex items-center gap-1.5">
-          <label className="text-xs font-medium text-slate-500">Cierre año:</label>
-          <select value={filtroAnio} onChange={e => { setFiltroAnio(e.target.value); setFiltroMes(""); }}
-            className="rounded-lg border border-slate-200 bg-white text-slate-900 text-sm px-2 py-2 outline-none cursor-pointer">
-            <option value="">Todos</option>
-            {aniosDisponibles.map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
-        </div>
-
-        {/* Mes */}
-        <div className="flex items-center gap-1.5">
-          <label className="text-xs font-medium text-slate-500">Cierre mes:</label>
-          <select value={filtroMes} onChange={e => setFiltroMes(e.target.value)}
-            className="rounded-lg border border-slate-200 bg-white text-slate-900 text-sm px-2 py-2 outline-none cursor-pointer">
-            <option value="">Todos</option>
-            {mesesDisponibles.map(m => <option key={m} value={m}>{MESES_NOMBRE[Number(m) - 1]}</option>)}
-          </select>
-        </div>
-
         {/* Año puro: recorta también los negocios activos por el año/mes elegido */}
         <label
           title={filtroAnio ? "Muestra solo los negocios (activos y cerrados) del período elegido" : "Elige un año para activar esta opción"}
@@ -528,18 +559,6 @@ export default function PipelinePage() {
               className="rounded-lg border border-slate-200 bg-white text-slate-900 text-sm px-2 py-2 outline-none cursor-pointer">
               <option value="">Todas</option>
               {ETAPAS.map(et => <option key={et.key} value={et.key}>{et.label}</option>)}
-            </select>
-          </div>
-        )}
-
-        {/* Vendedor (solo roles con visión de equipo) */}
-        {session?.user?.rol !== "COMERCIAL" && vendedores.length > 0 && (
-          <div className="flex items-center gap-1.5">
-            <label className="text-xs font-medium text-slate-500">Vendedor:</label>
-            <select value={filtroVendedor} onChange={e => setFiltroVendedor(e.target.value)}
-              className="rounded-lg border border-slate-200 bg-white text-slate-900 text-sm px-2 py-2 outline-none cursor-pointer">
-              <option value="">Todos</option>
-              {vendedores.map(v => <option key={v.id} value={v.id}>{v.nombre}</option>)}
             </select>
           </div>
         )}
