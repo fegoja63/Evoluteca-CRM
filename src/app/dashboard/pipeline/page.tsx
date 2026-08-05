@@ -36,22 +36,46 @@ type Oportunidad = {
   extras: Record<string, string> | null;
   creadoBy: string | null;
   motivoPerdida: string | null;
+  // Fecha (ISO) de la última señal de vida: actividad, cambio de etapa o, en su
+  // defecto, la creación. La calcula la API de oportunidades.
+  ultimoMovimiento?: string | null;
 };
 
 function diasDesde(fecha: string): number {
   return Math.floor((Date.now() - new Date(fecha).getTime()) / 86_400_000);
 }
 
-function urgenciaBorde(dias: number, etapa: string): string {
-  if (etapa === "GANADA" || etapa === "PERDIDA") return "";
-  if (dias < 15) return "border-l-4 border-l-emerald-400";
-  if (dias < 30) return "border-l-4 border-l-amber-400";
-  return "border-l-4 border-l-red-400";
+// Días sin movimiento = desde la última actividad o cambio de etapa (o la
+// creación si nunca se tocó). Es la base del estado "estancada", en vez de la
+// edad desde que se creó — que marcaba como estancado un negocio viejo pero
+// trabajado ayer.
+function diasSinMovimiento(o: { ultimoMovimiento?: string | null; creadoEn: string }): number {
+  return diasDesde(o.ultimoMovimiento ?? o.creadoEn);
 }
 
-function urgenciaBadge(dias: number, etapa: string): string | null {
+type EstancTier = "ok" | "alerta" | "critico";
+
+// Nivel de estancamiento según el umbral configurado por el tenant: a partir
+// del umbral es "estancada" (amber); al doble, "muy estancada" (rojo). Los
+// negocios cerrados (Ganada/Perdida) no aplican.
+function estancTier(dias: number, umbral: number, etapa: string): EstancTier | null {
   if (etapa === "GANADA" || etapa === "PERDIDA") return null;
-  return `${dias}d`;
+  if (dias >= umbral * 2) return "critico";
+  if (dias >= umbral) return "alerta";
+  return "ok";
+}
+
+function tierBorde(tier: EstancTier | null): string {
+  if (tier === "critico") return "border-l-4 border-l-red-400";
+  if (tier === "alerta") return "border-l-4 border-l-amber-400";
+  if (tier === "ok") return "border-l-4 border-l-emerald-400";
+  return "";
+}
+
+function tierBadgeColor(tier: EstancTier | null): string {
+  if (tier === "critico") return "text-red-600 bg-red-50";
+  if (tier === "alerta") return "text-amber-600 bg-amber-50";
+  return "text-emerald-600 bg-emerald-50";
 }
 
 function cierreBadge(fechaCierre: string | null, etapa: string): { label: string; color: string } | null {
@@ -62,12 +86,6 @@ function cierreBadge(fechaCierre: string | null, etapa: string): { label: string
   if (dias <= 7)  return { label: `${dias}d para cierre`, color: "bg-amber-100 text-amber-700" };
   if (dias <= 30) return { label: `${dias}d para cierre`, color: "bg-blue-50 text-blue-600" };
   return null;
-}
-
-function urgenciaBadgeColor(dias: number): string {
-  if (dias < 15) return "text-emerald-600 bg-emerald-50";
-  if (dias < 30) return "text-amber-600 bg-amber-50";
-  return "text-red-600 bg-red-50";
 }
 
 type Empresa = { id: string; nombre: string };
@@ -133,6 +151,10 @@ export default function PipelinePage() {
   const [anioPuro, setAnioPuro] = useState(false);
   const [filtroEtapa, setFiltroEtapa] = useState("");
   const [filtroVendedor, setFiltroVendedor] = useState("");
+  // Umbral de días sin movimiento para marcar una oportunidad como estancada.
+  // Lo define el ADMIN en Configuración (default 14); aquí solo se lee.
+  const [diasEstancamiento, setDiasEstancamiento] = useState(14);
+  const [soloEstancadas, setSoloEstancadas] = useState(false);
   const [vista, setVista] = useState<"kanban" | "tabla">("kanban");
   const [orden, setOrden] = useState<{ col: string; dir: "asc" | "desc" }>({ col: "creadoEn", dir: "desc" });
   const [form, setForm] = useState({
@@ -168,6 +190,7 @@ export default function PipelinePage() {
     const usuarios = await resUsu.json();
     setVendedores(Array.isArray(usuarios) ? usuarios.map((u: { id: string; nombre: string }) => ({ id: u.id, nombre: u.nombre })) : []);
     const config = await resConfig.json();
+    setDiasEstancamiento(Number(config?.diasEstancamiento) || 14);
     const salonesActivo = !!config?.modulos?.salones;
     setModuloSalones(salonesActivo);
     setModuloFunciones(!!config?.modulos?.funciones);
@@ -394,6 +417,7 @@ export default function PipelinePage() {
     if (aplicaFecha && filtroMes  && (!o.fechaCierre || String(Number(o.fechaCierre.substring(5, 7))) !== filtroMes)) return false;
     if (filtroEtapa && o.etapa !== filtroEtapa) return false;
     if (filtroVendedor && o.creadoBy !== filtroVendedor) return false;
+    if (soloEstancadas && !(esActiva && diasSinMovimiento(o) >= diasEstancamiento)) return false;
     if (busqueda) {
       const q = busqueda.toLowerCase();
       if (!o.titulo.toLowerCase().includes(q) &&
@@ -403,7 +427,16 @@ export default function PipelinePage() {
     return true;
   });
 
-  const hayFiltro = busqueda || filtroAnio || filtroMes || filtroEtapa || filtroVendedor;
+  const hayFiltro = busqueda || filtroAnio || filtroMes || filtroEtapa || filtroVendedor || soloEstancadas;
+
+  // Conteo de negocios ACTIVOS estancados (respetando el filtro de vendedor,
+  // no el de período: un negocio activo sigue vivo aunque su año de cierre no
+  // sea el filtrado). Alimenta el chip de acceso rápido al filtro "estancadas".
+  const estancadasCount = oportunidades.filter(o =>
+    ETAPAS_ACTIVAS.includes(o.etapa) &&
+    (!filtroVendedor || o.creadoBy === filtroVendedor) &&
+    diasSinMovimiento(o) >= diasEstancamiento
+  ).length;
 
   // Etiqueta del período activo — se muestra bien grande en la barra oscura del
   // header para que el año/mes filtrado no quede escondido entre los filtros.
@@ -551,6 +584,20 @@ export default function PipelinePage() {
           Solo negocios de este período
         </label>
 
+        {/* Acceso rápido: filtra los negocios activos estancados (sin actividad
+            ni cambio de etapa desde hace ≥ umbral del tenant). */}
+        {(estancadasCount > 0 || soloEstancadas) && (
+          <button
+            onClick={() => setSoloEstancadas(v => !v)}
+            title={`${estancadasCount} negocio(s) activo(s) con ${diasEstancamiento}+ días sin movimiento`}
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${
+              soloEstancadas ? "bg-red-600 text-white" : "bg-red-50 text-red-700 hover:bg-red-100"
+            }`}>
+            <IconAlertTriangle size={14} stroke={2} />
+            {estancadasCount} estancada{estancadasCount !== 1 ? "s" : ""}
+          </button>
+        )}
+
         {/* Etapa (solo en tabla) */}
         {vista === "tabla" && (
           <div className="flex items-center gap-1.5">
@@ -567,7 +614,7 @@ export default function PipelinePage() {
         {hayFiltro && (
           <div className="flex items-center gap-3">
             <span className="text-xs text-slate-500">{filtradas.length} de {oportunidades.length}</span>
-            <button onClick={() => { setBusqueda(""); setFiltroAnio(""); setFiltroMes(""); setFiltroEtapa(""); setFiltroVendedor(""); setAnioPuro(false); }}
+            <button onClick={() => { setBusqueda(""); setFiltroAnio(""); setFiltroMes(""); setFiltroEtapa(""); setFiltroVendedor(""); setAnioPuro(false); setSoloEstancadas(false); }}
               className="text-xs text-brand-600 hover:underline flex items-center gap-0.5">
               <IconX size={12} stroke={2} />Limpiar
             </button>
@@ -835,12 +882,19 @@ export default function PipelinePage() {
                   const etapa = ETAPAS.find(e => e.key === o.etapa);
                   const cb = cierreBadge(o.fechaCierre, o.etapa);
                   const dias = diasDesde(o.creadoEn);
+                  const tierMov = estancTier(diasSinMovimiento(o), diasEstancamiento, o.etapa);
                   return (
                     <tr key={o.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3">
                         <Link href={`/dashboard/pipeline/${o.id}`} className="font-medium text-slate-900 hover:text-brand-600 transition-colors">
                           {o.titulo}
                         </Link>
+                        {tierMov && tierMov !== "ok" && (
+                          <span title={`${diasSinMovimiento(o)} días sin movimiento`}
+                            className={`ml-2 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold align-middle ${tierBadgeColor(tierMov)}`}>
+                            <IconAlertTriangle size={11} stroke={2} />Estancada
+                          </span>
+                        )}
                         {o.extras?.["COTIZACION NUMERO"] && (
                           <p className="text-xs text-slate-400">{o.extras["COTIZACION NUMERO"]}</p>
                         )}
@@ -868,7 +922,7 @@ export default function PipelinePage() {
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-400">
                         {new Date(o.creadoEn).toLocaleDateString("es-CO")}
-                        <span className={`ml-1 text-xs rounded-full px-1 ${urgenciaBadgeColor(dias)}`}>{dias}d</span>
+                        <span className="ml-1 text-xs rounded-full px-1 text-slate-500 bg-slate-100">{dias}d</span>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button onClick={() => eliminarOportunidad(o.id, o.titulo)} title="Eliminar oportunidad"
@@ -920,8 +974,8 @@ export default function PipelinePage() {
                     </div>
                   )}
                   {items.map(o => {
-                    const dias = diasDesde(o.creadoEn);
-                    const badge = urgenciaBadge(dias, etapa.key);
+                    const dias = diasSinMovimiento(o);
+                    const tier = estancTier(dias, diasEstancamiento, etapa.key);
                     return (
                     <div key={o.id}
                       draggable
@@ -931,7 +985,7 @@ export default function PipelinePage() {
                         setDraggingId(o.id);
                       }}
                       onDragEnd={() => { setDraggingId(null); setDragOverEtapa(null); }}
-                      className={`rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-sm cursor-grab active:cursor-grabbing transition-opacity select-none ${urgenciaBorde(dias, etapa.key)} ${
+                      className={`rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-sm cursor-grab active:cursor-grabbing transition-opacity select-none ${tierBorde(tier)} ${
                         draggingId === o.id ? "opacity-40" : "hover:shadow-md"
                       }`}
                     >
@@ -969,9 +1023,11 @@ export default function PipelinePage() {
                               {o.probabilidad ?? 50}%
                             </span>
                           )}
-                          {badge && (
-                            <span className={`rounded-full px-1.5 py-0.5 text-xs font-semibold ${urgenciaBadgeColor(dias)}`}>
-                              {badge}
+                          {tier && (
+                            <span title={`${dias} días sin movimiento`}
+                              className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold ${tierBadgeColor(tier)}`}>
+                              {tier !== "ok" && <IconAlertTriangle size={11} stroke={2} />}
+                              {dias}d
                             </span>
                           )}
                         </div>
@@ -995,11 +1051,11 @@ export default function PipelinePage() {
         <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
           <p className="text-xs font-semibold text-slate-500 mb-2">¿Qué significan los colores de las tarjetas?</p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-600">
-            <span className="text-slate-400">La barra de color a la izquierda indica hace cuánto se creó el negocio:</span>
-            <span className="flex items-center gap-1.5"><span className="inline-block h-3.5 w-1 rounded bg-emerald-400" />Menos de 15 días — reciente</span>
-            <span className="flex items-center gap-1.5"><span className="inline-block h-3.5 w-1 rounded bg-amber-400" />Entre 15 y 29 días — dale seguimiento</span>
-            <span className="flex items-center gap-1.5"><span className="inline-block h-3.5 w-1 rounded bg-red-400" />30 días o más — estancado</span>
-            <span className="text-slate-400">Los negocios en Ganada y Perdida no muestran barra (ya están cerrados).</span>
+            <span className="text-slate-400">La barra de color a la izquierda indica hace cuánto el negocio no tiene movimiento (actividad o cambio de etapa):</span>
+            <span className="flex items-center gap-1.5"><span className="inline-block h-3.5 w-1 rounded bg-emerald-400" />Menos de {diasEstancamiento} días — al día</span>
+            <span className="flex items-center gap-1.5"><span className="inline-block h-3.5 w-1 rounded bg-amber-400" />{diasEstancamiento}+ días — estancada</span>
+            <span className="flex items-center gap-1.5"><span className="inline-block h-3.5 w-1 rounded bg-red-400" />{diasEstancamiento * 2}+ días — muy estancada</span>
+            <span className="text-slate-400">El umbral se ajusta en Configuración. Ganada y Perdida no muestran barra (ya están cerradas).</span>
           </div>
         </div>
         </>

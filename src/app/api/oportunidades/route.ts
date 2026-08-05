@@ -20,6 +20,33 @@ export async function GET(request: Request) {
 
   const where = { tenantId: session.user.tenantId, eliminadoEn: null, ...(todas ? {} : filtroOwner(session.user.rol, session.user.id)) };
 
+  // "Último movimiento" de una oportunidad = la fecha más reciente entre su
+  // última actividad, su último cambio de etapa y su creación. Es lo que usa el
+  // Pipeline para marcar negocios estancados (días sin movimiento ≥ umbral del
+  // tenant), en vez de la edad desde que se creó, que daba falsos positivos.
+  const includeMovimiento = {
+    empresa: { select: { id: true, nombre: true } },
+    contacto: { select: { id: true, nombre: true, email: true } },
+    actividades: { orderBy: { fecha: "desc" as const }, take: 1, select: { fecha: true } },
+    cambiosEtapa: { orderBy: { creadoEn: "desc" as const }, take: 1, select: { creadoEn: true } },
+  };
+
+  type ConMovimiento = {
+    creadoEn: Date;
+    actividades: { fecha: Date }[];
+    cambiosEtapa: { creadoEn: Date }[];
+  };
+  function conUltimoMovimiento<T extends ConMovimiento>(o: T) {
+    const { actividades, cambiosEtapa, ...resto } = o;
+    const candidatos = [
+      o.creadoEn,
+      actividades[0]?.fecha,
+      cambiosEtapa[0]?.creadoEn,
+    ].filter((d): d is Date => !!d);
+    const ultimoMovimiento = candidatos.reduce((a, b) => (b > a ? b : a));
+    return { ...resto, ultimoMovimiento };
+  }
+
   // Sin "page" se mantiene el comportamiento anterior (lista completa) — el
   // Kanban de Pipeline y los KPIs de Cotizaciones necesitan el dataset
   // entero para agrupar por etapa y calcular totales correctamente.
@@ -27,12 +54,9 @@ export async function GET(request: Request) {
     const oportunidades = await prisma.oportunidad.findMany({
       where,
       orderBy: { creadoEn: "desc" },
-      include: {
-        empresa: { select: { id: true, nombre: true } },
-        contacto: { select: { id: true, nombre: true, email: true } },
-      },
+      include: includeMovimiento,
     });
-    return NextResponse.json(oportunidades);
+    return NextResponse.json(oportunidades.map(conUltimoMovimiento));
   }
 
   const pageNum = Math.max(1, Number(page) || 1);
@@ -40,17 +64,14 @@ export async function GET(request: Request) {
     prisma.oportunidad.findMany({
       where,
       orderBy: { creadoEn: "desc" },
-      include: {
-        empresa: { select: { id: true, nombre: true } },
-        contacto: { select: { id: true, nombre: true, email: true } },
-      },
+      include: includeMovimiento,
       skip: (pageNum - 1) * take,
       take,
     }),
     prisma.oportunidad.count({ where }),
   ]);
 
-  return NextResponse.json(oportunidades, { headers: { "X-Total-Count": String(total) } });
+  return NextResponse.json(oportunidades.map(conUltimoMovimiento), { headers: { "X-Total-Count": String(total) } });
 }
 
 export async function POST(request: Request) {
