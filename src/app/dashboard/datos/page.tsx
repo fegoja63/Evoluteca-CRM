@@ -1,56 +1,43 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   IconBuilding, IconUser, IconUsers, IconChartFunnel, IconCalendarEvent,
-  IconFileText, IconTheater, IconRocket, IconDownload, IconUpload,
-  IconCircleCheck, IconAlertTriangle, type Icon,
+  IconFileText, IconTheater, IconPackage, IconRocket, IconDownload, type Icon,
 } from "@tabler/icons-react";
 
-type Resultado = { creados: number; errores: number; total: number } | null;
-
-const MODULOS_EXPORT: { key: string; label: string; icon: Icon }[] = [
+// `key` es el segmento que consume /api/exportar/<key>. `req`, si está, es el
+// módulo del tenant que debe estar activo para mostrar la tarjeta (los demás
+// son módulos base, siempre disponibles).
+const MODULOS_EXPORT: { key: string; label: string; icon: Icon; req?: string }[] = [
   { key: "empresas", label: "Empresas / Cuentas", icon: IconBuilding },
   { key: "contactos", label: "Contactos", icon: IconUser },
   { key: "pipeline", label: "Pipeline", icon: IconChartFunnel },
+  { key: "catalogo", label: "Catálogo / Productos", icon: IconPackage },
   { key: "agenda", label: "Agenda", icon: IconCalendarEvent },
   { key: "cotizaciones", label: "Cotizaciones", icon: IconFileText },
-  { key: "espectadores", label: "Audiencia", icon: IconUsers },
-  { key: "funciones", label: "Funciones", icon: IconTheater },
-];
-
-const MODULOS_IMPORT: { key: string; label: string; icon: Icon }[] = [
-  { key: "empresas", label: "Empresas / Cuentas", icon: IconBuilding },
-  { key: "contactos", label: "Contactos", icon: IconUser },
-  { key: "espectadores", label: "Audiencia", icon: IconUsers },
+  { key: "espectadores", label: "Audiencia", icon: IconUsers, req: "audiencia" },
+  { key: "funciones", label: "Funciones", icon: IconTheater, req: "funciones" },
 ];
 
 export default function DatosPage() {
-  const [importando, setImportando] = useState<string | null>(null);
-  const [resultado, setResultado] = useState<Resultado>(null);
-  const [moduloActivo, setModuloActivo] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [modulos, setModulos] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    fetch("/api/configuracion")
+      .then((res) => res.json())
+      .then((data) => setModulos((data.modulos as Record<string, boolean>) ?? {}))
+      .catch(() => {});
+  }, []);
+
+  const exportables = MODULOS_EXPORT.filter((m) => !m.req || modulos[m.req]);
 
   function descargar(url: string, nombre: string) {
     const a = document.createElement("a");
     a.href = url;
     a.download = nombre;
     a.click();
-  }
-
-  async function handleImportar(modulo: string) {
-    const file = fileRef.current?.files?.[0];
-    if (!file) return;
-    setImportando(modulo);
-    setResultado(null);
-    const fd = new FormData();
-    fd.append("archivo", file);
-    const res = await fetch(`/api/importar/${modulo}`, { method: "POST", body: fd });
-    const data = await res.json();
-    setResultado(data);
-    setImportando(null);
-    if (fileRef.current) fileRef.current.value = "";
   }
 
   return (
@@ -75,11 +62,11 @@ export default function DatosPage() {
         </Link>
       </div>
 
-      {/* IMPORTACION AVANZADA */}
-      <div className="mb-8 rounded-2xl border border-brand-200 bg-brand-50 p-5 flex items-center justify-between">
+      {/* IMPORTACION POR MODULO (con mapeo de columnas) */}
+      <div className="mb-10 rounded-2xl border border-brand-200 bg-brand-50 p-5 flex items-center justify-between">
         <div>
           <p className="text-sm font-semibold text-brand-900">¿Quieres importar un módulo específico?</p>
-          <p className="text-xs text-brand-600 mt-1">Sube tu archivo y mapea tus columnas a los campos del CRM.</p>
+          <p className="text-xs text-brand-600 mt-1">Sube tu archivo, mapea cada columna a los campos del CRM y decide qué hacer con el resto.</p>
         </div>
         <Link href="/dashboard/datos/importar"
           className="rounded-xl bg-accent-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-700 shrink-0 ml-4">
@@ -88,11 +75,11 @@ export default function DatosPage() {
       </div>
 
       {/* EXPORTAR */}
-      <div className="mb-10">
+      <div>
         <h2 className="text-sm font-semibold text-slate-700 mb-1">Exportar a Excel</h2>
         <p className="text-xs text-slate-400 mb-4">Descarga los datos actuales de cada módulo en un archivo .xlsx listo para usar.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {MODULOS_EXPORT.map((m) => {
+          {exportables.map((m) => {
             const Icono = m.icon;
             return (
             <div key={m.key} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4">
@@ -111,73 +98,6 @@ export default function DatosPage() {
             </div>
             );
           })}
-        </div>
-      </div>
-
-      {/* IMPORTAR */}
-      <div>
-        <h2 className="text-sm font-semibold text-slate-700 mb-1">Importar desde Excel</h2>
-        <p className="text-xs text-slate-400 mb-4">Sube un archivo .xlsx con tus datos. En el siguiente paso podrás mapear cada columna a los campos del CRM.</p>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="mb-5">
-            <label className="block text-xs font-medium text-slate-600 mb-2">1. Selecciona el módulo a importar</label>
-            <div className="flex flex-wrap gap-2">
-              {MODULOS_IMPORT.map((m) => {
-                const Icono = m.icon;
-                return (
-                <button
-                  key={m.key}
-                  onClick={() => { setModuloActivo(m.key); setResultado(null); }}
-                  className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors ${
-                    moduloActivo === m.key
-                      ? "bg-accent-600 text-white font-medium"
-                      : "bg-slate-200 text-slate-700 hover:bg-slate-300"
-                  }`}
-                >
-                  <Icono size={15} stroke={1.75} /> {m.label}
-                </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {moduloActivo && (
-            <>
-              <div className="mb-5">
-                <label className="block text-xs font-medium text-slate-600 mb-2">2. Selecciona el archivo .xlsx</label>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept=".xlsx"
-                  className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100"
-                />
-              </div>
-
-              <button
-                onClick={() => handleImportar(moduloActivo)}
-                disabled={!!importando}
-                className="rounded-xl bg-accent-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 flex items-center gap-1.5"
-              >
-                <IconUpload size={14} stroke={1.75} />{importando ? "Importando..." : "Importar ahora"}
-              </button>
-            </>
-          )}
-
-          {resultado && (
-            <div className={`mt-5 rounded-2xl p-4 ${resultado.errores === 0 ? "bg-emerald-50 border border-emerald-200" : "bg-amber-50 border border-amber-200"}`}>
-              <p className={`text-sm font-semibold flex items-center gap-1.5 ${resultado.errores === 0 ? "text-emerald-700" : "text-amber-700"}`}>
-                {resultado.errores === 0
-                  ? <><IconCircleCheck size={15} stroke={1.75} />Importación exitosa</>
-                  : <><IconAlertTriangle size={15} stroke={1.75} />Importación con advertencias</>}
-              </p>
-              <p className="text-sm text-slate-600 mt-1">
-                {resultado.creados} registros importados correctamente
-                {resultado.errores > 0 && ` · ${resultado.errores} filas con error (nombre vacío o dato inválido)`}
-                {" · "}Total procesado: {resultado.total} filas
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </div>

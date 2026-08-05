@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "@/lib/toast";
 import Link from "next/link";
 import {
-  IconBuilding, IconUser, IconChartFunnel, IconUsers,
+  IconBuilding, IconUser, IconChartFunnel, IconUsers, IconPackage,
+  IconTheater, IconCalendarEvent,
   IconCircleCheck, IconAlertTriangle, IconUpload, type Icon,
 } from "@tabler/icons-react";
 
@@ -48,13 +49,52 @@ const CAMPOS_CRM: Record<string, { key: string; label: string }[]> = {
     { key: "segmento", label: "Segmento (INDIVIDUAL/GRUPO/EMPRESA/COLEGIO)" },
     { key: "notas", label: "Notas" },
   ],
+  productos: [
+    { key: "nombre", label: "Nombre del producto/servicio *" },
+    { key: "descripcion", label: "Descripción" },
+    { key: "precioBase", label: "Precio base (número)" },
+  ],
+  funciones: [
+    { key: "titulo", label: "Título / Obra *" },
+    { key: "fecha", label: "Fecha *" },
+    { key: "sillasTotales", label: "Sillas totales" },
+    { key: "sillasVendidas", label: "Sillas vendidas" },
+    { key: "canal", label: "Canal (PLATAFORMA/TAQUILLA/INVITADOS/EMPRESA)" },
+    { key: "ingresoEstimado", label: "Ingreso estimado (número)" },
+    { key: "notas", label: "Notas" },
+  ],
+  agenda: [
+    { key: "titulo", label: "Título *" },
+    { key: "fecha", label: "Fecha *" },
+    { key: "tipo", label: "Tipo (LLAMADA/REUNION/TAREA/EMAIL/VISITA_COMERCIAL/VISITA_TECNICA)" },
+    { key: "completada", label: "Completada (Sí/No)" },
+    { key: "empresa", label: "Empresa" },
+    { key: "notas", label: "Notas" },
+  ],
+};
+
+// Módulo del tenant que debe estar activo para ofrecer la importación.
+// Los que no aparecen aquí son módulos base (siempre disponibles).
+const MODULO_REQUERIDO: Record<string, string> = {
+  espectadores: "audiencia",
+  funciones: "funciones",
+};
+
+// Campo obligatorio por módulo (debe quedar mapeado antes de importar).
+const CAMPO_OBLIGATORIO: Record<string, string> = {
+  oportunidades: "titulo",
+  funciones: "titulo",
+  agenda: "titulo",
 };
 
 const MODULOS: { key: string; label: string; icon: Icon }[] = [
   { key: "empresas", label: "Empresas / Cuentas", icon: IconBuilding },
   { key: "contactos", label: "Contactos", icon: IconUser },
   { key: "oportunidades", label: "Pipeline / Oportunidades", icon: IconChartFunnel },
+  { key: "productos", label: "Catálogo / Productos", icon: IconPackage },
+  { key: "agenda", label: "Agenda / Actividades", icon: IconCalendarEvent },
   { key: "espectadores", label: "Audiencia / Espectadores", icon: IconUsers },
+  { key: "funciones", label: "Funciones", icon: IconTheater },
 ];
 
 export default function ImportarAvanzadoPage() {
@@ -66,7 +106,23 @@ export default function ImportarAvanzadoPage() {
   const [cargando, setCargando] = useState(false);
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const [archivoGuardado, setArchivoGuardado] = useState<File | null>(null);
+  const [modulosTenant, setModulosTenant] = useState<Record<string, boolean>>({});
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Solo se ofrecen los módulos base + los verticales que el tenant tenga
+  // activos (audiencia, funciones): no tiene sentido importar Espectadores a un
+  // tenant que no usa el módulo de Audiencia.
+  useEffect(() => {
+    fetch("/api/configuracion")
+      .then((res) => res.json())
+      .then((data) => setModulosTenant((data.modulos as Record<string, boolean>) ?? {}))
+      .catch(() => {});
+  }, []);
+
+  const modulosDisponibles = MODULOS.filter((m) => {
+    const req = MODULO_REQUERIDO[m.key];
+    return !req || modulosTenant[req];
+  });
 
   async function handlePrevisualizar() {
     const file = fileRef.current?.files?.[0];
@@ -100,10 +156,10 @@ export default function ImportarAvanzadoPage() {
     if (!file || !modulo) return;
 
     // Validar que el campo obligatorio esté mapeado
-    const campoObligatorio = modulo === "oportunidades" ? "titulo" : "nombre";
+    const campoObligatorio = CAMPO_OBLIGATORIO[modulo] ?? "nombre";
     const tieneCampoObligatorio = Object.values(mapeo).includes(campoObligatorio);
     if (!tieneCampoObligatorio) {
-      toast.error(`Debes asignar al menos una columna al campo "${campoObligatorio === "nombre" ? "Nombre *" : "Título *"}" antes de importar.`);
+      toast.error(`Debes asignar al menos una columna al campo "${campoObligatorio === "titulo" ? "Título *" : "Nombre *"}" antes de importar.`);
       return;
     }
 
@@ -166,7 +222,7 @@ export default function ImportarAvanzadoPage() {
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
           <h2 className="text-sm font-semibold text-slate-800 mb-4">¿A qué módulo quieres importar?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-            {MODULOS.map((m) => {
+            {modulosDisponibles.map((m) => {
               const Icono = m.icon;
               return (
               <button key={m.key} onClick={() => setModulo(m.key)}

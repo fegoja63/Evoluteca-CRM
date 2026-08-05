@@ -61,6 +61,21 @@ export async function POST(request: Request) {
     return Object.keys(extras).length > 0 ? extras : null;
   }
 
+  // Convierte el texto de una celda a Date. `leerCelda` ya devuelve ISO cuando
+  // Excel guarda la celda como fecha real, así que `new Date(...)` la reconstruye;
+  // si viene texto no parseable devolvemos null (la fila se cuenta como error).
+  function parseFecha(v: string | null): Date | null {
+    if (!v) return null;
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function enteroODefault(v: string | null, def: number): number {
+    if (!v) return def;
+    const n = parseInt(v.replace(/[^0-9]/g, ""), 10);
+    return isNaN(n) ? def : n;
+  }
+
   const filas: Record<string, string>[] = [];
   ws.eachRow((row, rowNum) => {
     if (rowNum === 1) return;
@@ -162,6 +177,78 @@ export async function POST(request: Request) {
       });
     }
     creados = (await prisma.espectador.createMany({ data, skipDuplicates: true })).count;
+  } else if (modulo === "productos") {
+    // Producto no tiene columna `extras`, así que las columnas marcadas como
+    // "extra" simplemente se ignoran para este módulo.
+    const data = [];
+    for (const fila of filas) {
+      const nombre = getCol(fila, "nombre");
+      if (!nombre) { errores++; continue; }
+      const precioRaw = getCol(fila, "precioBase");
+      const precio = precioRaw ? Number(precioRaw.replace(/[^0-9.]/g, "")) : 0;
+      data.push({
+        nombre,
+        descripcion: getCol(fila, "descripcion"),
+        precioBase: precio && !isNaN(precio) ? precio : 0,
+        tenantId,
+      });
+    }
+    creados = (await prisma.producto.createMany({ data, skipDuplicates: true })).count;
+  } else if (modulo === "funciones") {
+    const CANALES_VALIDOS = ["PLATAFORMA", "TAQUILLA", "INVITADOS", "EMPRESA"];
+    const data = [];
+    for (const fila of filas) {
+      const titulo = getCol(fila, "titulo");
+      const fecha = parseFecha(getCol(fila, "fecha"));
+      // titulo y fecha son obligatorios en la base: sin fecha válida la fila
+      // no puede insertarse, así que se descarta y se cuenta como error.
+      if (!titulo || !fecha) { errores++; continue; }
+      const canalRaw = getCol(fila, "canal")?.toUpperCase() ?? "";
+      const canal = CANALES_VALIDOS.includes(canalRaw)
+        ? canalRaw as "PLATAFORMA" | "TAQUILLA" | "INVITADOS" | "EMPRESA" : "PLATAFORMA";
+      const ingresoRaw = getCol(fila, "ingresoEstimado");
+      const ingreso = ingresoRaw ? Number(ingresoRaw.replace(/[^0-9.]/g, "")) : null;
+      data.push({
+        titulo,
+        fecha,
+        canal,
+        sillasTotales: enteroODefault(getCol(fila, "sillasTotales"), 239),
+        sillasVendidas: enteroODefault(getCol(fila, "sillasVendidas"), 0),
+        ingresoEstimado: ingreso && !isNaN(ingreso) ? ingreso : null,
+        notas: getCol(fila, "notas"),
+        tenantId,
+      });
+    }
+    creados = (await prisma.funcion.createMany({ data, skipDuplicates: true })).count;
+  } else if (modulo === "agenda") {
+    const empresas = await prisma.empresa.findMany({ where: { tenantId }, select: { id: true, nombre: true } });
+    const empresaMap = new Map(empresas.map((e) => [e.nombre.toLowerCase(), e.id]));
+    const TIPOS_VALIDOS = ["LLAMADA", "REUNION", "TAREA", "EMAIL", "VISITA_COMERCIAL", "VISITA_TECNICA"];
+    const data = [];
+    for (const fila of filas) {
+      const titulo = getCol(fila, "titulo");
+      const fecha = parseFecha(getCol(fila, "fecha"));
+      if (!titulo || !fecha) { errores++; continue; }
+      const tipoRaw = getCol(fila, "tipo")?.toUpperCase().replace(/\s/g, "_") ?? "";
+      const tipo = TIPOS_VALIDOS.includes(tipoRaw)
+        ? tipoRaw as "LLAMADA" | "REUNION" | "TAREA" | "EMAIL" | "VISITA_COMERCIAL" | "VISITA_TECNICA" : "TAREA";
+      const completadaRaw = (getCol(fila, "completada") ?? "").toLowerCase();
+      const completada = ["si", "sí", "true", "1", "x", "yes"].includes(completadaRaw);
+      const empresaNombre = getCol(fila, "empresa");
+      const empresaId = empresaNombre ? empresaMap.get(empresaNombre.toLowerCase()) : null;
+      data.push({
+        titulo,
+        fecha,
+        tipo,
+        completada,
+        // `estado` se mantiene sincronizado con `completada` (ver schema).
+        estado: (completada ? "COMPLETADA" : "PENDIENTE") as "COMPLETADA" | "PENDIENTE",
+        notas: getCol(fila, "notas"),
+        empresaId: empresaId || null,
+        tenantId,
+      });
+    }
+    creados = (await prisma.actividad.createMany({ data, skipDuplicates: true })).count;
   } else {
     return NextResponse.json({ error: "Módulo no soportado" }, { status: 400 });
   }
