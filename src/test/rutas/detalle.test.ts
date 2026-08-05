@@ -24,6 +24,7 @@ import { huellaDelCliente } from "../huella";
 const PARAMS_DEL_CLIENTE_A: Record<string, Record<string, string>> = {
   "/api/actividades/[id]": { id: A.actividad },
   "/api/adjuntos/[id]": { id: A.adjunto },
+  "/api/campos-personalizados/[id]": { id: A.campoPersonalizado },
   "/api/contactos/[id]": { id: A.contacto },
   "/api/cotizaciones/[id]": { id: A.cotizacion },
   "/api/cotizaciones/[id]/duplicar": { id: A.cotizacion },
@@ -31,6 +32,7 @@ const PARAMS_DEL_CLIENTE_A: Record<string, Record<string, string>> = {
   "/api/cotizaciones/[id]/pdf": { id: A.cotizacion },
   "/api/cotizaciones/[id]/token": { id: A.cotizacion },
   "/api/empresas/[id]": { id: A.empresa },
+  "/api/empresas/[id]/reasignar": { id: A.empresa },
   "/api/espectadores/[id]": { id: A.espectador },
   "/api/etapas-pipeline/[id]": { id: A.etapaPipeline },
   "/api/expedientes/[id]": { id: A.expediente },
@@ -62,7 +64,6 @@ const PARAMS_DEL_CLIENTE_A: Record<string, Record<string, string>> = {
  */
 const PARAMETRO_NO_ES_DE_CLIENTE: Record<string, string> = {
   "/api/exportar/[modulo]": "El parametro es el nombre del modulo a exportar, no un id.",
-  "/api/importar/[modulo]": "El parametro es el nombre del modulo a importar, no un id.",
   "/api/plantilla/[modulo]": "El parametro es el nombre del modulo cuya plantilla se descarga.",
 };
 

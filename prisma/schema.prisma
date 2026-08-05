@@ -95,6 +95,7 @@ model Tenant {
   etapasPipeline       EtapaPipeline[]
   usoIA                UsoIA[]
   registrosAuditoria   RegistroAuditoria[]
+  camposPersonalizados CampoPersonalizado[]
 
   @@map("tenants")
 }
@@ -912,6 +913,47 @@ model NpsRespuesta {
 
   @@index([funcionId])
   @@map("nps_respuestas")
+}
+
+// ---- Campos personalizados (definidos por el ADMIN, por entidad) ----
+//
+// Cada tenant define sus propios campos extra para Empresa y Oportunidad
+// (ej. "NIT", "Competidor", "N° de licitación"). La DEFINICIÓN vive aquí; el
+// VALOR de cada registro se guarda en su columna `extras` (JSON), con la
+// `clave` de este modelo como llave. La clave lleva prefijo `cp_` para no
+// chocar con los datos que llegan de importaciones de Excel (que usan llaves
+// legibles como "COTIZACION NUMERO").
+enum EntidadCampo {
+  EMPRESA
+  OPORTUNIDAD
+}
+
+enum TipoCampo {
+  TEXTO
+  NUMERO
+  FECHA
+  LISTA
+  BOOLEANO
+}
+
+model CampoPersonalizado {
+  id          String       @id @default(uuid())
+  entidad     EntidadCampo
+  clave       String // slug estable con prefijo cp_ (ej. "cp_competidor")
+  etiqueta    String // nombre visible que definió el usuario
+  tipo        TipoCampo    @default(TEXTO)
+  opciones    String[]     @default([]) // solo para tipo LISTA
+  obligatorio Boolean      @default(false)
+  orden       Int          @default(0)
+  activo      Boolean      @default(true)
+  creadoEn    DateTime     @default(now())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, entidad, clave])
+  @@index([tenantId, entidad])
+  @@map("campos_personalizados")
 }
 
 // ---- Salones (módulo opcional — negocios de alquiler de espacios) ----

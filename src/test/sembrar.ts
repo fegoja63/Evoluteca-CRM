@@ -48,6 +48,7 @@ function ids(letra: "a" | "b") {
     metaVenta: `mv-${letra}-1`,
     metaVendedor: `mvd-${letra}-1`,
     eventoTimeline: `tim-${letra}-1`,
+    campoPersonalizado: `cp-${letra}-1`,
   } as const;
 }
 
@@ -259,6 +260,17 @@ function operacionesDeModulos(m: Molde, nombre: string) {
         empresaId: m.empresa,
         tipo: "NOTA",
         titulo: `Timeline de ${nombre}`,
+      },
+    }),
+
+    prisma.campoPersonalizado.create({
+      data: {
+        id: m.campoPersonalizado,
+        tenantId: m.tenantId,
+        entidad: "EMPRESA",
+        clave: "cp_dato",
+        etiqueta: `Dato de ${nombre}`,
+        tipo: "TEXTO",
       },
     }),
   ];

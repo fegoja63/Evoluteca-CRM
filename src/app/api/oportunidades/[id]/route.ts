@@ -5,6 +5,7 @@ import { editarOportunidadSchema } from "@/lib/validations/oportunidades";
 import { parseOrError } from "@/lib/validations/helpers";
 import { puedeEliminar } from "@/lib/permisos";
 import { operacionAuditoria } from "@/lib/auditoria";
+import { construirExtrasConCampos } from "@/lib/campos-servidor";
 
 export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -64,6 +65,20 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
   if (cotizacionNumero?.trim()) {
     const extrasActuales = (oportunidad.extras as Record<string, string> | null) ?? {};
     data.extras = { ...extrasActuales, "COTIZACION NUMERO": cotizacionNumero.trim() };
+  }
+  // Campos personalizados: se validan contra las definiciones del tenant y se
+  // mezclan sobre los extras vigentes (incluida la clave COTIZACION NUMERO recién
+  // puesta arriba, si aplica) sin pisar los datos importados de Excel.
+  if (body.extras !== undefined && typeof body.extras === "object" && body.extras !== null) {
+    const base = data.extras !== undefined ? data.extras : oportunidad.extras;
+    const r = await construirExtrasConCampos({
+      tenantId: session.user.tenantId,
+      entidad: "OPORTUNIDAD",
+      entrantes: body.extras as Record<string, unknown>,
+      extrasActuales: base,
+    });
+    if (!r.ok) return NextResponse.json({ error: r.error }, { status: 400 });
+    data.extras = r.extras;
   }
   if (notas !== undefined) data.notas = notas?.trim() || null;
   if (empresaId !== undefined) data.empresaId = empresaId || null;

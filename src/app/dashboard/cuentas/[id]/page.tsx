@@ -12,6 +12,9 @@ const SECTORES = [
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ExtrasPanel } from "@/components/extras-panel";
+import { CamposPersonalizadosForm } from "@/components/campos-personalizados-form";
+import { CamposPersonalizadosVista } from "@/components/campos-personalizados-vista";
+import { esClaveCampoPersonalizado } from "@/lib/campos-personalizados";
 import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 import { TimelineCliente } from "@/components/timeline-cliente";
 import { NotasRapidas } from "@/components/notas-rapidas";
@@ -59,6 +62,9 @@ export default function FichaClientePage() {
   const [editando, setEditando] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [form, setForm] = useState({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "", condicionesComerciales: "" });
+  // Valores de los campos personalizados (clave cp_* -> valor). Se separan de
+  // los extras importados de Excel, que no se editan aquí.
+  const [camposValores, setCamposValores] = useState<Record<string, string>>({});
   const [quickTipo, setQuickTipo] = useState<string | undefined>(undefined);
   const [quickKey, setQuickKey] = useState(0);
 
@@ -77,6 +83,11 @@ export default function FichaClientePage() {
         notas: data.notas ?? "",
         condicionesComerciales: data.condicionesComerciales ?? "",
       });
+      const cp: Record<string, string> = {};
+      for (const [k, v] of Object.entries((data.extras ?? {}) as Record<string, unknown>)) {
+        if (esClaveCampoPersonalizado(k)) cp[k] = String(v ?? "");
+      }
+      setCamposValores(cp);
     }
     if (!silencioso) setCargando(false);
   }
@@ -106,7 +117,7 @@ export default function FichaClientePage() {
       const res = await fetch(`/api/empresas/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, extras: camposValores }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -211,6 +222,8 @@ export default function FichaClientePage() {
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               <p className="mt-1 text-[11px] text-slate-400">Se precargan al crear una cotización para este cliente (editables por cotización) y salen en el PDF y el enlace público.</p>
             </div>
+            <CamposPersonalizadosForm entidad="EMPRESA" valores={camposValores}
+              onChange={(clave, valor) => setCamposValores(prev => ({ ...prev, [clave]: valor }))} />
             <div className="col-span-2">
               <button type="submit" disabled={guardando}
                 className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
@@ -237,6 +250,7 @@ export default function FichaClientePage() {
       <ResumenIA empresaId={empresa.id} />
 
       <div className="mt-4">
+        <CamposPersonalizadosVista entidad="EMPRESA" extras={empresa.extras} />
         <ExtrasPanel extras={empresa.extras} />
       </div>
 
