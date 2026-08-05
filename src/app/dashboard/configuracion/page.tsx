@@ -9,6 +9,7 @@ import {
   IconReportAnalytics, IconUsersGroup, IconDownload, IconTrash, IconCheck,
   IconKey, IconCopy, IconRefresh, IconGripVertical, IconEye, IconEyeOff,
   IconFileDescription, IconPlus, IconArrowUp, IconArrowDown, IconX,
+  IconAlertTriangle,
   type Icon,
 } from "@tabler/icons-react";
 import { SECCIONES_SUGERIDAS, type SeccionCuerpo } from "@/lib/cuerpo-cotizacion";
@@ -72,6 +73,9 @@ export default function ConfiguracionPage() {
   const [logoInput, setLogoInput] = useState("");
   const [emailsActivos, setEmailsActivos] = useState(true);
   const [guardandoEmails, setGuardandoEmails] = useState(false);
+  const [diasEstancamiento, setDiasEstancamiento] = useState("14");
+  const [guardandoEstanc, setGuardandoEstanc] = useState(false);
+  const [estancOk, setEstancOk] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [guardado, setGuardado] = useState(false);
@@ -206,6 +210,7 @@ export default function ConfiguracionPage() {
         setLogoUrl(data.logoUrl ?? "");
         setLogoInput(data.logoUrl ?? "");
         setEmailsActivos(data.emailsActivos ?? true);
+        setDiasEstancamiento(String(data.diasEstancamiento ?? 14));
         setCuerpo(Array.isArray(data.cuerpoCotizacion) ? data.cuerpoCotizacion : []);
         setCargando(false);
       });
@@ -278,6 +283,28 @@ export default function ConfiguracionPage() {
     setCuerpo(Array.isArray(data.cuerpoCotizacion) ? data.cuerpoCotizacion : limpio);
     setCuerpoOk(true);
     setTimeout(() => setCuerpoOk(false), 2500);
+  }
+
+  async function guardarEstancamiento() {
+    if (!esAdmin) return;
+    const n = Number(diasEstancamiento);
+    if (!Number.isInteger(n) || n < 1 || n > 365) {
+      toast.error("Ingresa un número entero entre 1 y 365 días.");
+      return;
+    }
+    setGuardandoEstanc(true);
+    const res = await fetch("/api/configuracion", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ diasEstancamiento: n }),
+    });
+    setGuardandoEstanc(false);
+    if (!res.ok) {
+      toast.error("No se pudo guardar el umbral. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
+    setEstancOk(true);
+    setTimeout(() => setEstancOk(false), 2500);
   }
 
   async function toggleEmails(valor: boolean) {
@@ -568,6 +595,45 @@ export default function ConfiguracionPage() {
           </span>
           {!emailsActivos && (
             <span className="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-lg">Los vendedores no recibirán recordatorios</span>
+          )}
+        </div>
+      </div>
+
+      {/* Umbral de negocios estancados */}
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+        <h2 className="text-sm font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+          <IconAlertTriangle size={16} stroke={1.75} />Alerta de negocios estancados
+        </h2>
+        <p className="text-xs text-slate-400 mb-4">
+          Una oportunidad activa se marca como <strong>estancada</strong> cuando pasa este número de días sin
+          movimiento (sin actividad registrada ni cambio de etapa). El Pipeline la resalta con una barra de color y
+          el correo diario la incluye en la lista de negocios estancados. Al doble de días se marca como "muy estancada".
+          {" "}Ajústalo al ciclo de venta de tu negocio: más corto para ventas rápidas, más largo para ciclos de meses.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={1}
+              max={365}
+              value={diasEstancamiento}
+              onChange={e => setDiasEstancamiento(e.target.value)}
+              disabled={!esAdmin}
+              className="w-24 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 disabled:opacity-50"
+            />
+            <span className="text-sm text-slate-600">días sin movimiento</span>
+          </div>
+          <button
+            onClick={guardarEstancamiento}
+            disabled={!esAdmin || guardandoEstanc}
+            className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 transition-colors"
+          >
+            {guardandoEstanc ? "Guardando..." : "Guardar umbral"}
+          </button>
+          {estancOk && (
+            <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+              <IconCheck size={14} stroke={2} /> Umbral guardado
+            </span>
           )}
         </div>
       </div>

@@ -36,7 +36,7 @@ function footer() {
 }
 
 type Usuario = { id: string; nombre: string; email: string; tenantId: string; rol: string };
-type TenantInfo = { emailsActivos: boolean; logoUrl: string | null };
+type TenantInfo = { emailsActivos: boolean; logoUrl: string | null; diasEstancamiento: number };
 type CorreoPendiente = { subject: string; html: string };
 
 // Reintenta el envío una vez más ante fallos transitorios (timeouts, rate
@@ -59,10 +59,13 @@ async function enviarConReintento(
 async function procesarUsuario(
   u: Usuario,
   tenantInfo: TenantInfo,
-  fechas: { ahora: Date; hace14: Date; en7dias: Date; en5dias: Date },
+  fechas: { ahora: Date; en7dias: Date; en5dias: Date },
   resend: Resend
 ): Promise<{ enviados: number; errores: string[] }> {
-  const { ahora, hace14, en7dias, en5dias } = fechas;
+  const { ahora, en7dias, en5dias } = fechas;
+  // Umbral de estancamiento del tenant (mismo valor que usa el Pipeline).
+  const diasEstancamiento = tenantInfo.diasEstancamiento;
+  const cortesinMovimiento = new Date(ahora.getTime() - diasEstancamiento * 86_400_000);
   const errores: string[] = [];
   let enviados = 0;
 
@@ -101,38 +104,41 @@ async function procesarUsuario(
       });
     }
 
-    // ── 2. Negocios estancados (+14 días sin actividad) ──────────────────────
+    // ── 2. Negocios estancados (sin actividad NI cambio de etapa ≥ umbral) ────
+    // "Movimiento" = lo más reciente entre la última actividad, el último cambio
+    // de etapa y la creación. Mismo criterio que la señal visual del Pipeline.
     const etapasActivas: EtapaOportunidad[] = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];
     const opActivas = await prisma.oportunidad.findMany({
       where: { tenantId: u.tenantId, eliminadoEn: null, etapa: { in: etapasActivas }, ...ownerWhere },
       include: {
         empresa: { select: { nombre: true } },
         actividades: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
+        cambiosEtapa: { orderBy: { creadoEn: "desc" }, take: 1, select: { creadoEn: true } },
       },
     });
 
-    const estancados = opActivas.filter(o => {
-      const ultima = o.actividades[0];
-      return !ultima || new Date(ultima.fecha) < hace14;
-    });
+    const ultimoMovimiento = (o: (typeof opActivas)[number]): Date => {
+      const fechas = [o.creadoEn, o.actividades[0]?.fecha, o.cambiosEtapa[0]?.creadoEn]
+        .filter((d): d is Date => !!d);
+      return fechas.reduce((a, b) => (b > a ? b : a));
+    };
+
+    const estancados = opActivas.filter(o => ultimoMovimiento(o) < cortesinMovimiento);
 
     if (estancados.length > 0) {
       const filas = estancados.map(o => {
-        const ultima = o.actividades[0];
-        const dias = ultima
-          ? Math.floor((ahora.getTime() - new Date(ultima.fecha).getTime()) / 86_400_000)
-          : null;
+        const dias = Math.floor((ahora.getTime() - ultimoMovimiento(o).getTime()) / 86_400_000);
         return `<div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #f59e0b;border-radius:8px;padding:12px;margin-bottom:8px">
           <p style="margin:0 0 4px;font-weight:600;font-size:13px;color:#1e293b">${o.titulo}</p>
-          <p style="margin:0;font-size:12px;color:#94a3b8">${o.empresa?.nombre ?? ""} · ${o.etapa} · <span style="color:#d97706;font-weight:600">${dias === null ? "Sin actividad registrada" : `${dias} días sin actividad`}</span></p>
+          <p style="margin:0;font-size:12px;color:#94a3b8">${o.empresa?.nombre ?? ""} · ${o.etapa} · <span style="color:#d97706;font-weight:600">${dias} días sin movimiento</span></p>
         </div>`;
       }).join("");
 
       emails.push({
         subject: `⚠️ ${estancados.length} negocio(s) estancado(s) — Evoluteca CRM`,
-        html: wrapper(`${header("", "Negocios sin actividad +14 días", logoUrl)}
+        html: wrapper(`${header("", `Negocios sin movimiento +${diasEstancamiento} días`, logoUrl)}
           <div style="background:#fffbeb;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
-            <p style="font-size:14px;color:#64748b;margin-bottom:16px">Hola <strong>${u.nombre}</strong>, estos negocios llevan más de 14 días sin actividad:</p>
+            <p style="font-size:14px;color:#64748b;margin-bottom:16px">Hola <strong>${u.nombre}</strong>, estos negocios llevan más de ${diasEstancamiento} días sin actividad ni cambio de etapa:</p>
             ${filas}
             ${btn(`${BASE_URL}/dashboard/pipeline`, "Ver Pipeline")}
             ${footer()}
@@ -284,7 +290,6 @@ export async function GET(req: Request) {
   const ahora = new Date();
   const fechas = {
     ahora,
-    hace14: new Date(ahora.getTime() - 14 * 86_400_000),
     en7dias: new Date(ahora.getTime() + 7 * 86_400_000),
     en5dias: new Date(ahora.getTime() + 5 * 86_400_000),
   };
@@ -298,8 +303,8 @@ export async function GET(req: Request) {
   const tenantCache: Record<string, TenantInfo> = {};
   async function obtenerTenantInfo(tenantId: string): Promise<TenantInfo> {
     if (tenantCache[tenantId] === undefined) {
-      const t = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { emailsActivos: true, logoUrl: true } });
-      tenantCache[tenantId] = { emailsActivos: t?.emailsActivos ?? true, logoUrl: t?.logoUrl ?? null };
+      const t = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { emailsActivos: true, logoUrl: true, diasEstancamiento: true } });
+      tenantCache[tenantId] = { emailsActivos: t?.emailsActivos ?? true, logoUrl: t?.logoUrl ?? null, diasEstancamiento: t?.diasEstancamiento ?? 14 };
     }
     return tenantCache[tenantId];
   }

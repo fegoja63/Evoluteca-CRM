@@ -177,6 +177,38 @@ describe("reglas de rol dentro del mismo cliente", () => {
   });
 });
 
+describe("último movimiento (base de la alerta de estancamiento)", () => {
+  it("el listado expone ultimoMovimiento en cada oportunidad", async () => {
+    comoUsuario(A, "GERENTE");
+    const { cuerpo } = await llamar(listar);
+    expect((cuerpo as unknown[]).length).toBeGreaterThan(0);
+    for (const o of cuerpo as Array<{ ultimoMovimiento?: string }>) {
+      expect(o.ultimoMovimiento).toBeTruthy();
+    }
+  });
+
+  it("ultimoMovimiento toma la señal más reciente: una actividad posterior manda sobre la creación", async () => {
+    comoUsuario(A, "GERENTE");
+    // Futura y muy posterior a la creación (now) y a la actividad sembrada
+    // (2026-03-15): debe ganar como último movimiento.
+    const futura = new Date("2027-01-15T12:00:00.000Z");
+    await prisma.actividad.create({
+      data: {
+        tenantId: A.tenantId,
+        titulo: "Seguimiento programado",
+        fecha: futura,
+        tipo: "LLAMADA",
+        oportunidadId: A.oportunidadDelComercial,
+        creadoBy: A.comercial,
+      },
+    });
+    const { cuerpo } = await llamar(listar);
+    const op = (cuerpo as Array<{ id: string; ultimoMovimiento?: string }>)
+      .find(o => o.id === A.oportunidadDelComercial);
+    expect(op?.ultimoMovimiento).toBe(futura.toISOString());
+  });
+});
+
 describe("el guardarrail de Prisma", () => {
   // Sin esta prueba, un guardarrail roto pasaria inadvertido: todas las demas
   // pruebas seguirian en verde y creeriamos estar protegidos cuando no.

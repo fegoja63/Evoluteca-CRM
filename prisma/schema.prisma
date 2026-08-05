@@ -59,6 +59,12 @@ model Tenant {
   // panel interno). null = ilimitado; 0 = IA desactivada; N>0 = tope mensual.
   // Por defecto 100 (plan Pro). El consumo real se lleva en UsoIA.
   limiteResumenesIA Int?     @default(100)
+  // Días sin movimiento (sin actividad NI cambio de etapa) tras los cuales una
+  // oportunidad activa se considera "estancada". Lo ajusta el ADMIN del tenant
+  // en Configuración: un ciclo de venta corto (teatro) puede querer 7 días; uno
+  // largo (optimización de gasto TIC) 30. Lo leen por igual la señal visual del
+  // Pipeline y el correo diario del cron, para que ambos digan lo mismo.
+  diasEstancamiento Int      @default(14)
   // Aceptación del Acuerdo de Licencia a nivel de TENANT: el contrato vincula a
   // la empresa, así que lo acepta UNA sola persona (el titular) UNA sola vez, en
   // nombre de la organización. Los demás usuarios no vuelven a verlo.
