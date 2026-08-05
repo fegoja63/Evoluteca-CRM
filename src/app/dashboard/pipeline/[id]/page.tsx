@@ -10,6 +10,9 @@ import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 import { NotasRapidas } from "@/components/notas-rapidas";
 import { guardarJson } from "@/lib/guardar";
 import { Adjuntos } from "@/components/adjuntos";
+import { CamposPersonalizadosForm } from "@/components/campos-personalizados-form";
+import { CamposPersonalizadosVista } from "@/components/campos-personalizados-vista";
+import { esClaveCampoPersonalizado } from "@/lib/campos-personalizados";
 import {
   IconAlertTriangle, IconHistory, IconTarget, IconTrophy, IconX, IconArrowRight,
   IconMoodSad,
@@ -72,6 +75,7 @@ export default function OportunidadDetallePage() {
   const [editando, setEditando] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [form, setForm] = useState({ titulo: "", valor: "", etapa: "", notas: "", fechaCierre: "", probabilidad: "", salonId: "", sede: "", fechaEvento: "", horaInicio: "", horaFin: "" });
+  const [camposValores, setCamposValores] = useState<Record<string, string>>({});
   const [modalPerdida, setModalPerdida] = useState(false);
   const [motivoPerdida, setMotivoPerdida] = useState("");
   const [otroMotivo, setOtroMotivo] = useState("");
@@ -102,6 +106,11 @@ export default function OportunidadDetallePage() {
       fechaEvento: data.fechaEvento ? data.fechaEvento.substring(0, 10) : "",
       horaInicio: data.horaInicio ?? "", horaFin: data.horaFin ?? "",
     });
+    const cp: Record<string, string> = {};
+    for (const [k, v] of Object.entries((data.extras ?? {}) as Record<string, unknown>)) {
+      if (esClaveCampoPersonalizado(k)) cp[k] = String(v ?? "");
+    }
+    setCamposValores(cp);
   }
 
   useEffect(() => { cargar(); }, [id]);
@@ -153,6 +162,7 @@ export default function OportunidadDetallePage() {
           fechaCierre: form.fechaCierre || null, probabilidad: Number(form.probabilidad),
           salonId: form.salonId || null, sede: form.sede || null, fechaEvento: form.fechaEvento || null,
           horaInicio: form.horaInicio || null, horaFin: form.horaFin || null,
+          extras: camposValores,
         }),
       });
       if (!res.ok) {
@@ -251,7 +261,7 @@ export default function OportunidadDetallePage() {
   }
 
   const extrasRelevantes = op.extras ? Object.entries(op.extras).filter(([k]) =>
-    !["AÑO","MES ELABORACION","ELABORACIÓN"].includes(k)
+    !["AÑO","MES ELABORACION","ELABORACIÓN"].includes(k) && !esClaveCampoPersonalizado(k)
   ) : [];
 
   return (
@@ -349,6 +359,8 @@ export default function OportunidadDetallePage() {
                 <textarea value={form.notas} onChange={e => setForm({...form, notas: e.target.value})}
                   rows={3} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               </div>
+              <CamposPersonalizadosForm entidad="OPORTUNIDAD" valores={camposValores}
+                onChange={(clave, valor) => setCamposValores(prev => ({ ...prev, [clave]: valor }))} />
             </div>
             <div className="flex gap-2">
               <button type="submit" disabled={guardando}
@@ -476,6 +488,9 @@ export default function OportunidadDetallePage() {
           ) : <p className="text-sm text-slate-400">Sin contacto asignado</p>}
         </div>
       </div>
+
+      {/* Campos personalizados con valor */}
+      <CamposPersonalizadosVista entidad="OPORTUNIDAD" extras={op.extras} />
 
       {/* Datos extras del Excel */}
       {extrasRelevantes.length > 0 && (

@@ -13,6 +13,7 @@ import {
   type Icon,
 } from "@tabler/icons-react";
 import { SECCIONES_SUGERIDAS, type SeccionCuerpo } from "@/lib/cuerpo-cotizacion";
+import { CamposPersonalizadosAdmin } from "@/components/campos-personalizados-admin";
 
 type EtapaPipeline = { id: string; key: string; nombre: string; orden: number; oculta: boolean };
 
@@ -700,6 +701,8 @@ export default function ConfiguracionPage() {
           {guardandoEtapas && <p className="text-xs text-slate-400 mt-2">Guardando...</p>}
         </div>
       )}
+
+      <CamposPersonalizadosAdmin esAdmin={esAdmin} />
 
       {esAdmin && (
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">

@@ -13,7 +13,10 @@ function formatearValor(val: string): string {
 }
 
 export function ExtrasPanel({ extras }: ExtrasPanelProps) {
-  if (!extras || Object.keys(extras).length === 0) return null;
+  // Las claves cp_* son campos personalizados: se muestran aparte (con su
+  // etiqueta y tipo) en CamposPersonalizadosVista, no como dato "importado".
+  const entradas = Object.entries(extras ?? {}).filter(([key]) => !key.startsWith("cp_"));
+  if (entradas.length === 0) return null;
 
   return (
     <div className="rounded-2xl border border-slate-200 p-4 mt-4">
@@ -21,7 +24,7 @@ export function ExtrasPanel({ extras }: ExtrasPanelProps) {
         Datos adicionales importados
       </h3>
       <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-        {Object.entries(extras).map(([key, val]) => (
+        {entradas.map(([key, val]) => (
           <div key={key} className="flex flex-col">
             <span className="text-xs text-slate-400">{key}</span>
             <span className="text-sm text-slate-700">{val ? formatearValor(val) : "—"}</span>
