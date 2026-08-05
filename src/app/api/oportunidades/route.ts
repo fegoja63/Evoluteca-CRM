@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
 import { crearOportunidadSchema } from "@/lib/validations/oportunidades";
 import { parseOrError } from "@/lib/validations/helpers";
+import { dispararAutomatizaciones } from "@/lib/automatizaciones-motor";
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -111,6 +112,21 @@ export async function POST(request: Request) {
       tenantId: session.user.tenantId,
       creadoBy: session.user.id,
     },
+  });
+
+  // Dispara las automatizaciones de "oportunidad creada" (best-effort: nunca
+  // lanza, así que no afecta la respuesta de creación).
+  await dispararAutomatizaciones({
+    evento: "OPORTUNIDAD_CREADA",
+    tenantId: session.user.tenantId,
+    oportunidad: {
+      id: oportunidad.id,
+      titulo: oportunidad.titulo,
+      empresaId: oportunidad.empresaId,
+      contactoId: oportunidad.contactoId,
+      creadoBy: oportunidad.creadoBy,
+    },
+    actorId: session.user.id,
   });
 
   return NextResponse.json(oportunidad, { status: 201 });

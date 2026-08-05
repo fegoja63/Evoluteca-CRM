@@ -14,6 +14,7 @@ import {
 } from "@tabler/icons-react";
 import { SECCIONES_SUGERIDAS, type SeccionCuerpo } from "@/lib/cuerpo-cotizacion";
 import { CamposPersonalizadosAdmin } from "@/components/campos-personalizados-admin";
+import { AutomatizacionesAdmin } from "@/components/automatizaciones-admin";
 
 type EtapaPipeline = { id: string; key: string; nombre: string; orden: number; oculta: boolean };
 
@@ -703,6 +704,8 @@ export default function ConfiguracionPage() {
       )}
 
       <CamposPersonalizadosAdmin esAdmin={esAdmin} />
+
+      {esAdmin && <AutomatizacionesAdmin />}
 
       {esAdmin && (
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">

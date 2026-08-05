@@ -24,6 +24,7 @@ import { huellaDelCliente } from "../huella";
 const PARAMS_DEL_CLIENTE_A: Record<string, Record<string, string>> = {
   "/api/actividades/[id]": { id: A.actividad },
   "/api/adjuntos/[id]": { id: A.adjunto },
+  "/api/automatizaciones/[id]": { id: A.automatizacion },
   "/api/campos-personalizados/[id]": { id: A.campoPersonalizado },
   "/api/contactos/[id]": { id: A.contacto },
   "/api/cotizaciones/[id]": { id: A.cotizacion },
