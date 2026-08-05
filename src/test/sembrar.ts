@@ -49,6 +49,7 @@ function ids(letra: "a" | "b") {
     metaVendedor: `mvd-${letra}-1`,
     eventoTimeline: `tim-${letra}-1`,
     campoPersonalizado: `cp-${letra}-1`,
+    automatizacion: `aut-${letra}-1`,
   } as const;
 }
 
@@ -271,6 +272,17 @@ function operacionesDeModulos(m: Molde, nombre: string) {
         clave: "cp_dato",
         etiqueta: `Dato de ${nombre}`,
         tipo: "TEXTO",
+      },
+    }),
+
+    prisma.automatizacion.create({
+      data: {
+        id: m.automatizacion,
+        tenantId: m.tenantId,
+        nombre: `Regla de ${nombre}`,
+        evento: "OPORTUNIDAD_CREADA",
+        accion: "CREAR_TAREA",
+        config: { titulo: "Contactar", tipo: "LLAMADA", diasPlazo: 1, responsable: "DUENO" },
       },
     }),
   ];

@@ -6,6 +6,7 @@ import { parseOrError } from "@/lib/validations/helpers";
 import { puedeEliminar } from "@/lib/permisos";
 import { operacionAuditoria } from "@/lib/auditoria";
 import { construirExtrasConCampos } from "@/lib/campos-servidor";
+import { dispararAutomatizaciones } from "@/lib/automatizaciones-motor";
 
 export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -109,6 +110,25 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
       }),
     ] : []),
   ]);
+
+  // Si de verdad cambió de etapa, dispara las automatizaciones de ese evento
+  // (best-effort: nunca lanza). Se pasa la etapa NUEVA para el filtro por
+  // etapa destino de cada regla.
+  if (cambioDeEtapa) {
+    await dispararAutomatizaciones({
+      evento: "OPORTUNIDAD_CAMBIA_ETAPA",
+      tenantId: session.user.tenantId,
+      oportunidad: {
+        id: actualizada.id,
+        titulo: actualizada.titulo,
+        empresaId: actualizada.empresaId,
+        contactoId: actualizada.contactoId,
+        creadoBy: actualizada.creadoBy,
+      },
+      etapaNueva: etapa,
+      actorId: session.user.id,
+    });
+  }
 
   return NextResponse.json(actualizada);
 }

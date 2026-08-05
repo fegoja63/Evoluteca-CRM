@@ -96,6 +96,7 @@ model Tenant {
   usoIA                UsoIA[]
   registrosAuditoria   RegistroAuditoria[]
   camposPersonalizados CampoPersonalizado[]
+  automatizaciones     Automatizacion[]
 
   @@map("tenants")
 }
@@ -954,6 +955,52 @@ model CampoPersonalizado {
   @@unique([tenantId, entidad, clave])
   @@index([tenantId, entidad])
   @@map("campos_personalizados")
+}
+
+// ---- Automatizaciones (reglas "cuando pasa X → haz Y", por tenant) ----
+//
+// Cada regla escucha un EVENTO (cambio de etapa de una oportunidad, o creación
+// de una) y ejecuta una ACCIÓN (crear una tarea de seguimiento, o enviar un
+// correo). La configuración específica de la acción vive en `config` (JSON),
+// validada por tipo antes de guardar. El motor (lib/automatizaciones-motor.ts)
+// se dispara de forma síncrona en las rutas que mutan oportunidades y es
+// "best-effort": un fallo de una regla no tumba la operación que la disparó.
+enum EventoAutomatizacion {
+  OPORTUNIDAD_CAMBIA_ETAPA
+  OPORTUNIDAD_CREADA
+}
+
+enum AccionAutomatizacion {
+  CREAR_TAREA
+  ENVIAR_CORREO
+}
+
+model Automatizacion {
+  id     String  @id @default(uuid())
+  nombre String
+  activa Boolean @default(true)
+
+  evento EventoAutomatizacion
+  // Solo para OPORTUNIDAD_CAMBIA_ETAPA: etapa destino que dispara la regla
+  // (uno de los keys de EtapaOportunidad). null = cualquier cambio de etapa.
+  etapaDestino String?
+
+  accion AccionAutomatizacion
+  // Configuración de la acción, según su tipo:
+  //  CREAR_TAREA:   { titulo, tipo, diasPlazo, responsable: "DUENO" | <userId> }
+  //  ENVIAR_CORREO: { destinatario: "DUENO" | "GERENTES", asunto, cuerpo }
+  config Json @default("{}")
+
+  orden           Int       @default(0)
+  vecesEjecutada  Int       @default(0)
+  ultimaEjecucion DateTime?
+  creadoEn        DateTime  @default(now())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, evento, activa])
+  @@map("automatizaciones")
 }
 
 // ---- Salones (módulo opcional — negocios de alquiler de espacios) ----

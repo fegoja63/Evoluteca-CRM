@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { capturarLeadSchema } from "@/lib/validations/leads";
 import { parseOrError } from "@/lib/validations/helpers";
 import { permitirYRegistrar, obtenerIp } from "@/lib/rate-limit";
+import { dispararAutomatizaciones } from "@/lib/automatizaciones-motor";
 
 // Endpoint público para que formularios externos (landing pages, WhatsApp
 // Business, Meta Ads, etc.) creen leads directo en el CRM sin necesitar una
@@ -114,6 +115,22 @@ export async function POST(request: Request) {
       tenantId,
       creadoBy: vendedorAsignado,
     },
+  });
+
+  // Un lead entrante es una oportunidad creada: dispara sus automatizaciones
+  // (p. ej. asignar la primera tarea de contacto al vendedor). Best-effort.
+  // actorId null: el evento no lo dispara un usuario con sesión sino la API.
+  await dispararAutomatizaciones({
+    evento: "OPORTUNIDAD_CREADA",
+    tenantId,
+    oportunidad: {
+      id: oportunidad.id,
+      titulo: oportunidad.titulo,
+      empresaId: oportunidad.empresaId,
+      contactoId: oportunidad.contactoId,
+      creadoBy: oportunidad.creadoBy,
+    },
+    actorId: null,
   });
 
   return NextResponse.json({ ok: true, empresaId, contactoId, oportunidadId: oportunidad.id }, { status: 201 });
