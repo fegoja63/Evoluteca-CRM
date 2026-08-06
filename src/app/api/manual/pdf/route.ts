@@ -104,7 +104,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.20"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.21"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -237,7 +237,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.20 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.21 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -411,6 +411,14 @@ export async function GET() {
       React.createElement(LI, null, "Editar (ícono de lápiz) — abre una ventana para modificar los datos del registro sin salir del listado. Al guardar, la lista se actualiza al instante."),
       React.createElement(LI, null, "Eliminar (ícono de papelera) — pide confirmación y mueve el registro a la Papelera (ver 2.8), desde donde puedes restaurarlo."),
       React.createElement(Nota, null, "El botón Eliminar solo aparece para los roles con permiso (Administrador y Gerente). Al igual que en las fichas, eliminar desde la lista no borra el registro de inmediato: lo envía a la Papelera."),
+
+      React.createElement(H2, null, "2.12 Correos"),
+      React.createElement(P, null, "En la ficha de un Contacto (y en la de una Oportunidad) encontrarás la tarjeta \"Correos\", desde donde puedes escribir y enviar un correo al cliente sin salir del CRM, y donde queda registrada la conversación."),
+      React.createElement(Paso, { n: 1, titulo: "Redactar", desc: "Haz clic en \"Redactar\". El destinatario viene precargado con el email del contacto (puedes cambiarlo). Escribe el asunto y el mensaje." }),
+      React.createElement(Paso, { n: 2, titulo: "Enviar", desc: "Al enviar, el correo sale desde el CRM con tu nombre como remitente y queda registrado en la lista de esa tarjeta, marcado como \"Enviado\"." }),
+      React.createElement(Paso, { n: 3, titulo: "Consultar", desc: "Cada correo de la lista muestra asunto, destinatario y fecha; haz clic para desplegar el mensaje completo. Así la conversación queda ligada al cliente." }),
+      React.createElement(P, null, "Las respuestas del cliente llegan a tu propio correo (el que tienes en Mi perfil), porque el correo se envía con Reply-To a tu dirección."),
+      React.createElement(Nota, null, "Por ahora los correos se escriben en texto sencillo (sin adjuntos). La captura automática de las respuestas dentro del CRM llegará en una versión próxima."),
     ),
 
     // ── CAPÍTULO 3: PIPELINE ──
@@ -447,13 +455,14 @@ export async function GET() {
       React.createElement(Tip, null, "El valor de la oportunidad es fundamental para los reportes. Ingrésalo siempre aunque sea estimado."),
       React.createElement(Tip, null, "El título de la oportunidad debe describir el tipo de negocio (ej: \"Congreso anual\", \"Alquiler sala\", \"Función privada\"), no el nombre del cliente — el cliente ya queda registrado en el campo Empresa. Repetirlo en el título solo genera texto redundante en el pipeline y los reportes."),
 
-      React.createElement(H2, null, "3.3 Indicadores de urgencia"),
-      React.createElement(P, null, "Cada tarjeta del kanban muestra un borde de color en su lado izquierdo que indica la antigüedad de la oportunidad desde que fue creada:"),
-      React.createElement(LI, null, "Verde — Menos de 15 días: oportunidad reciente, sin urgencia"),
-      React.createElement(LI, null, "Amarillo — Entre 15 y 30 días: requiere seguimiento pronto"),
-      React.createElement(LI, null, "Rojo — Más de 30 días: oportunidad estancada, acción urgente"),
-      React.createElement(P, null, "Además, en la esquina inferior derecha de cada tarjeta aparece un badge con el número de días (ej: '22d'). Las oportunidades en etapa Ganada o Perdida no muestran indicador."),
-      React.createElement(Tip, null, "Usa los colores para priorizar tu día: comienza por las tarjetas rojas."),
+      React.createElement(H2, null, "3.3 Indicadores de estancamiento"),
+      React.createElement(P, null, "Cada tarjeta del kanban muestra un borde de color en su lado izquierdo que indica hace cuánto la oportunidad no tiene movimiento — sin actividad registrada ni cambio de etapa (no la simple antigüedad desde que se creó, para que un negocio viejo pero trabajado ayer no se marque en rojo por error):"),
+      React.createElement(LI, null, "Verde — Al día: por debajo del umbral de días definido por tu organización"),
+      React.createElement(LI, null, "Ámbar — Estancada: alcanzó el umbral de días sin movimiento"),
+      React.createElement(LI, null, "Rojo — Muy estancada: llegó al doble del umbral"),
+      React.createElement(P, null, "El badge de cada tarjeta muestra los días sin movimiento (ej: '22d'). Las oportunidades en etapa Ganada o Perdida no muestran indicador. El umbral (por defecto 14 días) lo define el Administrador en Configuración → Alerta de negocios estancados — ver 9.7."),
+      React.createElement(P, null, "Cuando hay negocios estancados, en la barra de filtros aparece un chip rojo \"N estancadas\": haz clic para ver solo esas oportunidades activas que superan el umbral de días sin movimiento."),
+      React.createElement(Tip, null, "Usa el chip \"estancadas\" para priorizar tu día: son los negocios activos que llevan más tiempo sin que nadie los toque."),
 
       React.createElement(H2, null, "3.4 Drag & Drop"),
       React.createElement(P, null, "Arrastra cualquier tarjeta de una columna a otra para cambiar su etapa. El cambio se guarda automáticamente. También puedes cambiar la etapa desde la ficha de la oportunidad."),
@@ -545,7 +554,7 @@ export async function GET() {
       React.createElement(H2, null, "4.4 Notificaciones por email"),
       React.createElement(P, null, "Cada mañana a las 8am el CRM envía automáticamente hasta 3 tipos de alertas por email:"),
       React.createElement(LI, null, "Actividades vencidas: tareas o llamadas pendientes con días de atraso (rojo 7d o más, ámbar 2d o más)"),
-      React.createElement(LI, null, "Negocios estancados: oportunidades activas sin ninguna actividad registrada en más de 14 días"),
+      React.createElement(LI, null, "Negocios estancados: oportunidades activas sin actividad ni cambio de etapa desde hace más del umbral de días que definió tu Administrador (por defecto 14 — ver 9.7)"),
       React.createElement(LI, null, "Cierres próximos: negocios con fecha de cierre estimada en los próximos 7 días"),
       React.createElement(P, null, "Además, en la Agenda las actividades vencidas muestran un ícono de campana. Al tocarlo recibes el recordatorio inmediatamente sin esperar al día siguiente."),
       React.createElement(Tip, null, "Solo recibirás el email de cada tipo si tienes situaciones reales en esa categoría. Si no tienes actividades vencidas, ese email no se envía."),
@@ -825,7 +834,7 @@ export async function GET() {
       React.createElement(H2, null, "9.1.1 Notificaciones automáticas por email"),
       React.createElement(P, null, "En Configuración encontrarás el toggle 'Notificaciones automáticas por email'. Cuando está activo (azul), el CRM envía cada mañana correos automáticos a cada usuario del equipo con:"),
       React.createElement(LI, null, "Actividades vencidas sin completar"),
-      React.createElement(LI, null, "Negocios estancados (sin actividad por más de 14 días)"),
+      React.createElement(LI, null, "Negocios estancados (sin actividad ni cambio de etapa por más del umbral de días configurado — ver 9.7)"),
       React.createElement(LI, null, "Cierres estimados en los próximos 7 días"),
       React.createElement(P, null, "Al desactivar el toggle, ningún usuario de la empresa recibe estos correos. Solo el ADMINISTRADOR puede cambiar esta configuración."),
       React.createElement(Nota, null, "Recomendamos mantener los emails activos. Son el recordatorio diario que evita que los negocios se pierdan por falta de seguimiento."),
@@ -887,6 +896,29 @@ export async function GET() {
       React.createElement(Paso, { n: 3, titulo: "Verificar en el Pipeline", desc: "Cada lead recibido aparece de inmediato como una oportunidad nueva en la columna Prospecto, con el cliente y contacto ya creados." }),
       React.createElement(Nota, null, "Rotar la clave (botón \"Rotar clave\") invalida la anterior de inmediato. Cualquier formulario o automatización que siga usando la clave vieja dejará de funcionar hasta que se actualice con la nueva — úsalo solo si sospechas que la clave se filtró."),
       React.createElement(Tip, null, "Si el mismo correo de cliente ya existe en tu CRM, el sistema reutiliza ese cliente en vez de duplicarlo — así un mismo lead que llena el formulario dos veces no genera registros repetidos."),
+
+      React.createElement(H2, null, "9.7 Alerta de negocios estancados"),
+      React.createElement(P, null, "En Configuración, sección \"Alerta de negocios estancados\", el Administrador define a partir de cuántos días SIN MOVIMIENTO (sin actividad registrada ni cambio de etapa) una oportunidad activa se considera estancada. Por defecto son 14 días."),
+      React.createElement(P, null, "Ese umbral controla por igual dos cosas, para que la pantalla y el correo digan lo mismo: el color de la barra de las tarjetas del Pipeline (ver 3.3) y la lista de negocios estancados del aviso diario por correo (ver 4.4). A partir del umbral la oportunidad se marca estancada (ámbar); al doble, muy estancada (rojo)."),
+      React.createElement(Tip, null, "Ajusta el umbral al ciclo de venta de tu negocio: más corto para ventas rápidas (por ejemplo 7 días), más largo para ventas de varios meses (por ejemplo 30)."),
+
+      React.createElement(H2, null, "9.8 Campos personalizados"),
+      React.createElement(P, null, "En Configuración, sección \"Campos personalizados\", el Administrador crea campos propios para adaptar el CRM a su negocio (por ejemplo NIT, competidor o número de licitación). Se definen por entidad: Cliente u Oportunidad."),
+      React.createElement(Paso, { n: 1, titulo: "Elegir la entidad", desc: "Con las pestañas Cliente / Oportunidad eliges dónde vivirá el campo." }),
+      React.createElement(Paso, { n: 2, titulo: "Crear el campo", desc: "Ponle un nombre y elige el tipo: Texto, Número, Fecha, Lista (menú de opciones fijas) o Sí/No. Puedes marcarlo como obligatorio." }),
+      React.createElement(Paso, { n: 3, titulo: "Usarlo", desc: "El campo aparece en el formulario de edición de cada Cliente u Oportunidad y su valor se muestra en la ficha, en la sección \"Datos personalizados\"." }),
+      React.createElement(Nota, null, "Los campos se pueden reordenar (flechas ↑/↓) y eliminar. No se puede cambiar el tipo de un campo ya creado (para no invalidar los datos guardados): si necesitas otro tipo, elimínalo y créalo de nuevo."),
+
+      React.createElement(H2, null, "9.9 Automatizaciones"),
+      React.createElement(P, null, "En Configuración, sección \"Automatizaciones\", el Administrador crea reglas del tipo \"cuando pasa X → haz Y\" que se ejecutan solas. Con el botón Nueva defines un evento y una acción:"),
+      React.createElement(H3, null, "Evento (cuándo)"),
+      React.createElement(LI, null, "Una oportunidad cambia de etapa — con filtro opcional por etapa destino (\"solo cuando pase a Cotización\")"),
+      React.createElement(LI, null, "Se crea una oportunidad — incluye los leads que entran por la Captura externa (9.6)"),
+      React.createElement(H3, null, "Acción (qué hacer)"),
+      React.createElement(LI, null, "Crear una tarea de seguimiento — con título, tipo, plazo en días y responsable (el dueño del negocio o un usuario fijo)"),
+      React.createElement(LI, null, "Enviar un correo — al dueño del negocio o a los gerentes, con asunto y cuerpo"),
+      React.createElement(P, null, "En los textos del título, asunto o cuerpo puedes usar los marcadores {oportunidad} y {cliente}, que se reemplazan por el nombre real al ejecutarse. Cada regla se puede activar/desactivar y muestra cuántas veces se ha ejecutado."),
+      React.createElement(Tip, null, "Ejemplo: \"Cuando una oportunidad pase a Cotización → crear la tarea 'Llamar a {cliente}' a 3 días para el dueño\". Empieza con una regla sencilla y verifica que la tarea aparezca en la Agenda antes de crear reglas más agresivas."),
     ),
 
     // ── CAPÍTULO 10: INTELIGENCIA ARTIFICIAL ──
