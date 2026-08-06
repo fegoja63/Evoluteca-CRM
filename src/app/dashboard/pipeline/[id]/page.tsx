@@ -12,6 +12,7 @@ import { guardarJson } from "@/lib/guardar";
 import { Adjuntos } from "@/components/adjuntos";
 import { CamposPersonalizadosForm } from "@/components/campos-personalizados-form";
 import { CamposPersonalizadosVista } from "@/components/campos-personalizados-vista";
+import { CorreosPanel } from "@/components/correos-panel";
 import { esClaveCampoPersonalizado } from "@/lib/campos-personalizados";
 import {
   IconAlertTriangle, IconHistory, IconTarget, IconTrophy, IconX, IconArrowRight,
@@ -532,6 +533,16 @@ export default function OportunidadDetallePage() {
           empresaId={op.empresa?.id}
           contactoId={op.contacto?.id}
           onGuardado={cargar}
+        />
+      </div>
+
+      {/* Correos ligados a esta oportunidad */}
+      <div className="mb-5">
+        <CorreosPanel
+          oportunidadId={op.id}
+          empresaId={op.empresa?.id}
+          contactoId={op.contacto?.id}
+          emailDestino={op.contacto?.email}
         />
       </div>
 

@@ -10,6 +10,7 @@ import { NuevaActividadInline } from "@/components/nueva-actividad-inline";
 import { NotasRapidas } from "@/components/notas-rapidas";
 import { guardarJson } from "@/lib/guardar";
 import { Adjuntos } from "@/components/adjuntos";
+import { CorreosPanel } from "@/components/correos-panel";
 
 type Empresa = { id: string; nombre: string };
 
@@ -247,6 +248,10 @@ export default function FichaContactoPage() {
 
       <div className="mt-4">
         <Adjuntos contactoId={contacto.id} />
+      </div>
+
+      <div className="mt-4">
+        <CorreosPanel contactoId={contacto.id} empresaId={contacto.empresa?.id} emailDestino={contacto.email} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
