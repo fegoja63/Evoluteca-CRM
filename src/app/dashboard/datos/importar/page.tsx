@@ -16,7 +16,7 @@ type Preview = {
   totalFilas: number;
 };
 
-type Resultado = { creados: number; errores: number; total: number };
+type Resultado = { creados: number; errores: number; omitidos?: number; total: number };
 
 // Campos estándar disponibles por módulo
 const CAMPOS_CRM: Record<string, { key: string; label: string }[]> = {
@@ -331,6 +331,7 @@ export default function ImportarAvanzadoPage() {
           </h2>
           <p className="text-slate-500 text-sm mb-6">
             <span className="font-semibold text-emerald-700">{resultado.creados} registros</span> importados correctamente
+            {!!resultado.omitidos && <> · <span className="font-semibold text-slate-500">{resultado.omitidos} ya existían (omitidos)</span></>}
             {resultado.errores > 0 && <> · <span className="font-semibold text-amber-700">{resultado.errores} con error</span></>}
             {" · "}{resultado.total} filas procesadas
           </p>
