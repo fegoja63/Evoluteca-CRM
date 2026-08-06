@@ -97,6 +97,7 @@ model Tenant {
   registrosAuditoria   RegistroAuditoria[]
   camposPersonalizados CampoPersonalizado[]
   automatizaciones     Automatizacion[]
+  correos              CorreoRegistrado[]
 
   @@map("tenants")
 }
@@ -204,6 +205,7 @@ model Empresa {
   eventosTimeline EventoTimeline[]
   expedientes     Expediente[]
   adjuntos        Adjunto[]
+  correos         CorreoRegistrado[]
 
   @@index([tenantId])
   @@index([tenantId, creadoEn])
@@ -234,6 +236,7 @@ model Contacto {
   cotizaciones    Cotizacion[]
   eventosTimeline EventoTimeline[]
   adjuntos        Adjunto[]
+  correos         CorreoRegistrado[]
 
   @@index([tenantId])
   @@index([tenantId, creadoEn])
@@ -288,6 +291,7 @@ model Oportunidad {
   cotizaciones Cotizacion[]
   cambiosEtapa CambioEtapa[]
   adjuntos     Adjunto[]
+  correos      CorreoRegistrado[]
 
   @@index([tenantId])
   @@index([tenantId, creadoEn])
@@ -699,6 +703,49 @@ model EventoTimeline {
   @@index([tenantId])
   @@index([empresaId])
   @@map("eventos_timeline")
+}
+
+// ---- Correo bidireccional ----
+//
+// Registra los correos ligados a un cliente/contacto/oportunidad. En esta fase
+// (PR 1) solo se guardan los SALIENTES (los que se redactan y envían desde el
+// CRM vía Resend). La fase entrante (PR 2) agregará filas RECIBIDO desde un
+// webhook de correo entrante, reusando este mismo modelo.
+enum DireccionCorreo {
+  ENVIADO
+  RECIBIDO
+}
+
+model CorreoRegistrado {
+  id                 String          @id @default(uuid())
+  direccion          DireccionCorreo
+  de                 String // email del remitente
+  para               String // email del destinatario principal
+  asunto             String
+  cuerpo             String // texto plano de lo redactado/recibido
+  // Id que devuelve el proveedor (Resend al enviar; el proveedor de inbound al
+  // recibir) — sirve para trazar y, en el futuro, agrupar hilos.
+  proveedorMessageId String?
+  fecha              DateTime        @default(now())
+  creadoBy           String? // usuario que lo envió (null si es entrante)
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  empresaId String?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+
+  contactoId String?
+  contacto   Contacto? @relation(fields: [contactoId], references: [id], onDelete: SetNull)
+
+  oportunidadId String?
+  oportunidad   Oportunidad? @relation(fields: [oportunidadId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([contactoId])
+  @@index([empresaId])
+  @@index([oportunidadId])
+  @@map("correos_registrados")
 }
 
 // ---- Expedientes (módulo opcional — despachos de abogados) ----

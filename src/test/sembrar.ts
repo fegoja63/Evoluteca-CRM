@@ -50,6 +50,7 @@ function ids(letra: "a" | "b") {
     eventoTimeline: `tim-${letra}-1`,
     campoPersonalizado: `cp-${letra}-1`,
     automatizacion: `aut-${letra}-1`,
+    correo: `cor-${letra}-1`,
   } as const;
 }
 
@@ -283,6 +284,21 @@ function operacionesDeModulos(m: Molde, nombre: string) {
         evento: "OPORTUNIDAD_CREADA",
         accion: "CREAR_TAREA",
         config: { titulo: "Contactar", tipo: "LLAMADA", diasPlazo: 1, responsable: "DUENO" },
+      },
+    }),
+
+    prisma.correoRegistrado.create({
+      data: {
+        id: m.correo,
+        tenantId: m.tenantId,
+        direccion: "ENVIADO",
+        de: `comercial@${m.tenantId}.test`,
+        para: "cliente@ejemplo.com",
+        asunto: `Correo de ${nombre}`,
+        cuerpo: "Cuerpo de prueba",
+        empresaId: m.empresa,
+        contactoId: m.contacto,
+        creadoBy: m.comercial,
       },
     }),
   ];
