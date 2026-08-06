@@ -16,6 +16,7 @@ export type AccionAuditada =
   | "ELIMINAR"
   | "RESTAURAR"
   | "ELIMINAR_DEFINITIVO"
+  | "FUSIONAR"
   | "CAMBIAR_ROL"
   | "DESACTIVAR_USUARIO"
   | "ACTIVAR_USUARIO"

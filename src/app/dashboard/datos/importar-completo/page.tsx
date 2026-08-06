@@ -18,6 +18,7 @@ type Preview = {
 type Resultado = {
   empresasCreadas: number;
   contactosCreados: number;
+  contactosOmitidos?: number;
   oportunidadesCreadas: number;
   errores: number;
   total: number;
@@ -389,6 +390,9 @@ export default function ImportarCompletoPage() {
             <div className="rounded-xl bg-violet-50 p-3">
               <p className="text-2xl font-bold text-violet-700">{resultado.contactosCreados}</p>
               <p className="text-xs text-violet-500 mt-0.5">Contactos</p>
+              {!!resultado.contactosOmitidos && (
+                <p className="text-[11px] text-slate-400 mt-1">{resultado.contactosOmitidos} ya existían (omitidos)</p>
+              )}
             </div>
             <div className="rounded-xl bg-emerald-50 p-3">
               <p className="text-2xl font-bold text-emerald-700">{resultado.oportunidadesCreadas}</p>

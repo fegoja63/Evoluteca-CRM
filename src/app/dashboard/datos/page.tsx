@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   IconBuilding, IconUser, IconUsers, IconChartFunnel, IconCalendarEvent,
-  IconFileText, IconTheater, IconPackage, IconRocket, IconDownload, type Icon,
+  IconFileText, IconTheater, IconPackage, IconRocket, IconDownload, IconCopyOff, type Icon,
 } from "@tabler/icons-react";
 
 // `key` es el segmento que consume /api/exportar/<key>. `req`, si está, es el
@@ -71,6 +71,21 @@ export default function DatosPage() {
         <Link href="/dashboard/datos/importar"
           className="rounded-xl bg-accent-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-700 shrink-0 ml-4">
           Importar un módulo →
+        </Link>
+      </div>
+
+      {/* LIMPIEZA DE DATOS */}
+      <div className="mb-10 rounded-2xl border border-amber-200 bg-amber-50 p-5 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <IconCopyOff size={18} stroke={1.75} className="text-amber-600 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-amber-900">¿Contactos o empresas repetidos?</p>
+            <p className="text-xs text-amber-700 mt-1">Las importaciones acumulan duplicados. Encuéntralos y fusiónalos sin perder lo asociado.</p>
+          </div>
+        </div>
+        <Link href="/dashboard/datos/duplicados"
+          className="rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-700 shrink-0 ml-4">
+          Limpiar duplicados →
         </Link>
       </div>
 

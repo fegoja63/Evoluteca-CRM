@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import ExcelJS from "exceljs";
 import { excedeTope } from "@/lib/importar-limite";
+import { normalizarEmail } from "@/lib/duplicados";
 
 type MapeoCompleto = {
   empresa?: string;
@@ -149,19 +150,42 @@ export async function POST(request: Request) {
   }
 
   // ── PASO 2: Contactos en lote ─────────────────────────────────
+  // Deduplicar por correo: `createMany({ skipDuplicates })` NO sirve para
+  // contactos (no hay índice único en email), así que un mismo correo se
+  // insertaría tantas veces como aparezca en el Excel y en importaciones
+  // sucesivas. Descartamos los que ya existen en la base o que se repiten
+  // dentro del propio archivo. Los contactos SIN correo no se pueden comparar
+  // de forma confiable, así que se crean como antes.
+  const contactosExistentes = await prisma.contacto.findMany({
+    where: { tenantId, eliminadoEn: null, email: { not: null } },
+    select: { email: true },
+  });
+  const emailsVistos = new Set(contactosExistentes.map((c) => normalizarEmail(c.email)).filter(Boolean));
+  let contactosOmitidos = 0;
+
   const contactosData = filas
     .filter((f) => get(f, "contacto"))
     .map((fila) => {
       const empresaNombre = get(fila, "empresa");
       const empresaId = empresaNombre ? empresaCache.get(empresaNombre.toLowerCase()) ?? null : null;
+      const email = get(fila, "emailContacto");
+      const emailNorm = normalizarEmail(email);
+      if (emailNorm) {
+        if (emailsVistos.has(emailNorm)) return null; // ya existe → se omite
+        emailsVistos.add(emailNorm);
+      }
       return {
         nombre: get(fila, "contacto")!,
-        email: get(fila, "emailContacto"),
+        email,
         telefono: get(fila, "telefonoContacto"),
         cargo: get(fila, "cargoContacto"),
         empresaId,
         tenantId,
       };
+    })
+    .filter((c): c is NonNullable<typeof c> => {
+      if (c === null) { contactosOmitidos++; return false; }
+      return true;
     });
 
   let contactosCreados = 0;
@@ -220,6 +244,7 @@ export async function POST(request: Request) {
     ok: true,
     empresasCreadas: empresasNuevas.size,
     contactosCreados,
+    contactosOmitidos,
     oportunidadesCreadas,
     errores: 0,
     total: filas.length,

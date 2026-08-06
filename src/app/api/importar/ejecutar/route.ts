@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import ExcelJS from "exceljs";
 import { excedeTope } from "@/lib/importar-limite";
+import { normalizarEmail } from "@/lib/duplicados";
 
 type Mapeo = Record<string, string>; // campoDelCRM -> columnaDelExcel
 
@@ -89,6 +90,8 @@ export async function POST(request: Request) {
 
   let creados = 0;
   let errores = 0;
+  // Contactos ya existentes que se omitieron por correo duplicado (ver módulo contactos).
+  let omitidos = 0;
 
   // Se inserta EN LOTE (createMany) en vez de fila por fila: un archivo de
   // cientos/miles de filas hacía cientos/miles de viajes a la base (minutos);
@@ -114,15 +117,30 @@ export async function POST(request: Request) {
     const empresas = await prisma.empresa.findMany({ where: { tenantId }, select: { id: true, nombre: true } });
     const empresaMap = new Map(empresas.map((e) => [e.nombre.toLowerCase(), e.id]));
 
+    // Deduplicar por correo: `skipDuplicates` no aplica a contactos (sin índice
+    // único en email), así que descartamos los que ya existen en la base o se
+    // repiten en el archivo. Los que no traen correo se crean como antes.
+    const existentes = await prisma.contacto.findMany({
+      where: { tenantId, eliminadoEn: null, email: { not: null } },
+      select: { email: true },
+    });
+    const emailsVistos = new Set(existentes.map((c) => normalizarEmail(c.email)).filter(Boolean));
+
     const data = [];
     for (const fila of filas) {
       const nombre = getCol(fila, "nombre");
       if (!nombre) { errores++; continue; }
+      const email = getCol(fila, "email");
+      const emailNorm = normalizarEmail(email);
+      if (emailNorm) {
+        if (emailsVistos.has(emailNorm)) { omitidos++; continue; }
+        emailsVistos.add(emailNorm);
+      }
       const empresaNombre = getCol(fila, "empresa");
       const empresaId = empresaNombre ? empresaMap.get(empresaNombre.toLowerCase()) : null;
       data.push({
         nombre,
-        email: getCol(fila, "email"),
+        email,
         telefono: getCol(fila, "telefono"),
         cargo: getCol(fila, "cargo"),
         notas: getCol(fila, "notas"),
@@ -253,5 +271,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Módulo no soportado" }, { status: 400 });
   }
 
-  return NextResponse.json({ ok: true, creados, errores, total: filas.length });
+  return NextResponse.json({ ok: true, creados, errores, omitidos, total: filas.length });
 }
