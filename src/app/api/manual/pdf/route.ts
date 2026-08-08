@@ -104,7 +104,7 @@ function PageHeader() {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.21"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.22"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -237,7 +237,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.21 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.22 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -413,12 +413,13 @@ export async function GET() {
       React.createElement(Nota, null, "El botón Eliminar solo aparece para los roles con permiso (Administrador y Gerente). Al igual que en las fichas, eliminar desde la lista no borra el registro de inmediato: lo envía a la Papelera."),
 
       React.createElement(H2, null, "2.12 Correos"),
-      React.createElement(P, null, "En la ficha de un Contacto (y en la de una Oportunidad) encontrarás la tarjeta \"Correos\", desde donde puedes escribir y enviar un correo al cliente sin salir del CRM, y donde queda registrada la conversación."),
+      React.createElement(P, null, "En la ficha de un Contacto (y en la de una Oportunidad) encontrarás la tarjeta \"Correos\", desde donde puedes escribir y enviar un correo al cliente sin salir del CRM, y donde queda registrada toda la conversación — tanto lo que envías como las respuestas del cliente."),
       React.createElement(Paso, { n: 1, titulo: "Redactar", desc: "Haz clic en \"Redactar\". El destinatario viene precargado con el email del contacto (puedes cambiarlo). Escribe el asunto y el mensaje." }),
       React.createElement(Paso, { n: 2, titulo: "Enviar", desc: "Al enviar, el correo sale desde el CRM con tu nombre como remitente y queda registrado en la lista de esa tarjeta, marcado como \"Enviado\"." }),
-      React.createElement(Paso, { n: 3, titulo: "Consultar", desc: "Cada correo de la lista muestra asunto, destinatario y fecha; haz clic para desplegar el mensaje completo. Así la conversación queda ligada al cliente." }),
-      React.createElement(P, null, "Las respuestas del cliente llegan a tu propio correo (el que tienes en Mi perfil), porque el correo se envía con Reply-To a tu dirección."),
-      React.createElement(Nota, null, "Por ahora los correos se escriben en texto sencillo (sin adjuntos). La captura automática de las respuestas dentro del CRM llegará en una versión próxima."),
+      React.createElement(Paso, { n: 3, titulo: "Recibir la respuesta", desc: "Cuando el cliente responde, su respuesta se registra sola en la misma tarjeta, marcada como \"Recibido\", y vinculada a la ficha correcta. La captura corre cada pocos minutos, así que puede tardar un momento en aparecer." }),
+      React.createElement(Paso, { n: 4, titulo: "Consultar", desc: "Cada correo de la lista muestra asunto, remitente/destinatario y fecha, con su etiqueta Enviado o Recibido; haz clic para desplegar el mensaje completo. Así toda la conversación queda ligada al cliente." }),
+      React.createElement(P, null, "Además, cuando entra una respuesta te llega un aviso a tu propio correo (el que tienes en Mi perfil) con el texto y un botón para abrir la ficha en el CRM."),
+      React.createElement(Nota, null, "Solo se capturan las respuestas a correos que enviaste desde el CRM; no reemplaza tu bandeja de entrada. Por ahora los correos se manejan en texto sencillo, sin adjuntos."),
     ),
 
     // ── CAPÍTULO 3: PIPELINE ──
