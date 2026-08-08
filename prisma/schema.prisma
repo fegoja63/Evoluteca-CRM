@@ -726,6 +726,11 @@ model CorreoRegistrado {
   // Id que devuelve el proveedor (Resend al enviar; el proveedor de inbound al
   // recibir) — sirve para trazar y, en el futuro, agrupar hilos.
   proveedorMessageId String?
+  // Token único que viaja en el Reply-To de los correos ENVIADOS
+  // (`ingest+<tokenHilo>@gmail.com`). Cuando el cliente responde, el cron de
+  // entrada lo lee de la dirección de destino para vincular la respuesta a la
+  // misma oportunidad/contacto/empresa y avisar al vendedor que lo originó.
+  tokenHilo          String?         @unique
   fecha              DateTime        @default(now())
   creadoBy           String? // usuario que lo envió (null si es entrante)
 

@@ -106,7 +106,7 @@ export function CorreosPanel({ contactoId, empresaId, oportunidadId, emailDestin
                 className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                 <IconSend size={15} stroke={1.75} />{enviando ? "Enviando..." : "Enviar"}
               </button>
-              <span className="text-[11px] text-slate-400">Se envía desde tu CRM; las respuestas te llegan a tu correo.</span>
+              <span className="text-[11px] text-slate-400">Se envía desde tu CRM; las respuestas quedan registradas aquí y te llegan a tu correo.</span>
             </div>
           </div>
         </div>

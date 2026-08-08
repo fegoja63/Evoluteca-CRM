@@ -1,0 +1,46 @@
+# Dispara el chequeo de correos entrantes cada 15 minutos.
+#
+# Por qué GitHub Actions y no un cron de Vercel: el proyecto está en el plan
+# Hobby de Vercel, que solo permite crons diarios y un máximo de 2 (ya usados
+# por notificaciones y respaldo). Este workflow llama al endpoint del CRM con el
+# CRON_SECRET; toda la lógica (IMAP → vincular → reenviar) vive en el endpoint.
+#
+# Configuración (una sola vez, en GitHub → Settings → Secrets and variables →
+# Actions):
+#   - Secret  CRON_SECRET        → el mismo valor que en Vercel.
+#   - Variable CRM_URL (opcional) → URL base del CRM en producción.
+#       Si no se define, usa la de por defecto de abajo.
+#
+# Nota: los cron de GitHub Actions se ejecutan en horario UTC y pueden
+# retrasarse unos minutos bajo carga. Para un CRM es más que suficiente. Si el
+# repo queda 60 días sin actividad, GitHub desactiva el schedule (se reactiva
+# con un push o desde la pestaña Actions).
+
+name: Correos entrantes CRM
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {} # permite dispararlo a mano para probar
+
+jobs:
+  revisar-inbox:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar al endpoint de correos entrantes
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          CRM_URL: ${{ vars.CRM_URL || 'https://evoluteca-crm-six.vercel.app' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "Falta el secret CRON_SECRET en el repositorio." >&2
+            exit 1
+          fi
+          codigo=$(curl -sS -o respuesta.json -w "%{http_code}" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$CRM_URL/api/cron/correos-entrantes")
+          echo "HTTP $codigo"
+          cat respuesta.json || true
+          echo ""
+          # 2xx = OK; cualquier otro código marca el run como fallido.
+          [ "$codigo" -ge 200 ] && [ "$codigo" -lt 300 ]

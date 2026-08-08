@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { parseOrError } from "@/lib/validations/helpers";
 import { enviarCorreoSchema } from "@/lib/validations/correos";
 import { escapeHtml } from "@/lib/html";
+import { generarTokenHilo, construirReplyTo } from "@/lib/correo-inbound";
 
 export const dynamic = "force-dynamic";
 
@@ -68,14 +69,21 @@ export async function POST(request: Request) {
   const remitenteNombre = session.user.name ?? "Evoluteca CRM";
   const html = plantillaCorreo(cuerpo, tenant?.logoUrl ?? null);
 
+  // Reply-To: si hay buzón de ingest configurado (INGEST_EMAIL_BASE), la
+  // respuesta del cliente se dirige a `base+<token>@gmail.com`; el cron de
+  // entrada lee ese token para vincular la respuesta a esta misma ficha y
+  // reenviarla al vendedor. Sin buzón de ingest, se cae al correo real del
+  // vendedor (comportamiento de la PR 1: las respuestas le llegan directo).
+  const tokenHilo = process.env.INGEST_EMAIL_BASE ? generarTokenHilo() : null;
+  const replyTo =
+    (tokenHilo && construirReplyTo(process.env.INGEST_EMAIL_BASE!, tokenHilo)) || session.user.email;
+
   // Se envía desde el remitente corporativo verificado en Resend, con el nombre
-  // del vendedor visible. El Reply-To es el correo real del vendedor para que
-  // las respuestas le lleguen. (PR 2 pondrá aquí el buzón del CRM para
-  // capturar esas respuestas automáticamente.)
+  // del vendedor visible.
   const resend = new Resend(process.env.RESEND_API_KEY);
   const { data: enviado, error: errEnvio } = await resend.emails.send({
     from: `${remitenteNombre} · Evoluteca CRM <noreply@evoluteca.com>`,
-    replyTo: session.user.email,
+    replyTo,
     to: para,
     subject: asunto,
     html,
@@ -95,6 +103,7 @@ export async function POST(request: Request) {
       asunto,
       cuerpo,
       proveedorMessageId: enviado?.id ?? null,
+      tokenHilo,
       creadoBy: session.user.id,
       tenantId,
       empresaId: empresaId || null,
