@@ -195,7 +195,7 @@ export async function GET() {
           spacing: { after: 1200 },
         }),
         new Paragraph({
-          children: [new TextRun({ text: `Versión 1.20  ·  ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })}`, size: 20, color: GRIS, italics: true })],
+          children: [new TextRun({ text: `Versión 1.22  ·  ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })}`, size: 20, color: GRIS, italics: true })],
           alignment: AlignmentType.CENTER,
           spacing: { after: 200 },
         }),
@@ -357,7 +357,8 @@ export async function GET() {
         p("No necesitas abrir la ficha completa: en las listas de Clientes, Contactos y Cotizaciones, cada fila tiene un botón Editar (lápiz) que abre una ventana para modificar los datos sin salir del listado, y un botón Eliminar (papelera) que pide confirmación y mueve el registro a la Papelera."),
         nota("El botón Eliminar solo aparece para los roles con permiso (Administrador y Gerente)."),
         h2("3.12 Correos"),
-        p("En la ficha de un Contacto (y en la de una Oportunidad) está la tarjeta \"Correos\": con el botón Redactar escribes y envías un correo al cliente sin salir del CRM. El destinatario viene precargado con el email del contacto; escribes asunto y mensaje. El correo sale con tu nombre como remitente y queda registrado en la lista de esa tarjeta (marcado \"Enviado\"); haz clic en cualquiera para ver el mensaje completo. Las respuestas del cliente llegan a tu propio correo. Por ahora es texto sencillo, sin adjuntos."),
+        p("En la ficha de un Contacto (y en la de una Oportunidad) está la tarjeta \"Correos\": con el botón Redactar escribes y envías un correo al cliente sin salir del CRM. El destinatario viene precargado con el email del contacto; escribes asunto y mensaje. El correo sale con tu nombre como remitente y queda registrado en la lista de esa tarjeta (marcado \"Enviado\"); haz clic en cualquiera para ver el mensaje completo."),
+        p("Cuando el cliente responde, su respuesta se registra sola en la misma tarjeta (marcada \"Recibido\"), vinculada a la ficha correcta, y te llega un aviso a tu propio correo con un botón para abrir la ficha. La captura corre cada pocos minutos, así que puede tardar un momento en aparecer. Solo se capturan las respuestas a correos enviados desde el CRM; no reemplaza tu bandeja de entrada. Por ahora es texto sencillo, sin adjuntos."),
         pageBreak(),
 
         // CAP 4
