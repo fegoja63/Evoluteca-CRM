@@ -108,10 +108,15 @@ export async function POST(request: Request) {
         notas: notas?.trim() || null,
         condicionesComerciales: condicionesComerciales?.trim() || null,
         fechaValidez: fechaValidez ? new Date(fechaValidez) : null,
-        impuestoNombre: impuestoNombre?.trim() || null,
-        impuestoPorcentaje: impuestoPorcentaje ?? null,
-        impuesto2Nombre: impuesto2Nombre?.trim() || null,
-        impuesto2Porcentaje: impuesto2Porcentaje ?? null,
+        // Los impuestos solo aplican a la modalidad de ítems (fee fijo). En
+        // success fee / fee mensual el total es el honorario/fee y no se le
+        // suma IVA en ninguna vista (PDF, correo, enlace público), así que
+        // guardarlos dejaría un dato que nunca se refleja. Se anulan para que
+        // lo almacenado coincida siempre con lo mostrado.
+        impuestoNombre: modalidad === "FEE_FIJO" ? (impuestoNombre?.trim() || null) : null,
+        impuestoPorcentaje: modalidad === "FEE_FIJO" ? (impuestoPorcentaje ?? null) : null,
+        impuesto2Nombre: modalidad === "FEE_FIJO" ? (impuesto2Nombre?.trim() || null) : null,
+        impuesto2Porcentaje: modalidad === "FEE_FIJO" ? (impuesto2Porcentaje ?? null) : null,
         modalidad,
         porcentajeHonorarios: modalidad === "SUCCESS_FEE" ? (porcentajeHonorarios ?? null) : null,
         horizonteMeses: (modalidad === "SUCCESS_FEE" || modalidad === "FEE_MENSUAL") ? (horizonteMeses ?? null) : null,
