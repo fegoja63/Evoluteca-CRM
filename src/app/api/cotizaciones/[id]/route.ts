@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
 import { editarCotizacionSchema } from "@/lib/validations/cotizaciones";
 import { parseOrError } from "@/lib/validations/helpers";
-import { idsReemplazadas, valorCotizacion } from "@/lib/cotizaciones";
+import { idsReemplazadas, valorConImpuestos } from "@/lib/cotizaciones";
 
 export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -103,26 +103,28 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
 
   // Al cambiar los ítems, el valor de la cotización cambia y hay que reflejarlo
   // en el negocio del pipeline: sin esto, corregir un precio dejaba el pipeline
-  // y el forecast con el valor viejo. El valor del negocio es NETO de impuestos
-  // (base según la modalidad), igual que al crear la cotización — el IVA es un
-  // pasivo de traslado, no ingreso, así que el forecast se lleva sin él.
+  // y el forecast con el valor viejo. El valor del negocio es BRUTO (con IVA),
+  // igual que al crear la cotización y que el total que ve el cliente.
   if (items !== undefined && cotActual.oportunidadId) {
     const fresca = await prisma.cotizacion.findUnique({
       where: { id: params.id },
       select: {
         modalidad: true, porcentajeHonorarios: true, horizonteMeses: true, feeMensual: true,
+        impuestoPorcentaje: true, impuesto2Porcentaje: true,
         items: { select: { cantidad: true, precioUnit: true } },
         lineasAhorro: { select: { ahorroEstimadoMensual: true } },
       },
     });
     if (fresca) {
-      const valor = valorCotizacion({
+      const valor = valorConImpuestos({
         modalidad: fresca.modalidad,
         items: fresca.items.map(i => ({ cantidad: i.cantidad, precioUnit: Number(i.precioUnit) })),
         lineasAhorro: fresca.lineasAhorro.map(l => ({ gastoBaseMensual: 0, ahorroEstimadoMensual: Number(l.ahorroEstimadoMensual) })),
         porcentajeHonorarios: fresca.porcentajeHonorarios == null ? null : Number(fresca.porcentajeHonorarios),
         horizonteMeses: fresca.horizonteMeses,
         feeMensual: fresca.feeMensual == null ? null : Number(fresca.feeMensual),
+        impuestoPorcentaje: fresca.impuestoPorcentaje == null ? null : Number(fresca.impuestoPorcentaje),
+        impuesto2Porcentaje: fresca.impuesto2Porcentaje == null ? null : Number(fresca.impuesto2Porcentaje),
       });
       await prisma.oportunidad.updateMany({
         where: { id: cotActual.oportunidadId, tenantId: session.user.tenantId, eliminadoEn: null },

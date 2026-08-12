@@ -6,7 +6,7 @@ import {
   IconFilePlus, IconSearch, IconX, IconDownload, IconAlertTriangle, IconFileText,
   IconSend, IconBan, IconTrash, IconArchive,
 } from "@tabler/icons-react";
-import { idsReemplazadas, valorCotizacion, MODALIDAD_LABEL, numeroCotizacion } from "@/lib/cotizaciones";
+import { idsReemplazadas, valorConImpuestos, MODALIDAD_LABEL, numeroCotizacion } from "@/lib/cotizaciones";
 import { guardarJson } from "@/lib/guardar";
 import { toast } from "@/lib/toast";
 
@@ -31,6 +31,8 @@ type Cotizacion = {
   porcentajeHonorarios: string | null;
   horizonteMeses: number | null;
   feeMensual: string | null;
+  impuestoPorcentaje: string | null;
+  impuesto2Porcentaje: string | null;
 };
 
 const ESTADO_COLOR: Record<string, string> = {
@@ -158,7 +160,7 @@ export default function CotizacionesFormalesPage() {
     return true;
   });
 
-  const valorTotal = listado.reduce((acc, c) => acc + (reemplazadas.has(c.id) ? 0 : valorCotizacion(c)), 0);
+  const valorTotal = listado.reduce((acc, c) => acc + (reemplazadas.has(c.id) ? 0 : valorConImpuestos(c)), 0);
   const conteos = { BORRADOR: 0, ENVIADA: 0, ACEPTADA: 0, RECHAZADA: 0 };
   lista.forEach(c => { if (!reemplazadas.has(c.id) && c.estado in conteos) conteos[c.estado as keyof typeof conteos]++; });
   const vencidas = lista.filter(c => !reemplazadas.has(c.id) && validezBadge(c.fechaValidez, c.estado) !== null);
@@ -323,7 +325,7 @@ export default function CotizacionesFormalesPage() {
                     ) : "—"}
                   </td>
                   <td className="px-4 py-1 text-right font-bold text-slate-900 whitespace-nowrap">
-                    {(() => { const v = valorCotizacion(c); return v > 0 ? fmt(v) : <span className="text-slate-400 font-normal">—</span>; })()}
+                    {(() => { const v = valorConImpuestos(c); return v > 0 ? fmt(v) : <span className="text-slate-400 font-normal">—</span>; })()}
                   </td>
                   <td className="px-4 py-1 text-center">
                     <div className="flex flex-col items-center gap-1">

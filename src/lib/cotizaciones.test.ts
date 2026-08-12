@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { idsReemplazadas, valorCotizacion, type CotizacionResumen } from "./cotizaciones";
+import { idsReemplazadas, valorCotizacion, valorConImpuestos, type CotizacionResumen } from "./cotizaciones";
 
 const c = (id: string, numero: number, estado: string, oportunidadId: string | null): CotizacionResumen =>
   ({ id, numero, estado, oportunidadId });
@@ -86,8 +86,51 @@ describe("valorCotizacion", () => {
   });
 
   it("no incluye impuestos: el valor es la base neta, no el total con IVA", () => {
-    // Aunque la cotización tuviera IVA, valorCotizacion devuelve solo la base.
+    // valorCotizacion es solo la base; el IVA lo agrega valorConImpuestos.
     const v = valorCotizacion({ modalidad: "FEE_FIJO", items: [{ cantidad: 1, precioUnit: 1000 }] });
     expect(v).toBe(1000); // no 1190
+  });
+});
+
+// valorConImpuestos es el valor BRUTO que va al pipeline y a la lista, para que
+// coincida con el total que ve el cliente.
+describe("valorConImpuestos", () => {
+  it("fee fijo: suma el IVA a la base de ítems", () => {
+    const v = valorConImpuestos({
+      modalidad: "FEE_FIJO",
+      items: [{ cantidad: 1, precioUnit: 1000 }],
+      impuestoPorcentaje: 19,
+    });
+    expect(v).toBe(1190);
+  });
+
+  it("fee fijo: suma los dos impuestos sobre la base", () => {
+    const v = valorConImpuestos({
+      modalidad: "FEE_FIJO",
+      items: [{ cantidad: 2, precioUnit: 1000 }], // base 2000
+      impuestoPorcentaje: 19,   // 380
+      impuesto2Porcentaje: 5,   // 100
+    });
+    expect(v).toBe(2480);
+  });
+
+  it("fee fijo sin impuestos: bruto = base", () => {
+    const v = valorConImpuestos({ modalidad: "FEE_FIJO", items: [{ cantidad: 1, precioUnit: 1000 }] });
+    expect(v).toBe(1000);
+  });
+
+  it("success fee: sin impuestos, bruto = honorario estimado", () => {
+    const v = valorConImpuestos({
+      modalidad: "SUCCESS_FEE",
+      lineasAhorro: [{ gastoBaseMensual: 0, ahorroEstimadoMensual: 1_000_000 }],
+      porcentajeHonorarios: 10,
+      horizonteMeses: 12,
+    });
+    expect(v).toBe(1_200_000);
+  });
+
+  it("fee mensual: sin impuestos, bruto = fee × meses", () => {
+    const v = valorConImpuestos({ modalidad: "FEE_MENSUAL", feeMensual: 2_000_000, horizonteMeses: 6 });
+    expect(v).toBe(12_000_000);
   });
 });
