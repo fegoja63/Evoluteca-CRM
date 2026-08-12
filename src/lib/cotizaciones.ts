@@ -53,7 +53,7 @@ export function valorFeeMensual(
 
 export type CotizacionValor = {
   modalidad?: string | null;
-  items?: { cantidad: number; precioUnit: number | string }[];
+  items?: { cantidad?: number; precioUnit: number | string }[];
   lineasAhorro?: LineaAhorroCalc[];
   porcentajeHonorarios?: number | string | null;
   horizonteMeses?: number | string | null;
@@ -67,6 +67,24 @@ export function valorCotizacion(c: CotizacionValor): number {
   if (c.modalidad === "FEE_MENSUAL")
     return valorFeeMensual(c.feeMensual, c.horizonteMeses);
   return (c.items ?? []).reduce((s, it) => s + (it.cantidad ?? 1) * Number(it.precioUnit), 0);
+}
+
+export type CotizacionValorConImpuestos = CotizacionValor & {
+  impuestoPorcentaje?: number | string | null;
+  impuesto2Porcentaje?: number | string | null;
+};
+
+/**
+ * Valor del negocio CON impuestos (bruto). Es el que se refleja en el pipeline
+ * y en la lista de cotizaciones, para que coincida con el total que ve el
+ * cliente en el PDF / correo / enlace público. El IVA solo aplica en fee fijo;
+ * en success fee / fee mensual no se guardan impuestos, así que bruto = neto.
+ */
+export function valorConImpuestos(c: CotizacionValorConImpuestos): number {
+  const base = valorCotizacion(c);
+  const pct1 = Number(c.impuestoPorcentaje ?? 0);
+  const pct2 = Number(c.impuesto2Porcentaje ?? 0);
+  return base + base * (pct1 / 100) + base * (pct2 / 100);
 }
 
 export const MODALIDAD_LABEL: Record<string, string> = {

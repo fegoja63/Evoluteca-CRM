@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { idsReemplazadas, type CotizacionResumen } from "./cotizaciones";
+import { idsReemplazadas, valorCotizacion, valorConImpuestos, type CotizacionResumen } from "./cotizaciones";
 
 const c = (id: string, numero: number, estado: string, oportunidadId: string | null): CotizacionResumen =>
   ({ id, numero, estado, oportunidadId });
@@ -43,5 +43,94 @@ describe("idsReemplazadas", () => {
       c("b", 2, "BORRADOR", null),
     ]);
     expect(set.size).toBe(0);
+  });
+});
+
+// valorCotizacion es la fórmula que fija el valor del negocio en el pipeline,
+// tanto al crear como al recalcular cuando se editan los ítems. Es el valor
+// NETO de impuestos (base del contrato según la modalidad).
+describe("valorCotizacion", () => {
+  it("fee fijo: suma cantidad × precio de los ítems", () => {
+    const v = valorCotizacion({
+      modalidad: "FEE_FIJO",
+      items: [
+        { cantidad: 2, precioUnit: 100 },
+        { cantidad: 1, precioUnit: 50 },
+      ],
+    });
+    expect(v).toBe(250);
+  });
+
+  it("fee fijo: los ítems como string (Decimal serializado) también suman", () => {
+    const v = valorCotizacion({ modalidad: "FEE_FIJO", items: [{ cantidad: 3, precioUnit: "1000" }] });
+    expect(v).toBe(3000);
+  });
+
+  it("success fee: Σ ahorro mensual × % honorarios × meses", () => {
+    const v = valorCotizacion({
+      modalidad: "SUCCESS_FEE",
+      lineasAhorro: [
+        { gastoBaseMensual: 0, ahorroEstimadoMensual: 1_000_000 },
+        { gastoBaseMensual: 0, ahorroEstimadoMensual: 500_000 },
+      ],
+      porcentajeHonorarios: 10,
+      horizonteMeses: 12,
+    });
+    // (1.000.000 + 500.000) × 10% × 12 = 1.800.000
+    expect(v).toBe(1_800_000);
+  });
+
+  it("fee mensual: fee × meses", () => {
+    const v = valorCotizacion({ modalidad: "FEE_MENSUAL", feeMensual: 2_000_000, horizonteMeses: 6 });
+    expect(v).toBe(12_000_000);
+  });
+
+  it("no incluye impuestos: el valor es la base neta, no el total con IVA", () => {
+    // valorCotizacion es solo la base; el IVA lo agrega valorConImpuestos.
+    const v = valorCotizacion({ modalidad: "FEE_FIJO", items: [{ cantidad: 1, precioUnit: 1000 }] });
+    expect(v).toBe(1000); // no 1190
+  });
+});
+
+// valorConImpuestos es el valor BRUTO que va al pipeline y a la lista, para que
+// coincida con el total que ve el cliente.
+describe("valorConImpuestos", () => {
+  it("fee fijo: suma el IVA a la base de ítems", () => {
+    const v = valorConImpuestos({
+      modalidad: "FEE_FIJO",
+      items: [{ cantidad: 1, precioUnit: 1000 }],
+      impuestoPorcentaje: 19,
+    });
+    expect(v).toBe(1190);
+  });
+
+  it("fee fijo: suma los dos impuestos sobre la base", () => {
+    const v = valorConImpuestos({
+      modalidad: "FEE_FIJO",
+      items: [{ cantidad: 2, precioUnit: 1000 }], // base 2000
+      impuestoPorcentaje: 19,   // 380
+      impuesto2Porcentaje: 5,   // 100
+    });
+    expect(v).toBe(2480);
+  });
+
+  it("fee fijo sin impuestos: bruto = base", () => {
+    const v = valorConImpuestos({ modalidad: "FEE_FIJO", items: [{ cantidad: 1, precioUnit: 1000 }] });
+    expect(v).toBe(1000);
+  });
+
+  it("success fee: sin impuestos, bruto = honorario estimado", () => {
+    const v = valorConImpuestos({
+      modalidad: "SUCCESS_FEE",
+      lineasAhorro: [{ gastoBaseMensual: 0, ahorroEstimadoMensual: 1_000_000 }],
+      porcentajeHonorarios: 10,
+      horizonteMeses: 12,
+    });
+    expect(v).toBe(1_200_000);
+  });
+
+  it("fee mensual: sin impuestos, bruto = fee × meses", () => {
+    const v = valorConImpuestos({ modalidad: "FEE_MENSUAL", feeMensual: 2_000_000, horizonteMeses: 6 });
+    expect(v).toBe(12_000_000);
   });
 });

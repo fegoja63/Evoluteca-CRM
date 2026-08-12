@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { crearCotizacionSchema } from "@/lib/validations/cotizaciones";
 import { parseOrError } from "@/lib/validations/helpers";
+import { valorConImpuestos } from "@/lib/cotizaciones";
 
 export async function GET() {
   const session = await auth();
@@ -66,14 +67,15 @@ export async function POST(request: Request) {
   const cotizacion = await prisma.$transaction(async (tx) => {
     let opId = oportunidadId || null;
     if (!opId) {
-      // Valor del negocio según la modalidad: en success fee es el honorario
-      // estimado (Σ ahorro mensual × % × meses); en fee fijo, la suma de ítems.
-      const valorNegocio =
-        modalidad === "SUCCESS_FEE"
-          ? lineasAhorro.reduce((s, l) => s + l.ahorroEstimadoMensual, 0) * ((porcentajeHonorarios ?? 0) / 100) * (horizonteMeses ?? 0)
-          : modalidad === "FEE_MENSUAL"
-            ? (feeMensual ?? 0) * (horizonteMeses ?? 0)
-            : items.reduce((s, it) => s + (it.cantidad ?? 1) * it.precioUnit, 0);
+      // Valor del negocio en el pipeline: BRUTO (con IVA), para que coincida
+      // con el total que ve el cliente. La base depende de la modalidad
+      // (honorario estimado / fee × meses / suma de ítems) y el IVA solo aplica
+      // en fee fijo (en las otras no se guardan impuestos).
+      const valorNegocio = valorConImpuestos({
+        modalidad, items, lineasAhorro, porcentajeHonorarios, horizonteMeses, feeMensual,
+        impuestoPorcentaje: modalidad === "FEE_FIJO" ? impuestoPorcentaje : null,
+        impuesto2Porcentaje: modalidad === "FEE_FIJO" ? impuesto2Porcentaje : null,
+      });
       const op = await tx.oportunidad.create({
         data: {
           titulo: empresaNombre ? `Cotización — ${empresaNombre}` : "Cotización nueva",
@@ -108,10 +110,15 @@ export async function POST(request: Request) {
         notas: notas?.trim() || null,
         condicionesComerciales: condicionesComerciales?.trim() || null,
         fechaValidez: fechaValidez ? new Date(fechaValidez) : null,
-        impuestoNombre: impuestoNombre?.trim() || null,
-        impuestoPorcentaje: impuestoPorcentaje ?? null,
-        impuesto2Nombre: impuesto2Nombre?.trim() || null,
-        impuesto2Porcentaje: impuesto2Porcentaje ?? null,
+        // Los impuestos solo aplican a la modalidad de ítems (fee fijo). En
+        // success fee / fee mensual el total es el honorario/fee y no se le
+        // suma IVA en ninguna vista (PDF, correo, enlace público), así que
+        // guardarlos dejaría un dato que nunca se refleja. Se anulan para que
+        // lo almacenado coincida siempre con lo mostrado.
+        impuestoNombre: modalidad === "FEE_FIJO" ? (impuestoNombre?.trim() || null) : null,
+        impuestoPorcentaje: modalidad === "FEE_FIJO" ? (impuestoPorcentaje ?? null) : null,
+        impuesto2Nombre: modalidad === "FEE_FIJO" ? (impuesto2Nombre?.trim() || null) : null,
+        impuesto2Porcentaje: modalidad === "FEE_FIJO" ? (impuesto2Porcentaje ?? null) : null,
         modalidad,
         porcentajeHonorarios: modalidad === "SUCCESS_FEE" ? (porcentajeHonorarios ?? null) : null,
         horizonteMeses: (modalidad === "SUCCESS_FEE" || modalidad === "FEE_MENSUAL") ? (horizonteMeses ?? null) : null,
