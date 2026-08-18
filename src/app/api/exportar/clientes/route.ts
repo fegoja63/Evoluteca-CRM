@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
-import { filtroAnioCreacion } from "@/lib/filtros";
+import { filtroPeriodoCreacion } from "@/lib/filtros";
 import ExcelJS from "exceljs";
 
 export async function GET(request: Request) {
@@ -12,6 +12,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q") ?? "";
   const anio = searchParams.get("anio");
+  const mes = searchParams.get("mes");
 
   const empresas = await prisma.empresa.findMany({
     where: {
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
       eliminadoEn: null,
       ...filtroOwner(session.user.rol, session.user.id),
       ...(q ? { nombre: { contains: q, mode: "insensitive" as const } } : {}),
-      ...filtroAnioCreacion(anio),
+      ...filtroPeriodoCreacion(anio, mes),
     },
     orderBy: { nombre: "asc" },
     include: {
@@ -77,7 +78,11 @@ export async function GET(request: Request) {
 
   const buffer = await wb.xlsx.writeBuffer();
   const hoy = new Date().toISOString().slice(0, 10);
-  const sufijo = anio && /^\d{4}$/.test(anio) ? `nuevos-${anio}` : hoy;
+  const anioOk = anio && /^\d{4}$/.test(anio);
+  const mesOk = mes && /^(0?[1-9]|1[0-2])$/.test(mes);
+  const sufijo = anioOk
+    ? (mesOk ? `nuevos-${anio}-${String(mes).padStart(2, "0")}` : `nuevos-${anio}`)
+    : hoy;
 
   return new NextResponse(new Uint8Array(buffer as ArrayBuffer), {
     status: 200,

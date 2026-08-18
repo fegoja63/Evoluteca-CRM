@@ -48,6 +48,18 @@ export async function POST(request: Request) {
   const colsExtra: string[] = colsExtraRaw ? JSON.parse(colsExtraRaw) : [];
   const colsUsadas = new Set(Object.values(mapeo).filter(Boolean));
 
+  // Fecha de creación para las empresas de ESTE lote (opcional). Sirve para
+  // migrar la base histórica sin que todos los clientes cuenten como "nuevos"
+  // del año en curso en el filtro de clientes nuevos. Vacío → Prisma usa la
+  // fecha de hoy (@default(now())). Se interpreta a medianoche UTC, igual que
+  // los límites del filtro por año/mes.
+  const fechaCreacionRaw = formData.get("fechaCreacion") as string | null;
+  const creadoEnLote =
+    fechaCreacionRaw && /^\d{4}-\d{2}-\d{2}$/.test(fechaCreacionRaw)
+      ? new Date(`${fechaCreacionRaw}T00:00:00.000Z`)
+      : null;
+  const creadoEnValido = creadoEnLote && !isNaN(creadoEnLote.getTime()) ? creadoEnLote : null;
+
   const buffer = Buffer.from(await file.arrayBuffer());
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load(buffer as any);
@@ -140,6 +152,7 @@ export async function POST(request: Request) {
       data: Array.from(empresasNuevas.entries()).map(([, fila]) => ({
         nombre: get(fila, "empresa")!,
         extras: getExtras(fila) ?? undefined,
+        ...(creadoEnValido ? { creadoEn: creadoEnValido } : {}),
         tenantId,
       })),
       skipDuplicates: true,

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
-import { filtroAnioCreacion } from "@/lib/filtros";
+import { filtroPeriodoCreacion } from "@/lib/filtros";
 
 // KPIs agregados en la base de datos, independientes de la paginación de
 // GET /api/empresas — evita que las tarjetas de resumen muestren solo lo
@@ -14,13 +14,14 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q") ?? "";
   const anio = searchParams.get("anio");
+  const mes = searchParams.get("mes");
 
   const where = {
     tenantId: session.user.tenantId,
     eliminadoEn: null,
     ...filtroOwner(session.user.rol, session.user.id),
     ...(q ? { nombre: { contains: q, mode: "insensitive" as const } } : {}),
-    ...filtroAnioCreacion(anio),
+    ...filtroPeriodoCreacion(anio, mes),
   };
 
   const [total, conContactos, contactosVinculados] = await Promise.all([

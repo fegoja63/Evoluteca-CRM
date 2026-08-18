@@ -56,6 +56,7 @@ export default function ImportarCompletoPage() {
   const [cargando, setCargando] = useState(false);
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const [archivo, setArchivo] = useState<File | null>(null);
+  const [fechaCreacion, setFechaCreacion] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Columna seleccionada para ver su detalle
@@ -131,6 +132,7 @@ export default function ImportarCompletoPage() {
     fd.append("archivo", archivo);
     fd.append("mapeo", JSON.stringify(mapeo));
     fd.append("colsExtra", JSON.stringify(colsExtra));
+    if (fechaCreacion) fd.append("fechaCreacion", fechaCreacion);
     const res = await fetch("/api/importar/completo", { method: "POST", body: fd });
     const data = await res.json();
     setResultado(data);
@@ -345,6 +347,34 @@ export default function ImportarCompletoPage() {
               </div>
             </div>
 
+            {/* Fecha de creación del lote — evita que la base histórica cuente
+                como "clientes nuevos" del año en curso */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4">
+              <label className="text-sm font-semibold text-slate-800 flex items-center gap-1.5 mb-1">
+                <IconCalendarDue size={15} stroke={1.75} className="text-slate-500" />
+                Fecha de creación de estos clientes <span className="text-xs font-normal text-slate-400">(opcional)</span>
+              </label>
+              <p className="text-xs text-slate-500 mb-2">
+                Déjala vacía si son clientes <strong>nuevos</strong> (se usa la fecha de hoy). Si estás cargando tu
+                <strong> base histórica</strong>, elige una fecha pasada para que no aparezcan como “clientes nuevos” de este año.
+              </p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={fechaCreacion}
+                  max={new Date().toISOString().slice(0, 10)}
+                  onChange={e => setFechaCreacion(e.target.value)}
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+                />
+                {fechaCreacion && (
+                  <button type="button" onClick={() => setFechaCreacion("")}
+                    className="text-xs text-slate-400 hover:text-slate-700 hover:underline">
+                    Quitar (usar fecha de hoy)
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Botón importar */}
             <div className="bg-white rounded-2xl border border-slate-200 p-4">
               {faltanRequeridos.length > 0 ? (
@@ -412,7 +442,7 @@ export default function ImportarCompletoPage() {
           )}
           <div className="flex gap-3 justify-center">
             <Link href="/dashboard/cuentas" className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">Ver Cuentas →</Link>
-            <button onClick={() => { setPaso(1); setResultado(null); setPreview(null); setMapeo({}); }}
+            <button onClick={() => { setPaso(1); setResultado(null); setPreview(null); setMapeo({}); setFechaCreacion(""); }}
               className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
               Importar otro archivo
             </button>

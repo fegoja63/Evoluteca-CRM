@@ -37,12 +37,22 @@ const SECTORES = [
   "Otro",
 ];
 
+const MESES = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+];
+const nombreMes = (mm: string) => {
+  const n = Number(mm);
+  return n >= 1 && n <= 12 ? MESES[n - 1] : "";
+};
+
 export default function ClientesPage() {
   const router = useRouter();
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [filtroEtiqueta, setFiltroEtiqueta] = useState("");
   const [filtroAnio, setFiltroAnio] = useState("");
+  const [filtroMes, setFiltroMes] = useState("");
   const [cargando, setCargando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -108,7 +118,7 @@ export default function ClientesPage() {
     }
     setReasignando(null);
     setGuardandoReasignar(false);
-    cargar(busqueda, page, filtroAnio);
+    cargar(busqueda, page, filtroAnio, filtroMes);
     fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
   }
 
@@ -122,11 +132,11 @@ export default function ClientesPage() {
   });
 
   const busquedaRef = useRef("");
-  async function cargar(q = "", p = 1, anio = "") {
-    const clave = `${q}|${anio}`;
+  async function cargar(q = "", p = 1, anio = "", mes = "") {
+    const clave = `${q}|${anio}|${mes}`;
     busquedaRef.current = clave;
     setCargando(true);
-    const res = await fetch(`/api/empresas?q=${encodeURIComponent(q)}&anio=${anio}&page=${p}&take=${TAKE}`);
+    const res = await fetch(`/api/empresas?q=${encodeURIComponent(q)}&anio=${anio}&mes=${mes}&page=${p}&take=${TAKE}`);
     const data = await res.json();
     if (busquedaRef.current !== clave) return; // respuesta obsoleta — ya se lanzó una búsqueda/filtro más reciente
     setEmpresas(data);
@@ -134,8 +144,8 @@ export default function ClientesPage() {
     setCargando(false);
   }
 
-  async function cargarStats(q = "", anio = "") {
-    const res = await fetch(`/api/empresas/stats?q=${encodeURIComponent(q)}&anio=${anio}`);
+  async function cargarStats(q = "", anio = "", mes = "") {
+    const res = await fetch(`/api/empresas/stats?q=${encodeURIComponent(q)}&anio=${anio}&mes=${mes}`);
     setStats(await res.json());
   }
 
@@ -145,15 +155,15 @@ export default function ClientesPage() {
     fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
   }, []);
 
-  useEffect(() => { cargar("", 1, ""); cargarStats("", ""); }, []);
+  useEffect(() => { cargar("", 1, "", ""); cargarStats("", "", ""); }, []);
   useEffect(() => {
-    const t = setTimeout(() => { setPage(1); cargar(busqueda, 1, filtroAnio); cargarStats(busqueda, filtroAnio); }, 300);
+    const t = setTimeout(() => { setPage(1); cargar(busqueda, 1, filtroAnio, filtroMes); cargarStats(busqueda, filtroAnio, filtroMes); }, 300);
     return () => clearTimeout(t);
-  }, [busqueda, filtroAnio]);
+  }, [busqueda, filtroAnio, filtroMes]);
 
   function cambiarPagina(p: number) {
     setPage(p);
-    cargar(busqueda, p, filtroAnio);
+    cargar(busqueda, p, filtroAnio, filtroMes);
   }
 
   function abrirEdicion(e: Empresa) {
@@ -191,8 +201,8 @@ export default function ClientesPage() {
     }
     setEditando(null);
     setGuardandoEdit(false);
-    cargar(busqueda, page, filtroAnio);
-    cargarStats(busqueda, filtroAnio);
+    cargar(busqueda, page, filtroAnio, filtroMes);
+    cargarStats(busqueda, filtroAnio, filtroMes);
     fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
   }
 
@@ -209,8 +219,8 @@ export default function ClientesPage() {
       toast.error("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
-    cargar(busqueda, page, filtroAnio);
-    cargarStats(busqueda, filtroAnio);
+    cargar(busqueda, page, filtroAnio, filtroMes);
+    cargarStats(busqueda, filtroAnio, filtroMes);
     fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
   }
 
@@ -234,8 +244,8 @@ export default function ClientesPage() {
     setNuevoContactoForm({ nombre: "", email: "", telefono: "", cargo: "" });
     setMostrarForm(false);
     setGuardando(false);
-    cargar(busqueda, page, filtroAnio);
-    cargarStats(busqueda, filtroAnio);
+    cargar(busqueda, page, filtroAnio, filtroMes);
+    cargarStats(busqueda, filtroAnio, filtroMes);
     fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
   }
 
@@ -254,7 +264,7 @@ export default function ClientesPage() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         {([
-          { label: "Total clientes", valor: stats.total, sub: filtroAnio ? `Creados en ${filtroAnio}` : undefined, icon: IconBuilding, semantic: false },
+          { label: "Total clientes", valor: stats.total, sub: filtroAnio ? `Creados en ${filtroMes ? `${nombreMes(filtroMes)} ${filtroAnio}` : filtroAnio}` : undefined, icon: IconBuilding, semantic: false },
           { label: "Con contactos", valor: stats.conContactos, icon: IconUsers, semantic: false },
           { label: "Sin contactos", valor: stats.sinContactos, sub: "Requieren seguimiento", icon: IconAlertTriangle, semantic: true },
           { label: "Contactos vinculados", valor: stats.contactosVinculados, icon: IconLink, semantic: false },
@@ -295,7 +305,7 @@ export default function ClientesPage() {
           {aniosDisponibles.length > 0 && (
             <select
               value={filtroAnio}
-              onChange={(e) => setFiltroAnio(e.target.value)}
+              onChange={(e) => { setFiltroAnio(e.target.value); if (!e.target.value) setFiltroMes(""); }}
               title="Filtrar por año de creación del cliente"
               className={`rounded-xl border px-3 py-2 text-sm bg-white outline-none focus:border-brand-500 ${filtroAnio ? "border-brand-400 text-brand-700 font-medium" : "border-slate-200 text-slate-600"}`}
             >
@@ -305,9 +315,22 @@ export default function ClientesPage() {
               ))}
             </select>
           )}
+          {filtroAnio && (
+            <select
+              value={filtroMes}
+              onChange={(e) => setFiltroMes(e.target.value)}
+              title="Filtrar por mes de creación del cliente"
+              className={`rounded-xl border px-3 py-2 text-sm bg-white outline-none focus:border-brand-500 ${filtroMes ? "border-brand-400 text-brand-700 font-medium" : "border-slate-200 text-slate-600"}`}
+            >
+              <option value="">Todo el año</option>
+              {MESES.map((nombre, i) => (
+                <option key={nombre} value={String(i + 1).padStart(2, "0")}>{nombre}</option>
+              ))}
+            </select>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
-          <a href={`/api/exportar/clientes?q=${encodeURIComponent(busqueda)}&anio=${filtroAnio}`}
+          <a href={`/api/exportar/clientes?q=${encodeURIComponent(busqueda)}&anio=${filtroAnio}&mes=${filtroMes}`}
             className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1.5">
             ↓ Exportar Excel
           </a>

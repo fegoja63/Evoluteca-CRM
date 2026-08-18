@@ -1,30 +1,46 @@
 import { describe, it, expect } from "vitest";
-import { filtroAnioCreacion } from "./filtros";
+import { filtroPeriodoCreacion } from "./filtros";
 
-describe("filtroAnioCreacion", () => {
+type Rango = { creadoEn: { gte: Date; lt: Date } };
+
+describe("filtroPeriodoCreacion", () => {
   it("devuelve {} cuando el año es nulo/indefinido/vacío", () => {
-    expect(filtroAnioCreacion(null)).toEqual({});
-    expect(filtroAnioCreacion(undefined)).toEqual({});
-    expect(filtroAnioCreacion("")).toEqual({});
+    expect(filtroPeriodoCreacion(null)).toEqual({});
+    expect(filtroPeriodoCreacion(undefined)).toEqual({});
+    expect(filtroPeriodoCreacion("")).toEqual({});
   });
 
   it("devuelve {} cuando el año no es un 'YYYY' válido", () => {
-    expect(filtroAnioCreacion("abc")).toEqual({});
-    expect(filtroAnioCreacion("20")).toEqual({});
-    expect(filtroAnioCreacion("2026-01")).toEqual({});
+    expect(filtroPeriodoCreacion("abc")).toEqual({});
+    expect(filtroPeriodoCreacion("20")).toEqual({});
+    expect(filtroPeriodoCreacion("2026-01")).toEqual({});
   });
 
-  it("acota el rango a [1-ene-AÑO, 1-ene-AÑO+1) en UTC", () => {
-    const f = filtroAnioCreacion("2026") as { creadoEn: { gte: Date; lt: Date } };
+  it("solo año → acota a [1-ene-AÑO, 1-ene-AÑO+1) en UTC", () => {
+    const f = filtroPeriodoCreacion("2026") as Rango;
     expect(f.creadoEn.gte.toISOString()).toBe("2026-01-01T00:00:00.000Z");
     expect(f.creadoEn.lt.toISOString()).toBe("2027-01-01T00:00:00.000Z");
   });
 
-  it("un cliente del 31-dic entra; el 1-ene del año siguiente no", () => {
-    const { creadoEn } = filtroAnioCreacion("2025") as { creadoEn: { gte: Date; lt: Date } };
-    const finDe2025 = new Date("2025-12-31T23:59:59.000Z");
-    const inicioDe2026 = new Date("2026-01-01T00:00:00.000Z");
-    expect(finDe2025 >= creadoEn.gte && finDe2025 < creadoEn.lt).toBe(true);
-    expect(inicioDe2026 < creadoEn.lt).toBe(false);
+  it("año + mes → acota al mes en UTC", () => {
+    const f = filtroPeriodoCreacion("2026", "03") as Rango;
+    expect(f.creadoEn.gte.toISOString()).toBe("2026-03-01T00:00:00.000Z");
+    expect(f.creadoEn.lt.toISOString()).toBe("2026-04-01T00:00:00.000Z");
+  });
+
+  it("diciembre → el límite superior es 1-ene del año siguiente", () => {
+    const f = filtroPeriodoCreacion("2025", "12") as Rango;
+    expect(f.creadoEn.gte.toISOString()).toBe("2025-12-01T00:00:00.000Z");
+    expect(f.creadoEn.lt.toISOString()).toBe("2026-01-01T00:00:00.000Z");
+  });
+
+  it("mes inválido se ignora → cae al rango del año completo", () => {
+    const f = filtroPeriodoCreacion("2026", "13") as Rango;
+    expect(f.creadoEn.gte.toISOString()).toBe("2026-01-01T00:00:00.000Z");
+    expect(f.creadoEn.lt.toISOString()).toBe("2027-01-01T00:00:00.000Z");
+  });
+
+  it("mes sin año no aplica (año manda)", () => {
+    expect(filtroPeriodoCreacion(null, "03")).toEqual({});
   });
 });
