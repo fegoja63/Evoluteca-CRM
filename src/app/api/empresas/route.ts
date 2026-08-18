@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
-import { filtroAnioCreacion } from "@/lib/filtros";
+import { filtroPeriodoCreacion } from "@/lib/filtros";
 import { crearEmpresaSchema } from "@/lib/validations/empresas";
 import { parseOrError } from "@/lib/validations/helpers";
 
@@ -13,6 +13,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q") ?? "";
   const anio = searchParams.get("anio");
+  const mes = searchParams.get("mes");
   const page = searchParams.get("page");
   const take = Number(searchParams.get("take") ?? 30) || 30;
 
@@ -21,7 +22,7 @@ export async function GET(request: Request) {
     eliminadoEn: null,
     ...filtroOwner(session.user.rol, session.user.id),
     ...(q ? { nombre: { contains: q, mode: "insensitive" as const } } : {}),
-    ...filtroAnioCreacion(anio),
+    ...filtroPeriodoCreacion(anio, mes),
   };
   const contactosActivos = { contactos: { where: { eliminadoEn: null } } };
 
