@@ -2,14 +2,25 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
+import { filtroAnioCreacion } from "@/lib/filtros";
 import ExcelJS from "exceljs";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
+  const { searchParams } = new URL(request.url);
+  const q = searchParams.get("q") ?? "";
+  const anio = searchParams.get("anio");
+
   const empresas = await prisma.empresa.findMany({
-    where: { tenantId: session.user.tenantId, ...filtroOwner(session.user.rol, session.user.id) },
+    where: {
+      tenantId: session.user.tenantId,
+      eliminadoEn: null,
+      ...filtroOwner(session.user.rol, session.user.id),
+      ...(q ? { nombre: { contains: q, mode: "insensitive" as const } } : {}),
+      ...filtroAnioCreacion(anio),
+    },
     orderBy: { nombre: "asc" },
     include: {
       _count: { select: { contactos: true, oportunidades: { where: { eliminadoEn: null } } } },
@@ -66,12 +77,13 @@ export async function GET() {
 
   const buffer = await wb.xlsx.writeBuffer();
   const hoy = new Date().toISOString().slice(0, 10);
+  const sufijo = anio && /^\d{4}$/.test(anio) ? `nuevos-${anio}` : hoy;
 
   return new NextResponse(new Uint8Array(buffer as ArrayBuffer), {
     status: 200,
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="clientes-${hoy}.xlsx"`,
+      "Content-Disposition": `attachment; filename="clientes-${sufijo}.xlsx"`,
     },
   });
 }

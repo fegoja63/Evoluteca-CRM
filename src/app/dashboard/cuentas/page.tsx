@@ -42,6 +42,7 @@ export default function ClientesPage() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [filtroEtiqueta, setFiltroEtiqueta] = useState("");
+  const [filtroAnio, setFiltroAnio] = useState("");
   const [cargando, setCargando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -107,7 +108,7 @@ export default function ClientesPage() {
     }
     setReasignando(null);
     setGuardandoReasignar(false);
-    cargar(busqueda, page);
+    cargar(busqueda, page, filtroAnio);
     fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
   }
 
@@ -121,19 +122,20 @@ export default function ClientesPage() {
   });
 
   const busquedaRef = useRef("");
-  async function cargar(q = "", p = 1) {
-    busquedaRef.current = q;
+  async function cargar(q = "", p = 1, anio = "") {
+    const clave = `${q}|${anio}`;
+    busquedaRef.current = clave;
     setCargando(true);
-    const res = await fetch(`/api/empresas?q=${encodeURIComponent(q)}&page=${p}&take=${TAKE}`);
+    const res = await fetch(`/api/empresas?q=${encodeURIComponent(q)}&anio=${anio}&page=${p}&take=${TAKE}`);
     const data = await res.json();
-    if (busquedaRef.current !== q) return; // respuesta obsoleta — ya se lanzó una búsqueda más reciente
+    if (busquedaRef.current !== clave) return; // respuesta obsoleta — ya se lanzó una búsqueda/filtro más reciente
     setEmpresas(data);
     setTotalCount(Number(res.headers.get("X-Total-Count") ?? data.length));
     setCargando(false);
   }
 
-  async function cargarStats(q = "") {
-    const res = await fetch(`/api/empresas/stats?q=${encodeURIComponent(q)}`);
+  async function cargarStats(q = "", anio = "") {
+    const res = await fetch(`/api/empresas/stats?q=${encodeURIComponent(q)}&anio=${anio}`);
     setStats(await res.json());
   }
 
@@ -143,15 +145,15 @@ export default function ClientesPage() {
     fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
   }, []);
 
-  useEffect(() => { cargar("", 1); cargarStats(""); }, []);
+  useEffect(() => { cargar("", 1, ""); cargarStats("", ""); }, []);
   useEffect(() => {
-    const t = setTimeout(() => { setPage(1); cargar(busqueda, 1); cargarStats(busqueda); }, 300);
+    const t = setTimeout(() => { setPage(1); cargar(busqueda, 1, filtroAnio); cargarStats(busqueda, filtroAnio); }, 300);
     return () => clearTimeout(t);
-  }, [busqueda]);
+  }, [busqueda, filtroAnio]);
 
   function cambiarPagina(p: number) {
     setPage(p);
-    cargar(busqueda, p);
+    cargar(busqueda, p, filtroAnio);
   }
 
   function abrirEdicion(e: Empresa) {
@@ -189,8 +191,8 @@ export default function ClientesPage() {
     }
     setEditando(null);
     setGuardandoEdit(false);
-    cargar(busqueda, page);
-    cargarStats(busqueda);
+    cargar(busqueda, page, filtroAnio);
+    cargarStats(busqueda, filtroAnio);
     fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
   }
 
@@ -207,8 +209,8 @@ export default function ClientesPage() {
       toast.error("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
-    cargar(busqueda, page);
-    cargarStats(busqueda);
+    cargar(busqueda, page, filtroAnio);
+    cargarStats(busqueda, filtroAnio);
     fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
   }
 
@@ -232,10 +234,16 @@ export default function ClientesPage() {
     setNuevoContactoForm({ nombre: "", email: "", telefono: "", cargo: "" });
     setMostrarForm(false);
     setGuardando(false);
-    cargar(busqueda, page);
-    cargarStats(busqueda);
+    cargar(busqueda, page, filtroAnio);
+    cargarStats(busqueda, filtroAnio);
     fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
   }
+
+  // Años en que se han creado clientes (para el filtro "clientes nuevos por
+  // año"). Se derivan de la lista completa ya cargada, sin endpoint aparte.
+  const aniosDisponibles = Array.from(
+    new Set(todasEmpresas.map(e => new Date(e.creadoEn).getFullYear())),
+  ).sort((a, b) => b - a);
 
   return (
     <div>
@@ -246,7 +254,7 @@ export default function ClientesPage() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         {([
-          { label: "Total clientes", valor: stats.total, icon: IconBuilding, semantic: false },
+          { label: "Total clientes", valor: stats.total, sub: filtroAnio ? `Creados en ${filtroAnio}` : undefined, icon: IconBuilding, semantic: false },
           { label: "Con contactos", valor: stats.conContactos, icon: IconUsers, semantic: false },
           { label: "Sin contactos", valor: stats.sinContactos, sub: "Requieren seguimiento", icon: IconAlertTriangle, semantic: true },
           { label: "Contactos vinculados", valor: stats.contactosVinculados, icon: IconLink, semantic: false },
@@ -268,23 +276,38 @@ export default function ClientesPage() {
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-        <div className="relative w-full sm:w-72">
-          <input
-            type="text"
-            placeholder="Buscar por nombre..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 pr-8 text-sm outline-none focus:border-brand-500"
-          />
-          {busqueda && (
-            <button onClick={() => setBusqueda("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
-              <IconX size={14} stroke={2} />
-            </button>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-72">
+            <input
+              type="text"
+              placeholder="Buscar por nombre..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 px-3 py-2 pr-8 text-sm outline-none focus:border-brand-500"
+            />
+            {busqueda && (
+              <button onClick={() => setBusqueda("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
+                <IconX size={14} stroke={2} />
+              </button>
+            )}
+          </div>
+          {aniosDisponibles.length > 0 && (
+            <select
+              value={filtroAnio}
+              onChange={(e) => setFiltroAnio(e.target.value)}
+              title="Filtrar por año de creación del cliente"
+              className={`rounded-xl border px-3 py-2 text-sm bg-white outline-none focus:border-brand-500 ${filtroAnio ? "border-brand-400 text-brand-700 font-medium" : "border-slate-200 text-slate-600"}`}
+            >
+              <option value="">Todos los años</option>
+              {aniosDisponibles.map(y => (
+                <option key={y} value={String(y)}>Creados en {y}</option>
+              ))}
+            </select>
           )}
         </div>
         <div className="flex flex-wrap gap-2">
-          <a href="/api/exportar/clientes"
+          <a href={`/api/exportar/clientes?q=${encodeURIComponent(busqueda)}&anio=${filtroAnio}`}
             className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1.5">
             ↓ Exportar Excel
           </a>
