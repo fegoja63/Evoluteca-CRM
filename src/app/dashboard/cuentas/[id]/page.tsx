@@ -24,7 +24,7 @@ import { Etiquetas } from "@/components/etiquetas";
 import { guardarJson } from "@/lib/guardar";
 import { WhatsAppBtn } from "@/components/whatsapp-btn";
 import { ResumenIA } from "@/components/resumen-ia";
-import { IconPhone, IconMail, IconUsers, type Icon } from "@tabler/icons-react";
+import { IconPhone, IconMail, IconUsers, IconPencil, IconTrash, type Icon } from "@tabler/icons-react";
 
 type Detalle = {
   id: string;
@@ -37,7 +37,7 @@ type Detalle = {
   notas: string | null;
   condicionesComerciales: string | null;
   etiquetas: string[];
-  contactos: { id: string; nombre: string; cargo: string | null; telefono: string | null }[];
+  contactos: { id: string; nombre: string; cargo: string | null; telefono: string | null; email: string | null }[];
   oportunidades: { id: string; titulo: string; etapa: string; valor: string | null; motivoPerdida: string | null }[];
   actividades: { id: string; titulo: string; fecha: string; completada: boolean }[];
   cotizaciones: { id: string; numero: number; numeroManual: string | null; estado: string; items: { cantidad: number; precioUnit: string }[] }[];
@@ -67,6 +67,56 @@ export default function FichaClientePage() {
   const [camposValores, setCamposValores] = useState<Record<string, string>>({});
   const [quickTipo, setQuickTipo] = useState<string | undefined>(undefined);
   const [quickKey, setQuickKey] = useState(0);
+
+  // Edición de un contacto del cliente desde su propia ficha.
+  const [editContacto, setEditContacto] = useState<Detalle["contactos"][number] | null>(null);
+  const [formContacto, setFormContacto] = useState({ nombre: "", cargo: "", email: "", telefono: "" });
+  const [guardandoContacto, setGuardandoContacto] = useState(false);
+
+  function abrirEdicionContacto(c: Detalle["contactos"][number]) {
+    setEditContacto(c);
+    setFormContacto({ nombre: c.nombre, cargo: c.cargo ?? "", email: c.email ?? "", telefono: c.telefono ?? "" });
+  }
+
+  async function handleGuardarContacto(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editContacto) return;
+    setGuardandoContacto(true);
+    try {
+      const res = await fetch(`/api/contactos/${editContacto.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formContacto),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error ?? "No se pudo guardar el contacto. Revisa tu conexión e inténtalo de nuevo.");
+        setGuardandoContacto(false);
+        return;
+      }
+    } catch {
+      toast.error("No se pudo guardar el contacto. Revisa tu conexión e inténtalo de nuevo.");
+      setGuardandoContacto(false);
+      return;
+    }
+    setEditContacto(null);
+    setGuardandoContacto(false);
+    cargar(true);
+  }
+
+  async function handleEliminarContacto() {
+    if (!editContacto) return;
+    if (!confirm(`¿Eliminar el contacto "${editContacto.nombre}"? Se moverá a la Papelera.`)) return;
+    try {
+      const res = await fetch(`/api/contactos/${editContacto.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+    } catch {
+      toast.error("No se pudo eliminar el contacto. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
+    setEditContacto(null);
+    cargar(true);
+  }
 
   async function cargar(silencioso = false) {
     if (!silencioso) setCargando(true);
@@ -100,7 +150,7 @@ export default function FichaClientePage() {
   // mientras hay una edición en curso para no pisar cambios sin guardar.
   useEffect(() => {
     function revalidar() {
-      if (document.visibilityState === "visible" && !editando) cargar(true);
+      if (document.visibilityState === "visible" && !editando && !editContacto) cargar(true);
     }
     window.addEventListener("focus", revalidar);
     document.addEventListener("visibilitychange", revalidar);
@@ -108,7 +158,7 @@ export default function FichaClientePage() {
       window.removeEventListener("focus", revalidar);
       document.removeEventListener("visibilitychange", revalidar);
     };
-  }, [editando, id]);
+  }, [editando, editContacto, id]);
 
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
@@ -286,13 +336,19 @@ export default function FichaClientePage() {
           ) : (
             <ul className="flex flex-col gap-2 text-sm">
               {empresa.contactos.map((c) => (
-                <li key={c.id} className="flex items-center justify-between">
+                <li key={c.id} className="flex items-center justify-between gap-2">
                   <span className="text-slate-700">
                     {c.nombre}{c.cargo && <span className="text-slate-400"> · {c.cargo}</span>}
                   </span>
-                  {c.telefono && (
-                    <WhatsAppBtn telefono={c.telefono} nombre={c.nombre} />
-                  )}
+                  <div className="flex items-center gap-2 shrink-0">
+                    {c.telefono && (
+                      <WhatsAppBtn telefono={c.telefono} nombre={c.nombre} />
+                    )}
+                    <button onClick={() => abrirEdicionContacto(c)} title="Editar contacto"
+                      className="text-slate-300 hover:text-brand-600">
+                      <IconPencil size={15} stroke={1.75} />
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -390,6 +446,59 @@ export default function FichaClientePage() {
           contactos={empresa.contactos.map(c => ({ id: c.id, nombre: c.nombre }))}
         />
       </div>
+
+      {/* Modal editar contacto */}
+      {editContacto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setEditContacto(null)}>
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}>
+            <h2 className="mb-4 text-sm font-semibold text-slate-800">Editar contacto</h2>
+            <form onSubmit={handleGuardarContacto} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label className="mb-1 block text-xs text-slate-500">Nombre *</label>
+                <input required value={formContacto.nombre}
+                  onChange={e => setFormContacto(f => ({ ...f, nombre: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-slate-500">Cargo</label>
+                <input value={formContacto.cargo}
+                  onChange={e => setFormContacto(f => ({ ...f, cargo: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-slate-500">Teléfono</label>
+                <input value={formContacto.telefono}
+                  onChange={e => setFormContacto(f => ({ ...f, telefono: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div className="col-span-2">
+                <label className="mb-1 block text-xs text-slate-500">Email</label>
+                <input type="email" value={formContacto.email}
+                  onChange={e => setFormContacto(f => ({ ...f, email: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div className="col-span-2 flex items-center justify-between pt-1">
+                <button type="button" onClick={handleEliminarContacto}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-700">
+                  <IconTrash size={14} stroke={1.75} /> Eliminar
+                </button>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setEditContacto(null)}
+                    className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
+                    Cancelar
+                  </button>
+                  <button type="submit" disabled={guardandoContacto}
+                    className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                    {guardandoContacto ? "Guardando..." : "Guardar"}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
