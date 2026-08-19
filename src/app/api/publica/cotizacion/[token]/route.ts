@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { permitirYRegistrar } from "@/lib/rate-limit";
 import { accionCotizacionPublicaSchema } from "@/lib/validations/publica";
 import { parseOrError } from "@/lib/validations/helpers";
-import { seccionesParaCotizacion, tieneCuerpoPropio } from "@/lib/cuerpo-cotizacion";
+import { seccionesVisibles } from "@/lib/cuerpo-cotizacion";
 
 export const dynamic = "force-dynamic";
 
@@ -20,15 +20,11 @@ export async function GET(_req: Request, props: { params: Promise<{ token: strin
     },
   });
   if (!cot) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
-  // Se resuelven las secciones a mostrar en el servidor: el cuerpo propio de la
-  // cotización si lo tiene, o el del tenant (respaldo). Se quita el campo crudo
-  // del tenant de la respuesta pública. Con cuerpo propio, las "condiciones
-  // comerciales" ya son una sección del cuerpo: se anula el campo suelto para no
-  // renderizarlo dos veces.
+  // El cuerpo es común a todas las cotizaciones (plantilla del tenant). Se
+  // resuelve en el servidor y se quita el campo crudo del tenant de la respuesta.
   const { cuerpoCotizacion, ...tenant } = cot.tenant;
   void cuerpoCotizacion;
-  const condicionesComerciales = tieneCuerpoPropio(cot.cuerpoCotizacion) ? null : cot.condicionesComerciales;
-  return NextResponse.json({ ...cot, condicionesComerciales, tenant, cuerpo: seccionesParaCotizacion(cot) });
+  return NextResponse.json({ ...cot, tenant, cuerpo: seccionesVisibles(cot.tenant.cuerpoCotizacion, !!cot.condicionesComerciales) });
 }
 
 export async function PATCH(req: Request, props: { params: Promise<{ token: string }> }) {

@@ -6,7 +6,7 @@ import { puedeEliminar } from "@/lib/permisos";
 import { editarCotizacionSchema } from "@/lib/validations/cotizaciones";
 import { parseOrError } from "@/lib/validations/helpers";
 import { idsReemplazadas, valorConImpuestos } from "@/lib/cotizaciones";
-import { normalizarCuerpo, cuerpoEditable } from "@/lib/cuerpo-cotizacion";
+import { normalizarCuerpo } from "@/lib/cuerpo-cotizacion";
 
 export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -21,17 +21,9 @@ export async function GET(_req: Request, props: { params: Promise<{ id: string }
       oportunidad: { select: { id: true, titulo: true } },
       items: { orderBy: { id: "asc" } },
       lineasAhorro: { orderBy: { id: "asc" } },
-      tenant: { select: { cuerpoCotizacion: true } },
     },
   });
   if (!cot) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
-
-  // Secciones efectivas de esta cotización (su cuerpo propio, o la plantilla del
-  // tenant como respaldo). Sirve para poblar el editor del detalle sin exponer
-  // el cuerpo crudo del tenant.
-  const cuerpoEfectivo = cuerpoEditable(cot);
-  const { tenant, ...cotSinTenant } = cot;
-  void tenant;
 
   // Marca si esta cotización quedó reemplazada por una versión más reciente
   // del mismo negocio (recotización). Se deriva de las cotizaciones hermanas,
@@ -45,7 +37,7 @@ export async function GET(_req: Request, props: { params: Promise<{ id: string }
     reemplazada = idsReemplazadas(hermanas.map(h => ({ ...h, oportunidadId: cot.oportunidadId }))).has(cot.id);
   }
 
-  return NextResponse.json({ ...cotSinTenant, cuerpoEfectivo, reemplazada });
+  return NextResponse.json({ ...cot, reemplazada });
 }
 
 export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
