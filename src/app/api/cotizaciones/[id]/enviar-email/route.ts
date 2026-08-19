@@ -25,12 +25,16 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
       contacto: { select: { nombre: true, email: true } },
       items:    true,
       lineasAhorro: { orderBy: { id: "asc" } },
-      tenant:   { select: { logoUrl: true } },
+      tenant:   { select: { logoUrl: true, nombre: true } },
     },
   });
   if (!cot) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
 
   const logoUrl = cot.tenant.logoUrl || "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg";
+  // El correo debe verse enviado por la empresa del usuario (p. ej. Teatro
+  // Belarte), no por "Evoluteca CRM". Se limpian caracteres que romperían el
+  // encabezado From del correo.
+  const tenantNombre = (cot.tenant.nombre ?? "").replace(/["<>\r\n]/g, "").trim() || "Evoluteca CRM";
 
   const fmt = (v: number) =>
     new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
@@ -117,7 +121,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1e293b">
       <div style="background:#1e3a8a;padding:24px 28px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between">
         <div>
-          <h2 style="color:white;margin:0;font-size:20px">Evoluteca CRM</h2>
+          <h2 style="color:white;margin:0;font-size:20px">${tenantNombre}</h2>
           <p style="color:#93c5fd;margin:4px 0 0;font-size:13px">Cotización ${numero}</p>
         </div>
         <img src="${logoUrl}" alt="Logo"
@@ -143,15 +147,15 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
           </a>
         </div>
 
-        <p style="margin-top:24px;font-size:11px;color:#94a3b8;text-align:center">
-          Enviado desde Evoluteca CRM · ${new Date().toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric" })}
+        <p style="margin-top:24px;font-size:10px;color:#cbd5e1;text-align:center">
+          Enviado usando Evoluteca CRM · ${new Date().toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric" })}
         </p>
       </div>
     </div>`;
 
   const resend = new Resend(process.env.RESEND_API_KEY);
   const { error } = await resend.emails.send({
-    from: "Evoluteca CRM <noreply@evoluteca.com>",
+    from: `${tenantNombre} <noreply@evoluteca.com>`,
     to: emailDestino ?? cot.contacto?.email ?? session.user.email ?? "felipegomezjaramillo@gmail.com",
     subject: `📄 Cotización ${numero} — ${cliente}`,
     html,
