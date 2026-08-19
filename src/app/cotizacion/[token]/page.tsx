@@ -156,6 +156,12 @@ export default function CotizacionPublicaPage() {
 
         {/* Body */}
         <div className="bg-white rounded-2xl rounded-t-none border border-slate-200 border-t-0 px-8 py-6 space-y-6">
+          <div className="flex justify-end">
+            <a href={`/api/cotizaciones/${cot.id}/pdf?token=${token}`} target="_blank" rel="noopener"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">
+              ⬇ Descargar PDF
+            </a>
+          </div>
 
           {/* Info cliente */}
           <div className="grid grid-cols-2 gap-4 text-sm">
