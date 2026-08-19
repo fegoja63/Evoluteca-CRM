@@ -88,13 +88,23 @@ function fmtFechaCalendario(d: Date | null) {
   return new Date(d).toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric", timeZone: "UTC" });
 }
 
-export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const session = await auth();
-  if (!session?.user) return new NextResponse("No autorizado", { status: 401 });
+  // El cliente que recibe la cotización por correo no tiene sesión: puede
+  // descargar el PDF con el token público (el mismo del enlace de la
+  // cotización). Con sesión, se mantiene el acceso por tenant. Sin sesión ni
+  // token válido, se rechaza.
+  const token = new URL(req.url).searchParams.get("token");
+  const where = session?.user
+    ? { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null }
+    : token
+      ? { id: params.id, tokenPublico: token, eliminadoEn: null }
+      : null;
+  if (!where) return new NextResponse("No autorizado", { status: 401 });
 
   const cot = await prisma.cotizacion.findFirst({
-    where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
+    where,
     include: {
       empresa:     { select: { nombre: true, email: true, telefono: true } },
       contacto:    { select: { nombre: true, email: true, cargo: true } },

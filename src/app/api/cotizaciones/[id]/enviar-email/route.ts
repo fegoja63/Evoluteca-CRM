@@ -5,6 +5,7 @@ import { Resend } from "resend";
 import { enviarEmailCotizacionSchema } from "@/lib/validations/cotizaciones";
 import { parseOrError } from "@/lib/validations/helpers";
 import { numeroCotizacion } from "@/lib/cotizaciones";
+import { randomBytes } from "crypto";
 
 export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -100,7 +101,17 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
     </table>`;
   const tablaHtml = esFijo ? tablaFijo : (cot.modalidad === "SUCCESS_FEE" ? tablaSuccess : tablaMensual);
 
-  const pdfUrl = `${process.env.NEXTAUTH_URL}/api/cotizaciones/${cot.id}/pdf`;
+  // El cliente no tiene sesión: el PDF y el enlace para ver/responder la
+  // cotización se autentican con el token público. Se genera y persiste si aún
+  // no existe (misma lógica que el botón "Compartir enlace").
+  let token = cot.tokenPublico;
+  if (!token) {
+    token = randomBytes(24).toString("hex");
+    await prisma.cotizacion.update({ where: { id: cot.id }, data: { tokenPublico: token } });
+  }
+  const base = process.env.NEXTAUTH_URL;
+  const pdfUrl = `${base}/api/cotizaciones/${cot.id}/pdf?token=${token}`;
+  const verUrl = `${base}/cotizacion/${token}`;
 
   const html = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1e293b">
@@ -124,7 +135,10 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
         ${cot.fechaValidez ? `<p style="margin-top:12px;font-size:12px;color:#94a3b8">Cotización válida hasta: <strong>${new Date(cot.fechaValidez).toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric", timeZone: "UTC" })}</strong></p>` : ""}
 
         <div style="margin-top:24px;text-align:center">
-          <a href="${pdfUrl}" style="display:inline-block;background:#2563eb;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
+          <a href="${verUrl}" style="display:inline-block;background:#1e3a8a;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;margin:0 4px 8px">
+            Ver y responder en línea
+          </a>
+          <a href="${pdfUrl}" style="display:inline-block;background:#2563eb;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;margin:0 4px 8px">
             ⬇ Descargar PDF
           </a>
         </div>
