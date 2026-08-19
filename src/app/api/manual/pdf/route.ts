@@ -331,13 +331,14 @@ export async function GET() {
       React.createElement(H1, null, "2. Clientes y contactos"),
 
       React.createElement(H2, null, "2.1 Crear un cliente"),
-      React.createElement(P, null, 'Ve a Clientes, botón "+ Nuevo cliente". Ingresa el nombre de la empresa (obligatorio) y opcionalmente email, teléfono, sector, sitio web y notas.'),
+      React.createElement(P, null, 'Ve a Clientes, botón "+ Nuevo cliente". El "Nombre del cliente o Empresa" es obligatorio. Opcionalmente escribe el "Nombre del contacto" (contacto principal, que usa el email y teléfono ingresados arriba) y, en "OTRO contacto de este cliente", un segundo contacto — así el cliente queda con más de un contacto desde el inicio. Los demás campos (sector, sitio web, notas) son opcionales.'),
       React.createElement(Tip, null, "El sector ayuda a filtrar y segmentar clientes en reportes. Elige el más cercano a la actividad del cliente."),
+      React.createElement(P, null, 'Clientes nuevos por año o mes: junto al buscador de la lista de Clientes puedes filtrar por "Creados en …" (año) y, si quieres, por mes. La lista, las tarjetas de resumen y el botón Exportar Excel se ajustan a ese período — útil para distinguir los clientes nuevos del año de los de años anteriores.'),
 
       React.createElement(H2, null, "2.2 Ficha 360° del cliente"),
       React.createElement(P, null, "Haz clic en cualquier cliente para abrir su ficha completa. Verás:"),
       React.createElement(LI, null, "Datos generales (editable con botón Editar)"),
-      React.createElement(LI, null, "Contactos vinculados con botón directo a WhatsApp si tienen teléfono"),
+      React.createElement(LI, null, "Contactos vinculados: agrega uno con \"+ Agregar contacto\", edítalos o elimínalos con el ícono de lápiz, y escríbeles por WhatsApp si tienen teléfono"),
       React.createElement(LI, null, "Oportunidades de venta y su etapa actual"),
       React.createElement(LI, null, "Actividades registradas y opción de crear nuevas"),
       React.createElement(LI, null, "Cotizaciones formales emitidas con totales"),
@@ -358,6 +359,7 @@ export async function GET() {
 
       React.createElement(H2, null, "2.5 Contactos"),
       React.createElement(P, null, 'Los contactos son personas dentro de un cliente. Ve a Contactos, "+ Nuevo contacto". Puedes vincular el contacto a una empresa y asignarle cargo, email y teléfono.'),
+      React.createElement(P, null, 'También puedes crear, editar y eliminar los contactos de un cliente directamente desde su ficha, en la sección Contactos ("+ Agregar contacto" y el ícono de lápiz de cada uno). Un cliente puede tener varios contactos.'),
       React.createElement(P, null, "Si el contacto tiene teléfono, aparecerá un botón verde WhatsApp que abre la conversación directamente con ese número."),
       React.createElement(Nota, null, "Un contacto puede existir sin empresa (contacto independiente). También puede estar vinculado a múltiples oportunidades."),
 
@@ -648,7 +650,8 @@ export async function GET() {
 
       React.createElement(H2, null, "5.8 Enviar la cotización por email"),
       React.createElement(P, null, 'Desde el detalle de la cotización, haz clic en "Enviar email" para abrir un panel con un campo de correo editable. Viene pre-llenado con el email del contacto vinculado (si tiene), pero puedes cambiarlo por cualquier otra dirección antes de enviar — útil cuando quien recibe la cotización no es el contacto principal registrado en el CRM.'),
-      React.createElement(P, null, "El correo incluye el PDF de la cotización como adjunto. También puedes generar un \"Link cliente\" — una URL pública de solo lectura que puedes compartir por cualquier canal (WhatsApp, mensaje directo) sin necesidad de enviar un correo."),
+      React.createElement(P, null, "El correo que recibe el cliente trae dos botones que funcionan sin necesidad de iniciar sesión: \"Ver y responder en línea\" (abre la cotización, donde el cliente puede aceptarla o rechazarla) y \"Descargar PDF\". Ambos usan el enlace seguro de la cotización. También puedes generar un \"Link cliente\" — esa misma URL pública de solo lectura — para compartirla por otro canal (WhatsApp, mensaje directo) sin enviar correo."),
+      React.createElement(Nota, null, "Si un cliente ve \"No autorizado\" al abrir el PDF, es porque recibió una cotización enviada antes de esta mejora: vuelve a enviársela para que le llegue el enlace nuevo."),
 
       React.createElement(H2, null, "5.9 Catálogo de servicios"),
       React.createElement(P, null, 'Ve a Catálogo para crear servicios reutilizables con nombre, descripción y precio base. Al crear una cotización, aparece el selector "Agregar servicio del catálogo" que carga los datos automáticamente en una nueva línea.'),
@@ -696,8 +699,9 @@ export async function GET() {
       React.createElement(H2, null, "6.2 Proceso de importación"),
       React.createElement(Paso, { n: 1, titulo: "Subir archivo", desc: "Ve a Datos > Importar. Arrastra el archivo Excel o haz clic para seleccionarlo. Solo se aceptan archivos .xlsx." }),
       React.createElement(Paso, { n: 2, titulo: "Mapear columnas", desc: "El sistema muestra todas las columnas del Excel con una muestra real de los datos. Para cada campo del CRM (empresa, contacto, oportunidad), selecciona qué columna del Excel corresponde." }),
-      React.createElement(Paso, { n: 3, titulo: "Verificar y confirmar", desc: "Revisa la previsualización. Los campos obligatorios (empresa, contacto, oportunidad) deben estar mapeados antes de poder importar. Haz clic en Importar." }),
-      React.createElement(Paso, { n: 4, titulo: "Resultado", desc: "El sistema muestra cuántos clientes, contactos y oportunidades se crearon. Si una empresa ya existe, no se duplica — se vinculan los nuevos contactos a la existente." }),
+      React.createElement(Paso, { n: 3, titulo: "Fecha de creación (opcional)", desc: "En el paso de mapeo hay un campo \"Fecha de creación de estos clientes\". Déjalo vacío si son clientes nuevos (se usa la fecha de hoy). Si estás cargando tu base histórica, elige una fecha pasada para que esos clientes no aparezcan como nuevos del año en curso en el filtro de clientes." }),
+      React.createElement(Paso, { n: 4, titulo: "Verificar y confirmar", desc: "Revisa la previsualización. Los campos obligatorios (empresa, contacto, oportunidad) deben estar mapeados antes de poder importar. Haz clic en Importar." }),
+      React.createElement(Paso, { n: 5, titulo: "Resultado", desc: "El sistema muestra cuántos clientes, contactos y oportunidades se crearon. Si una empresa ya existe, no se duplica — se vinculan los nuevos contactos a la existente." }),
       React.createElement(Tip, null, "Si la importación no salió como esperabas, revisa el resumen de errores, corrige el Excel y vuelve a importar. No existe una función para deshacer solo los registros de una importación puntual."),
       React.createElement(Nota, null, "Si necesitas borrar por completo los datos de tu organización para empezar de cero, el Administrador puede hacerlo desde Configuración, en la \"Zona de peligro\" (\"Limpiar todos los datos de prueba\") — pero ojo: esa acción borra TODA la información de la empresa (clientes, contactos, oportunidades, actividades, cotizaciones, funciones y espectadores), no solo lo que acabas de importar, y no se puede deshacer."),
     ),
