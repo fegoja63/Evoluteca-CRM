@@ -499,6 +499,11 @@ export async function GET() {
         p("Además del consecutivo automático del sistema, cada cotización tiene un campo opcional \"Número del cliente\" para el consecutivo que use tu empresa o tu cliente (ej. COT-2026-045). Lo escribes al crear la cotización o lo editas después desde su detalle; si lo dejas vacío, se usa el automático. Cuando lo ingresas, aparece en la lista, el detalle, el PDF, el correo, el WhatsApp, la vista pública, la Papelera, el timeline, el Excel, el Dashboard y la ficha del cliente, y la búsqueda global también lo encuentra."),
         h2("6.12 Separador de miles en los campos de dinero"),
         p("Todos los campos de dinero del CRM (cotizaciones, catálogo, plantillas, pipeline, funciones, metas y reportes) muestran el separador de miles en formato colombiano mientras escribes (ej. 1.500.000), para verificar cifras grandes sin contar ceros. El valor se guarda como número, sin los puntos."),
+        h2("6.13 Cuerpo y condiciones (común a todas las cotizaciones)"),
+        p("Cada cotización lleva un \"Cuerpo y condiciones\": secciones de texto con título (Sobre nosotros, Solución propuesta, Alcance, Condiciones comerciales, Condiciones legales, Términos y plazos…) que salen en el PDF y en el enlace público."),
+        p("Este cuerpo es común a TODAS tus cotizaciones: se ve igual en todas. Lo editas desde una cotización (al crearla o desde su detalle), en la sección \"Cuerpo y condiciones\": ajusta las secciones y haz clic en \"Guardar para todas las cotizaciones\". Queda fijo para todas —actuales y futuras— hasta que lo vuelvas a cambiar."),
+        nota("Solo un Administrador puede modificarlo (afecta a todas las cotizaciones de la empresa); para el resto se muestra en solo lectura."),
+        tip("Como es el mismo para todas, defínelo una vez y todas tus cotizaciones saldrán consistentes sin volver a escribirlo."),
         pageBreak(),
 
         // CAP 7 — CATÁLOGO

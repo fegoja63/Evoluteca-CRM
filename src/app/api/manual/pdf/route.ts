@@ -681,6 +681,12 @@ export async function GET() {
 
       React.createElement(H2, null, "5.13 Separador de miles en los campos de dinero"),
       React.createElement(P, null, "Todos los campos de dinero del CRM (precios de cotización, catálogo, plantillas, valor de oportunidades, funciones, metas y reportes) muestran el separador de miles en formato colombiano mientras escribes (por ejemplo, 1.500.000), para que sea más fácil verificar cifras grandes sin contar ceros. El valor se guarda como número, sin los puntos."),
+
+      React.createElement(H2, null, "5.14 Cuerpo y condiciones (común a todas las cotizaciones)"),
+      React.createElement(P, null, "Además de los ítems y el total, cada cotización lleva un \"Cuerpo y condiciones\": secciones de texto con título (por ejemplo Sobre nosotros, Solución propuesta, Alcance, Condiciones comerciales, Condiciones legales, Términos y plazos). Salen en el PDF y en el enlace público."),
+      React.createElement(P, null, "Este cuerpo es COMÚN a todas tus cotizaciones: se ve igual en todas. Lo editas desde una cotización (al crearla o desde su detalle), en la sección \"Cuerpo y condiciones\": ajusta las secciones (agregar, quitar, reordenar, cambiar el texto) y haz clic en \"Guardar para todas las cotizaciones\". Desde ese momento queda fijo para todas —las actuales y las futuras— hasta que lo vuelvas a cambiar."),
+      React.createElement(Nota, null, "Solo un Administrador puede modificar el cuerpo y condiciones (afecta a todas las cotizaciones de la empresa). Para el resto de usuarios se muestra en modo de solo lectura."),
+      React.createElement(Tip, null, "Como es el mismo para todas, defínelo una vez (datos de tu empresa, alcance y condiciones estándar) y todas tus cotizaciones saldrán consistentes sin volver a escribirlo."),
     ),
 
     // ── CAPÍTULO 6: IMPORTACIÓN ──
