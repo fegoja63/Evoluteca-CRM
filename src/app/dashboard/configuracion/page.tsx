@@ -75,6 +75,9 @@ export default function ConfiguracionPage() {
   const [logoInput, setLogoInput] = useState("");
   const [emailsActivos, setEmailsActivos] = useState(true);
   const [guardandoEmails, setGuardandoEmails] = useState(false);
+  const [emailEmpresa, setEmailEmpresa] = useState("");
+  const [guardandoEmail, setGuardandoEmail] = useState(false);
+  const [emailOk, setEmailOk] = useState(false);
   const [diasEstancamiento, setDiasEstancamiento] = useState("14");
   const [guardandoEstanc, setGuardandoEstanc] = useState(false);
   const [estancOk, setEstancOk] = useState(false);
@@ -212,6 +215,7 @@ export default function ConfiguracionPage() {
         setLogoUrl(data.logoUrl ?? "");
         setLogoInput(data.logoUrl ?? "");
         setEmailsActivos(data.emailsActivos ?? true);
+        setEmailEmpresa(data.email ?? "");
         setDiasEstancamiento(String(data.diasEstancamiento ?? 14));
         setCuerpo(Array.isArray(data.cuerpoCotizacion) ? data.cuerpoCotizacion : []);
         setCargando(false);
@@ -285,6 +289,29 @@ export default function ConfiguracionPage() {
     setCuerpo(Array.isArray(data.cuerpoCotizacion) ? data.cuerpoCotizacion : limpio);
     setCuerpoOk(true);
     setTimeout(() => setCuerpoOk(false), 2500);
+  }
+
+  async function guardarEmailEmpresa() {
+    if (!esAdmin) return;
+    const correo = emailEmpresa.trim();
+    if (correo && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)) {
+      toast.error("Ingresa un correo válido (o déjalo vacío).");
+      return;
+    }
+    setGuardandoEmail(true);
+    const res = await fetch("/api/configuracion", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: correo }),
+    });
+    setGuardandoEmail(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.error ?? "No se pudo guardar el correo. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
+    setEmailOk(true);
+    setTimeout(() => setEmailOk(false), 2500);
   }
 
   async function guardarEstancamiento() {
@@ -569,6 +596,39 @@ export default function ConfiguracionPage() {
             })}
           </div>
         )}
+      </div>
+
+      {/* Correo de la empresa (Responder-a de las cotizaciones) */}
+      <div className="mt-10 rounded-2xl border border-slate-200 bg-white p-5">
+        <h2 className="text-sm font-semibold text-slate-700 mb-1">Correo de la empresa</h2>
+        <p className="text-xs text-slate-400 mb-4">
+          Cuando envías una cotización por correo, este es el buzón al que le responderá el cliente (Responder-a).
+          El correo sigue saliendo desde el sistema con el nombre de tu empresa, pero las respuestas llegan aquí.
+          Déjalo vacío si no quieres usar un correo de respuesta.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            type="email"
+            value={emailEmpresa}
+            disabled={!esAdmin}
+            onChange={e => setEmailEmpresa(e.target.value)}
+            placeholder="cotizaciones@tuempresa.com"
+            className="w-72 max-w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 disabled:opacity-50"
+          />
+          <button
+            onClick={guardarEmailEmpresa}
+            disabled={!esAdmin || guardandoEmail}
+            className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
+          >
+            {guardandoEmail ? "Guardando..." : "Guardar"}
+          </button>
+          {emailOk && (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
+              <IconCheck size={14} stroke={2} /> Correo guardado
+            </span>
+          )}
+        </div>
+        {!esAdmin && <p className="mt-2 text-xs text-slate-400">Solo un Administrador puede cambiarlo.</p>}
       </div>
 
       {/* Notificaciones por email */}

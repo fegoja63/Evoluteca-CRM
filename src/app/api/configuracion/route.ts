@@ -9,13 +9,14 @@ export async function GET() {
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: session.user.tenantId },
-    select: { modulos: true, nombre: true, logoUrl: true, emailsActivos: true, limiteUsuarios: true, cuerpoCotizacion: true, diasEstancamiento: true },
+    select: { modulos: true, nombre: true, logoUrl: true, email: true, emailsActivos: true, limiteUsuarios: true, cuerpoCotizacion: true, diasEstancamiento: true },
   });
 
   return NextResponse.json({
     modulos: tenant?.modulos ?? {},
     tenantNombre: tenant?.nombre ?? "",
     logoUrl: tenant?.logoUrl ?? "",
+    email: tenant?.email ?? "",
     emailsActivos: tenant?.emailsActivos ?? true,
     cuerpoCotizacion: normalizarCuerpo(tenant?.cuerpoCotizacion),
     diasEstancamiento: tenant?.diasEstancamiento ?? 14,
@@ -43,6 +44,16 @@ export async function PATCH(request: Request) {
     data.logoUrl = body.logoUrl;
   }
   if (body.emailsActivos !== undefined) data.emailsActivos = body.emailsActivos;
+  if (body.email !== undefined) {
+    // Correo de la empresa (usado como "Responder-a"). Vacío lo limpia; si trae
+    // valor, se valida un formato básico de correo. Se revalida en el servidor
+    // porque el frontend no protege contra llamadas directas a la API.
+    const correo = String(body.email).trim();
+    if (correo && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)) {
+      return NextResponse.json({ error: "El correo de la empresa no es válido" }, { status: 400 });
+    }
+    data.email = correo || null;
+  }
   if (body.diasEstancamiento !== undefined) {
     // Se revalida en el servidor (el frontend limita el input, pero eso no
     // protege contra una llamada directa): entero entre 1 y 365 días.
@@ -67,6 +78,7 @@ export async function PATCH(request: Request) {
   return NextResponse.json({
     modulos: tenant.modulos,
     logoUrl: tenant.logoUrl ?? "",
+    email: tenant.email ?? "",
     emailsActivos: tenant.emailsActivos,
     cuerpoCotizacion: normalizarCuerpo(tenant.cuerpoCotizacion),
     diasEstancamiento: tenant.diasEstancamiento,

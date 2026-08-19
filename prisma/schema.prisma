@@ -44,6 +44,10 @@ model Tenant {
   modulos           Json     @default("{}")
   logoUrl           String?
   emailsActivos     Boolean  @default(true)
+  // Correo de la empresa. Se usa como "Responder-a" en los correos de
+  // cotización, para que las respuestas del cliente lleguen al buzón del tenant
+  // (no a Evoluteca). El envío sigue saliendo desde el dominio verificado.
+  email             String?
   // Cuerpo/condiciones que el tenant define una vez y se repiten en TODAS sus
   // cotizaciones (PDF y link público): array de { titulo, contenido }. Ej:
   // "Sobre nosotros", "Alcance", "Condiciones comerciales", "Condiciones
