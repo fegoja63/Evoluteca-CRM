@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { renderToBuffer, Document, Page, Text, View, StyleSheet, Font, Image } from "@react-pdf/renderer";
 import { MODALIDAD_LABEL, numeroCotizacion } from "@/lib/cotizaciones";
-import { seccionesVisibles } from "@/lib/cuerpo-cotizacion";
+import { seccionesParaCotizacion, tieneCuerpoPropio } from "@/lib/cuerpo-cotizacion";
 import React from "react";
 
 export const dynamic = "force-dynamic";
@@ -277,18 +277,16 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
         React.createElement(Text, { style: styles.notesTx }, cot.notas),
       ) : null,
 
-      // Condiciones comerciales propias de esta cotización (heredadas del
-      // cliente y editables por cotización). Van antes del cuerpo general del
-      // tenant, como bloque específico de este cliente.
-      cot.condicionesComerciales
+      // Condiciones comerciales propias (modelo anterior): solo cuando la
+      // cotización NO define su propio cuerpo. Con cuerpo propio, "Condiciones
+      // comerciales" es una sección más dentro del cuerpo.
+      cot.condicionesComerciales && !tieneCuerpoPropio(cot.cuerpoCotizacion)
         ? React.createElement(SeccionCotBox, { titulo: "Condiciones comerciales", contenido: cot.condicionesComerciales })
         : null,
 
-      // Cuerpo / condiciones de la cotización (configurable por tenant; si no
-      // hay nada configurado devuelve las condiciones por defecto). Si esta
-      // cotización trae condiciones propias del cliente, se omite la sección
-      // genérica "Condiciones comerciales" para no duplicar el título.
-      ...seccionesVisibles(cot.tenant.cuerpoCotizacion, !!cot.condicionesComerciales).map((s, i) =>
+      // Cuerpo/condiciones a mostrar: el propio de la cotización si lo tiene,
+      // o el del tenant (comportamiento anterior) como respaldo.
+      ...seccionesParaCotizacion(cot).map((s, i) =>
         React.createElement(SeccionCotBox, { key: i, titulo: s.titulo, contenido: s.contenido })
       ),
 

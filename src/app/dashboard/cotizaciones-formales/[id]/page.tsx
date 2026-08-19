@@ -8,6 +8,8 @@ import Link from "next/link";
 import { IconLink, IconMail, IconCheck, IconBrandWhatsapp, IconStar, IconDownload, IconCopy, IconArrowLeft, IconPencil } from "@tabler/icons-react";
 import { LineasEditor, type Linea } from "@/components/lineas-editor";
 import { RedactorEmailIA } from "@/components/redactor-email-ia";
+import { EditorSeccionesCotizacion } from "@/components/editor-secciones-cotizacion";
+import { normalizarCuerpo, type SeccionCuerpo } from "@/lib/cuerpo-cotizacion";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type LineaAhorro = { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string };
@@ -26,6 +28,7 @@ type Cotizacion = {
   sede: string | null;
   notas: string | null;
   condicionesComerciales: string | null;
+  cuerpoEfectivo?: SeccionCuerpo[];
   impuestoNombre: string | null;
   impuestoPorcentaje: string | null;
   impuesto2Nombre: string | null;
@@ -81,7 +84,7 @@ export default function CotizacionDetailPage() {
   const [editNotas, setEditNotas] = useState(false);
   const [notas, setNotas]       = useState("");
   const [editCondiciones, setEditCondiciones] = useState(false);
-  const [condiciones, setCondiciones] = useState("");
+  const [cuerpo, setCuerpo] = useState<SeccionCuerpo[]>([]);
   const [guardandoCondiciones, setGuardandoCondiciones] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [duplicando, setDuplicando] = useState(false);
@@ -119,7 +122,7 @@ export default function CotizacionDetailPage() {
     const data = await res.json();
     setCot(data);
     setNotas(data.notas ?? "");
-    setCondiciones(data.condicionesComerciales ?? "");
+    setCuerpo(normalizarCuerpo(data.cuerpoEfectivo));
     setNumeroManual(data.numeroManual ?? "");
     setEmailDestino(prev => prev || data.contacto?.email || data.empresa?.email || "");
     setTelefonoDestino(prev => prev || data.contacto?.telefono || data.empresa?.telefono || "");
@@ -202,7 +205,11 @@ export default function CotizacionDetailPage() {
       const res = await fetch(`/api/cotizaciones/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ condicionesComerciales: condiciones }),
+        body: JSON.stringify({
+          cuerpoCotizacion: cuerpo
+            .map(s => ({ titulo: s.titulo.trim(), contenido: s.contenido.trim() }))
+            .filter(s => s.titulo || s.contenido),
+        }),
       });
       if (!res.ok) throw new Error();
     } catch {
@@ -796,10 +803,10 @@ export default function CotizacionDetailPage() {
         </div>
         )}
 
-        {/* Condiciones comerciales (salen en el PDF y el enlace público) */}
+        {/* Cuerpo y condiciones de la cotización (salen en el PDF y el enlace público) */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <div className="flex items-center justify-between mb-1">
-            <h2 className="text-sm font-bold text-slate-700">Condiciones comerciales</h2>
+            <h2 className="text-sm font-bold text-slate-700">Cuerpo y condiciones</h2>
             {!editCondiciones && (
               <button onClick={() => setEditCondiciones(true)}
                 className="text-xs text-brand-600 hover:underline">
@@ -807,31 +814,34 @@ export default function CotizacionDetailPage() {
               </button>
             )}
           </div>
-          <p className="text-xs text-slate-400 mb-3">Salen en el PDF y el enlace público de esta cotización.</p>
+          <p className="text-xs text-slate-400 mb-3">Secciones que salen en el PDF y el enlace público de esta cotización.</p>
           {editCondiciones ? (
             <div>
-              <textarea
-                rows={5}
-                value={condiciones}
-                onChange={e => setCondiciones(e.target.value)}
-                placeholder="Forma de pago, plazos, cláusulas específicas de este cliente..."
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 resize-none mb-3"
-              />
-              <div className="flex gap-2">
+              <EditorSeccionesCotizacion secciones={cuerpo} onChange={setCuerpo} />
+              <div className="flex gap-2 mt-3">
                 <button onClick={guardarCondiciones} disabled={guardandoCondiciones}
                   className="rounded-xl bg-accent-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-60">
                   {guardandoCondiciones ? "Guardando..." : "Guardar"}
                 </button>
-                <button onClick={() => { setEditCondiciones(false); setCondiciones(cot.condicionesComerciales ?? ""); }}
+                <button onClick={() => { setEditCondiciones(false); setCuerpo(normalizarCuerpo(cot.cuerpoEfectivo)); }}
                   className="rounded-xl border border-slate-200 px-4 py-1.5 text-sm text-slate-600 hover:bg-slate-50">
                   Cancelar
                 </button>
               </div>
             </div>
           ) : (
-            <p className={cot.condicionesComerciales ? "text-sm text-slate-700 whitespace-pre-wrap" : "text-sm text-slate-300 italic"}>
-              {cot.condicionesComerciales || "Sin condiciones comerciales"}
-            </p>
+            cuerpo.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                {cuerpo.map((s, i) => (
+                  <div key={i}>
+                    {s.titulo && <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">{s.titulo}</p>}
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{s.contenido}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-300 italic">Sin cuerpo ni condiciones</p>
+            )
           )}
         </div>
 
