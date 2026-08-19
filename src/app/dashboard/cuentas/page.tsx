@@ -56,7 +56,7 @@ export default function ClientesPage() {
   const [cargando, setCargando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [guardando, setGuardando] = useState(false);
-  const [form, setForm] = useState({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "" });
+  const [form, setForm] = useState({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "", nombreContacto: "" });
   const [todasEmpresas, setTodasEmpresas] = useState<Empresa[]>([]);
   const [nuevoContactoForm, setNuevoContactoForm] = useState({ nombre: "", email: "", telefono: "", cargo: "" });
   const [page, setPage] = useState(1);
@@ -227,20 +227,34 @@ export default function ClientesPage() {
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
     setGuardando(true);
+    // El nombre del contacto principal se guarda como un Contacto aparte, no
+    // como campo de la empresa: se separa del cuerpo que va a /api/empresas.
+    const { nombreContacto, ...empresaData } = form;
     const res = await fetch("/api/empresas", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(empresaData),
     });
     const nuevaEmpresa = await res.json().catch(() => null);
-    if (res.ok && nuevoContactoForm.nombre.trim() && nuevaEmpresa?.id) {
-      await fetch("/api/contactos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...nuevoContactoForm, empresaId: nuevaEmpresa.id }),
-      });
+    if (res.ok && nuevaEmpresa?.id) {
+      // Contacto principal: comparte el email y teléfono ingresados arriba.
+      if (nombreContacto.trim()) {
+        await fetch("/api/contactos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nombre: nombreContacto.trim(), email: form.email, telefono: form.telefono, empresaId: nuevaEmpresa.id }),
+        });
+      }
+      // Otro contacto (opcional): sus propios email/teléfono/cargo.
+      if (nuevoContactoForm.nombre.trim()) {
+        await fetch("/api/contactos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...nuevoContactoForm, empresaId: nuevaEmpresa.id }),
+        });
+      }
     }
-    setForm({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "" });
+    setForm({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "", nombreContacto: "" });
     setNuevoContactoForm({ nombre: "", email: "", telefono: "", cargo: "" });
     setMostrarForm(false);
     setGuardando(false);
@@ -372,9 +386,16 @@ export default function ClientesPage() {
           <h2 className="mb-4 text-sm font-semibold text-slate-800">Nuevo cliente</h2>
           <form onSubmit={handleGuardar} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
-              <label className="mb-1 block text-xs text-slate-500">Nombre *</label>
+              <label className="mb-1 block text-xs text-slate-500">Nombre del cliente o Empresa *</label>
               <input required value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+            </div>
+            <div className="col-span-2">
+              <label className="mb-1 block text-xs text-slate-500">Nombre del contacto</label>
+              <input value={form.nombreContacto} onChange={e => setForm({ ...form, nombreContacto: e.target.value })}
+                placeholder="Persona de contacto principal"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              <p className="mt-1 text-[11px] text-slate-400">Se guarda como contacto de este cliente, con el email y teléfono de abajo.</p>
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Email</label>
@@ -406,7 +427,7 @@ export default function ClientesPage() {
             </div>
 
             <div className="col-span-2 mt-1 rounded-lg border border-brand-200 bg-brand-50 p-3">
-              <p className="text-xs font-semibold text-brand-800 mb-2">Contacto de este cliente (opcional)</p>
+              <p className="text-xs font-semibold text-brand-800 mb-2">OTRO contacto de este cliente (opcional)</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input type="text" placeholder="Nombre del contacto" value={nuevoContactoForm.nombre}
                   onChange={e => setNuevoContactoForm(f => ({ ...f, nombre: e.target.value }))}
