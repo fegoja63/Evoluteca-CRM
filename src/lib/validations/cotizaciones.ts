@@ -19,13 +19,6 @@ const lineaAhorroSchema = z.object({
   ahorroEstimadoMensual: montoNoNegativo(999_999_999_999, "El ahorro no puede ser negativo"),
 });
 
-// Sección del cuerpo por cotización (título + contenido). Se normaliza además
-// en el servidor con normalizarCuerpo antes de guardar.
-const seccionCuerpoSchema = z.object({
-  titulo: z.string().trim().max(120).optional().default(""),
-  contenido: z.string().trim().max(4000).optional().default(""),
-});
-
 export const crearCotizacionSchema = z.object({
   empresaId: idOpcional,
   contactoId: idOpcional,
@@ -38,7 +31,6 @@ export const crearCotizacionSchema = z.object({
   sede: textoOpcional(200),
   notas: textoOpcional(2000),
   condicionesComerciales: textoOpcional(4000),
-  cuerpoCotizacion: z.array(seccionCuerpoSchema).max(20).optional(),
   fechaValidez: fechaOpcional,
   modalidad: z.enum(["FEE_FIJO", "SUCCESS_FEE", "FEE_MENSUAL"]).optional().default("FEE_FIJO"),
   items: z.array(itemSchema).optional().default([]),
@@ -74,7 +66,6 @@ export const editarCotizacionSchema = z.object({
   numeroManual: textoOpcional(40),
   notas: textoOpcional(2000),
   condicionesComerciales: textoOpcional(4000),
-  cuerpoCotizacion: z.array(seccionCuerpoSchema).max(20).optional(),
   empresaId: idOpcional,
   motivoRechazo: textoOpcional(1000),
   fechaEvento: fechaOpcional,
