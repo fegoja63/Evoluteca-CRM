@@ -24,7 +24,7 @@ import { Etiquetas } from "@/components/etiquetas";
 import { guardarJson } from "@/lib/guardar";
 import { WhatsAppBtn } from "@/components/whatsapp-btn";
 import { ResumenIA } from "@/components/resumen-ia";
-import { IconPhone, IconMail, IconUsers, IconPencil, IconTrash, type Icon } from "@tabler/icons-react";
+import { IconPhone, IconMail, IconUsers, IconPencil, IconTrash, IconPlus, type Icon } from "@tabler/icons-react";
 
 type Detalle = {
   id: string;
@@ -68,26 +68,47 @@ export default function FichaClientePage() {
   const [quickTipo, setQuickTipo] = useState<string | undefined>(undefined);
   const [quickKey, setQuickKey] = useState(0);
 
-  // Edición de un contacto del cliente desde su propia ficha.
+  // Crear/editar un contacto del cliente desde su propia ficha. El mismo modal
+  // sirve para ambos: "nuevo" → POST; editando uno existente → PATCH.
   const [editContacto, setEditContacto] = useState<Detalle["contactos"][number] | null>(null);
+  const [nuevoContacto, setNuevoContacto] = useState(false);
   const [formContacto, setFormContacto] = useState({ nombre: "", cargo: "", email: "", telefono: "" });
   const [guardandoContacto, setGuardandoContacto] = useState(false);
+  const modalContactoAbierto = nuevoContacto || !!editContacto;
+
+  function abrirNuevoContacto() {
+    setEditContacto(null);
+    setNuevoContacto(true);
+    setFormContacto({ nombre: "", cargo: "", email: "", telefono: "" });
+  }
 
   function abrirEdicionContacto(c: Detalle["contactos"][number]) {
+    setNuevoContacto(false);
     setEditContacto(c);
     setFormContacto({ nombre: c.nombre, cargo: c.cargo ?? "", email: c.email ?? "", telefono: c.telefono ?? "" });
   }
 
+  function cerrarModalContacto() {
+    setEditContacto(null);
+    setNuevoContacto(false);
+  }
+
   async function handleGuardarContacto(e: React.FormEvent) {
     e.preventDefault();
-    if (!editContacto) return;
+    if (!modalContactoAbierto) return;
     setGuardandoContacto(true);
     try {
-      const res = await fetch(`/api/contactos/${editContacto.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formContacto),
-      });
+      const res = nuevoContacto
+        ? await fetch(`/api/contactos`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...formContacto, empresaId: id }),
+          })
+        : await fetch(`/api/contactos/${editContacto!.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formContacto),
+          });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         toast.error(data.error ?? "No se pudo guardar el contacto. Revisa tu conexión e inténtalo de nuevo.");
@@ -99,7 +120,7 @@ export default function FichaClientePage() {
       setGuardandoContacto(false);
       return;
     }
-    setEditContacto(null);
+    cerrarModalContacto();
     setGuardandoContacto(false);
     cargar(true);
   }
@@ -150,7 +171,7 @@ export default function FichaClientePage() {
   // mientras hay una edición en curso para no pisar cambios sin guardar.
   useEffect(() => {
     function revalidar() {
-      if (document.visibilityState === "visible" && !editando && !editContacto) cargar(true);
+      if (document.visibilityState === "visible" && !editando && !modalContactoAbierto) cargar(true);
     }
     window.addEventListener("focus", revalidar);
     document.addEventListener("visibilitychange", revalidar);
@@ -158,7 +179,7 @@ export default function FichaClientePage() {
       window.removeEventListener("focus", revalidar);
       document.removeEventListener("visibilitychange", revalidar);
     };
-  }, [editando, editContacto, id]);
+  }, [editando, modalContactoAbierto, id]);
 
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
@@ -330,9 +351,15 @@ export default function FichaClientePage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
         {/* Contactos */}
         <div className="rounded-2xl border border-slate-200 p-4">
-          <h2 className="mb-3 text-sm font-semibold text-slate-800">Contactos ({empresa.contactos.length})</h2>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-slate-800">Contactos ({empresa.contactos.length})</h2>
+            <button onClick={abrirNuevoContacto}
+              className="inline-flex items-center gap-1 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700 hover:bg-brand-100">
+              <IconPlus size={13} stroke={2} /> Agregar contacto
+            </button>
+          </div>
           {empresa.contactos.length === 0 ? (
-            <p className="text-xs text-slate-400">Sin contactos vinculados.</p>
+            <p className="text-xs text-slate-400">Sin contactos vinculados. Usa <button onClick={abrirNuevoContacto} className="text-brand-600 hover:underline">Agregar contacto</button> para crear uno.</p>
           ) : (
             <ul className="flex flex-col gap-2 text-sm">
               {empresa.contactos.map((c) => (
@@ -447,13 +474,13 @@ export default function FichaClientePage() {
         />
       </div>
 
-      {/* Modal editar contacto */}
-      {editContacto && (
+      {/* Modal crear / editar contacto */}
+      {modalContactoAbierto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          onClick={() => setEditContacto(null)}>
+          onClick={cerrarModalContacto}>
           <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
             onClick={(e) => e.stopPropagation()}>
-            <h2 className="mb-4 text-sm font-semibold text-slate-800">Editar contacto</h2>
+            <h2 className="mb-4 text-sm font-semibold text-slate-800">{nuevoContacto ? "Nuevo contacto" : "Editar contacto"}</h2>
             <form onSubmit={handleGuardarContacto} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="col-span-2">
                 <label className="mb-1 block text-xs text-slate-500">Nombre *</label>
@@ -480,18 +507,20 @@ export default function FichaClientePage() {
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
               </div>
               <div className="col-span-2 flex items-center justify-between pt-1">
-                <button type="button" onClick={handleEliminarContacto}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-700">
-                  <IconTrash size={14} stroke={1.75} /> Eliminar
-                </button>
+                {!nuevoContacto ? (
+                  <button type="button" onClick={handleEliminarContacto}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-700">
+                    <IconTrash size={14} stroke={1.75} /> Eliminar
+                  </button>
+                ) : <span />}
                 <div className="flex gap-2">
-                  <button type="button" onClick={() => setEditContacto(null)}
+                  <button type="button" onClick={cerrarModalContacto}
                     className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
                     Cancelar
                   </button>
                   <button type="submit" disabled={guardandoContacto}
                     className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
-                    {guardandoContacto ? "Guardando..." : "Guardar"}
+                    {guardandoContacto ? "Guardando..." : nuevoContacto ? "Crear contacto" : "Guardar"}
                   </button>
                 </div>
               </div>
