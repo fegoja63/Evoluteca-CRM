@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { IconArrowLeft, IconAlertTriangle, IconTemplate, IconCheck } from "@tabler/icons-react";
 import { MoneyInput } from "@/components/money-input";
+import { EditorSeccionesCotizacion } from "@/components/editor-secciones-cotizacion";
+import { SECCIONES_SUGERIDAS, normalizarCuerpo, type SeccionCuerpo } from "@/lib/cuerpo-cotizacion";
 
 type Empresa  = { id: string; nombre: string; condicionesComerciales?: string | null };
 type Contacto = { id: string; nombre: string; email: string | null; empresa: { id: string } | null };
@@ -71,10 +73,13 @@ export default function NuevaCotizacionPage() {
   const [horaFin, setHoraFin]       = useState<string>(d.horaFin ?? "");
   const [fechaValidez, setFechaValidez] = useState<string>(d.fechaValidez ?? "");
   const [notas, setNotas]             = useState<string>(d.notas ?? "");
-  const [condicionesComerciales, setCondicionesComerciales] = useState<string>(d.condicionesComerciales ?? "");
-  // Marca si el usuario editó a mano las condiciones; si no, al cambiar de
-  // cliente se reemplazan con las del cliente elegido sin miedo a pisar algo.
-  const [condicionesTocadas, setCondicionesTocadas] = useState<boolean>(d.condicionesComerciales != null && d.condicionesComerciales !== "");
+  // Cuerpo/condiciones por cotización: secciones (título + contenido) que salen
+  // en el PDF y el enlace público. Arrancan de la plantilla del tenant
+  // (Configuración) y se pueden ajustar aquí para esta cotización.
+  const [cuerpo, setCuerpo] = useState<SeccionCuerpo[]>(Array.isArray(d.cuerpo) ? d.cuerpo : []);
+  // Marca si ya se pobló el cuerpo (por borrador o por la plantilla del tenant),
+  // para no volver a pisarlo cuando llega la configuración.
+  const cuerpoTocadoRef = useRef<boolean>(Array.isArray(d.cuerpo) && d.cuerpo.length > 0);
   const [impuestoNombre, setImpuestoNombre] = useState<string>(d.impuestoNombre ?? "IVA");
   const [impuestoPorcentaje, setImpuestoPorcentaje] = useState<string>(d.impuestoPorcentaje ?? "");
   const [impuesto2Nombre, setImpuesto2Nombre] = useState<string>(d.impuesto2Nombre ?? "");
@@ -208,7 +213,7 @@ export default function NuevaCotizacionPage() {
   const dirty =
     empresaId !== "" || contactoId !== "" || oportunidadId !== "" || salonId !== "" ||
     numeroManual !== "" ||
-    sede !== "" || fechaEvento !== "" || horaInicio !== "" || horaFin !== "" || fechaValidez !== "" || notas !== "" || condicionesComerciales !== "" ||
+    sede !== "" || fechaEvento !== "" || horaInicio !== "" || horaFin !== "" || fechaValidez !== "" || notas !== "" || cuerpoTocadoRef.current ||
     impuestoNombre !== "IVA" || impuestoPorcentaje !== "" || impuesto2Nombre !== "" || impuesto2Porcentaje !== "" ||
     lineas.some(l => l.descripcion !== "" || l.cantidad !== "1" || l.precioUnit !== "") || lineas.length > 1 ||
     modoEmpresa !== "existente" || nuevaEmpresaForm.nombre !== "" || nuevaEmpresaForm.email !== "" || nuevaEmpresaForm.telefono !== "" ||
@@ -238,7 +243,7 @@ export default function NuevaCotizacionPage() {
     try {
       window.localStorage.setItem(DRAFT_KEY, JSON.stringify({
         empresaId, contactoId, oportunidadId, salonId, numeroManual, sede,
-        fechaEvento, horaInicio, horaFin, fechaValidez, notas, condicionesComerciales,
+        fechaEvento, horaInicio, horaFin, fechaValidez, notas, cuerpo,
         impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje,
         modoEmpresa, nuevaEmpresaForm, modoContacto, nuevoContactoForm,
         modoOportunidad, nuevaOportunidadForm,
@@ -247,7 +252,7 @@ export default function NuevaCotizacionPage() {
     } catch {}
   }, [
     dirty, empresaId, contactoId, oportunidadId, salonId, numeroManual, sede,
-    fechaEvento, horaInicio, horaFin, fechaValidez, notas,
+    fechaEvento, horaInicio, horaFin, fechaValidez, notas, cuerpo,
     impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje,
     modoEmpresa, nuevaEmpresaForm, modoContacto, nuevoContactoForm,
     modoOportunidad, nuevaOportunidadForm,
@@ -274,6 +279,14 @@ export default function NuevaCotizacionPage() {
         fetch("/api/salones").then(r => r.json()).then(s => setSalones(Array.isArray(s) ? s : []));
       }
       setModuloAhorros(!!config?.modulos?.ahorros);
+      // Precarga el cuerpo con la plantilla del tenant (Configuración). Si el
+      // usuario ya trae un borrador con cuerpo propio, no se pisa. Si el tenant
+      // no configuró plantilla, se ofrecen las secciones sugeridas como punto
+      // de partida editable.
+      if (!cuerpoTocadoRef.current) {
+        const plantilla = normalizarCuerpo(config?.cuerpoCotizacion);
+        setCuerpo(plantilla.length > 0 ? plantilla : SECCIONES_SUGERIDAS.map(s => ({ ...s })));
+      }
       setCargando(false);
     });
   }, []);
@@ -367,7 +380,9 @@ export default function NuevaCotizacionPage() {
         salonId:      salonId      || null,
         numeroManual: numeroManual.trim() || null,
         sede:         sede.trim()  || null,
-        condicionesComerciales: condicionesComerciales.trim() || null,
+        cuerpoCotizacion: cuerpo
+          .map(s => ({ titulo: s.titulo.trim(), contenido: s.contenido.trim() }))
+          .filter(s => s.titulo || s.contenido),
         fechaEvento:  fechaEvento  || null,
         horaInicio:   horaInicio   || null,
         horaFin:      horaFin      || null,
@@ -500,12 +515,6 @@ export default function NuevaCotizacionPage() {
                 <select value={empresaId} onChange={e => {
                     const id = e.target.value;
                     setEmpresaId(id); setContactoId(""); setOportunidadId("");
-                    // Precarga las condiciones comerciales del cliente elegido,
-                    // salvo que el usuario ya las haya editado a mano.
-                    if (!condicionesTocadas) {
-                      const emp = empresas.find(x => x.id === id);
-                      setCondicionesComerciales(emp?.condicionesComerciales ?? "");
-                    }
                   }}
                   className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-brand-500">
                   <option value="">— Sin empresa —</option>
@@ -906,26 +915,14 @@ export default function NuevaCotizacionPage() {
           </div>
         )}
 
-        {/* Condiciones comerciales (por cliente, salen en el PDF y el enlace público) */}
+        {/* Cuerpo y condiciones de la cotización (por cotización, salen en el PDF y el enlace público) */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="text-sm font-bold text-slate-700">Condiciones comerciales</h2>
-            {empresaId && (
-              <span className="text-[11px] text-slate-400">
-                {condicionesComerciales ? "Precargadas del cliente — editables" : "Este cliente no tiene condiciones guardadas"}
-              </span>
-            )}
-          </div>
+          <h2 className="text-sm font-bold text-slate-700 mb-1">Cuerpo y condiciones de la cotización</h2>
           <p className="text-xs text-slate-400 mb-3">
-            Forma de pago, plazos, cláusulas específicas de este cliente. Salen en el PDF y el enlace público.
+            Secciones (información de la empresa, solución, alcance, condiciones…) que salen en el PDF y el enlace público.
+            Vienen precargadas de tu plantilla (Configuración) y puedes ajustarlas solo para esta cotización.
           </p>
-          <textarea
-            value={condicionesComerciales}
-            onChange={e => { setCondicionesComerciales(e.target.value); setCondicionesTocadas(true); }}
-            rows={5}
-            placeholder="Ej: Forma de pago 50% anticipo y 50% contra entrega. Vigencia 30 días. Retención en la fuente según ley..."
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 resize-none"
-          />
+          <EditorSeccionesCotizacion secciones={cuerpo} onChange={s => { cuerpoTocadoRef.current = true; setCuerpo(s); }} />
         </div>
 
         {/* Notas */}

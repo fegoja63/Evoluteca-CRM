@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
 import { editarCotizacionSchema } from "@/lib/validations/cotizaciones";
 import { parseOrError } from "@/lib/validations/helpers";
 import { idsReemplazadas, valorConImpuestos } from "@/lib/cotizaciones";
+import { normalizarCuerpo, cuerpoEditable } from "@/lib/cuerpo-cotizacion";
 
 export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -19,9 +21,17 @@ export async function GET(_req: Request, props: { params: Promise<{ id: string }
       oportunidad: { select: { id: true, titulo: true } },
       items: { orderBy: { id: "asc" } },
       lineasAhorro: { orderBy: { id: "asc" } },
+      tenant: { select: { cuerpoCotizacion: true } },
     },
   });
   if (!cot) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
+
+  // Secciones efectivas de esta cotización (su cuerpo propio, o la plantilla del
+  // tenant como respaldo). Sirve para poblar el editor del detalle sin exponer
+  // el cuerpo crudo del tenant.
+  const cuerpoEfectivo = cuerpoEditable(cot);
+  const { tenant, ...cotSinTenant } = cot;
+  void tenant;
 
   // Marca si esta cotización quedó reemplazada por una versión más reciente
   // del mismo negocio (recotización). Se deriva de las cotizaciones hermanas,
@@ -35,7 +45,7 @@ export async function GET(_req: Request, props: { params: Promise<{ id: string }
     reemplazada = idsReemplazadas(hermanas.map(h => ({ ...h, oportunidadId: cot.oportunidadId }))).has(cot.id);
   }
 
-  return NextResponse.json({ ...cot, reemplazada });
+  return NextResponse.json({ ...cotSinTenant, cuerpoEfectivo, reemplazada });
 }
 
 export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
@@ -46,7 +56,7 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
   const body = await request.json();
   const { data: parsedBody, error } = parseOrError(editarCotizacionSchema, body);
   if (error) return error;
-  const { estado, numeroManual, notas, condicionesComerciales, empresaId, motivoRechazo, fechaEvento, horaInicio, horaFin, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje, items } = parsedBody;
+  const { estado, numeroManual, notas, condicionesComerciales, cuerpoCotizacion, empresaId, motivoRechazo, fechaEvento, horaInicio, horaFin, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje, items } = parsedBody;
 
   if (empresaId) {
     const empresa = await prisma.empresa.findFirst({ where: { id: empresaId, tenantId: session.user.tenantId, eliminadoEn: null } });
@@ -86,6 +96,7 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
       ...(numeroManual !== undefined && { numeroManual: numeroManual?.trim() || null }),
       ...(notas !== undefined && { notas: notas || null }),
       ...(condicionesComerciales !== undefined && { condicionesComerciales: condicionesComerciales || null }),
+      ...(cuerpoCotizacion !== undefined && { cuerpoCotizacion: (() => { const c = normalizarCuerpo(cuerpoCotizacion); return c.length > 0 ? c : Prisma.DbNull; })() }),
       ...(empresaId !== undefined && { empresaId: empresaId || null }),
       ...(motivoRechazo !== undefined && { motivoRechazo: motivoRechazo || null }),
       ...(fechaEvento !== undefined && { fechaEvento: fechaEvento ? new Date(fechaEvento) : null }),

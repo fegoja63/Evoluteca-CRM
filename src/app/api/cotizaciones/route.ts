@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { crearCotizacionSchema } from "@/lib/validations/cotizaciones";
 import { parseOrError } from "@/lib/validations/helpers";
 import { valorConImpuestos } from "@/lib/cotizaciones";
+import { normalizarCuerpo } from "@/lib/cuerpo-cotizacion";
 
 export async function GET() {
   const session = await auth();
@@ -31,7 +32,8 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { data: parsed, error } = parseOrError(crearCotizacionSchema, body);
   if (error) return error;
-  const { empresaId, contactoId, oportunidadId, salonId, numeroManual, fechaEvento, horaInicio, horaFin, sede, notas, condicionesComerciales, fechaValidez, items, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje, modalidad, lineasAhorro, porcentajeHonorarios, horizonteMeses, feeMensual } = parsed;
+  const { empresaId, contactoId, oportunidadId, salonId, numeroManual, fechaEvento, horaInicio, horaFin, sede, notas, condicionesComerciales, cuerpoCotizacion, fechaValidez, items, impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje, modalidad, lineasAhorro, porcentajeHonorarios, horizonteMeses, feeMensual } = parsed;
+  const cuerpoNormalizado = normalizarCuerpo(cuerpoCotizacion);
 
   // Cada relación opcional debe pertenecer al mismo tenant — sin esto, un
   // usuario podría enlazar (y luego ver los datos de) una empresa/contacto/
@@ -109,6 +111,7 @@ export async function POST(request: Request) {
         sede: sede?.trim() || null,
         notas: notas?.trim() || null,
         condicionesComerciales: condicionesComerciales?.trim() || null,
+        cuerpoCotizacion: cuerpoNormalizado.length > 0 ? cuerpoNormalizado : undefined,
         fechaValidez: fechaValidez ? new Date(fechaValidez) : null,
         // Los impuestos solo aplican a la modalidad de ítems (fee fijo). En
         // success fee / fee mensual el total es el honorario/fee y no se le

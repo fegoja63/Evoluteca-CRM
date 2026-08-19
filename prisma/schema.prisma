@@ -466,6 +466,11 @@ model Cotizacion {
   // y pueden ajustarse por cotización; es lo que se muestra en el PDF y el
   // enlace público (separado de las notas/observaciones).
   condicionesComerciales String?
+  // Cuerpo/condiciones propias de ESTA cotización: array de secciones
+  // { titulo, contenido }. Si está presente, reemplaza por completo al cuerpo
+  // del tenant en el PDF y el enlace público. null = usa el cuerpo del tenant
+  // (comportamiento anterior, para no afectar cotizaciones ya creadas).
+  cuerpoCotizacion     Json?
   fechaEvento          DateTime?
   sede                 String?
   fechaValidez         DateTime?
