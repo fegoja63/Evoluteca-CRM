@@ -23,7 +23,11 @@ export const FAQS: Faq[] = [
 
   // ── Clientes y contactos ──
   { categoria: "Clientes y contactos", pregunta: "¿Cómo creo un cliente nuevo?",
-    respuesta: "Ve a Clientes, botón \"+ Nuevo cliente\". Solo el nombre de la empresa es obligatorio; email, teléfono, sector, sitio web y notas son opcionales." },
+    respuesta: "Ve a Clientes, botón \"+ Nuevo cliente\". Solo el \"Nombre del cliente o Empresa\" es obligatorio. Puedes escribir el \"Nombre del contacto\" (contacto principal, que usa el email y teléfono que ingreses arriba) y, en la sección \"OTRO contacto de este cliente\", registrar un segundo contacto — así el cliente queda con más de un contacto desde el inicio. El resto (sector, sitio web, notas) es opcional." },
+  { categoria: "Clientes y contactos", pregunta: "¿Cómo edito, agrego o elimino los contactos de un cliente?",
+    respuesta: "Abre el cliente (clic en su nombre). En la sección Contactos, usa \"+ Agregar contacto\" para crear uno nuevo ya vinculado, o el ícono de lápiz junto a cada contacto para corregir su nombre, cargo, teléfono y email o eliminarlo. También puedes editarlos desde la página Contactos del menú." },
+  { categoria: "Clientes y contactos", pregunta: "¿Cómo veo los clientes nuevos de un año o de un mes?",
+    respuesta: "En Clientes, junto al buscador, elige el año en \"Creados en …\" y, si quieres, el mes. La lista, las tarjetas de resumen y el botón Exportar Excel se filtran a los clientes creados en ese período. Sirve para saber qué clientes son nuevos de este año frente a los de años anteriores." },
   { categoria: "Clientes y contactos", pregunta: "¿Qué es la ficha 360° de un cliente?",
     respuesta: "Al hacer clic en un cliente ves en un solo lugar sus datos generales, contactos vinculados, oportunidades y su etapa, actividades registradas, cotizaciones formales emitidas y un timeline cronológico con todas las interacciones." },
   { categoria: "Clientes y contactos", pregunta: "¿Cómo registro una llamada o reunión rápido, sin ir a la Agenda?",
@@ -93,6 +97,8 @@ export const FAQS: Faq[] = [
     respuesta: "Sí, si lo configuraste en Configuración → Logo de la empresa (imagen PNG o JPG, máximo 2MB, subida directo desde tu computador)." },
   { categoria: "Cotizaciones", pregunta: "¿Puedo enviar la cotización a un correo distinto al del contacto registrado?",
     respuesta: "Sí. Al hacer clic en \"✉ Enviar email\" el campo de destinatario viene pre-llenado con el correo del contacto, pero es editable antes de enviar." },
+  { categoria: "Cotizaciones", pregunta: "El cliente que recibe la cotización, ¿puede verla y descargar el PDF sin tener cuenta?",
+    respuesta: "Sí. El correo incluye un botón \"Ver y responder en línea\" (donde el cliente ve la cotización y puede aceptarla o rechazarla) y un botón \"Descargar PDF\". Ambos funcionan sin iniciar sesión, mediante el enlace seguro de la cotización. Si enviaste una cotización antes de esta mejora y el cliente ve \"No autorizado\" al descargar, vuelve a enviársela para que le llegue el enlace nuevo." },
   { categoria: "Cotizaciones", pregunta: "¿Cómo reutilizo un paquete de servicios que uso seguido?",
     respuesta: "Guárdalo como plantilla en el módulo Plantillas, o desde una cotización existente con el botón \"★ Guardar plantilla\". Editar o eliminar una plantilla después no afecta las cotizaciones ya creadas a partir de ella." },
   { categoria: "Cotizaciones", pregunta: "¿Qué pasa si una cotización vence sin respuesta del cliente?",
@@ -101,6 +107,8 @@ export const FAQS: Faq[] = [
   // ── Importación de Excel ──
   { categoria: "Importación de datos", pregunta: "¿Cómo importo mi base de datos de Excel?",
     respuesta: "Ve a Datos → Importar, sube tu archivo .xlsx y mapea qué columna corresponde a cada campo del CRM (empresa, contacto, oportunidad, valor, etapa, etc.). El sistema muestra un resumen de cuántos clientes, contactos y oportunidades se crearon." },
+  { categoria: "Importación de datos", pregunta: "Al importar mi base histórica, ¿cómo evito que todos cuenten como clientes nuevos de este año?",
+    respuesta: "En el paso 2 de la importación hay un campo \"Fecha de creación de estos clientes\". Si estás cargando clientes antiguos, elige una fecha pasada (por ejemplo enero de un año anterior) y esos clientes no aparecerán como nuevos de este año en el filtro de clientes. Si lo dejas vacío, se usa la fecha de hoy (para clientes realmente nuevos)." },
   { categoria: "Importación de datos", pregunta: "¿Qué pasa si importo el mismo archivo dos veces?",
     respuesta: "Si el nombre de la empresa coincide exactamente, el sistema la reutiliza; si varía (mayúsculas, espacios extra), crea una empresa duplicada. Limpia o normaliza los datos antes de reimportar." },
   { categoria: "Importación de datos", pregunta: "La importación no salió como esperaba, ¿puedo deshacerla?",
