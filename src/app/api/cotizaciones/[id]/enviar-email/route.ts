@@ -25,7 +25,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
       contacto: { select: { nombre: true, email: true } },
       items:    true,
       lineasAhorro: { orderBy: { id: "asc" } },
-      tenant:   { select: { logoUrl: true, nombre: true } },
+      tenant:   { select: { logoUrl: true, nombre: true, email: true } },
     },
   });
   if (!cot) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
@@ -153,10 +153,15 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
       </div>
     </div>`;
 
+  // Responder-a: el correo de la empresa (si lo configuró en Configuración),
+  // para que la respuesta del cliente llegue a su buzón y no a noreply.
+  const replyTo = cot.tenant.email?.trim() || undefined;
+
   const resend = new Resend(process.env.RESEND_API_KEY);
   const { error } = await resend.emails.send({
     from: `${tenantNombre} <noreply@evoluteca.com>`,
     to: emailDestino ?? cot.contacto?.email ?? session.user.email ?? "felipegomezjaramillo@gmail.com",
+    ...(replyTo ? { replyTo } : {}),
     subject: `📄 Cotización ${numero} — ${cliente}`,
     html,
   });
