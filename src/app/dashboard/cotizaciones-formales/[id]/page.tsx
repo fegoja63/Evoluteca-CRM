@@ -10,6 +10,7 @@ import { LineasEditor, type Linea } from "@/components/lineas-editor";
 import { RedactorEmailIA } from "@/components/redactor-email-ia";
 import { EditorSeccionesCotizacion } from "@/components/editor-secciones-cotizacion";
 import { normalizarCuerpo, type SeccionCuerpo } from "@/lib/cuerpo-cotizacion";
+import { useSession } from "next-auth/react";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type LineaAhorro = { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string };
@@ -28,7 +29,6 @@ type Cotizacion = {
   sede: string | null;
   notas: string | null;
   condicionesComerciales: string | null;
-  cuerpoEfectivo?: SeccionCuerpo[];
   impuestoNombre: string | null;
   impuestoPorcentaje: string | null;
   impuesto2Nombre: string | null;
@@ -78,6 +78,8 @@ function fmtFecha(s: string | null) {
 export default function CotizacionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router  = useRouter();
+  const { data: session } = useSession();
+  const esAdmin = session?.user?.rol === "ADMINISTRADOR";
 
   const [cot, setCot]           = useState<Cotizacion | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -122,7 +124,9 @@ export default function CotizacionDetailPage() {
     const data = await res.json();
     setCot(data);
     setNotas(data.notas ?? "");
-    setCuerpo(normalizarCuerpo(data.cuerpoEfectivo));
+    // El cuerpo/detalles es común a todas las cotizaciones: se lee de la
+    // configuración del tenant, no de la cotización.
+    fetch("/api/configuracion").then(r => r.json()).then(cfg => setCuerpo(normalizarCuerpo(cfg?.cuerpoCotizacion))).catch(() => {});
     setNumeroManual(data.numeroManual ?? "");
     setEmailDestino(prev => prev || data.contacto?.email || data.empresa?.email || "");
     setTelefonoDestino(prev => prev || data.contacto?.telefono || data.empresa?.telefono || "");
@@ -199,10 +203,12 @@ export default function CotizacionDetailPage() {
     cargar();
   }
 
+  // El cuerpo/detalles es común a TODAS las cotizaciones: se guarda como la
+  // plantilla del tenant (Configuración). Solo un administrador puede cambiarlo.
   async function guardarCondiciones() {
     setGuardandoCondiciones(true);
     try {
-      const res = await fetch(`/api/cotizaciones/${id}`, {
+      const res = await fetch(`/api/configuracion`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -213,7 +219,7 @@ export default function CotizacionDetailPage() {
       });
       if (!res.ok) throw new Error();
     } catch {
-      toast.error("No se pudieron guardar las condiciones. Revisa tu conexión e inténtalo de nuevo.");
+      toast.error("No se pudo guardar. Solo un administrador puede cambiar el cuerpo para todas las cotizaciones.");
       setGuardandoCondiciones(false);
       return;
     }
@@ -807,23 +813,26 @@ export default function CotizacionDetailPage() {
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-sm font-bold text-slate-700">Cuerpo y condiciones</h2>
-            {!editCondiciones && (
+            {!editCondiciones && esAdmin && (
               <button onClick={() => setEditCondiciones(true)}
                 className="text-xs text-brand-600 hover:underline">
                 Editar
               </button>
             )}
           </div>
-          <p className="text-xs text-slate-400 mb-3">Secciones que salen en el PDF y el enlace público de esta cotización.</p>
+          <p className="text-xs text-slate-400 mb-3">
+            Secciones que salen en el PDF y el enlace público. <strong>Son iguales para todas tus cotizaciones.</strong>{" "}
+            {!esAdmin && "Solo un administrador puede cambiarlas."}
+          </p>
           {editCondiciones ? (
             <div>
               <EditorSeccionesCotizacion secciones={cuerpo} onChange={setCuerpo} />
               <div className="flex gap-2 mt-3">
                 <button onClick={guardarCondiciones} disabled={guardandoCondiciones}
                   className="rounded-xl bg-accent-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-60">
-                  {guardandoCondiciones ? "Guardando..." : "Guardar"}
+                  {guardandoCondiciones ? "Guardando..." : "Guardar para todas las cotizaciones"}
                 </button>
-                <button onClick={() => { setEditCondiciones(false); setCuerpo(normalizarCuerpo(cot.cuerpoEfectivo)); }}
+                <button onClick={() => { setEditCondiciones(false); cargar(); }}
                   className="rounded-xl border border-slate-200 px-4 py-1.5 text-sm text-slate-600 hover:bg-slate-50">
                   Cancelar
                 </button>

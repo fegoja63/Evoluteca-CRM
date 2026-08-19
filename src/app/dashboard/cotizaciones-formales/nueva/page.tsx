@@ -7,6 +7,7 @@ import { IconArrowLeft, IconAlertTriangle, IconTemplate, IconCheck } from "@tabl
 import { MoneyInput } from "@/components/money-input";
 import { EditorSeccionesCotizacion } from "@/components/editor-secciones-cotizacion";
 import { SECCIONES_SUGERIDAS, normalizarCuerpo, type SeccionCuerpo } from "@/lib/cuerpo-cotizacion";
+import { useSession } from "next-auth/react";
 
 type Empresa  = { id: string; nombre: string; condicionesComerciales?: string | null };
 type Contacto = { id: string; nombre: string; email: string | null; empresa: { id: string } | null };
@@ -40,6 +41,33 @@ function loadDraft(): Record<string, unknown> | null {
 
 export default function NuevaCotizacionPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const esAdmin = session?.user?.rol === "ADMINISTRADOR";
+  const [guardandoCuerpo, setGuardandoCuerpo] = useState(false);
+  const [cuerpoOk, setCuerpoOk] = useState(false);
+
+  // El cuerpo/detalles es común a TODAS las cotizaciones (plantilla del tenant).
+  // Este botón lo guarda como predeterminado para todas. Solo un administrador
+  // puede cambiarlo (la API lo revalida).
+  async function guardarCuerpoParaTodas() {
+    setGuardandoCuerpo(true);
+    const limpio = cuerpo
+      .map(s => ({ titulo: s.titulo.trim(), contenido: s.contenido.trim() }))
+      .filter(s => s.titulo || s.contenido);
+    const res = await fetch("/api/configuracion", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cuerpoCotizacion: limpio }),
+    });
+    setGuardandoCuerpo(false);
+    if (!res.ok) {
+      setError("No se pudo guardar el cuerpo para todas las cotizaciones. Solo un administrador puede cambiarlo.");
+      return;
+    }
+    setCuerpoOk(true);
+    setTimeout(() => setCuerpoOk(false), 2500);
+  }
+
   const [draft] = useState(loadDraft);
   const d = (draft ?? {}) as Record<string, any>;
   const [borradorRestaurado, setBorradorRestaurado] = useState(draft !== null);
@@ -380,9 +408,6 @@ export default function NuevaCotizacionPage() {
         salonId:      salonId      || null,
         numeroManual: numeroManual.trim() || null,
         sede:         sede.trim()  || null,
-        cuerpoCotizacion: cuerpo
-          .map(s => ({ titulo: s.titulo.trim(), contenido: s.contenido.trim() }))
-          .filter(s => s.titulo || s.contenido),
         fechaEvento:  fechaEvento  || null,
         horaInicio:   horaInicio   || null,
         horaFin:      horaFin      || null,
@@ -915,14 +940,26 @@ export default function NuevaCotizacionPage() {
           </div>
         )}
 
-        {/* Cuerpo y condiciones de la cotización (por cotización, salen en el PDF y el enlace público) */}
+        {/* Cuerpo y condiciones (COMÚN a todas las cotizaciones — salen en el PDF y el enlace público) */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <h2 className="text-sm font-bold text-slate-700 mb-1">Cuerpo y condiciones de la cotización</h2>
           <p className="text-xs text-slate-400 mb-3">
             Secciones (información de la empresa, solución, alcance, condiciones…) que salen en el PDF y el enlace público.
-            Vienen precargadas de tu plantilla (Configuración) y puedes ajustarlas solo para esta cotización.
+            <strong> Son iguales para todas tus cotizaciones.</strong>{" "}
+            {esAdmin
+              ? "Si las cambias aquí, usa \"Guardar para todas las cotizaciones\" para dejarlas fijas."
+              : "Solo un administrador puede cambiarlas."}
           </p>
-          <EditorSeccionesCotizacion secciones={cuerpo} onChange={s => { cuerpoTocadoRef.current = true; setCuerpo(s); }} />
+          <EditorSeccionesCotizacion secciones={cuerpo} onChange={s => { cuerpoTocadoRef.current = true; setCuerpo(s); }} disabled={!esAdmin} />
+          {esAdmin && (
+            <div className="mt-3 flex items-center gap-3">
+              <button type="button" onClick={guardarCuerpoParaTodas} disabled={guardandoCuerpo}
+                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                {guardandoCuerpo ? "Guardando..." : "Guardar para todas las cotizaciones"}
+              </button>
+              {cuerpoOk && <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600"><IconCheck size={14} stroke={2} /> Guardado para todas</span>}
+            </div>
+          )}
         </div>
 
         {/* Notas */}
