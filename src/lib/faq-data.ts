@@ -97,6 +97,8 @@ export const FAQS: Faq[] = [
     respuesta: "Sí, si lo configuraste en Configuración → Logo de la empresa (imagen PNG o JPG, máximo 2MB, subida directo desde tu computador)." },
   { categoria: "Cotizaciones", pregunta: "¿Puedo enviar la cotización a un correo distinto al del contacto registrado?",
     respuesta: "Sí. Al hacer clic en \"✉ Enviar email\" el campo de destinatario viene pre-llenado con el correo del contacto, pero es editable antes de enviar." },
+  { categoria: "Cotizaciones", pregunta: "¿A nombre de quién le llega el correo de la cotización al cliente, y a dónde responde?",
+    respuesta: "El correo llega con el nombre y el logo de tu empresa como remitente (no \"Evoluteca CRM\", que solo aparece como una nota pequeña al pie). Si el cliente responde, la respuesta llega al \"Correo de la empresa\" que configures en Configuración. El correo sale desde el dominio del sistema (@evoluteca.com) pero con tu identidad; enviarlo desde tu propio dominio (ej. @tuempresa.com) es un paso adicional que puedes solicitar." },
   { categoria: "Cotizaciones", pregunta: "El cliente que recibe la cotización, ¿puede verla y descargar el PDF sin tener cuenta?",
     respuesta: "Sí. El correo incluye un botón \"Ver y responder en línea\" (donde el cliente ve la cotización y puede aceptarla o rechazarla) y un botón \"Descargar PDF\". Ambos funcionan sin iniciar sesión, mediante el enlace seguro de la cotización. Si enviaste una cotización antes de esta mejora y el cliente ve \"No autorizado\" al descargar, vuelve a enviársela para que le llegue el enlace nuevo." },
   { categoria: "Cotizaciones", pregunta: "¿Cómo reutilizo un paquete de servicios que uso seguido?",
@@ -139,6 +141,8 @@ export const FAQS: Faq[] = [
   // ── Configuración y equipo ──
   { categoria: "Configuración", pregunta: "¿Qué puede hacer cada rol de usuario (Comercial, Gerente, Administrador)?",
     respuesta: "Comercial ve y gestiona solo sus propios registros. Gerente además ve todo el equipo, reportes consolidados y puede eliminar registros y editar metas. Administrador además configura el CRM, gestiona usuarios y reasigna registros sin dueño." },
+  { categoria: "Configuración", pregunta: "¿Cómo hago que las respuestas de mis clientes a las cotizaciones lleguen a mi correo?",
+    respuesta: "En Configuración → \"Correo de la empresa\" (solo Administrador), guarda el correo de tu empresa. Desde ahí, cada cotización que envíes usa ese buzón como \"Responder-a\": si el cliente responde, te llega directo a ese correo. Déjalo vacío si no quieres usarlo. El envío sigue saliendo desde el dominio del sistema con el nombre de tu empresa." },
   { categoria: "Configuración", pregunta: "¿Cómo activo o desactivo las notificaciones automáticas por email?",
     respuesta: "En Configuración, el Administrador puede apagar o encender el toggle \"Notificaciones automáticas por email\". Al desactivarlo, ningún miembro del equipo recibe los correos diarios de actividades vencidas, negocios estancados y cierres próximos." },
   { categoria: "Configuración", pregunta: "¿Cómo conecto un formulario web o WhatsApp Business para que los leads entren solos al CRM?",
