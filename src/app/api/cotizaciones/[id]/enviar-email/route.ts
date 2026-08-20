@@ -6,6 +6,7 @@ import { enviarEmailCotizacionSchema } from "@/lib/validations/cotizaciones";
 import { parseOrError } from "@/lib/validations/helpers";
 import { numeroCotizacion } from "@/lib/cotizaciones";
 import { randomBytes } from "crypto";
+import { generarTokenHilo, construirReplyTo } from "@/lib/correo-inbound";
 
 export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -153,20 +154,50 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
       </div>
     </div>`;
 
-  // Responder-a: el correo de la empresa (si lo configuró en Configuración),
-  // para que la respuesta del cliente llegue a su buzón y no a noreply.
-  const replyTo = cot.tenant.email?.trim() || undefined;
+  const destinatario = emailDestino ?? cot.contacto?.email ?? session.user.email ?? "felipegomezjaramillo@gmail.com";
+
+  // Responder-a y captura de respuestas:
+  //  - Con buzón de ingest configurado (INGEST_EMAIL_BASE): la respuesta del
+  //    cliente se dirige a `base+<token>@…`; el cron de entrada la vincula a esta
+  //    cotización (su oportunidad/contacto) y le avisa al vendedor. Así la
+  //    respuesta queda EN EL CRM.
+  //  - Sin buzón de ingest: se cae al "Correo de la empresa" (Fase 1), y si
+  //    tampoco está, a noreply.
+  const tokenHilo = process.env.INGEST_EMAIL_BASE ? generarTokenHilo() : null;
+  const replyTo =
+    (tokenHilo && construirReplyTo(process.env.INGEST_EMAIL_BASE!, tokenHilo)) ||
+    cot.tenant.email?.trim() ||
+    undefined;
 
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const { error } = await resend.emails.send({
+  const { data: enviado, error } = await resend.emails.send({
     from: `${tenantNombre} <noreply@evoluteca.com>`,
-    to: emailDestino ?? cot.contacto?.email ?? session.user.email ?? "felipegomezjaramillo@gmail.com",
+    to: destinatario,
     ...(replyTo ? { replyTo } : {}),
     subject: `📄 Cotización ${numero} — ${cliente}`,
     html,
   });
 
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+
+  // Registra el correo enviado (ficha "Correos") con el token de hilo, para que
+  // la respuesta del cliente se capture y quede vinculada a esta cotización.
+  await prisma.correoRegistrado.create({
+    data: {
+      direccion: "ENVIADO",
+      de: session.user.email ?? "noreply@evoluteca.com",
+      para: destinatario,
+      asunto: `Cotización ${numero} — ${cliente}`,
+      cuerpo: `Cotización ${numero} enviada por correo a ${cliente}.`,
+      proveedorMessageId: enviado?.id ?? null,
+      tokenHilo,
+      creadoBy: session.user.id,
+      tenantId: session.user.tenantId,
+      empresaId: cot.empresaId,
+      contactoId: cot.contactoId,
+      oportunidadId: cot.oportunidadId,
+    },
+  });
 
   // Cambiar estado a ENVIADA si era BORRADOR
   if (cot.estado === "BORRADOR") {
