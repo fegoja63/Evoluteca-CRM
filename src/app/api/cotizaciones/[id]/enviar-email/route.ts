@@ -169,13 +169,31 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
     cot.tenant.email?.trim() ||
     undefined;
 
+  // Versión de texto plano del correo. Un correo solo-HTML puntúa peor en los
+  // filtros anti-spam; incluir el equivalente en texto mejora la entregabilidad.
+  const totalMostrar = esFijo ? total : valorContrato;
+  const validezTxt = cot.fechaValidez
+    ? `\nVálida hasta: ${new Date(cot.fechaValidez).toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric", timeZone: "UTC" })}`
+    : "";
+  const texto = `Estimado/a ${contacto || cliente},
+
+A continuación encontrará la cotización ${numero} emitida para ${cliente}.
+
+Total: ${fmt(totalMostrar)}${validezTxt}
+
+Ver y responder en línea: ${verUrl}
+Descargar PDF: ${pdfUrl}
+
+Enviado usando Evoluteca CRM (${tenantNombre}).`;
+
   const resend = new Resend(process.env.RESEND_API_KEY);
   const { data: enviado, error } = await resend.emails.send({
     from: `${tenantNombre} <noreply@evoluteca.com>`,
     to: destinatario,
     ...(replyTo ? { replyTo } : {}),
-    subject: `📄 Cotización ${numero} — ${cliente}`,
+    subject: `Cotización ${numero} — ${cliente}`,
     html,
+    text: texto,
   });
 
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
