@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { randomBytes } from "crypto";
+import { baseUrlDesdePeticion } from "@/lib/base-url";
 
-export async function POST(_req: Request, props: { params: Promise<{ id: string }> }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -19,6 +20,6 @@ export async function POST(_req: Request, props: { params: Promise<{ id: string 
     await prisma.cotizacion.update({ where: { id: params.id }, data: { tokenPublico: token } });
   }
 
-  const url = `${process.env.NEXTAUTH_URL}/cotizacion/${token}`;
+  const url = `${baseUrlDesdePeticion(req)}/cotizacion/${token}`;
   return NextResponse.json({ token, url });
 }
