@@ -7,6 +7,7 @@ import { parseOrError } from "@/lib/validations/helpers";
 import { numeroCotizacion } from "@/lib/cotizaciones";
 import { randomBytes } from "crypto";
 import { generarTokenHilo, construirReplyTo } from "@/lib/correo-inbound";
+import { baseUrlDesdePeticion } from "@/lib/base-url";
 
 export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -114,7 +115,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
     token = randomBytes(24).toString("hex");
     await prisma.cotizacion.update({ where: { id: cot.id }, data: { tokenPublico: token } });
   }
-  const base = process.env.NEXTAUTH_URL;
+  const base = baseUrlDesdePeticion(req);
   const pdfUrl = `${base}/api/cotizaciones/${cot.id}/pdf?token=${token}`;
   const verUrl = `${base}/cotizacion/${token}`;
 
