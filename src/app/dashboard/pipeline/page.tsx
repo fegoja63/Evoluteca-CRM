@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/toast";
 import { MoneyInput } from "@/components/money-input";
 import { ResumenPipelineIA } from "@/components/resumen-pipeline-ia";
+import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
@@ -30,6 +31,7 @@ type Oportunidad = {
   etapa: string;
   creadoEn: string;
   fechaCierre: string | null;
+  fechaEvento: string | null;
   probabilidad: number | null;
   empresa: { id: string; nombre: string } | null;
   contacto: { id: string; nombre: string } | null;
@@ -44,6 +46,21 @@ type Oportunidad = {
 function diasDesde(fecha: string): number {
   return Math.floor((Date.now() - new Date(fecha).getTime()) / 86_400_000);
 }
+
+// Año/mes "efectivo" de un negocio para agrupar y filtrar, con la MISMA prioridad
+// que usa Reportes (extras.MES -> fechaCierre -> fechaEvento -> creadoEn). Así el
+// Pipeline nunca oculta un negocio cerrado sin fechaCierre, y ambas pantallas dan
+// el mismo número.
+function periodoDe(o: Oportunidad): Date {
+  return fechaEfectiva({
+    fechaCierre: o.fechaCierre ? new Date(o.fechaCierre) : null,
+    fechaEvento: o.fechaEvento ? new Date(o.fechaEvento) : null,
+    creadoEn: new Date(o.creadoEn),
+    extras: o.extras,
+  });
+}
+function anioDe(o: Oportunidad): string { return String(periodoDe(o).getFullYear()); }
+function mesDe(o: Oportunidad): string { return String(periodoDe(o).getMonth() + 1); }
 
 // Días sin movimiento = desde la última actividad o cambio de etapa (o la
 // creación si nunca se tocó). Es la base del estado "estancada", en vez de la
@@ -393,16 +410,16 @@ export default function PipelinePage() {
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
   }
 
-  // ── Años y meses desde fechaCierre ──
-  // iso viene como "2026-07-10T05:00:00.000Z" — tomamos los primeros 7 chars "2026-07"
-  const opConFecha = oportunidades.filter(o => !!o.fechaCierre);
-
-  const aniosSet = new Set(opConFecha.map(o => o.fechaCierre!.substring(0, 4)));
+  // ── Años y meses disponibles (por fecha EFECTIVA, no solo fechaCierre) ──
+  // Antes se derivaban solo de negocios con fechaCierre, así que los cerrados sin
+  // esa fecha (p. ej. perdidos) no aportaban su año al selector y quedaban
+  // inalcanzables. Ahora todo negocio tiene un período efectivo.
+  const aniosSet = new Set(oportunidades.map(anioDe));
   aniosSet.add(String(new Date().getFullYear())); // el año actual siempre seleccionable
   const aniosDisponibles = Array.from(aniosSet).sort((a, b) => Number(b) - Number(a));
 
   const mesesDisponibles = Array.from(new Set(
-    opConFecha.map(o => String(Number(o.fechaCierre!.substring(5, 7))))
+    oportunidades.map(mesDe)
   )).sort((a, b) => Number(a) - Number(b));
 
   // ── Filtrado ──
@@ -413,8 +430,10 @@ export default function PipelinePage() {
   const filtradas = oportunidades.filter(o => {
     const esActiva = ETAPAS_ACTIVAS.includes(o.etapa);
     const aplicaFecha = !esActiva || anioPuro;
-    if (aplicaFecha && filtroAnio && (!o.fechaCierre || o.fechaCierre.substring(0, 4) !== filtroAnio)) return false;
-    if (aplicaFecha && filtroMes  && (!o.fechaCierre || String(Number(o.fechaCierre.substring(5, 7))) !== filtroMes)) return false;
+    // Se filtra por el período EFECTIVO (mismo criterio que Reportes). Un negocio
+    // cerrado siempre tiene período, así que ya no se oculta por no tener fechaCierre.
+    if (aplicaFecha && filtroAnio && anioDe(o) !== filtroAnio) return false;
+    if (aplicaFecha && filtroMes  && mesDe(o) !== filtroMes) return false;
     if (filtroEtapa && o.etapa !== filtroEtapa) return false;
     if (filtroVendedor && o.creadoBy !== filtroVendedor) return false;
     if (soloEstancadas && !(esActiva && diasSinMovimiento(o) >= diasEstancamiento)) return false;

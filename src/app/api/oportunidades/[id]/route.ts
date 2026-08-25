@@ -94,6 +94,15 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
 
   const cambioDeEtapa = etapa !== undefined && etapa !== oportunidad.etapa;
 
+  // Al CERRAR un negocio (pasa a GANADA/PERDIDA) se fija la fecha de cierre si no
+  // viene una explícita y aún no la tiene. Sin esto, el negocio cerrado queda con
+  // fechaCierre nula y el Pipeline lo oculta de sus filtros por período — ese era
+  // el bug del "registro de perdidos" que no mostraba los negocios marcados como
+  // perdidos.
+  if (cambioDeEtapa && (etapa === "GANADA" || etapa === "PERDIDA") && fechaCierre === undefined && !oportunidad.fechaCierre) {
+    data.fechaCierre = new Date();
+  }
+
   // Actualizar la oportunidad y registrar el cambio de etapa (si aplica) de forma
   // atomica: si el registro de auditoria falla, el cambio de etapa tampoco queda.
   const [actualizada] = await prisma.$transaction([
