@@ -61,7 +61,7 @@ export default async function DashboardPage() {
     metasMensualesAnio,
     usuarios,
     topOportunidades,
-    ultimasGanadas,
+    ganadasCandidatas,
     cierranEstaSemana,
     opActivasConActividad,
     ultimoContacto,
@@ -148,11 +148,12 @@ export default async function DashboardPage() {
       take: 5,
       select: { id: true, titulo: true, valor: true, etapa: true, probabilidad: true, empresa: { select: { nombre: true } }, fechaCierre: true },
     }),
+    // "Ganadas este mes" para la lista: se traen TODAS las ganadas y el mes se
+    // filtra por fechaEfectiva en JS (mismo criterio que la métrica de arriba),
+    // para no esconder de la lista un ganado sin fechaCierre.
     prisma.oportunidad.findMany({
-      where: { tenantId, eliminadoEn: null, etapa: "GANADA", fechaCierre: { gte: inicioMes, lt: finMes }, ...ownerFiltro },
-      orderBy: { fechaCierre: "desc" },
-      take: 5,
-      select: { id: true, titulo: true, valor: true, creadoBy: true, empresa: { select: { nombre: true } } },
+      where: { tenantId, eliminadoEn: null, etapa: "GANADA", ...ownerFiltro },
+      select: { id: true, titulo: true, valor: true, creadoBy: true, fechaCierre: true, fechaEvento: true, creadoEn: true, extras: true, empresa: { select: { nombre: true } } },
     }),
     prisma.oportunidad.findMany({
       where: { tenantId, eliminadoEn: null, etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] }, fechaCierre: { gte: hoy, lte: fin7dias }, ...ownerFiltro },
@@ -204,6 +205,12 @@ export default async function DashboardPage() {
   const valorPipeline = opActivas.reduce((a, o) => a + Number(o.valor ?? 0), 0);
   const ganadasMes  = oportunidades.filter(o => o.etapa === "GANADA" && fechaEfectiva(o) >= inicioMes && fechaEfectiva(o) < finMes);
   const ganadasAnio = oportunidades.filter(o => o.etapa === "GANADA" && fechaEfectiva(o) >= inicioAnio && fechaEfectiva(o) < finAnio);
+  // Lista "Ganadas este mes": mismo criterio que la métrica (fechaEfectiva), no
+  // fechaCierre cruda, para que un ganado sin fecha de cierre no falte en la lista.
+  const ultimasGanadas = ganadasCandidatas
+    .filter(o => fechaEfectiva(o) >= inicioMes && fechaEfectiva(o) < finMes)
+    .sort((a, b) => fechaEfectiva(b).getTime() - fechaEfectiva(a).getTime())
+    .slice(0, 5);
   const valorGanadoMes  = ganadasMes.reduce((a, o) => a + Number(o.valor ?? 0), 0);
   const valorGanadoAnio = ganadasAnio.reduce((a, o) => a + Number(o.valor ?? 0), 0);
   const ganadas         = oportunidades.filter(o => o.etapa === "GANADA").length;
