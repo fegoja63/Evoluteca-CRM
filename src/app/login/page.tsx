@@ -57,9 +57,10 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-500 text-white text-xl font-bold mb-4">E</div>
-          <h1 className="text-2xl font-bold text-white">Evoluteca CRM</h1>
-          <p className="text-slate-400 text-sm mt-1">Organiza tus ventas en un día</p>
+          <div className="flex items-center justify-center gap-2.5">
+            <img src="/Logo Evoluteca.png" alt="Evoluteca" className="h-11 w-auto object-contain" />
+            <span className="text-3xl font-semibold text-white tracking-tight">CRM</span>
+          </div>
         </div>
 
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/10 shadow-2xl">
