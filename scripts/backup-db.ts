@@ -7,10 +7,12 @@ import path from "path";
 // No requiere pg_dump — usa Prisma, que ya conoce el esquema completo,
 // para leer y volcar cada modelo.
 //
-// Pensado para correr automáticamente cada día (Programador de tareas de
-// Windows). Guarda una copia fuera del proyecto, en una carpeta de OneDrive
-// que se sincroniza a la nube, así el respaldo sobrevive aunque le pase algo
-// a la cuenta de Neon o a este equipo. Conserva los últimos RETENTION_DIAS.
+// Herramienta MANUAL / a demanda. El respaldo automático diario lo hace el
+// servidor (src/app/api/cron/respaldo, cron de Vercel) enviándolo por correo,
+// sin depender de ninguna máquina. Este script se usa para copias puntuales
+// (por ejemplo, antes de un cambio delicado en producción): guarda una copia
+// fuera del proyecto, en una carpeta de OneDrive, y conserva los últimos
+// RETENTION_DIAS. Su pareja para restaurar es scripts/restaurar-db.ts.
 //
 // Ejecutar:  node --env-file=.env scripts/backup-db.ts
 // Carpeta destino: variable BACKUP_DIR, o por defecto
