@@ -1,0 +1,46 @@
+# Envía el "Resumen del Lunes" a cada usuario, una vez por semana.
+#
+# Por qué GitHub Actions y no un cron de Vercel: el proyecto está en el plan
+# Hobby de Vercel, que solo permite crons diarios y un máximo de 2 (ya usados
+# por notificaciones y respaldo). Este workflow llama al endpoint del CRM con el
+# CRON_SECRET; toda la lógica (recorrer usuarios → armar el correo → enviar con
+# Resend) vive en el endpoint /api/cron/resumen-semanal.
+#
+# Horario: lunes 12:00 UTC = 7:00 a.m. en Bogotá (UTC-5), para que llegue al
+# empezar la semana. Los cron de GitHub corren en UTC y pueden retrasarse unos
+# minutos bajo carga; para un correo semanal es irrelevante. Si el repo queda
+# 60 días sin actividad, GitHub desactiva el schedule (se reactiva con un push o
+# desde la pestaña Actions).
+#
+# Configuración (una sola vez, en GitHub → Settings → Secrets and variables →
+# Actions): Secret CRON_SECRET (el mismo de Vercel) y, opcional, Variable
+# CRM_URL con la URL base de producción.
+
+name: Resumen del Lunes CRM
+
+on:
+  schedule:
+    - cron: "0 12 * * 1"
+  workflow_dispatch: {} # permite dispararlo a mano para probar
+
+jobs:
+  resumen-lunes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar al endpoint del resumen semanal
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          CRM_URL: ${{ vars.CRM_URL || 'https://evoluteca-crm-six.vercel.app' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "Falta el secret CRON_SECRET en el repositorio." >&2
+            exit 1
+          fi
+          codigo=$(curl -sS -o respuesta.json -w "%{http_code}" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$CRM_URL/api/cron/resumen-semanal")
+          echo "HTTP $codigo"
+          cat respuesta.json || true
+          echo ""
+          # 2xx = OK; cualquier otro código marca el run como fallido.
+          [ "$codigo" -ge 200 ] && [ "$codigo" -lt 300 ]
