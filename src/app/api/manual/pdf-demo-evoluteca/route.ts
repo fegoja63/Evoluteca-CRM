@@ -437,6 +437,8 @@ export async function GET() {
       React.createElement(LI, null, "Tiempo promedio de cierre de los negocios ganados."),
       React.createElement(LI, null, "Motivos de pérdida: el desglose de por qué se caen los negocios —Precio muy alto, Eligió a la competencia, Sin respuesta del cliente y Presupuesto insuficiente— con la cantidad y el valor perdido por cada motivo."),
       React.createElement(LI, null, "Metas de venta (mes y año) y metas por vendedor, con su porcentaje de avance."),
+      React.createElement(LI, null, "Panel \"El Lunes\" (arriba del todo): actividad comercial de los últimos 7 días, ticket promedio de una operación ganada y movimiento de clientes (nuevos, activos, inactivos y perdidos)."),
+      React.createElement(LI, null, "Pronóstico de cierre a 30/60/90 días y conversión Contacto → Oportunidad → Venta, para leer el pipeline hacia adelante y ver dónde se pierde el avance."),
 
       React.createElement(H2, null, "8.4 Agenda a fondo"),
       React.createElement(LI, null, "Tipos de actividad: llamada, reunión, email y tarea."),

@@ -771,6 +771,21 @@ export async function GET() {
 
       React.createElement(H2, null, "7.11 Filtro por segmento y sede"),
       React.createElement(P, null, "Si tu base de datos tiene información de segmento o sede/zona (por ejemplo, cargada por importación de Excel), en la barra de filtros de Reportes aparecen selectores adicionales \"Segmento\" y \"Sede\" para acotar todos los reportes a esa información. Si ningún registro tiene esos datos, los selectores simplemente no aparecen."),
+
+      React.createElement(H2, null, "7.12 Panel \"El Lunes\" (foto de tu semana)"),
+      React.createElement(P, null, "Al inicio de Reportes, el bloque \"El Lunes\" muestra una foto del presente, independiente de los filtros de año/mes de abajo. Reúne tres indicadores para empezar la semana:"),
+      React.createElement(LI, null, "Actividad comercial: los toques del equipo en los últimos 7 días, contados por tipo (llamadas, reuniones, visitas y correos) más las propuestas enviadas. Administrador y Gerente ven además el desglose por vendedor."),
+      React.createElement(LI, null, "Ticket promedio: el valor medio de una operación ganada en los últimos 12 meses (si no hay negocios ganados en ese lapso, usa todo el histórico)."),
+      React.createElement(LI, null, "Movimiento de clientes: nuevos del mes, activos (con al menos un negocio en curso), inactivos (sin negocio en curso y +60 días sin actividad) y perdidos del mes."),
+      React.createElement(Nota, null, "La actividad comercial se cuenta por la fecha de la actividad; si el equipo no registra sus llamadas y reuniones, aparecerá en cero aunque sí esté trabajando. \"Propuestas\" cuenta las cotizaciones enviadas (no borradores) de los últimos 7 días."),
+
+      React.createElement(H2, null, "7.13 Pronóstico de cierre a 30/60/90 días"),
+      React.createElement(P, null, "El panel \"Pronóstico de ingresos\" muestra el valor ponderado por probabilidad del pipeline activo y, dentro de él, el desglose \"Pronóstico de cierre por fecha\": cuánto esperas cerrar en los próximos 30 días, entre 31 y 60, y entre 61 y 90, con el valor bruto y el ponderado de cada ventana."),
+      React.createElement(P, null, "A diferencia del resto del reporte, este bloque mira las oportunidades abiertas desde hoy hacia adelante según su fecha de cierre, así que no depende del filtro de año/mes (sí respeta vendedor, segmento y sede). Debajo señala aparte las oportunidades activas con fecha de cierre vencida, sin fecha o a más de 90 días."),
+      React.createElement(Tip, null, "Un número alto en \"con fecha vencida\" es una señal de higiene del pipeline: son negocios abiertos cuya fecha de cierre ya pasó. Conviene actualizar su fecha o moverlos de etapa para que el pronóstico sea confiable."),
+
+      React.createElement(H2, null, "7.14 Conversión (contacto → oportunidad → venta)"),
+      React.createElement(P, null, "La tarjeta \"Conversión\", junto al embudo, muestra el avance en dos tasas: Contacto → Oportunidad (qué porcentaje de tus contactos ya generó al menos una oportunidad) y Oportunidad → Venta (la tasa de cierre del período). La primera es acumulada y a nivel de todo el equipo —los contactos son un recurso compartido—; la segunda respeta el período y los filtros activos."),
     ),
 
     // ── CAPÍTULO 8: DASHBOARD ──
