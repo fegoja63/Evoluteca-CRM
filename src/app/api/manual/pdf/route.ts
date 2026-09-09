@@ -561,6 +561,8 @@ export async function GET() {
       React.createElement(LI, null, "Cierres próximos: negocios con fecha de cierre estimada en los próximos 7 días"),
       React.createElement(P, null, "Además, en la Agenda las actividades vencidas muestran un ícono de campana. Al tocarlo recibes el recordatorio inmediatamente sin esperar al día siguiente."),
       React.createElement(Tip, null, "Solo recibirás el email de cada tipo si tienes situaciones reales en esa categoría. Si no tienes actividades vencidas, ese email no se envía."),
+      React.createElement(P, null, "Aparte de las alertas diarias, cada lunes en la mañana llega el \"Resumen del Lunes\": un solo correo por persona que abre la semana con una cabecera de indicadores (pipeline activo, nº de oportunidades y tasa de cierre) y responde las tres preguntas del lunes comercial — ① ¿Qué puedo cerrar? (cierres de la semana y las más valiosas), ② ¿Qué está bloqueado? (negocios estancados) y ③ ¿Qué generará ventas futuras? (tu actividad de los últimos 7 días y lo agendado), con un botón directo al Panel del Lunes en Reportes."),
+      React.createElement(Nota, null, "Tanto las alertas diarias como el Resumen del Lunes dependen del mismo interruptor \"Notificaciones automáticas por email\" en Configuración; si se apaga, no se envía ninguno. El resumen solo llega a quien tenga pipeline o actividad que resumir esa semana."),
 
       React.createElement(H2, null, "4.5 Lista o Calendario"),
       React.createElement(P, null, "En la parte superior de la Agenda hay un selector \"Lista / Calendario\" para cambiar cómo ves tus actividades."),
@@ -865,7 +867,8 @@ export async function GET() {
       React.createElement(LI, null, "Actividades vencidas sin completar"),
       React.createElement(LI, null, "Negocios estancados (sin actividad ni cambio de etapa por más del umbral de días configurado — ver 9.7)"),
       React.createElement(LI, null, "Cierres estimados en los próximos 7 días"),
-      React.createElement(P, null, "Al desactivar el toggle, ningún usuario de la empresa recibe estos correos. Solo el ADMINISTRADOR puede cambiar esta configuración."),
+      React.createElement(P, null, "El mismo toggle controla el Resumen del Lunes, el correo semanal que llega cada lunes con los indicadores de la semana y las tres preguntas del lunes comercial (ver 4.4)."),
+      React.createElement(P, null, "Al desactivar el toggle, ningún usuario de la empresa recibe estos correos (ni las alertas diarias ni el resumen semanal). Solo el ADMINISTRADOR puede cambiar esta configuración."),
       React.createElement(Nota, null, "Recomendamos mantener los emails activos. Son el recordatorio diario que evita que los negocios se pierdan por falta de seguimiento."),
 
       React.createElement(H2, null, "9.2 Módulos opcionales"),
