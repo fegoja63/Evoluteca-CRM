@@ -28,6 +28,12 @@ type MotivoPerdida = { motivo: string; cantidad: number; valorTotal: number };
 
 type ForecastEtapa = { cantidad: number; valorBruto: number; valorPonderado: number; probPromedio: number };
 
+type ForecastVentana = { cantidad: number; valorBruto: number; valorPonderado: number };
+type ForecastPorVentana = {
+  d30: ForecastVentana; d60: ForecastVentana; d90: ForecastVentana;
+  masDe90: ForecastVentana; vencidas: ForecastVentana; sinFecha: ForecastVentana;
+};
+
 type ComparativaMes = {
   mesActual: number; anioActual: number; valorActual: number;
   mesAnterior: number; anioAnterior: number; valorAnterior: number;
@@ -60,6 +66,7 @@ type Reporte = {
   motivosPerdida: MotivoPerdida[];
   valorPonderado: number;
   forecastPorEtapa: Record<string, ForecastEtapa>;
+  forecastPorVentana: ForecastPorVentana;
   filtro: { anio: number | null; mes: number | null; vendedor: string | null; segmento: string | null; sede: string | null };
 };
 
@@ -883,6 +890,55 @@ export default function ReportesPage() {
               Confianza promedio: {r.valorActivo > 0 ? Math.round((r.valorPonderado / r.valorActivo) * 100) : 0}% del pipeline se espera cerrar
             </p>
           </div>
+
+          {/* Pronóstico de cierre por fecha (30 / 60 / 90 días desde hoy) */}
+          {r.forecastPorVentana && (() => {
+            const v = r.forecastPorVentana;
+            const ventanas = [
+              { key: "d30", label: "Próximos 30 días",  data: v.d30, color: "#10b981", chip: "bg-emerald-50 text-emerald-700 border-emerald-100" },
+              { key: "d60", label: "31 a 60 días",       data: v.d60, color: "#2f8ab0", chip: "bg-brand-50 text-brand-700 border-brand-100" },
+              { key: "d90", label: "61 a 90 días",       data: v.d90, color: "#d97328", chip: "bg-amber-50 text-amber-700 border-amber-100" },
+            ] as const;
+            const maxBruto = Math.max(...ventanas.map(w => w.data.valorBruto), 1);
+            const totalPonderado90 = v.d30.valorPonderado + v.d60.valorPonderado + v.d90.valorPonderado;
+            return (
+              <div className="border-t border-slate-100 pt-4 mb-5">
+                <div className="flex items-baseline justify-between mb-3">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Pronóstico de cierre por fecha</p>
+                  <p className="text-xs text-slate-400">{fmtK(totalPonderado90)} ponderado a 90 días</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {ventanas.map(w => (
+                    <div key={w.key} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`text-xs font-semibold rounded-full border px-2 py-0.5 ${w.chip}`}>{w.label}</span>
+                        <span className="text-xs text-slate-400">{w.data.cantidad} neg.</span>
+                      </div>
+                      <p className="text-xl font-extrabold text-slate-900">{fmtK(w.data.valorPonderado)}</p>
+                      <p className="text-xs text-slate-400 mb-2">ponderado · de {fmtK(w.data.valorBruto)} bruto</p>
+                      <div className="h-1.5 bg-white rounded-full overflow-hidden">
+                        <div className="h-1.5 rounded-full" style={{ width: `${Math.max((w.data.valorBruto / maxBruto) * 100, w.data.cantidad > 0 ? 4 : 0)}%`, backgroundColor: w.color, opacity: 0.85 }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {(v.vencidas.cantidad > 0 || v.sinFecha.cantidad > 0 || v.masDe90.cantidad > 0) && (
+                  <div className="flex flex-wrap gap-x-5 gap-y-1 mt-3 text-xs text-slate-400">
+                    {v.vencidas.cantidad > 0 && (
+                      <span className="text-red-500">⚠ {v.vencidas.cantidad} con fecha vencida · {fmtK(v.vencidas.valorBruto)}</span>
+                    )}
+                    {v.sinFecha.cantidad > 0 && (
+                      <span>◷ {v.sinFecha.cantidad} sin fecha de cierre · {fmtK(v.sinFecha.valorBruto)}</span>
+                    )}
+                    {v.masDe90.cantidad > 0 && (
+                      <span>→ {v.masDe90.cantidad} a más de 90 días · {fmtK(v.masDe90.valorBruto)}</span>
+                    )}
+                  </div>
+                )}
+                <p className="text-[11px] text-slate-400 mt-2">Mira las oportunidades abiertas desde hoy hacia adelante — no depende del filtro de año/mes.</p>
+              </div>
+            );
+          })()}
 
           {/* Desglose por etapa */}
           <div className="border-t border-slate-100 pt-4">
