@@ -37,7 +37,7 @@ export async function GET(request: Request) {
   const vendedorFiltro = vendedorParam && session.user.rol !== "COMERCIAL" ? { creadoBy: vendedorParam } : {};
 
   // ── Traer todas las oportunidades con extras ──
-  const [totalEmpresas, totalContactos, todasOps, actividadesPendientes, cambiosGanada] = await Promise.all([
+  const [totalEmpresas, totalContactos, todasOps, actividadesPendientes, cambiosGanada, contactosConOp] = await Promise.all([
     prisma.empresa.count({ where: { tenantId, ...ownerFiltro } }),
     prisma.contacto.count({ where: { tenantId } }),
     prisma.oportunidad.findMany({
@@ -52,6 +52,15 @@ export async function GET(request: Request) {
       where: { etapaNueva: "GANADA", oportunidad: { tenantId } },
       select: { oportunidadId: true, creadoEn: true },
       orderBy: { creadoEn: "desc" },
+    }),
+    // Contactos que ya generaron al menos una oportunidad (para la conversión
+    // contacto→oportunidad). Se mide a nivel de TENANT —igual que totalContactos,
+    // que no está scopeado por dueño porque los contactos son un recurso
+    // compartido del equipo— y es acumulado (no depende del filtro año/mes).
+    prisma.oportunidad.findMany({
+      where: { tenantId, eliminadoEn: null, contactoId: { not: null } },
+      select: { contactoId: true },
+      distinct: ["contactoId"],
     }),
   ]);
   const fechaGanadaMap = new Map<string, Date>();
@@ -98,6 +107,14 @@ export async function GET(request: Request) {
   const perdidas = oportunidadesPorEtapa["PERDIDA"] ?? 0;
   const cerradas = ganadas + perdidas;
   const tasaCierre = cerradas > 0 ? Math.round((ganadas / cerradas) * 100) : 0;
+
+  // ── Conversión contacto → oportunidad (acumulada, a nivel de tenant) ──
+  // Complementa la conversión oportunidad→venta (tasaCierre): del universo de
+  // contactos, qué proporción ya se transformó en al menos una oportunidad.
+  const contactosConvertidos = contactosConOp.length;
+  const tasaContactoOportunidad = totalContactos > 0
+    ? Math.round((contactosConvertidos / totalContactos) * 100)
+    : 0;
 
   // ── Tiempo promedio de cierre (días desde creación hasta que pasó a GANADA) ──
   const diasCierreArr: number[] = [];
@@ -260,6 +277,12 @@ export async function GET(request: Request) {
     ganadas,
     perdidas,
     tasaCierre,
+    conversion: {
+      totalContactos,
+      contactosConvertidos,
+      tasaContactoOportunidad,
+      tasaOportunidadVenta: tasaCierre,
+    },
     diasPromedioCierre,
     oportunidadesPorEtapa,
     valorPorEtapa,
