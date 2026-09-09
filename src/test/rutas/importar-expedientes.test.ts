@@ -25,7 +25,7 @@ async function xlsxBuffer(headers: string[], filas: string[][]): Promise<Buffer>
 
 function peticion(buffer: Buffer, modulo: string, mapeo: Record<string, string>): NextRequest {
   const fd = new FormData();
-  fd.append("archivo", new Blob([buffer]), "carga.xlsx");
+  fd.append("archivo", new Blob([new Uint8Array(buffer)]), "carga.xlsx");
   fd.append("modulo", modulo);
   fd.append("mapeo", JSON.stringify(mapeo));
   fd.append("colsExtra", "[]");
