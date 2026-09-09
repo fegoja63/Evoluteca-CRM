@@ -566,6 +566,18 @@ export async function GET() {
         p("En la tarjeta \"Negocios cerrados\" aparece el promedio de días que tardan tus oportunidades en pasar de creadas a Ganadas, calculado desde la fecha real del cambio a Ganada — refleja tu ciclo de venta real."),
         h2("9.10 Filtro por segmento y sede"),
         p("Si tu base de datos tiene información de segmento o sede/zona (por ejemplo, cargada por importación de Excel), en la barra de filtros aparecen selectores \"Segmento\" y \"Sede\" para acotar todos los reportes. Si ningún registro tiene esos datos, los selectores no aparecen."),
+        h2("9.11 Panel \"El Lunes\" (foto de tu semana)"),
+        p("Al inicio de Reportes, el bloque \"El Lunes\" muestra una foto del presente, independiente de los filtros de año/mes de abajo. Reúne tres indicadores para empezar la semana:"),
+        bullet("Actividad comercial: los toques del equipo en los últimos 7 días, contados por tipo (llamadas, reuniones, visitas y correos) más las propuestas enviadas. Administrador y Gerente ven además el desglose por vendedor."),
+        bullet("Ticket promedio: el valor medio de una operación ganada en los últimos 12 meses (si no hay negocios ganados en ese lapso, usa todo el histórico)."),
+        bullet("Movimiento de clientes: nuevos del mes, activos (con al menos un negocio en curso), inactivos (sin negocio en curso y +60 días sin actividad) y perdidos del mes."),
+        nota("La actividad comercial se cuenta por la fecha de la actividad; si el equipo no registra sus llamadas/reuniones, aparecerá en cero aunque sí esté trabajando. \"Propuestas\" cuenta las cotizaciones enviadas (no borradores) de los últimos 7 días."),
+        h2("9.12 Pronóstico de cierre a 30/60/90 días"),
+        p("El panel \"Pronóstico de ingresos\" muestra el valor ponderado por probabilidad del pipeline activo y, dentro de él, el desglose \"Pronóstico de cierre por fecha\": cuánto esperas cerrar en los próximos 30 días, entre 31 y 60, y entre 61 y 90, con el valor bruto y el ponderado de cada ventana."),
+        p("A diferencia del resto del reporte, este bloque mira las oportunidades abiertas desde hoy hacia adelante según su fecha de cierre, así que no depende del filtro de año/mes (sí respeta vendedor, segmento y sede). Debajo señala aparte las oportunidades activas con fecha de cierre vencida, sin fecha o a más de 90 días."),
+        tip("Un número alto en \"con fecha vencida\" es una señal de higiene del pipeline: son negocios abiertos cuya fecha de cierre ya pasó. Conviene actualizar su fecha o moverlos de etapa para que el pronóstico sea confiable."),
+        h2("9.13 Conversión (contacto → oportunidad → venta)"),
+        p("La tarjeta \"Conversión\", junto al embudo, muestra el avance en dos tasas: Contacto → Oportunidad (qué porcentaje de tus contactos ya generó al menos una oportunidad) y Oportunidad → Venta (la tasa de cierre del período). La primera es acumulada y a nivel de todo el equipo —los contactos son un recurso compartido—; la segunda respeta el período y los filtros activos."),
         pageBreak(),
 
         // CAP 10 — CONFIGURACIÓN
