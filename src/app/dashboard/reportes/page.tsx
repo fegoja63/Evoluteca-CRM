@@ -44,6 +44,12 @@ type Reporte = {
   ganadas: number;
   perdidas: number;
   tasaCierre: number;
+  conversion: {
+    totalContactos: number;
+    contactosConvertidos: number;
+    tasaContactoOportunidad: number;
+    tasaOportunidadVenta: number;
+  };
   diasPromedioCierre: number | null;
   oportunidadesPorEtapa: Record<string, number>;
   valorPorEtapa: Record<string, number>;
@@ -783,6 +789,40 @@ export default function ReportesPage() {
               <p className="text-xs text-center text-slate-400 mt-1">Cierra en {r.diasPromedioCierre} día{r.diasPromedioCierre !== 1 ? "s" : ""} en promedio</p>
             )}
           </div>
+
+          {/* Conversión (contacto→oportunidad y oportunidad→venta) */}
+          {r.conversion && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-5">
+              <div className="mb-3">
+                <h2 className="text-sm font-bold text-slate-900">Conversión</h2>
+                <p className="text-xs text-slate-400 mt-0.5">Avance de contacto a venta</p>
+              </div>
+              <div className="flex flex-col gap-3">
+                {/* Paso 1: contacto → oportunidad */}
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-medium text-slate-600">Contacto → Oportunidad</span>
+                    <span className="text-lg font-extrabold text-brand-600">{r.conversion.tasaContactoOportunidad}%</span>
+                  </div>
+                  <div className="h-2 bg-white rounded-full overflow-hidden">
+                    <div className="h-2 rounded-full bg-brand-500" style={{ width: `${Math.min(r.conversion.tasaContactoOportunidad, 100)}%` }} />
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">{r.conversion.contactosConvertidos} de {r.conversion.totalContactos} contactos · acumulado</p>
+                </div>
+                {/* Paso 2: oportunidad → venta */}
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-medium text-slate-600">Oportunidad → Venta</span>
+                    <span className="text-lg font-extrabold text-emerald-600">{r.conversion.tasaOportunidadVenta}%</span>
+                  </div>
+                  <div className="h-2 bg-white rounded-full overflow-hidden">
+                    <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${Math.min(r.conversion.tasaOportunidadVenta, 100)}%` }} />
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">{r.ganadas} ganadas de {r.ganadas + r.perdidas} cerradas · {periodoLabel.toLowerCase()}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Funnel */}
           <div className="bg-white rounded-2xl border border-slate-200 p-5">
