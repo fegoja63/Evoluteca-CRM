@@ -84,6 +84,10 @@ export default function NuevaCotizacionPage() {
   const [plantillas, setPlantillas]   = useState<Plantilla[]>([]);
   const [salones, setSalones]         = useState<Salon[]>([]);
   const [moduloSalones, setModuloSalones] = useState(false);
+  // Los campos "Sede / Lugar" y "Fecha del evento" solo tienen sentido en
+  // negocios de eventos (módulos Funciones/Eventos o Salones). En un tenant sin
+  // esos módulos no se muestran, para no confundir con una cotización genérica.
+  const [moduloFunciones, setModuloFunciones] = useState(false);
   const [cargando, setCargando]       = useState(true);
   const [enviando, setEnviando]       = useState(false);
   const [error, setError]             = useState("");
@@ -303,6 +307,7 @@ export default function NuevaCotizacionPage() {
       setPlantillas(Array.isArray(plant) ? plant : []);
       const salonesActivo = !!config?.modulos?.salones;
       setModuloSalones(salonesActivo);
+      setModuloFunciones(!!config?.modulos?.funciones);
       if (salonesActivo) {
         fetch("/api/salones").then(r => r.json()).then(s => setSalones(Array.isArray(s) ? s : []));
       }
@@ -364,6 +369,10 @@ export default function NuevaCotizacionPage() {
   const pctImpuesto2 = parseFloat(impuesto2Porcentaje) || 0;
   const valorImpuesto2 = subtotal * (pctImpuesto2 / 100);
   const totalGeneral = subtotal + valorImpuesto + valorImpuesto2;
+
+  // ¿Es un tenant de eventos? Los campos de sede y fecha del evento solo aplican
+  // a negocios de Funciones/Eventos o Salones.
+  const esEventos = moduloSalones || moduloFunciones;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -650,9 +659,9 @@ export default function NuevaCotizacionPage() {
           </div>
         </div>
 
-        {/* Detalles del evento */}
+        {/* Detalles de la cotización (los campos de evento solo en tenants de eventos) */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <h2 className="text-sm font-bold text-slate-700 mb-4">Detalles del evento</h2>
+          <h2 className="text-sm font-bold text-slate-700 mb-4">{esEventos ? "Detalles del evento" : "Detalles de la cotización"}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {moduloSalones && (
               <div className="col-span-2">
@@ -684,17 +693,21 @@ export default function NuevaCotizacionPage() {
                 )}
               </div>
             )}
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Sede / Lugar</label>
-              <input type="text" value={sede} onChange={e => setSede(e.target.value)}
-                placeholder="Teatro Nacional, Sala A..."
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Fecha del evento</label>
-              <input type="date" value={fechaEvento} onChange={e => setFechaEvento(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
-            </div>
+            {esEventos && (
+              <>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Sede / Lugar</label>
+                  <input type="text" value={sede} onChange={e => setSede(e.target.value)}
+                    placeholder="Teatro Nacional, Sala A..."
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Fecha del evento</label>
+                  <input type="date" value={fechaEvento} onChange={e => setFechaEvento(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                </div>
+              </>
+            )}
             {moduloSalones && salonId && (
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Horario</label>

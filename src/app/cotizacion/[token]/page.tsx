@@ -168,8 +168,11 @@ export default function CotizacionPublicaPage() {
             {[
               { label: "Cliente",       valor: cot.empresa?.nombre ?? "—" },
               { label: "Contacto",      valor: cot.contacto?.nombre ?? "—" },
-              { label: "Sede / Lugar",  valor: cot.sede ?? "—" },
-              { label: "Fecha evento",  valor: fmtFecha(cot.fechaEvento) },
+              // Sede y fecha del evento solo se muestran si esta cotización los
+              // tiene (negocios de eventos); en el resto no aparecen en el
+              // documento que ve el cliente.
+              ...(cot.sede ? [{ label: "Sede / Lugar", valor: cot.sede }] : []),
+              ...(cot.fechaEvento ? [{ label: "Fecha evento", valor: fmtFecha(cot.fechaEvento) }] : []),
               { label: "Válida hasta",  valor: fmtFecha(cot.fechaValidez) },
             ].map(({ label, valor }) => (
               <div key={label}>

@@ -196,11 +196,13 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
             cot.contacto?.cargo ? React.createElement(Text, { style: { fontSize: 8, color: "#64748b", marginTop: 2 } }, cot.contacto.cargo) : null,
             cot.contacto?.email ? React.createElement(Text, { style: { fontSize: 8, color: "#64748b" } }, cot.contacto.email) : null,
           ),
-          React.createElement(View, { style: styles.infoBox },
+          // El recuadro Evento / Sede solo aparece si la cotización tiene esos
+          // datos (negocios de eventos); en una cotización genérica no se muestra.
+          (cot.sede || cot.fechaEvento) ? React.createElement(View, { style: styles.infoBox },
             React.createElement(Text, { style: styles.infoLabel }, "Evento / Sede"),
             React.createElement(Text, { style: styles.infoValue }, cot.sede ?? "—"),
-            React.createElement(Text, { style: { fontSize: 8, color: "#64748b", marginTop: 2 } }, `Fecha: ${fmtFechaCalendario(cot.fechaEvento)}`),
-          ),
+            cot.fechaEvento ? React.createElement(Text, { style: { fontSize: 8, color: "#64748b", marginTop: 2 } }, `Fecha: ${fmtFechaCalendario(cot.fechaEvento)}`) : null,
+          ) : null,
           React.createElement(View, { style: styles.infoBox },
             React.createElement(Text, { style: styles.infoLabel }, "Fechas"),
             React.createElement(Text, { style: { fontSize: 8, color: "#64748b" } }, `Emitida: ${fmtFecha(cot.creadoEn)}`),

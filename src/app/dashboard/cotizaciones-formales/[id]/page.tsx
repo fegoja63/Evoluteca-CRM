@@ -609,8 +609,11 @@ export default function CotizacionDetailPage() {
               { label: "Empresa",         value: cot.empresa?.nombre ?? null },
               { label: "Contacto",        value: cot.contacto ? `${cot.contacto.nombre}${cot.contacto.email ? ` · ${cot.contacto.email}` : ""}` : null },
               { label: "Negocio (Pipeline)", value: cot.oportunidad?.titulo ?? null, href: cot.oportunidad ? `/dashboard/pipeline/${cot.oportunidad.id}` : undefined },
-              { label: "Sede / Lugar",    value: cot.sede ?? null },
-              { label: "Fecha del evento",value: fmtFecha(cot.fechaEvento) },
+              // Los campos de evento (sede/fecha) solo se muestran si esta cotización
+              // los tiene — en tenants sin módulo de eventos nunca se llenan, así que
+              // no aparecen filas vacías "No especificado" que confundan.
+              ...(cot.sede ? [{ label: "Sede / Lugar", value: cot.sede }] : []),
+              ...(cot.fechaEvento ? [{ label: "Fecha del evento", value: fmtFecha(cot.fechaEvento) }] : []),
               { label: "Validez hasta",   value: fmtFecha(cot.fechaValidez) },
             ] as { label: string; value: string | null; href?: string }[]).map(r => (
               <div key={r.label}>
