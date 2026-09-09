@@ -483,7 +483,8 @@ export default function ReportesPage() {
           </div>
         </div>
         <div className="flex-1 w-full min-w-0 flex flex-col gap-2">
-          <p className="text-xs text-slate-400 -mt-1">% sobre el total de negocios perdidos</p>
+          <p className="text-xs font-semibold text-slate-600 -mt-1">Por CANTIDAD de negocios</p>
+          <p className="text-xs text-slate-400 mb-1">Qué % de los negocios perdidos se cayó por cada motivo</p>
           {ordenados.map((m, i) => (
             <div key={m.motivo} className="flex items-center gap-3 min-w-0">
               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: colorPorMotivo.get(m.motivo) }} />
@@ -517,8 +518,8 @@ export default function ReportesPage() {
 
     return (
       <div>
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Valor perdido por motivo</p>
-        <p className="text-xs text-slate-400 mb-3">% sobre el total de dinero perdido — compáralo con el % de negocios de arriba</p>
+        <p className="text-xs font-semibold text-slate-600">Por VALOR — dinero perdido</p>
+        <p className="text-xs text-slate-400 mb-3">Qué % del dinero perdido se fue por cada motivo. Si aquí un motivo pesa más que en "cantidad", es que esos negocios eran más grandes que el promedio.</p>
         <div className="flex flex-col gap-2">
           {ordenados.map((m, i) => {
             const anchoBarra = (m.valorTotal / maxVal) * 100;
@@ -883,7 +884,10 @@ export default function ReportesPage() {
       {/* ── MOTIVOS DE PÉRDIDA ── */}
       {r.motivosPerdida.length > 0 && (
         <div className="mt-6 bg-white rounded-2xl border border-slate-200 p-6">
-          <h2 className="text-base font-bold text-slate-900 mb-4">Motivos de pérdida</h2>
+          <h2 className="text-base font-bold text-slate-900 mb-1">Motivos de pérdida</h2>
+          <p className="text-xs text-slate-500 mb-4">
+            Dos miradas del mismo dato: la izquierda cuenta <strong className="text-slate-700">cuántos negocios</strong> pierdes por cada motivo; la derecha, <strong className="text-slate-700">cuánto dinero</strong> te cuesta cada uno. No tienen por qué coincidir — un motivo puede quitarte pocos negocios pero muy grandes (o muchos pero pequeños).
+          </p>
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="lg:flex-1 lg:min-w-0">
               <MotivosPerdidaDonut />
