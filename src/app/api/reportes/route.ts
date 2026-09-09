@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { filtroOwner } from "@/lib/permisos";
+import { medianocheBogota } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 
@@ -138,6 +139,38 @@ export async function GET(request: Request) {
     }
   }
 
+  // ── Pronóstico por ventana de cierre (30/60/90 días desde HOY) ──
+  // A diferencia del resto del reporte, esto mira SIEMPRE hacia adelante desde
+  // hoy: no depende del filtro año/mes (que es histórico y agruparía por
+  // fechaEfectiva), pero sí respeta los filtros dimensionales (vendedor —vía
+  // todasOps—, segmento y sede). Se agrupa por `fechaCierre`, que es la fecha
+  // esperada de cierre; las activas sin fechaCierre o ya vencidas se reportan
+  // aparte para no inflar ni esconder el pronóstico.
+  type ForecastVentana = { cantidad: number; valorBruto: number; valorPonderado: number };
+  const nuevaVentana = (): ForecastVentana => ({ cantidad: 0, valorBruto: 0, valorPonderado: 0 });
+  const forecastPorVentana = { d30: nuevaVentana(), d60: nuevaVentana(), d90: nuevaVentana(), masDe90: nuevaVentana(), vencidas: nuevaVentana(), sinFecha: nuevaVentana() };
+  const hoyBogota = medianocheBogota(0);
+  const lim30 = medianocheBogota(30);
+  const lim60 = medianocheBogota(60);
+  const lim90 = medianocheBogota(90);
+  for (const o of todasOps) {
+    if (!etapasActivas.includes(o.etapa)) continue;
+    if (segmentoFiltro && o.segmento?.trim() !== segmentoFiltro) continue;
+    if (sedeFiltro && o.sede?.trim() !== sedeFiltro) continue;
+    const bruto = Number(o.valor ?? 0);
+    const ponderado = bruto * ((o.probabilidad ?? 50) / 100);
+    let bucket: ForecastVentana;
+    if (!o.fechaCierre)               bucket = forecastPorVentana.sinFecha;
+    else if (o.fechaCierre < hoyBogota) bucket = forecastPorVentana.vencidas;
+    else if (o.fechaCierre < lim30)   bucket = forecastPorVentana.d30;
+    else if (o.fechaCierre < lim60)   bucket = forecastPorVentana.d60;
+    else if (o.fechaCierre < lim90)   bucket = forecastPorVentana.d90;
+    else                              bucket = forecastPorVentana.masDe90;
+    bucket.cantidad++;
+    bucket.valorBruto   += bruto;
+    bucket.valorPonderado += ponderado;
+  }
+
   // ── Por año (comparativa) ──
   type ResAnio = { ganadas: number; perdidas: number; activas: number; valorGanado: number; valorPerdido: number; valorActivo: number; total: number };
   const porAnio: Record<number, ResAnio> = {};
@@ -242,6 +275,7 @@ export async function GET(request: Request) {
     motivosPerdida,
     valorPonderado,
     forecastPorEtapa,
+    forecastPorVentana,
     filtro: { anio: anioFiltro, mes: mesFiltro, vendedor: vendedorParam, segmento: segmentoFiltro, sede: sedeFiltro },
   });
 }
