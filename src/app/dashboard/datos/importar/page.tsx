@@ -5,7 +5,7 @@ import { toast } from "@/lib/toast";
 import Link from "next/link";
 import {
   IconBuilding, IconUser, IconChartFunnel, IconUsers, IconPackage,
-  IconTheater, IconCalendarEvent,
+  IconTheater, IconCalendarEvent, IconScale, IconClock,
   IconCircleCheck, IconAlertTriangle, IconUpload, type Icon,
 } from "@tabler/icons-react";
 
@@ -71,6 +71,21 @@ const CAMPOS_CRM: Record<string, { key: string; label: string }[]> = {
     { key: "empresa", label: "Empresa" },
     { key: "notas", label: "Notas" },
   ],
+  expedientes: [
+    { key: "radicado", label: "Número de radicado *" },
+    { key: "empresa", label: "Cliente / Empresa" },
+    { key: "contraparte", label: "Contraparte *" },
+    { key: "juzgado", label: "Juzgado" },
+    { key: "tipoProceso", label: "Tipo de proceso" },
+    { key: "estado", label: "Estado (ACTIVO/ARCHIVADO/GANADO/PERDIDO)" },
+    { key: "notas", label: "Notas" },
+  ],
+  plazos: [
+    { key: "radicado", label: "Número de radicado del expediente *" },
+    { key: "descripcion", label: "Descripción del plazo *" },
+    { key: "fechaLimite", label: "Fecha límite *" },
+    { key: "notas", label: "Notas" },
+  ],
 };
 
 // Módulo del tenant que debe estar activo para ofrecer la importación.
@@ -78,6 +93,8 @@ const CAMPOS_CRM: Record<string, { key: string; label: string }[]> = {
 const MODULO_REQUERIDO: Record<string, string> = {
   espectadores: "audiencia",
   funciones: "funciones",
+  expedientes: "expedientes",
+  plazos: "expedientes",
 };
 
 // Campo obligatorio por módulo (debe quedar mapeado antes de importar).
@@ -85,6 +102,8 @@ const CAMPO_OBLIGATORIO: Record<string, string> = {
   oportunidades: "titulo",
   funciones: "titulo",
   agenda: "titulo",
+  expedientes: "radicado",
+  plazos: "radicado",
 };
 
 const MODULOS: { key: string; label: string; icon: Icon }[] = [
@@ -93,6 +112,8 @@ const MODULOS: { key: string; label: string; icon: Icon }[] = [
   { key: "oportunidades", label: "Pipeline / Oportunidades", icon: IconChartFunnel },
   { key: "productos", label: "Catálogo / Productos", icon: IconPackage },
   { key: "agenda", label: "Agenda / Actividades", icon: IconCalendarEvent },
+  { key: "expedientes", label: "Expedientes (jurídico)", icon: IconScale },
+  { key: "plazos", label: "Plazos / Términos procesales", icon: IconClock },
   { key: "espectadores", label: "Audiencia / Espectadores", icon: IconUsers },
   { key: "funciones", label: "Funciones", icon: IconTheater },
 ];
@@ -159,7 +180,8 @@ export default function ImportarAvanzadoPage() {
     const campoObligatorio = CAMPO_OBLIGATORIO[modulo] ?? "nombre";
     const tieneCampoObligatorio = Object.values(mapeo).includes(campoObligatorio);
     if (!tieneCampoObligatorio) {
-      toast.error(`Debes asignar al menos una columna al campo "${campoObligatorio === "titulo" ? "Título *" : "Nombre *"}" antes de importar.`);
+      const label = (CAMPOS_CRM[modulo] ?? []).find((c) => c.key === campoObligatorio)?.label ?? "obligatorio";
+      toast.error(`Debes asignar una columna al campo "${label}" antes de importar.`);
       return;
     }
 
