@@ -45,6 +45,27 @@ const PLANTILLAS: Record<string, { hoja: string; columnas: { header: string; key
       { header: "Notas", key: "notas", width: 40, ejemplo: "Asistente frecuente" },
     ],
   },
+  expedientes: {
+    hoja: "Expedientes",
+    columnas: [
+      { header: "Número de radicado *", key: "radicado", width: 30, ejemplo: "11001310500120260012300" },
+      { header: "Cliente / Empresa", key: "empresa", width: 28, ejemplo: "Constructora Andina S.A.S." },
+      { header: "Contraparte *", key: "contraparte", width: 28, ejemplo: "Inversiones del Sur Ltda." },
+      { header: "Juzgado", key: "juzgado", width: 28, ejemplo: "Juzgado 12 Laboral de Bogotá" },
+      { header: "Tipo de proceso", key: "tipoProceso", width: 22, ejemplo: "Ordinario laboral" },
+      { header: "Estado", key: "estado", width: 16, ejemplo: "ACTIVO" },
+      { header: "Notas", key: "notas", width: 36, ejemplo: "Cuantía indeterminada" },
+    ],
+  },
+  plazos: {
+    hoja: "Plazos",
+    columnas: [
+      { header: "Número de radicado *", key: "radicado", width: 30, ejemplo: "11001310500120260012300" },
+      { header: "Descripción del plazo *", key: "descripcion", width: 34, ejemplo: "Contestar demanda" },
+      { header: "Fecha límite *", key: "fechaLimite", width: 18, ejemplo: "2026-10-15" },
+      { header: "Notas", key: "notas", width: 36, ejemplo: "Término de 20 días" },
+    ],
+  },
 };
 
 export async function GET(request: Request, props: { params: Promise<{ modulo: string }> }) {

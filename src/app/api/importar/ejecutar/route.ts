@@ -267,6 +267,69 @@ export async function POST(request: Request) {
       });
     }
     creados = (await prisma.actividad.createMany({ data, skipDuplicates: true })).count;
+  } else if (modulo === "expedientes") {
+    const empresas = await prisma.empresa.findMany({ where: { tenantId }, select: { id: true, nombre: true } });
+    const empresaMap = new Map(empresas.map((e) => [e.nombre.toLowerCase(), e.id]));
+    const ESTADOS_VALIDOS = ["ACTIVO", "ARCHIVADO", "GANADO", "PERDIDO"];
+
+    // El radicado es único por tenant (@@unique([tenantId, numeroRadicado])).
+    // Pre-cargamos los existentes y descartamos los repetidos dentro del propio
+    // archivo para contarlos como "omitidos" en vez de dejarlos morir en la
+    // restricción; `skipDuplicates` es la última red contra una carrera.
+    const existentes = await prisma.expediente.findMany({ where: { tenantId }, select: { numeroRadicado: true } });
+    const radicadosVistos = new Set(existentes.map((e) => e.numeroRadicado.toLowerCase()));
+
+    const data = [];
+    for (const fila of filas) {
+      const radicado = getCol(fila, "radicado");
+      const contraparte = getCol(fila, "contraparte");
+      // numeroRadicado y contraparte son obligatorios en la base.
+      if (!radicado || !contraparte) { errores++; continue; }
+      const clave = radicado.toLowerCase();
+      if (radicadosVistos.has(clave)) { omitidos++; continue; }
+      radicadosVistos.add(clave);
+      const estadoRaw = getCol(fila, "estado")?.toUpperCase() ?? "";
+      const estado = ESTADOS_VALIDOS.includes(estadoRaw)
+        ? estadoRaw as "ACTIVO" | "ARCHIVADO" | "GANADO" | "PERDIDO" : "ACTIVO";
+      const empresaNombre = getCol(fila, "empresa");
+      const empresaId = empresaNombre ? empresaMap.get(empresaNombre.toLowerCase()) : null;
+      data.push({
+        numeroRadicado: radicado,
+        contraparte,
+        juzgado: getCol(fila, "juzgado"),
+        tipoProceso: getCol(fila, "tipoProceso"),
+        estado,
+        notas: getCol(fila, "notas"),
+        empresaId: empresaId || null,
+        tenantId,
+      });
+    }
+    creados = (await prisma.expediente.createMany({ data, skipDuplicates: true })).count;
+  } else if (modulo === "plazos") {
+    // Cada plazo se vincula a un expediente por su número de radicado. Las filas
+    // cuyo radicado no corresponde a un expediente ya cargado se cuentan como
+    // error (no se puede crear un plazo huérfano).
+    const expedientes = await prisma.expediente.findMany({ where: { tenantId }, select: { id: true, numeroRadicado: true } });
+    const expedienteMap = new Map(expedientes.map((e) => [e.numeroRadicado.toLowerCase(), e.id]));
+
+    const data = [];
+    for (const fila of filas) {
+      const radicado = getCol(fila, "radicado");
+      const descripcion = getCol(fila, "descripcion");
+      const fechaLimite = parseFecha(getCol(fila, "fechaLimite"));
+      // radicado, descripción y fecha límite son obligatorios.
+      if (!radicado || !descripcion || !fechaLimite) { errores++; continue; }
+      const expedienteId = expedienteMap.get(radicado.toLowerCase());
+      if (!expedienteId) { errores++; continue; } // no existe ese expediente
+      data.push({
+        descripcion,
+        fechaLimite,
+        notas: getCol(fila, "notas"),
+        expedienteId,
+        tenantId,
+      });
+    }
+    creados = (await prisma.terminoExpediente.createMany({ data })).count;
   } else {
     return NextResponse.json({ error: "Módulo no soportado" }, { status: 400 });
   }
