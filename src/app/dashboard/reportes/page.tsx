@@ -17,6 +17,7 @@ import {
 import { MoneyInput } from "@/components/money-input";
 import { AnalisisTendenciasIA } from "@/components/analisis-tendencias-ia";
 import { TendenciasGraficas } from "@/components/tendencias-graficas";
+import { PanelLunes } from "@/components/panel-lunes";
 
 type ResAnio = { ganadas: number; perdidas: number; activas: number; valorGanado: number; valorPerdido: number; valorActivo: number; total: number };
 type ResMes  = { ganadas: number; perdidas: number; valorGanado: number; total: number };
@@ -681,6 +682,8 @@ export default function ReportesPage() {
           })}
         </div>
       </div>
+
+      <PanelLunes />
 
       <AnalisisTendenciasIA />
       <TendenciasGraficas />
