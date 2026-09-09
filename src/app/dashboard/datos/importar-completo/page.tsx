@@ -6,7 +6,8 @@ import {
   IconBuilding, IconUser, IconChartFunnel, IconTag, IconCoin, IconCash,
   IconCalendarEvent, IconCalendarDue, IconMapPin, IconTarget, IconUsers,
   IconMail, IconPhone, IconBriefcase, IconRepeat, IconCircleCheck,
-  IconAlertTriangle, IconCheck, IconUpload, type Icon,
+  IconAlertTriangle, IconCheck, IconUpload, IconWorld, IconFileText, IconNotes,
+  type Icon,
 } from "@tabler/icons-react";
 
 type Preview = {
@@ -46,6 +47,13 @@ const CAMPOS: { key: string; label: string; icon: Icon; desc: string; requerido:
   { key: "telefonoContacto",  label: "Teléfono del contacto",   icon: IconPhone,         desc: "", requerido: false },
   { key: "cargoContacto",     label: "Cargo del contacto",      icon: IconBriefcase,     desc: "", requerido: false },
   { key: "recurrente",        label: "Recurrente",              icon: IconRepeat,        desc: "SI / NO", requerido: false },
+  // Datos de detalle del cliente (empresa)
+  { key: "sector",                 label: "Sector del cliente",       icon: IconTag,       desc: "Rubro o actividad del cliente", requerido: false },
+  { key: "telefonoEmpresa",        label: "Teléfono del cliente",     icon: IconPhone,     desc: "Teléfono de la empresa/cliente", requerido: false },
+  { key: "emailEmpresa",           label: "Email del cliente",        icon: IconMail,      desc: "Correo de la empresa/cliente", requerido: false },
+  { key: "sitioWeb",               label: "Sitio web del cliente",    icon: IconWorld,     desc: "", requerido: false },
+  { key: "condicionesComerciales", label: "Condiciones comerciales",  icon: IconFileText,  desc: "Condiciones propias del cliente", requerido: false },
+  { key: "notasEmpresa",           label: "Notas del cliente",        icon: IconNotes,     desc: "", requerido: false },
 ];
 
 export default function ImportarCompletoPage() {
@@ -83,7 +91,22 @@ export default function ImportarCompletoPage() {
     const autoMapeo: Record<string, string> = {};
     data.columnas.forEach((col) => {
       const norm = col.toLowerCase().replace(/[^a-z0-9]/g, "");
-      if ((norm.includes("cliente") || norm.includes("empresa") || norm.includes("razon")) && !autoMapeo["empresa"]) {
+      const esDetalleCliente = norm.includes("email") || norm.includes("correo") || norm.includes("telefono") ||
+        norm.includes("celular") || norm.includes("sitio") || norm.includes("web") || norm.includes("nota") ||
+        norm.includes("sector") || norm.includes("condicion");
+      if (norm.includes("sector") && !autoMapeo["sector"]) {
+        autoMapeo["sector"] = col;
+      } else if (norm.includes("condicion") && !autoMapeo["condicionesComerciales"]) {
+        autoMapeo["condicionesComerciales"] = col;
+      } else if ((norm.includes("sitio") || norm.includes("web") || norm.includes("url")) && !autoMapeo["sitioWeb"]) {
+        autoMapeo["sitioWeb"] = col;
+      } else if ((norm.includes("telefono") || norm.includes("celular")) && (norm.includes("empresa") || norm.includes("cliente")) && !autoMapeo["telefonoEmpresa"]) {
+        autoMapeo["telefonoEmpresa"] = col;
+      } else if ((norm.includes("email") || norm.includes("correo")) && (norm.includes("empresa") || norm.includes("cliente")) && !autoMapeo["emailEmpresa"]) {
+        autoMapeo["emailEmpresa"] = col;
+      } else if ((norm.includes("nota")) && (norm.includes("empresa") || norm.includes("cliente")) && !autoMapeo["notasEmpresa"]) {
+        autoMapeo["notasEmpresa"] = col;
+      } else if ((norm.includes("cliente") || norm.includes("empresa") || norm.includes("razon")) && !esDetalleCliente && !autoMapeo["empresa"]) {
         autoMapeo["empresa"] = col;
       } else if (norm.includes("contacto") && !autoMapeo["contacto"]) {
         autoMapeo["contacto"] = col;

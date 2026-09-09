@@ -7,6 +7,14 @@ import { normalizarEmail } from "@/lib/duplicados";
 
 type MapeoCompleto = {
   empresa?: string;
+  // Datos de detalle del cliente (empresa). Antes solo se guardaba el nombre;
+  // ahora la carga completa también puede traer estos campos en la misma fila.
+  sector?: string;
+  telefonoEmpresa?: string;
+  emailEmpresa?: string;
+  sitioWeb?: string;
+  condicionesComerciales?: string;
+  notasEmpresa?: string;
   contacto?: string;
   emailContacto?: string;
   telefonoContacto?: string;
@@ -151,6 +159,12 @@ export async function POST(request: Request) {
     await prisma.empresa.createMany({
       data: Array.from(empresasNuevas.entries()).map(([, fila]) => ({
         nombre: get(fila, "empresa")!,
+        sector: get(fila, "sector"),
+        telefono: get(fila, "telefonoEmpresa"),
+        email: get(fila, "emailEmpresa"),
+        sitioWeb: get(fila, "sitioWeb"),
+        condicionesComerciales: get(fila, "condicionesComerciales"),
+        notas: get(fila, "notasEmpresa"),
         extras: getExtras(fila) ?? undefined,
         ...(creadoEnValido ? { creadoEn: creadoEnValido } : {}),
         tenantId,
