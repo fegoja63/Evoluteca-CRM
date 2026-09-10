@@ -13,6 +13,7 @@ import { Adjuntos } from "@/components/adjuntos";
 import { CamposPersonalizadosForm } from "@/components/campos-personalizados-form";
 import { CamposPersonalizadosVista } from "@/components/campos-personalizados-vista";
 import { CorreosPanel } from "@/components/correos-panel";
+import { CoachObjecionesIA } from "@/components/coach-objeciones-ia";
 import { esClaveCampoPersonalizado } from "@/lib/campos-personalizados";
 import {
   IconAlertTriangle, IconHistory, IconTarget, IconTrophy, IconX, IconArrowRight,
@@ -82,6 +83,7 @@ export default function OportunidadDetallePage() {
   const [otroMotivo, setOtroMotivo] = useState("");
   const [salones, setSalones] = useState<Salon[]>([]);
   const [moduloSalones, setModuloSalones] = useState(false);
+  const [moduloObjeciones, setModuloObjeciones] = useState(false);
   const [disponibilidad, setDisponibilidad] = useState<Disponibilidad | null>(null);
   const disponibilidadClaveRef = useRef("");
 
@@ -131,6 +133,7 @@ export default function OportunidadDetallePage() {
     fetch("/api/configuracion").then(r => r.json()).then(config => {
       const salonesActivo = !!config?.modulos?.salones;
       setModuloSalones(salonesActivo);
+      setModuloObjeciones(!!config?.modulos?.objeciones);
       if (salonesActivo) {
         fetch("/api/salones").then(r => r.json()).then(s => setSalones(Array.isArray(s) ? s : []));
       }
@@ -456,6 +459,8 @@ export default function OportunidadDetallePage() {
           cargar();
         }}
       />
+
+      {moduloObjeciones && <CoachObjecionesIA oportunidadId={op.id} />}
 
       <div className="mb-5">
         <Adjuntos oportunidadId={op.id} />
