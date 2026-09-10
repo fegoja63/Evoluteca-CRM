@@ -102,6 +102,7 @@ model Tenant {
   camposPersonalizados CampoPersonalizado[]
   automatizaciones     Automatizacion[]
   correos              CorreoRegistrado[]
+  objeciones           Objecion[]
 
   @@map("tenants")
 }
@@ -1065,6 +1066,29 @@ model Automatizacion {
 }
 
 // ---- Salones (módulo opcional — negocios de alquiler de espacios) ----
+
+// ---- Guía de objeciones (módulo opcional — manejo de objeciones de venta) ----
+//
+// Biblioteca editable por tenant de objeciones frecuentes y su respuesta
+// recomendada. Se puede precargar con un set de sugeridas y luego el equipo la
+// adapta a su negocio. `loQueNoDecir` es opcional (la respuesta que conviene
+// evitar), útil como contraste didáctico.
+model Objecion {
+  id           String   @id @default(uuid())
+  categoria    String?  // agrupación libre: Precio, Competencia, Timing, Interés…
+  objecion     String   // lo que dice el cliente
+  respuesta    String   // respuesta recomendada
+  loQueNoDecir String?  // respuesta a evitar (opcional)
+  orden        Int      @default(0)
+  activa       Boolean  @default(true)
+  creadoEn     DateTime @default(now())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("objeciones")
+}
 
 model Salon {
   id          String   @id @default(uuid())
