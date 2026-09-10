@@ -30,6 +30,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       ...(data.objecion !== undefined && { objecion: data.objecion.trim() }),
       ...(data.respuesta !== undefined && { respuesta: data.respuesta.trim() }),
       ...(data.loQueNoDecir !== undefined && { loQueNoDecir: data.loQueNoDecir?.trim() || null }),
+      ...(data.motivoPerdida !== undefined && { motivoPerdida: data.motivoPerdida?.trim() || null }),
       ...(data.activa !== undefined && { activa: data.activa }),
       ...(data.orden !== undefined && { orden: data.orden }),
     },

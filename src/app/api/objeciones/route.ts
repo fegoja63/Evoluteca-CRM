@@ -35,6 +35,7 @@ export async function POST(req: Request) {
       objecion: data.objecion.trim(),
       respuesta: data.respuesta.trim(),
       loQueNoDecir: data.loQueNoDecir?.trim() || null,
+      motivoPerdida: data.motivoPerdida?.trim() || null,
       orden: (max._max.orden ?? 0) + 1,
     },
   });

@@ -1079,6 +1079,10 @@ model Objecion {
   objecion     String   // lo que dice el cliente
   respuesta    String   // respuesta recomendada
   loQueNoDecir String?  // respuesta a evitar (opcional)
+  // Motivo de pérdida al que se asocia esta objeción (texto libre que casa con
+  // Oportunidad.motivoPerdida). Permite que Reportes → Motivos de pérdida
+  // muestre, junto a cada motivo, la respuesta recomendada de la guía.
+  motivoPerdida String?
   orden        Int      @default(0)
   activa       Boolean  @default(true)
   creadoEn     DateTime @default(now())

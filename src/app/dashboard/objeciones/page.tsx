@@ -4,15 +4,16 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   IconMessageChatbot, IconPlus, IconEdit, IconTrash, IconX, IconCheck,
-  IconCircleX, IconSparkles, IconDownload,
+  IconCircleX, IconSparkles, IconDownload, IconTargetArrow,
 } from "@tabler/icons-react";
+import { MOTIVOS_PERDIDA } from "@/lib/motivos-perdida";
 
 type Objecion = {
   id: string; categoria: string | null; objecion: string; respuesta: string;
-  loQueNoDecir: string | null; orden: number; activa: boolean;
+  loQueNoDecir: string | null; motivoPerdida: string | null; orden: number; activa: boolean;
 };
 
-const FORM_VACIO = { categoria: "", objecion: "", respuesta: "", loQueNoDecir: "" };
+const FORM_VACIO = { categoria: "", objecion: "", respuesta: "", loQueNoDecir: "", motivoPerdida: "" };
 
 export default function ObjecionesPage() {
   const { data: session } = useSession();
@@ -38,7 +39,7 @@ export default function ObjecionesPage() {
   function abrirNuevo() { setEditId(null); setForm(FORM_VACIO); setModo("form"); setError(""); }
   function abrirEdicion(o: Objecion) {
     setEditId(o.id);
-    setForm({ categoria: o.categoria ?? "", objecion: o.objecion, respuesta: o.respuesta, loQueNoDecir: o.loQueNoDecir ?? "" });
+    setForm({ categoria: o.categoria ?? "", objecion: o.objecion, respuesta: o.respuesta, loQueNoDecir: o.loQueNoDecir ?? "", motivoPerdida: o.motivoPerdida ?? "" });
     setModo("form"); setError("");
   }
 
@@ -123,6 +124,13 @@ export default function ObjecionesPage() {
               <textarea value={form.loQueNoDecir} onChange={e => setForm(f => ({ ...f, loQueNoDecir: e.target.value }))} rows={2}
                 placeholder="La respuesta que cierra la puerta…" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-red-400 resize-none" />
             </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1 flex items-center gap-1"><IconTargetArrow size={14} stroke={1.75} /> Motivo de pérdida asociado (opcional)</label>
+              <input list="motivos-perdida" value={form.motivoPerdida} onChange={e => setForm(f => ({ ...f, motivoPerdida: e.target.value }))}
+                placeholder="Ej: Precio muy alto" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              <datalist id="motivos-perdida">{MOTIVOS_PERDIDA.map(m => <option key={m} value={m} />)}</datalist>
+              <p className="text-[11px] text-slate-400 mt-1">Si lo asocias a un motivo, esta respuesta aparecerá en Reportes → Motivos de pérdida.</p>
+            </div>
             <div className="flex items-center gap-3">
               <button onClick={guardar} disabled={guardando} className="rounded-xl bg-accent-600 hover:bg-accent-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
                 {guardando ? "Guardando…" : editId ? "Guardar cambios" : "Agregar a la guía"}
@@ -180,6 +188,11 @@ export default function ObjecionesPage() {
                         <IconCircleX size={16} stroke={2} className="text-red-500 mt-0.5 shrink-0" />
                         <p className="text-sm text-red-800/80"><span className="font-semibold">Evita:</span> {o.loQueNoDecir}</p>
                       </div>
+                    )}
+                    {o.motivoPerdida && (
+                      <p className="mt-2 inline-flex items-center gap-1 text-xs text-slate-400">
+                        <IconTargetArrow size={13} stroke={1.75} /> Asociada al motivo de pérdida: <span className="font-medium text-slate-600">{o.motivoPerdida}</span>
+                      </p>
                     )}
                   </div>
                 ))}
