@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   IconLayoutDashboard, IconBuilding, IconUsers, IconChartFunnel, IconCalendar,
   IconFileText, IconPackage, IconTemplate, IconReportAnalytics,
-  IconUsersGroup, IconTheater, IconTicket, IconScale, IconBuildingPavilion,
+  IconUsersGroup, IconTheater, IconTicket, IconScale, IconBuildingPavilion, IconMessageChatbot,
   IconDatabaseImport, IconTrash, IconRocket, IconLifebuoy, IconSettings, IconHistory,
   IconUserCircle, IconLogout, IconSearch, IconX, IconArrowsSort, IconCheck,
   IconGripVertical, IconArrowBackUp, IconSparkles, type Icon,
@@ -38,6 +38,7 @@ const navOpcionales: Record<string, NavItem> = {
   audiencia: { href: "/dashboard/audiencia", label: "Audiencia", icon: IconTicket },
   expedientes: { href: "/dashboard/expedientes", label: "Expedientes", icon: IconScale },
   salones: { href: "/dashboard/salones", label: "Salones", icon: IconBuildingPavilion },
+  objeciones: { href: "/dashboard/objeciones", label: "Objeciones", icon: IconMessageChatbot },
 };
 
 function iniciales(nombre: string) {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
 import { useSession } from "next-auth/react";
 import {
-  IconTheater, IconTicket, IconScale, IconBuildingPavilion, IconReportMoney,
+  IconTheater, IconTicket, IconScale, IconBuildingPavilion, IconReportMoney, IconMessageChatbot,
   IconBuilding, IconUsers, IconChartFunnel, IconCalendar, IconFileText,
   IconReportAnalytics, IconUsersGroup, IconDownload, IconTrash, IconCheck,
   IconKey, IconCopy, IconRefresh, IconGripVertical, IconEye, IconEyeOff,
@@ -53,6 +53,12 @@ const MODULOS_DISPONIBLES: { key: string; titulo: string; descripcion: string; i
     titulo: "Módulo Facturación por resultados",
     descripcion: "Cotiza cobrando por resultado: honorarios como % del ahorro estimado por área (success fee) o un fee mensual fijo, ambos por un horizonte de meses editable. Calcula el valor del contrato automáticamente. Ideal para consultoras de optimización de gasto que cobran sobre el ahorro logrado.",
     icon: IconReportMoney,
+  },
+  {
+    key: "objeciones",
+    titulo: "Módulo Manejo de objeciones",
+    descripcion: "Una guía de ventas editable por tu equipo: las objeciones más frecuentes de tus clientes con la respuesta recomendada (y lo que conviene evitar). Se precarga con 15 objeciones probadas y las adaptas a tu negocio. Ideal para alinear al equipo comercial y acortar la curva de aprendizaje de los nuevos.",
+    icon: IconMessageChatbot,
   },
 ];
 
