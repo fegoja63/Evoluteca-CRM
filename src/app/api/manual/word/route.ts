@@ -597,6 +597,13 @@ export async function GET() {
         bullet("🎪 Audiencia: gestión de espectadores con segmentación"),
         bullet("⚖️ Expedientes: para firmas de abogados. Casos, plazos procesales y registro de horas"),
         bullet("🏛️ Salones: para alquiler de salones y espacios. Catálogo de salones, calendario de reservas y aviso de choque de fechas"),
+        bullet("💬 Manejo de objeciones: guía de ventas del equipo con objeciones y respuestas, coach con IA en cada negocio y enlace con los motivos de pérdida"),
+        h3("10.2.1 Módulo Manejo de objeciones"),
+        p("Al activarlo (Configuración → Módulos) aparece la pestaña \"Objeciones\" y se habilitan tres cosas:"),
+        bullet("Guía de objeciones: una biblioteca editable por el equipo con las objeciones frecuentes del cliente, la respuesta recomendada y \"lo que conviene evitar\". Se precarga con 15 objeciones probadas (botón \"Cargar las 15 recomendadas\") y las adaptas a tu negocio. Solo Administrador y Gerente editan; todos consultan."),
+        bullet("Coach con IA en el negocio: en la ficha de cada oportunidad, elige una objeción de la guía o escribe la que te dijo el cliente y la IA sugiere una respuesta a la medida del negocio (usa cliente, sector, etapa, valor y últimas gestiones). Comparte el cupo mensual de IA con las demás funciones."),
+        bullet("Enlace con Motivos de pérdida: cada objeción puede asociarse a un motivo de pérdida; en Reportes → Motivos de pérdida, ese motivo muestra un botón \"Cómo responder\" con la respuesta de la guía."),
+        nota("La idea no es \"pelear\" la objeción, sino entender la prioridad, el contexto y el valor percibido del cliente. La guía y el coach están pensados para eso, y para alinear al equipo y acortar la curva de los nuevos vendedores."),
         h2("10.3 Equipo"),
         p("En 👥 Equipo gestiona los usuarios. Roles disponibles:"),
         makeTable(
