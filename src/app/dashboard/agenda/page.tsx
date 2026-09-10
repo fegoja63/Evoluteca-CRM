@@ -9,7 +9,7 @@ import {
   IconPinned,
   IconChevronLeft, IconChevronRight, IconTrash, IconLayoutList, IconCalendar,
   IconFileExport, IconFileSpreadsheet, IconPlus, IconBell, IconCircleCheck,
-  IconAlertTriangle, IconPencil, IconUsers, IconCalendarPlus,
+  IconAlertTriangle, IconPencil, IconUsers, IconCalendarPlus, IconX,
 } from "@tabler/icons-react";
 import { tiposActividadVisibles, tipoActividadDef, type TipoActividadDef } from "@/lib/tipos-actividad";
 
@@ -328,8 +328,14 @@ function AgendaContent() {
   const [guardando, setGuardando] = useState(false);
   const [exportando, setExportando] = useState(false);
   const searchParams = useSearchParams();
+  // Filtro por tipo de actividad (llega del Panel del Lunes vía ?tipo=…). "VISITA"
+  // agrupa las dos visitas (comercial/técnica). Al venir con un tipo, se arranca en
+  // "Todas" para no ocultar las ya completadas (el panel cuenta sin importar estado).
+  const [filtroTipo, setFiltroTipo] = useState<string | null>(searchParams.get("tipo"));
   const [filtro, setFiltro] = useState<"pendientes" | "todas" | "vencidas" | "asignadas">(
-    searchParams.get("vencidas") === "1" ? "vencidas" : "pendientes"
+    searchParams.get("vencidas") === "1" ? "vencidas"
+      : searchParams.get("tipo") ? "todas"
+      : "pendientes"
   );
   const [vista, setVista] = useState<"lista" | "calendario">("lista");
 
@@ -594,6 +600,10 @@ function AgendaContent() {
   }
 
   const visibles = actividades.filter((a) => {
+    if (filtroTipo) {
+      const coincideTipo = filtroTipo === "VISITA" ? a.tipo.startsWith("VISITA") : a.tipo === filtroTipo;
+      if (!coincideTipo) return false;
+    }
     if (filtro === "vencidas") return !a.completada && new Date(a.fecha) < new Date();
     if (filtro === "pendientes") return !a.completada;
     if (filtro === "asignadas") return a.responsable?.id === miId && !a.completada;
@@ -827,6 +837,14 @@ function AgendaContent() {
             className={`rounded-md px-3 py-1.5 text-xs font-medium ${filtro === "vencidas" ? "bg-red-50 text-red-700" : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"}`}>
             Vencidas
           </button>
+          {filtroTipo && (
+            <span className="ml-1 inline-flex items-center gap-1.5 rounded-md bg-brand-600 px-2.5 py-1.5 text-xs font-medium text-white">
+              Tipo: {filtroTipo === "VISITA" ? "Visitas" : (tipoActividadDef(filtroTipo)?.label ?? filtroTipo)}
+              <button onClick={() => setFiltroTipo(null)} title="Quitar filtro por tipo" className="hover:text-brand-200">
+                <IconX size={13} stroke={2.5} />
+              </button>
+            </span>
+          )}
         </div>
       )}
 

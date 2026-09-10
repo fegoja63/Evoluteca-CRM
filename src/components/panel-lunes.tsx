@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   IconCalendarStats, IconPhone, IconUsers, IconMapPin, IconMail, IconFileText,
-  IconTag, IconUserPlus, IconActivity, IconSnowflake, IconUserMinus, type Icon,
+  IconTag, IconUserPlus, IconActivity, IconSnowflake, IconUserMinus, IconChecklist,
+  IconChevronRight, type Icon,
 } from "@tabler/icons-react";
 
 type Datos = {
@@ -42,19 +44,28 @@ export function PanelLunes() {
   if (error) return null;
   if (!d) return <div className="mb-6 h-44 rounded-2xl border border-slate-200 bg-slate-50 animate-pulse" />;
 
-  const tiposActividad: { key: string; label: string; icon: Icon; color: string }[] = [
-    { key: "LLAMADA", label: "Llamadas",  icon: IconPhone,    color: "text-blue-600" },
-    { key: "REUNION", label: "Reuniones", icon: IconUsers,    color: "text-violet-600" },
-    { key: "VISITA",  label: "Visitas",   icon: IconMapPin,   color: "text-amber-600" },
-    { key: "EMAIL",   label: "Correos",   icon: IconMail,     color: "text-cyan-600" },
+  // `filtro` es el valor que se le pasa a la Agenda por querystring (?tipo=…) al
+  // hacer clic en la casilla. "VISITA" agrupa las dos visitas (comercial/técnica),
+  // igual que en el conteo del API.
+  const tiposActividad: { key: string; label: string; icon: Icon; color: string; filtro: string }[] = [
+    { key: "LLAMADA", label: "Llamadas",  icon: IconPhone,    color: "text-blue-600",   filtro: "LLAMADA" },
+    { key: "REUNION", label: "Reuniones", icon: IconUsers,    color: "text-violet-600", filtro: "REUNION" },
+    { key: "VISITA",  label: "Visitas",   icon: IconMapPin,   color: "text-amber-600",  filtro: "VISITA" },
+    { key: "EMAIL",   label: "Correos",   icon: IconMail,     color: "text-cyan-600",   filtro: "EMAIL" },
   ];
 
   return (
     <div className="mb-8">
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex flex-wrap items-center gap-2 mb-3">
         <IconCalendarStats size={18} stroke={1.75} className="text-brand-600" />
         <span className="text-sm font-bold text-slate-800">El Lunes</span>
         <span className="text-[11px] text-slate-400">tu semana de un vistazo · foto de hoy</span>
+        {/* Este panel es una foto del AHORA (7 días / 12 meses / este mes) y no
+            reacciona a los filtros de Año/Mes/Vendedor de arriba. Se avisa para
+            que cambiar el año no genere la falsa expectativa de que debería cambiar. */}
+        <span className="text-[10px] font-medium rounded-full bg-slate-100 text-slate-500 px-2 py-0.5">
+          independiente de los filtros de arriba
+        </span>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -72,18 +83,36 @@ export function PanelLunes() {
             {tiposActividad.map(t => {
               const Icono = t.icon;
               return (
-                <div key={t.key} className="flex items-center gap-2 rounded-xl bg-slate-50 border border-slate-100 px-3 py-2">
+                <Link key={t.key} href={`/dashboard/agenda?tipo=${t.filtro}`}
+                  title={`Ver las actividades de tipo ${t.label.toLowerCase()} en la Agenda`}
+                  className="group flex items-center gap-2 rounded-xl bg-slate-50 border border-slate-100 px-3 py-2 hover:border-brand-200 hover:bg-brand-50 transition-colors">
                   <Icono size={16} stroke={1.75} className={t.color} />
                   <span className="text-lg font-bold text-slate-800 leading-none">{d.actividad.porTipo[t.key] ?? 0}</span>
-                  <span className="text-xs text-slate-400">{t.label}</span>
-                </div>
+                  <span className="text-xs text-slate-400 group-hover:text-brand-600">{t.label}</span>
+                  <IconChevronRight size={13} stroke={2} className="ml-auto text-slate-300 group-hover:text-brand-400" />
+                </Link>
               );
             })}
           </div>
-          <div className="mt-2 flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2">
-            <IconFileText size={16} stroke={1.75} className="text-emerald-600" />
-            <span className="text-lg font-bold text-emerald-700 leading-none">{d.actividad.propuestas}</span>
-            <span className="text-xs text-emerald-600">propuestas enviadas</span>
+          {/* Fila Tareas + Propuestas: las Tareas antes no tenían casilla, así que
+              el total (que sí las cuenta) no cuadraba con la suma visible. */}
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <Link href="/dashboard/agenda?tipo=TAREA"
+              title="Ver las tareas en la Agenda"
+              className="group flex items-center gap-2 rounded-xl bg-slate-50 border border-slate-100 px-3 py-2 hover:border-brand-200 hover:bg-brand-50 transition-colors">
+              <IconChecklist size={16} stroke={1.75} className="text-slate-500" />
+              <span className="text-lg font-bold text-slate-800 leading-none">{d.actividad.porTipo["TAREA"] ?? 0}</span>
+              <span className="text-xs text-slate-400 group-hover:text-brand-600">Tareas</span>
+              <IconChevronRight size={13} stroke={2} className="ml-auto text-slate-300 group-hover:text-brand-400" />
+            </Link>
+            <Link href="/dashboard/cotizaciones"
+              title="Ver las cotizaciones"
+              className="group flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2 hover:border-emerald-300 hover:bg-emerald-100 transition-colors">
+              <IconFileText size={16} stroke={1.75} className="text-emerald-600" />
+              <span className="text-lg font-bold text-emerald-700 leading-none">{d.actividad.propuestas}</span>
+              <span className="text-xs text-emerald-600">propuestas</span>
+              <IconChevronRight size={13} stroke={2} className="ml-auto text-emerald-300 group-hover:text-emerald-500" />
+            </Link>
           </div>
           {d.actividad.porVendedor.length > 0 && (
             <div className="mt-4 pt-3 border-t border-slate-100">
