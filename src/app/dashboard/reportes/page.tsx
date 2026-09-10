@@ -12,6 +12,8 @@ import {
   IconClock,
   IconCircleCheck,
   IconX,
+  IconMessageChatbot,
+  IconCheck,
   type Icon,
 } from "@tabler/icons-react";
 import { MoneyInput } from "@/components/money-input";
@@ -116,6 +118,10 @@ export default function ReportesPage() {
   const [metas, setMetas] = useState<Meta[]>([]);
   const [editMeta, setEditMeta] = useState(false);
   const [metaForm, setMetaForm] = useState({ anio: new Date().getFullYear(), mes: "", valorObjetivo: "" });
+  // Guía de objeciones del tenant, para enlazar cada motivo de pérdida con su
+  // respuesta recomendada (módulo Objeciones). Si no hay guía, no cambia nada.
+  const [objGuia, setObjGuia] = useState<{ objecion: string; respuesta: string; motivoPerdida: string | null }[]>([]);
+  const [motivoAbierto, setMotivoAbierto] = useState<string | null>(null);
 
   function cargar(a = anio, m = mes, v = vendedor, seg = segmento, sd = sede) {
     const params = new URLSearchParams();
@@ -158,6 +164,16 @@ export default function ReportesPage() {
   }
 
   useEffect(() => { cargar(); cargarMetas(); }, []);
+
+  useEffect(() => {
+    fetch("/api/objeciones").then(r => r.ok ? r.json() : []).then((d) => setObjGuia(Array.isArray(d) ? d : [])).catch(() => {});
+  }, []);
+
+  // Respuesta recomendada de la guía asociada a un motivo de pérdida (si existe).
+  function respuestaDeMotivo(motivo: string): string | null {
+    const m = motivo.trim().toLowerCase();
+    return objGuia.find(o => (o.motivoPerdida ?? "").trim().toLowerCase() === m && m.length > 0)?.respuesta ?? null;
+  }
 
   useEffect(() => {
     fetch("/api/etapas-pipeline").then(r => r.json()).then(data => {
@@ -485,14 +501,33 @@ export default function ReportesPage() {
         <div className="flex-1 w-full min-w-0 flex flex-col gap-2">
           <p className="text-xs font-semibold text-slate-600 -mt-1">Por CANTIDAD de negocios</p>
           <p className="text-xs text-slate-400 mb-1">Qué % de los negocios perdidos se cayó por cada motivo</p>
-          {ordenados.map((m, i) => (
-            <div key={m.motivo} className="flex items-center gap-3 min-w-0">
-              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: colorPorMotivo.get(m.motivo) }} />
-              <span className="text-sm text-slate-700 flex-1 min-w-0 truncate">{m.motivo}</span>
-              <span className="text-sm font-bold text-red-600 w-10 text-right shrink-0">{porcentajes[i]}%</span>
-              <span className="text-xs text-slate-400 w-14 text-right shrink-0">{m.cantidad} neg.</span>
-            </div>
-          ))}
+          {ordenados.map((m, i) => {
+            const respuesta = respuestaDeMotivo(m.motivo);
+            const abierto = motivoAbierto === m.motivo;
+            return (
+              <div key={m.motivo} className="min-w-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: colorPorMotivo.get(m.motivo) }} />
+                  <span className="text-sm text-slate-700 flex-1 min-w-0 truncate">{m.motivo}</span>
+                  {respuesta && (
+                    <button onClick={() => setMotivoAbierto(abierto ? null : m.motivo)}
+                      className="shrink-0 inline-flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-700 hover:bg-brand-100"
+                      title="Ver la respuesta recomendada de tu guía">
+                      <IconMessageChatbot size={12} stroke={1.75} /> {abierto ? "Ocultar" : "Cómo responder"}
+                    </button>
+                  )}
+                  <span className="text-sm font-bold text-red-600 w-10 text-right shrink-0">{porcentajes[i]}%</span>
+                  <span className="text-xs text-slate-400 w-14 text-right shrink-0">{m.cantidad} neg.</span>
+                </div>
+                {respuesta && abierto && (
+                  <div className="mt-1 ml-5 flex items-start gap-2 rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2">
+                    <IconCheck size={14} stroke={2} className="text-emerald-600 mt-0.5 shrink-0" />
+                    <p className="text-xs text-emerald-900">{respuesta}</p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     );

@@ -7,6 +7,7 @@ export const crearObjecionSchema = z.object({
   objecion: z.string().trim().min(2, "La objeción es obligatoria").max(300),
   respuesta: z.string().trim().min(2, "La respuesta recomendada es obligatoria").max(2000),
   loQueNoDecir: z.string().trim().max(2000).optional().nullable(),
+  motivoPerdida: z.string().trim().max(100).optional().nullable(),
 });
 
 export const editarObjecionSchema = crearObjecionSchema.partial().extend({

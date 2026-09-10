@@ -8,6 +8,17 @@ export type ObjecionSugerida = {
   loQueNoDecir: string;
 };
 
+// Mapeo sugerido de objeción → motivo de pérdida estándar, para que al
+// precargar las 15 ya queden enlazadas con los motivos comunes (el admin puede
+// ajustarlo). Solo se mapean las que tienen un motivo claro; el resto queda sin
+// asociar.
+export const MOTIVO_SUGERIDO: Record<string, string> = {
+  "Es muy caro": "Precio muy alto",
+  "No hay presupuesto": "Presupuesto insuficiente",
+  "Ya usamos a la competencia": "Eligió a la competencia",
+  "No me interesa": "Sin respuesta del cliente",
+};
+
 export const OBJECIONES_SUGERIDAS: ObjecionSugerida[] = [
   {
     categoria: "Timing",

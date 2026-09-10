@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { puedeEliminar } from "@/lib/permisos";
-import { OBJECIONES_SUGERIDAS } from "@/lib/objeciones-default";
+import { OBJECIONES_SUGERIDAS, MOTIVO_SUGERIDO } from "@/lib/objeciones-default";
 
 // POST — precarga las 15 objeciones sugeridas. Idempotente por contenido: no
 // vuelve a insertar una objeción cuyo texto ya exista en el tenant, así que se
@@ -21,7 +21,7 @@ export async function POST() {
 
   const nuevas = OBJECIONES_SUGERIDAS
     .filter(s => !yaHay.has(s.objecion.trim().toLowerCase()))
-    .map(s => ({ tenantId, categoria: s.categoria, objecion: s.objecion, respuesta: s.respuesta, loQueNoDecir: s.loQueNoDecir, orden: orden++ }));
+    .map(s => ({ tenantId, categoria: s.categoria, objecion: s.objecion, respuesta: s.respuesta, loQueNoDecir: s.loQueNoDecir, motivoPerdida: MOTIVO_SUGERIDO[s.objecion] ?? null, orden: orden++ }));
 
   if (nuevas.length > 0) await prisma.objecion.createMany({ data: nuevas });
   return NextResponse.json({ agregadas: nuevas.length, omitidas: OBJECIONES_SUGERIDAS.length - nuevas.length });
