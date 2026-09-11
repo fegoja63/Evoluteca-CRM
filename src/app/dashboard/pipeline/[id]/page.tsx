@@ -86,6 +86,9 @@ export default function OportunidadDetallePage() {
   const [moduloObjeciones, setModuloObjeciones] = useState(false);
   const [disponibilidad, setDisponibilidad] = useState<Disponibilidad | null>(null);
   const disponibilidadClaveRef = useRef("");
+  // Edición rápida de la fecha de cierre desde el recuadro (sin abrir Editar).
+  const [editandoCierre, setEditandoCierre] = useState(false);
+  const [guardandoCierre, setGuardandoCierre] = useState(false);
 
   const MOTIVOS_PERDIDA = [
     "Precio muy alto",
@@ -117,6 +120,21 @@ export default function OportunidadDetallePage() {
   }
 
   useEffect(() => { cargar(); }, [id]);
+
+  // Guarda la fecha de cierre editada desde el recuadro "Cierre estimado".
+  async function guardarCierreRapido(valor: string) {
+    if (!op) return;
+    setGuardandoCierre(true);
+    try {
+      await guardarJson(`/api/oportunidades/${op.id}`, "PATCH", { fechaCierre: valor || null });
+      setEditandoCierre(false);
+      await cargar();
+    } catch {
+      toast.error("No se pudo guardar la fecha de cierre. Revisa tu conexión e inténtalo de nuevo.");
+    } finally {
+      setGuardandoCierre(false);
+    }
+  }
 
   useEffect(() => {
     fetch("/api/etapas-pipeline").then(r => r.json()).then(data => {
@@ -417,11 +435,29 @@ export default function OportunidadDetallePage() {
               </div>
               <div className={`rounded-xl p-4 ${op.fechaCierre && new Date(op.fechaCierre) < new Date() && !["GANADA","PERDIDA"].includes(op.etapa) ? "bg-red-50" : "bg-slate-50"}`}>
                 <p className="text-xs text-slate-400 mb-1">Cierre estimado</p>
-                <p className="text-sm font-semibold text-slate-800">
-                  {op.fechaCierre
-                    ? new Date(op.fechaCierre).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" })
-                    : "—"}
-                </p>
+                {editandoCierre ? (
+                  <input
+                    type="date"
+                    autoFocus
+                    disabled={guardandoCierre}
+                    defaultValue={op.fechaCierre ? new Date(op.fechaCierre).toISOString().substring(0, 10) : ""}
+                    onFocus={e => { try { (e.target as HTMLInputElement & { showPicker?: () => void }).showPicker?.(); } catch { /* el usuario abre el calendario con un clic */ } }}
+                    onChange={e => guardarCierreRapido(e.target.value)}
+                    onBlur={() => setEditandoCierre(false)}
+                    className="w-full rounded-lg border border-brand-300 bg-white px-2 py-1 text-sm font-semibold text-slate-800 outline-none focus:border-brand-500"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setEditandoCierre(true)}
+                    title="Haz clic para poner o cambiar la fecha de cierre"
+                    className="text-sm font-semibold text-slate-800 hover:text-brand-600 transition-colors"
+                  >
+                    {op.fechaCierre
+                      ? new Date(op.fechaCierre).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric", timeZone: "UTC" })
+                      : <span className="text-brand-600">＋ Poner fecha</span>}
+                  </button>
+                )}
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-xs text-slate-400 mb-1">Creada el</p>
