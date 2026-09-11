@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "@/lib/toast";
 import { MoneyInput } from "@/components/money-input";
 import { ResumenPipelineIA } from "@/components/resumen-pipeline-ia";
@@ -142,6 +143,8 @@ const MESES_NOMBRE = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","
 export default function PipelinePage() {
   const { data: session } = useSession();
   const esAdministrador = session?.user?.rol === "ADMINISTRADOR";
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [oportunidades, setOportunidades] = useState<Oportunidad[]>([]);
   const [empresas, setEmpresas]   = useState<Empresa[]>([]);
@@ -180,10 +183,6 @@ export default function PipelinePage() {
     titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50", fechaCierre: "",
     salonId: "", sede: "", fechaEvento: "", horaInicio: "", horaFin: "",
   });
-  const [modoEmpresa, setModoEmpresa] = useState<"existente" | "nueva">("existente");
-  const [nuevaEmpresaForm, setNuevaEmpresaForm] = useState({ nombre: "", email: "", telefono: "" });
-  const [creandoEmpresaLoading, setCreandoEmpresaLoading] = useState(false);
-  const [creandoEmpresaError, setCreandoEmpresaError] = useState("");
   const [modoContacto, setModoContacto] = useState<"existente" | "nuevo">("existente");
   const [nuevoContactoForm, setNuevoContactoForm] = useState({ nombre: "", email: "", telefono: "", cargo: "" });
   const [creandoContactoLoading, setCreandoContactoLoading] = useState(false);
@@ -220,6 +219,20 @@ export default function PipelinePage() {
   }
 
   useEffect(() => { cargar(); cargarRelaciones(); }, []);
+
+  // Venir de "crear cliente" (pantalla Clientes o el enlace de aquí): abre
+  // "Nueva oportunidad" con ese cliente (y contacto) ya puestos, en Prospecto.
+  // Así crear un cliente lleva siempre a crear su oportunidad.
+  useEffect(() => {
+    const cliente = searchParams.get("cliente");
+    if (!cliente) return;
+    const contacto = searchParams.get("contacto") ?? "";
+    setForm(f => ({ ...f, empresaId: cliente, contactoId: contacto, etapa: "PROSPECTO" }));
+    setModoContacto("existente");
+    setMostrarForm(true);
+    // Limpia los parámetros para que un refresh no reabra el formulario.
+    router.replace("/dashboard/pipeline");
+  }, [searchParams, router]);
 
   // Drill-down desde Reportes (?etapa=GANADA&anio=&mes=): filtra por esa etapa y
   // período y abre la vista de tabla para ver cada negocio de la etapa.
@@ -259,50 +272,6 @@ export default function PipelinePage() {
     return () => clearTimeout(t);
   }, [form.salonId, form.fechaEvento, form.horaInicio, form.horaFin]);
 
-  // Elige un cliente que ya existe (desde el aviso de duplicados) en vez de
-  // crear uno nuevo repetido: pasa a modo "Existente" con ese cliente puesto.
-  function usarEmpresaExistente(emp: Empresa) {
-    setForm(f => ({ ...f, empresaId: emp.id, contactoId: "" }));
-    setModoEmpresa("existente");
-    setModoContacto("existente");
-    setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
-    setCreandoEmpresaError("");
-  }
-
-  async function crearEmpresaInline() {
-    if (!nuevaEmpresaForm.nombre.trim()) return;
-    setCreandoEmpresaLoading(true);
-    setCreandoEmpresaError("");
-    const res = await fetch("/api/empresas", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nuevaEmpresaForm),
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setCreandoEmpresaError(data.error ?? "No se pudo crear el cliente");
-      setCreandoEmpresaLoading(false);
-      return;
-    }
-    const nueva = await res.json();
-    setEmpresas(prev => [{ id: nueva.id, nombre: nueva.nombre }, ...prev]);
-    setForm(f => ({ ...f, empresaId: nueva.id, contactoId: "" }));
-    setModoEmpresa("existente");
-    // Un cliente recién creado no tiene contactos existentes: guiamos al usuario
-    // directo a "+ Nuevo" para que pueda crear el contacto de ese cliente.
-    setModoContacto("nuevo");
-    // El contacto arranca con el email y teléfono del cliente ya puestos (son,
-    // casi siempre, los mismos): no hay que volver a escribirlos. Quedan
-    // editables por si esta persona usa otros. Se respeta lo que ya hubiera.
-    setNuevoContactoForm(f => ({
-      ...f,
-      email: f.email || nueva.email || "",
-      telefono: f.telefono || nueva.telefono || "",
-    }));
-    setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
-    setCreandoEmpresaLoading(false);
-  }
-
   async function crearContactoInline() {
     if (!nuevoContactoForm.nombre.trim()) return;
     setCreandoContactoLoading(true);
@@ -329,36 +298,14 @@ export default function PipelinePage() {
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
     setGuardando(true);
-    setCreandoEmpresaError("");
     setCreandoContactoError("");
 
-    // Un solo "Guardar" crea lo que falte, en orden: cliente nuevo → contacto
-    // nuevo → oportunidad. Antes había que pulsar "Crear cliente" y "Crear
-    // contacto" por separado (y si no, el guardado se bloqueaba); ahora esos
-    // botones son opcionales. Se parte de lo ya elegido/creado en el form.
-    let empresaId = form.empresaId;
+    // Los clientes se crean SOLO en la pantalla Clientes; aquí siempre se elige
+    // uno existente. Un solo "Guardar" crea el contacto nuevo (si se escribió)
+    // y la oportunidad. El cliente ya viene resuelto en el form.
     let contactoId = form.contactoId;
 
-    // 1. Cliente nuevo que todavía no se ha creado.
-    if (modoEmpresa === "nueva" && !empresaId && nuevaEmpresaForm.nombre.trim()) {
-      const res = await fetch("/api/empresas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(nuevaEmpresaForm),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setCreandoEmpresaError(data.error ?? "No se pudo crear el cliente");
-        setGuardando(false);
-        return;
-      }
-      const nueva = await res.json();
-      empresaId = nueva.id;
-      setEmpresas(prev => [{ id: nueva.id, nombre: nueva.nombre }, ...prev]);
-    }
-
-    // 2. Contacto nuevo que todavía no se ha creado. Si no tiene correo/teléfono
-    //    propios, hereda los del cliente para no reteclear.
+    // Contacto nuevo que todavía no se ha creado (cuelga del cliente elegido).
     if (modoContacto === "nuevo" && !contactoId && nuevoContactoForm.nombre.trim()) {
       const res = await fetch("/api/contactos", {
         method: "POST",
@@ -366,9 +313,9 @@ export default function PipelinePage() {
         body: JSON.stringify({
           nombre: nuevoContactoForm.nombre,
           cargo: nuevoContactoForm.cargo,
-          email: nuevoContactoForm.email || nuevaEmpresaForm.email || "",
-          telefono: nuevoContactoForm.telefono || nuevaEmpresaForm.telefono || "",
-          empresaId: empresaId || null,
+          email: nuevoContactoForm.email || "",
+          telefono: nuevoContactoForm.telefono || "",
+          empresaId: form.empresaId || null,
         }),
       });
       if (!res.ok) {
@@ -382,11 +329,11 @@ export default function PipelinePage() {
       setContactos(prev => [nuevo, ...prev]);
     }
 
-    // 3. La oportunidad, ya con cliente y contacto resueltos.
+    // La oportunidad, ya con el contacto resuelto.
     const res = await fetch("/api/oportunidades", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, empresaId, contactoId }),
+      body: JSON.stringify({ ...form, contactoId }),
     });
     if (!res.ok) {
       toast.error("No se pudo crear la oportunidad. Revisa tu conexión e inténtalo de nuevo.");
@@ -395,8 +342,6 @@ export default function PipelinePage() {
     }
 
     setForm({ titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50", fechaCierre: "", salonId: "", sede: "", fechaEvento: "", horaInicio: "", horaFin: "" });
-    setModoEmpresa("existente");
-    setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
     setModoContacto("existente");
     setNuevoContactoForm({ nombre: "", email: "", telefono: "", cargo: "" });
     setDisponibilidad(null);
@@ -779,70 +724,17 @@ export default function PipelinePage() {
               </select>
             </div>
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs text-slate-500">Empresa</label>
-                <div className="flex gap-1">
-                  <button type="button" onClick={() => setModoEmpresa("existente")}
-                    className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${modoEmpresa === "existente" ? "bg-accent-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
-                    Existente
-                  </button>
-                  <button type="button" onClick={() => setModoEmpresa("nueva")}
-                    className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${modoEmpresa === "nueva" ? "bg-accent-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
-                    + Nueva
-                  </button>
-                </div>
-              </div>
-              {modoEmpresa === "existente" ? (
-                <select value={form.empresaId} onChange={e => setForm({...form, empresaId: e.target.value, contactoId: ""})}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
-                  <option value="">Sin empresa</option>
-                  {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
-                </select>
-              ) : (
-                <div className="rounded-lg border border-brand-200 bg-brand-50 p-2.5">
-                  <div className="flex flex-col gap-2">
-                    <input type="text" placeholder="Nombre del cliente *" value={nuevaEmpresaForm.nombre}
-                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, nombre: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
-                    {/* Aviso de duplicados: si ya hay un cliente con nombre
-                        parecido, se ofrece usar ese en vez de crear otro igual
-                        (evita clientes duplicados como pasaba antes). */}
-                    {(() => {
-                      const q = nuevaEmpresaForm.nombre.trim().toLowerCase();
-                      if (q.length < 3) return null;
-                      const similares = empresas
-                        .filter(e => { const n = e.nombre.toLowerCase(); return n.includes(q) || q.includes(n); })
-                        .slice(0, 4);
-                      if (similares.length === 0) return null;
-                      return (
-                        <div className="rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-2 text-xs text-amber-800">
-                          <p className="font-semibold flex items-center gap-1 mb-1.5"><IconAlertTriangle size={12} stroke={1.75} />Ya existe un cliente parecido. Úsalo en vez de crear un duplicado:</p>
-                          <div className="flex flex-col gap-1">
-                            {similares.map(e => (
-                              <button key={e.id} type="button" onClick={() => usarEmpresaExistente(e)}
-                                className="text-left rounded-md border border-amber-300 bg-white px-2 py-1 font-medium text-amber-900 hover:border-amber-500 hover:bg-amber-100">
-                                Usar “{e.nombre}”
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })()}
-                    <input type="email" placeholder="Email (opcional)" value={nuevaEmpresaForm.email}
-                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, email: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
-                    <input type="text" placeholder="Teléfono (opcional)" value={nuevaEmpresaForm.telefono}
-                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, telefono: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
-                    {creandoEmpresaError && <p className="text-xs text-red-600">{creandoEmpresaError}</p>}
-                    <button type="button" onClick={crearEmpresaInline} disabled={creandoEmpresaLoading || !nuevaEmpresaForm.nombre.trim()}
-                      className="self-start rounded-lg bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
-                      {creandoEmpresaLoading ? "Creando..." : "Crear cliente"}
-                    </button>
-                    <p className="text-[11px] text-slate-500">Opcional: si dejas los datos aquí, el cliente se crea solo al guardar la oportunidad.</p>
-                  </div>
-                </div>
-              )}
+              <label className="mb-1 block text-xs text-slate-500">Empresa</label>
+              <select value={form.empresaId} onChange={e => setForm({...form, empresaId: e.target.value, contactoId: ""})}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                <option value="">Sin empresa</option>
+                {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+              </select>
+              {/* Los clientes se crean en un solo lugar: la pantalla Clientes.
+                  Desde ahí se vuelve aquí a crear su oportunidad. */}
+              <p className="mt-1 text-[11px] text-slate-500">
+                ¿Cliente nuevo? <Link href="/dashboard/cuentas" className="font-medium text-brand-600 hover:underline">Créalo en Clientes</Link> y te trae de vuelta a crear su oportunidad.
+              </p>
             </div>
             <div>
               <div className="flex items-center justify-between mb-1">
