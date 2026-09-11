@@ -73,6 +73,9 @@ export default function OportunidadDetallePage() {
   const esAdministrador = session?.user?.rol === "ADMINISTRADOR";
 
   const [op, setOp] = useState<Oportunidad | null>(null);
+  // La oportunidad no existe, fue borrada, o es de otro tenant (API 404/403):
+  // en vez de reventar la pantalla, se muestra un mensaje de "no encontrada".
+  const [noEncontrada, setNoEncontrada] = useState(false);
   const [ETAPAS, setETAPAS] = useState(ETAPAS_DEFECTO.map(e => ({ ...e, color: ETAPA_COLOR[e.key] })));
   const [editando, setEditando] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -102,7 +105,15 @@ export default function OportunidadDetallePage() {
 
   async function cargar() {
     const res = await fetch(`/api/oportunidades/${id}`);
+    if (!res.ok) {
+      // El cuerpo trae { error } — NO se guarda como si fuera la oportunidad,
+      // porque entonces op.etapa sería undefined y el render reventaría.
+      setNoEncontrada(true);
+      setOp(null);
+      return;
+    }
     const data = await res.json();
+    setNoEncontrada(false);
     setOp(data);
     setForm({
       titulo: data.titulo, valor: data.valor ?? "", etapa: data.etapa, notas: data.notas ?? "",
@@ -263,6 +274,20 @@ export default function OportunidadDetallePage() {
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
   }
 
+  if (noEncontrada) return (
+    <div className="max-w-lg mx-auto mt-10 rounded-2xl border border-slate-200 bg-white p-8 text-center">
+      <IconAlertTriangle size={32} stroke={1.75} className="mx-auto text-amber-400" />
+      <h1 className="mt-3 text-lg font-semibold text-slate-900">Oportunidad no encontrada</h1>
+      <p className="mt-1 text-sm text-slate-500">
+        No existe, fue eliminada, o no tienes acceso a ella.
+      </p>
+      <Link href="/dashboard/pipeline"
+        className="mt-4 inline-block rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+        ← Volver al Pipeline
+      </Link>
+    </div>
+  );
+
   if (!op) return (
     <div className="flex items-center justify-center h-64">
       <div className="flex gap-1">{[0,1,2].map(i => (
@@ -271,7 +296,10 @@ export default function OportunidadDetallePage() {
     </div>
   );
 
-  const etapaInfo = ETAPAS.find(e => e.key === op.etapa)!;
+  // Fallback por si la etapa guardada no está en las etapas del tenant (p. ej.
+  // stages personalizados): así la ficha nunca revienta por una etapa desconocida.
+  const etapaInfo = ETAPAS.find(e => e.key === op.etapa)
+    ?? { key: op.etapa, label: op.etapa, color: "bg-slate-100 text-slate-600" };
   function formatearValorExtra(k: string, v: string): string {
     if (k === "MES" && v.includes("T00:00")) {
       // Medianoche UTC del día 1 del mes importado — se fuerza timeZone: "UTC"
