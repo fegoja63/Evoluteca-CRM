@@ -488,10 +488,13 @@ export default function ClientesPage() {
                 </ul>
               </div>
             )}
+            <p className="col-span-2 -mb-1 text-[11px] text-slate-500">
+              Al guardar te llevaremos al Pipeline a crear la primera oportunidad (prospecto) de este cliente, con él y su contacto ya seleccionados. Si solo querías registrarlo, puedes cerrar esa oportunidad sin guardarla.
+            </p>
             <div className="col-span-2 flex gap-2">
               <button type="submit" disabled={guardando}
                 className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
-                {guardando ? "Guardando..." : duplicados.length > 0 ? "Guardar de todas formas" : "Guardar"}
+                {guardando ? "Guardando..." : duplicados.length > 0 ? "Guardar de todas formas y crear oportunidad" : "Guardar y crear oportunidad"}
               </button>
               <button type="button" onClick={() => { setMostrarForm(false); setContactoTocado({ email: false, telefono: false }); setNuevoContactoForm({ nombre: "", email: "", telefono: "", cargo: "" }); }}
                 className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
