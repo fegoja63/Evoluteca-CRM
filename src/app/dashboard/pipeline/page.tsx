@@ -279,6 +279,14 @@ export default function PipelinePage() {
     // Un cliente recién creado no tiene contactos existentes: guiamos al usuario
     // directo a "+ Nuevo" para que pueda crear el contacto de ese cliente.
     setModoContacto("nuevo");
+    // El contacto arranca con el email y teléfono del cliente ya puestos (son,
+    // casi siempre, los mismos): no hay que volver a escribirlos. Quedan
+    // editables por si esta persona usa otros. Se respeta lo que ya hubiera.
+    setNuevoContactoForm(f => ({
+      ...f,
+      email: f.email || nueva.email || "",
+      telefono: f.telefono || nueva.telefono || "",
+    }));
     setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
     setCreandoEmpresaLoading(false);
   }
