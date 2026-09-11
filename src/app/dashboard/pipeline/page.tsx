@@ -259,6 +259,16 @@ export default function PipelinePage() {
     return () => clearTimeout(t);
   }, [form.salonId, form.fechaEvento, form.horaInicio, form.horaFin]);
 
+  // Elige un cliente que ya existe (desde el aviso de duplicados) en vez de
+  // crear uno nuevo repetido: pasa a modo "Existente" con ese cliente puesto.
+  function usarEmpresaExistente(emp: Empresa) {
+    setForm(f => ({ ...f, empresaId: emp.id, contactoId: "" }));
+    setModoEmpresa("existente");
+    setModoContacto("existente");
+    setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
+    setCreandoEmpresaError("");
+  }
+
   async function crearEmpresaInline() {
     if (!nuevaEmpresaForm.nombre.trim()) return;
     setCreandoEmpresaLoading(true);
@@ -794,6 +804,30 @@ export default function PipelinePage() {
                     <input type="text" placeholder="Nombre del cliente *" value={nuevaEmpresaForm.nombre}
                       onChange={e => setNuevaEmpresaForm(f => ({ ...f, nombre: e.target.value }))}
                       className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
+                    {/* Aviso de duplicados: si ya hay un cliente con nombre
+                        parecido, se ofrece usar ese en vez de crear otro igual
+                        (evita clientes duplicados como pasaba antes). */}
+                    {(() => {
+                      const q = nuevaEmpresaForm.nombre.trim().toLowerCase();
+                      if (q.length < 3) return null;
+                      const similares = empresas
+                        .filter(e => { const n = e.nombre.toLowerCase(); return n.includes(q) || q.includes(n); })
+                        .slice(0, 4);
+                      if (similares.length === 0) return null;
+                      return (
+                        <div className="rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-2 text-xs text-amber-800">
+                          <p className="font-semibold flex items-center gap-1 mb-1.5"><IconAlertTriangle size={12} stroke={1.75} />Ya existe un cliente parecido. Úsalo en vez de crear un duplicado:</p>
+                          <div className="flex flex-col gap-1">
+                            {similares.map(e => (
+                              <button key={e.id} type="button" onClick={() => usarEmpresaExistente(e)}
+                                className="text-left rounded-md border border-amber-300 bg-white px-2 py-1 font-medium text-amber-900 hover:border-amber-500 hover:bg-amber-100">
+                                Usar “{e.nombre}”
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
                     <input type="email" placeholder="Email (opcional)" value={nuevaEmpresaForm.email}
                       onChange={e => setNuevaEmpresaForm(f => ({ ...f, email: e.target.value }))}
                       className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
