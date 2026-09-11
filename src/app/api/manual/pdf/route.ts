@@ -332,6 +332,7 @@ export async function GET() {
 
       React.createElement(H2, null, "2.1 Crear un cliente"),
       React.createElement(P, null, 'Ve a Clientes, botón "+ Nuevo cliente". El "Nombre del cliente o Empresa" es obligatorio. Opcionalmente escribe el "Nombre del contacto" (contacto principal, que usa el email y teléfono ingresados arriba) y, en "OTRO contacto de este cliente", un segundo contacto — así el cliente queda con más de un contacto desde el inicio. Los demás campos (sector, sitio web, notas) son opcionales.'),
+      React.createElement(Tip, null, "Para no escribir lo mismo dos veces, el email y el teléfono del contacto vienen ya rellenados con los del cliente. Si esa persona usa un correo o teléfono distinto, solo cámbialos; en cuanto los editas dejan de seguir a los del cliente."),
       React.createElement(Tip, null, "El sector ayuda a filtrar y segmentar clientes en reportes. Elige el más cercano a la actividad del cliente."),
       React.createElement(P, null, 'Clientes nuevos por año o mes: junto al buscador de la lista de Clientes puedes filtrar por "Creados en …" (año) y, si quieres, por mes. La lista, las tarjetas de resumen y el botón Exportar Excel se ajustan a ese período — útil para distinguir los clientes nuevos del año de los de años anteriores.'),
 
@@ -455,6 +456,8 @@ export async function GET() {
 
       React.createElement(H2, null, "3.2 Crear una oportunidad"),
       React.createElement(P, null, 'Las oportunidades se crean desde la ficha de un cliente (pestaña Oportunidades), al vincular una cotización formal a un negocio, o con el botón "+ Nueva" del campo Oportunidad vinculada en Nueva cotización. El pipeline es la vista de gestión: arrastra las tarjetas entre etapas para actualizar el avance.'),
+      React.createElement(P, null, 'También puedes crearla directamente en el Pipeline con el botón "Nueva oportunidad". Si el cliente o el contacto son nuevos, no tienes que crearlos aparte: en Empresa elige "+ Nueva" y en Contacto "+ Nuevo", escribe sus datos y con un solo "Guardar" se crean el cliente, el contacto y la oportunidad, ya vinculados entre sí (el contacto hereda el correo y teléfono del cliente).'),
+      React.createElement(Tip, null, "Si una oportunidad quedó sin fecha de cierre estimada, no necesitas abrir su ficha: en el tablero (Kanban), la tarjeta muestra un botón \"Poner fecha de cierre\" que abre un calendario y la guarda al instante."),
       React.createElement(Tip, null, "El valor de la oportunidad es fundamental para los reportes. Ingrésalo siempre aunque sea estimado."),
       React.createElement(Tip, null, "El título de la oportunidad debe describir el tipo de negocio (ej: \"Congreso anual\", \"Alquiler sala\", \"Función privada\"), no el nombre del cliente — el cliente ya queda registrado en el campo Empresa. Repetirlo en el título solo genera texto redundante en el pipeline y los reportes."),
 
@@ -896,6 +899,7 @@ export async function GET() {
         ["Editar metas de vendedores",                                       false, true, true],
         ["Configurar el CRM (logo, módulos opcionales, emails automáticos)",  false, false, true],
         ["Invitar y editar usuarios del equipo",                             false, false, true],
+        ["Eliminar usuarios del equipo (definitivo)",                        false, false, true],
         ["Reasignar registros importados sin dueño",                        false, false, true],
         ["Limpiar datos de prueba (zona de peligro)",                       false, false, true],
       ] }),
@@ -904,7 +908,9 @@ export async function GET() {
       React.createElement(LI, null, "Crear nuevos usuarios con nombre, correo y contraseña inicial"),
       React.createElement(LI, null, "Ver el rol y estado de cada miembro"),
       React.createElement(LI, null, "Restablecer la contraseña de cualquier usuario"),
+      React.createElement(LI, null, "Desactivar a un usuario (deja de tener acceso y libera un cupo del plan) o eliminarlo definitivamente"),
       React.createElement(LI, null, "Asignar registros importados sin dueño a un vendedor (ver 9.3.1)"),
+      React.createElement(Nota, null, "Al eliminar un usuario, sus clientes, oportunidades, actividades y expedientes se traspasan al vendedor que elijas, o quedan \"sin dueño\" para reasignarlos después. No puedes eliminar tu propia cuenta ni la del titular de la organización; si solo quieres quitarle el acceso temporalmente, usa Desactivar en lugar de Eliminar."),
 
       React.createElement(H3, null, "9.3.1 Asignar registros importados a un vendedor"),
       React.createElement(P, null, "Cuando importas datos desde Excel, los registros no tienen un vendedor asignado. Un usuario con rol COMERCIAL no podrá verlos hasta que le sean asignados."),
