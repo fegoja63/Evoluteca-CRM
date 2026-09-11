@@ -155,6 +155,8 @@ export default function PipelinePage() {
   const [guardando, setGuardando] = useState(false);
   const [draggingId, setDraggingId]     = useState<string | null>(null);
   const [dragOverEtapa, setDragOverEtapa] = useState<string | null>(null);
+  // Tarjeta cuyo calendario de "poner fecha de cierre" está abierto (uno a la vez).
+  const [fechaCierreEditId, setFechaCierreEditId] = useState<string | null>(null);
   const [modalPerdidaId, setModalPerdidaId] = useState<string | null>(null);
   const [motivoPerdidaSel, setMotivoPerdidaSel] = useState("");
   const [otroMotivoPerdida, setOtroMotivoPerdida] = useState("");
@@ -459,6 +461,27 @@ export default function PipelinePage() {
     } catch {
       setOportunidades(previas);
       toast.error("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+    }
+  }
+
+  // Poner/actualizar la fecha de cierre estimada desde la propia tarjeta, sin
+  // entrar al detalle ni al modo Editar. Guarda de una (optimista) y revierte
+  // si el backend falla.
+  async function guardarFechaCierreRapida(id: string, valor: string) {
+    setFechaCierreEditId(null);
+    if (!valor) return;
+    const previas = oportunidades;
+    setOportunidades(prev => prev.map(o => (o.id === id ? { ...o, fechaCierre: valor } : o)));
+    try {
+      const res = await fetch(`/api/oportunidades/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fechaCierre: valor }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      setOportunidades(previas);
+      toast.error("No se pudo guardar la fecha de cierre. Revisa tu conexión e inténtalo de nuevo.");
     }
   }
 
@@ -1082,9 +1105,36 @@ export default function PipelinePage() {
                         </button>
                       </div>
                       {o.empresa && <p className="text-slate-500 mb-1">{o.empresa.nombre}</p>}
-                      {(() => { const cb = cierreBadge(o.fechaCierre, o.etapa); return cb ? (
-                        <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-semibold mb-1 ${cb.color}`}><IconCalendarEvent size={11} stroke={1.75} />{cb.label}</span>
-                      ) : null; })()}
+                      {(() => {
+                        const cb = cierreBadge(o.fechaCierre, o.etapa);
+                        if (cb) return (
+                          <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-semibold mb-1 ${cb.color}`}><IconCalendarEvent size={11} stroke={1.75} />{cb.label}</span>
+                        );
+                        // Sin fecha de cierre y negocio activo: atajo para ponerla
+                        // aquí mismo, sin abrir el detalle. (Ganada/Perdida no la piden.)
+                        const activa = o.etapa !== "GANADA" && o.etapa !== "PERDIDA";
+                        if (o.fechaCierre || !activa) return null;
+                        if (fechaCierreEditId === o.id) return (
+                          <input
+                            type="date"
+                            autoFocus
+                            onFocus={e => { try { (e.target as HTMLInputElement & { showPicker?: () => void }).showPicker?.(); } catch { /* el usuario abre el calendario con un clic */ } }}
+                            onChange={e => guardarFechaCierreRapida(o.id, e.target.value)}
+                            onBlur={() => setFechaCierreEditId(null)}
+                            onClick={e => e.stopPropagation()}
+                            className="mb-1 block rounded-md border border-brand-300 px-1.5 py-0.5 text-xs outline-none focus:border-brand-500"
+                          />
+                        );
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => setFechaCierreEditId(o.id)}
+                            className="mb-1 inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-1.5 py-0.5 text-xs font-medium text-slate-400 transition-colors hover:border-brand-400 hover:text-brand-600"
+                          >
+                            <IconCalendarEvent size={11} stroke={1.75} />Poner fecha de cierre
+                          </button>
+                        );
+                      })()}
                       {o.extras?.["COTIZACION NUMERO"] && (
                         <p className="text-slate-400 mb-1">{o.extras["COTIZACION NUMERO"]}</p>
                       )}
