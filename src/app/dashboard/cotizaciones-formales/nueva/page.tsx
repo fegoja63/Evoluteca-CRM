@@ -119,11 +119,6 @@ export default function NuevaCotizacionPage() {
   const [disponibilidad, setDisponibilidad] = useState<Disponibilidad | null>(null);
   const disponibilidadClaveRef = useRef("");
 
-  const [modoEmpresa, setModoEmpresa] = useState<"existente" | "nueva">(d.modoEmpresa ?? "existente");
-  const [nuevaEmpresaForm, setNuevaEmpresaForm] = useState<{ nombre: string; email: string; telefono: string }>(d.nuevaEmpresaForm ?? { nombre: "", email: "", telefono: "" });
-  const [creandoEmpresaLoading, setCreandoEmpresaLoading] = useState(false);
-  const [creandoEmpresaError, setCreandoEmpresaError] = useState("");
-
   const [modoContacto, setModoContacto] = useState<"existente" | "nuevo">(d.modoContacto ?? "existente");
   const [nuevoContactoForm, setNuevoContactoForm] = useState<{ nombre: string; email: string; telefono: string; cargo: string }>(d.nuevoContactoForm ?? { nombre: "", email: "", telefono: "", cargo: "" });
   const [creandoContactoLoading, setCreandoContactoLoading] = useState(false);
@@ -133,34 +128,6 @@ export default function NuevaCotizacionPage() {
   const [nuevaOportunidadForm, setNuevaOportunidadForm] = useState<{ titulo: string }>(d.nuevaOportunidadForm ?? { titulo: "" });
   const [creandoOportunidadLoading, setCreandoOportunidadLoading] = useState(false);
   const [creandoOportunidadError, setCreandoOportunidadError] = useState("");
-
-  async function crearEmpresaInline() {
-    if (!nuevaEmpresaForm.nombre.trim()) return;
-    setCreandoEmpresaLoading(true);
-    setCreandoEmpresaError("");
-    const res = await fetch("/api/empresas", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nuevaEmpresaForm),
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setCreandoEmpresaError(data.error ?? "No se pudo crear el cliente");
-      setCreandoEmpresaLoading(false);
-      return;
-    }
-    const nueva = await res.json();
-    setEmpresas(prev => [{ id: nueva.id, nombre: nueva.nombre, condicionesComerciales: nueva.condicionesComerciales ?? null }, ...prev]);
-    setEmpresaId(nueva.id);
-    setContactoId("");
-    setOportunidadId("");
-    setModoEmpresa("existente");
-    // Un cliente recién creado no tiene contactos existentes: guiamos al usuario
-    // directo a "+ Nuevo" para que pueda crear el contacto de ese cliente.
-    setModoContacto("nuevo");
-    setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
-    setCreandoEmpresaLoading(false);
-  }
 
   async function crearContactoInline() {
     if (!nuevoContactoForm.nombre.trim()) return;
@@ -248,7 +215,6 @@ export default function NuevaCotizacionPage() {
     sede !== "" || fechaEvento !== "" || horaInicio !== "" || horaFin !== "" || fechaValidez !== "" || notas !== "" || cuerpoTocadoRef.current ||
     impuestoNombre !== "IVA" || impuestoPorcentaje !== "" || impuesto2Nombre !== "" || impuesto2Porcentaje !== "" ||
     lineas.some(l => l.descripcion !== "" || l.cantidad !== "1" || l.precioUnit !== "") || lineas.length > 1 ||
-    modoEmpresa !== "existente" || nuevaEmpresaForm.nombre !== "" || nuevaEmpresaForm.email !== "" || nuevaEmpresaForm.telefono !== "" ||
     modoContacto !== "existente" || nuevoContactoForm.nombre !== "" || nuevoContactoForm.email !== "" || nuevoContactoForm.telefono !== "" || nuevoContactoForm.cargo !== "" ||
     modoOportunidad !== "existente" || nuevaOportunidadForm.titulo !== "" ||
     modalidad !== "FEE_FIJO" ||
@@ -277,7 +243,7 @@ export default function NuevaCotizacionPage() {
         empresaId, contactoId, oportunidadId, salonId, numeroManual, sede,
         fechaEvento, horaInicio, horaFin, fechaValidez, notas, cuerpo,
         impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje,
-        modoEmpresa, nuevaEmpresaForm, modoContacto, nuevoContactoForm,
+        modoContacto, nuevoContactoForm,
         modoOportunidad, nuevaOportunidadForm,
         lineas, modalidad, lineasAhorro, porcentajeHonorarios, horizonteMeses, feeMensual,
       }));
@@ -286,7 +252,7 @@ export default function NuevaCotizacionPage() {
     dirty, empresaId, contactoId, oportunidadId, salonId, numeroManual, sede,
     fechaEvento, horaInicio, horaFin, fechaValidez, notas, cuerpo,
     impuestoNombre, impuestoPorcentaje, impuesto2Nombre, impuesto2Porcentaje,
-    modoEmpresa, nuevaEmpresaForm, modoContacto, nuevoContactoForm,
+    modoContacto, nuevoContactoForm,
     modoOportunidad, nuevaOportunidadForm,
     lineas, modalidad, lineasAhorro, porcentajeHonorarios, horizonteMeses, feeMensual,
   ]);
@@ -392,10 +358,6 @@ export default function NuevaCotizacionPage() {
     if (modalidad === "FEE_MENSUAL") {
       if (!(parseFloat(feeMensual) > 0)) { setError("Indica el fee mensual."); return; }
       if (!meses) { setError("Indica el horizonte en meses."); return; }
-    }
-    if (modoEmpresa === "nueva" && !empresaId && nuevaEmpresaForm.nombre.trim()) {
-      setError("Tienes datos de un cliente nuevo sin crear. Haz clic en \"Crear cliente\" o cambia a \"Existente\".");
-      return;
     }
     if (modoContacto === "nuevo" && !contactoId && nuevoContactoForm.nombre.trim()) {
       setError("Tienes datos de un contacto nuevo sin crear. Haz clic en \"Crear contacto\" o cambia a \"Existente\".");
@@ -532,48 +494,19 @@ export default function NuevaCotizacionPage() {
 
             {/* Empresa */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-xs font-medium text-slate-600">Cliente</label>
-                <div className="flex gap-1">
-                  <button type="button" onClick={() => setModoEmpresa("existente")}
-                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${modoEmpresa === "existente" ? "bg-accent-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
-                    Existente
-                  </button>
-                  <button type="button" onClick={() => setModoEmpresa("nueva")}
-                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${modoEmpresa === "nueva" ? "bg-accent-600 text-white" : "bg-slate-300 text-slate-800 hover:bg-slate-400"}`}>
-                    + Nuevo
-                  </button>
-                </div>
-              </div>
-              {modoEmpresa === "existente" ? (
-                <select value={empresaId} onChange={e => {
-                    const id = e.target.value;
-                    setEmpresaId(id); setContactoId(""); setOportunidadId("");
-                  }}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-brand-500">
-                  <option value="">— Sin empresa —</option>
-                  {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
-                </select>
-              ) : (
-                <div className="rounded-xl border border-brand-200 bg-brand-50 p-3">
-                  <div className="flex flex-col gap-2">
-                    <input type="text" placeholder="Nombre del cliente *" value={nuevaEmpresaForm.nombre}
-                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, nombre: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
-                    <input type="email" placeholder="Email (opcional)" value={nuevaEmpresaForm.email}
-                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, email: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
-                    <input type="text" placeholder="Teléfono (opcional)" value={nuevaEmpresaForm.telefono}
-                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, telefono: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
-                    {creandoEmpresaError && <p className="text-xs text-red-600">{creandoEmpresaError}</p>}
-                    <button type="button" onClick={crearEmpresaInline} disabled={creandoEmpresaLoading || !nuevaEmpresaForm.nombre.trim()}
-                      className="self-start rounded-lg bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
-                      {creandoEmpresaLoading ? "Creando..." : "Crear cliente"}
-                    </button>
-                  </div>
-                </div>
-              )}
+              <label className="mb-2 block text-xs font-medium text-slate-600">Cliente</label>
+              <select value={empresaId} onChange={e => {
+                  const id = e.target.value;
+                  setEmpresaId(id); setContactoId(""); setOportunidadId("");
+                }}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-brand-500">
+                <option value="">— Sin empresa —</option>
+                {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+              </select>
+              {/* Los clientes se crean en un solo lugar: la pantalla Clientes. */}
+              <p className="mt-1 text-[11px] text-slate-500">
+                ¿No está el cliente? <Link href="/dashboard/cuentas" className="font-medium text-brand-600 hover:underline">Créalo en Clientes</Link>.
+              </p>
             </div>
 
             {/* Contacto */}

@@ -35,10 +35,6 @@ export default function ContactosPage() {
   const [guardando, setGuardando] = useState(false);
   const [form, setForm] = useState({ nombre: "", email: "", telefono: "", cargo: "", notas: "", empresaId: "" });
   const [todosContactos, setTodosContactos] = useState<Contacto[]>([]);
-  const [modoEmpresa, setModoEmpresa] = useState<"existente" | "nueva">("existente");
-  const [nuevaEmpresaForm, setNuevaEmpresaForm] = useState({ nombre: "", email: "", telefono: "" });
-  const [creandoEmpresaLoading, setCreandoEmpresaLoading] = useState(false);
-  const [creandoEmpresaError, setCreandoEmpresaError] = useState("");
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [stats, setStats] = useState({ total: 0, conEmpresa: 0, sinEmpresa: 0, conEmail: 0 });
@@ -78,29 +74,6 @@ export default function ContactosPage() {
     cargar(busqueda, p);
   }
 
-  async function crearEmpresaInline() {
-    if (!nuevaEmpresaForm.nombre.trim()) return;
-    setCreandoEmpresaLoading(true);
-    setCreandoEmpresaError("");
-    const res = await fetch("/api/empresas", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nuevaEmpresaForm),
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setCreandoEmpresaError(data.error ?? "No se pudo crear el cliente");
-      setCreandoEmpresaLoading(false);
-      return;
-    }
-    const nueva = await res.json();
-    setEmpresas(prev => [{ id: nueva.id, nombre: nueva.nombre }, ...prev]);
-    setForm(f => ({ ...f, empresaId: nueva.id }));
-    setModoEmpresa("existente");
-    setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
-    setCreandoEmpresaLoading(false);
-  }
-
   async function cargarEmpresas() {
     const res = await fetch("/api/empresas");
     const data = await res.json();
@@ -122,10 +95,6 @@ export default function ContactosPage() {
 
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
-    if (modoEmpresa === "nueva" && !form.empresaId && nuevaEmpresaForm.nombre.trim()) {
-      setCreandoEmpresaError("Tienes datos de un cliente nuevo sin crear. Haz clic en \"Crear cliente\" o cambia a \"Existente\".");
-      return;
-    }
     setGuardando(true);
     await fetch("/api/contactos", {
       method: "POST",
@@ -133,8 +102,6 @@ export default function ContactosPage() {
       body: JSON.stringify(form),
     });
     setForm({ nombre: "", email: "", telefono: "", cargo: "", notas: "", empresaId: "" });
-    setModoEmpresa("existente");
-    setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
     setMostrarForm(false);
     setGuardando(false);
     cargar(busqueda, page);
@@ -299,50 +266,21 @@ export default function ContactosPage() {
               />
             </div>
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs text-neutral-500">Empresa</label>
-                <div className="flex gap-1">
-                  <button type="button" onClick={() => setModoEmpresa("existente")}
-                    className={`rounded-md px-2 py-0.5 text-xs font-medium transition-colors ${modoEmpresa === "existente" ? "bg-accent-600 text-white" : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200"}`}>
-                    Existente
-                  </button>
-                  <button type="button" onClick={() => setModoEmpresa("nueva")}
-                    className={`rounded-md px-2 py-0.5 text-xs font-medium transition-colors ${modoEmpresa === "nueva" ? "bg-accent-600 text-white" : "bg-neutral-300 text-neutral-800 hover:bg-neutral-400"}`}>
-                    + Nueva
-                  </button>
-                </div>
-              </div>
-              {modoEmpresa === "existente" ? (
-                <select
-                  value={form.empresaId}
-                  onChange={(e) => setForm({ ...form, empresaId: e.target.value })}
-                  className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
-                >
-                  <option value="">Sin empresa</option>
-                  {empresas.map((emp) => (
-                    <option key={emp.id} value={emp.id}>{emp.nombre}</option>
-                  ))}
-                </select>
-              ) : (
-                <div className="rounded-md border border-brand-200 bg-brand-50 p-2.5">
-                  <div className="flex flex-col gap-2">
-                    <input type="text" placeholder="Nombre de la empresa *" value={nuevaEmpresaForm.nombre}
-                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, nombre: e.target.value }))}
-                      className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
-                    <input type="email" placeholder="Email (opcional)" value={nuevaEmpresaForm.email}
-                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, email: e.target.value }))}
-                      className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
-                    <input type="text" placeholder="Teléfono (opcional)" value={nuevaEmpresaForm.telefono}
-                      onChange={e => setNuevaEmpresaForm(f => ({ ...f, telefono: e.target.value }))}
-                      className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
-                    {creandoEmpresaError && <p className="text-xs text-red-600">{creandoEmpresaError}</p>}
-                    <button type="button" onClick={crearEmpresaInline} disabled={creandoEmpresaLoading || !nuevaEmpresaForm.nombre.trim()}
-                      className="self-start rounded-md bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
-                      {creandoEmpresaLoading ? "Creando..." : "Crear empresa"}
-                    </button>
-                  </div>
-                </div>
-              )}
+              <label className="mb-1 block text-xs text-neutral-500">Empresa</label>
+              <select
+                value={form.empresaId}
+                onChange={(e) => setForm({ ...form, empresaId: e.target.value })}
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
+              >
+                <option value="">Sin empresa</option>
+                {empresas.map((emp) => (
+                  <option key={emp.id} value={emp.id}>{emp.nombre}</option>
+                ))}
+              </select>
+              {/* Los clientes se crean en un solo lugar: la pantalla Clientes. */}
+              <p className="mt-1 text-[11px] text-neutral-400">
+                ¿No está el cliente? <Link href="/dashboard/cuentas" className="font-medium text-brand-600 hover:underline">Créalo en Clientes</Link>.
+              </p>
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-neutral-500">Notas</label>

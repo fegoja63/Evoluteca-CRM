@@ -251,32 +251,44 @@ export default function ClientesPage() {
       body: JSON.stringify(empresaData),
     });
     const nuevaEmpresa = await res.json().catch(() => null);
-    if (res.ok && nuevaEmpresa?.id) {
-      // Contacto principal: comparte el email y teléfono ingresados arriba.
-      if (nombreContacto.trim()) {
-        await fetch("/api/contactos", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nombre: nombreContacto.trim(), email: form.email, telefono: form.telefono, empresaId: nuevaEmpresa.id }),
-        });
-      }
-      // Otro contacto (opcional): sus propios email/teléfono/cargo.
-      if (nuevoContactoForm.nombre.trim()) {
-        await fetch("/api/contactos", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...nuevoContactoForm, empresaId: nuevaEmpresa.id }),
-        });
-      }
+    if (!res.ok || !nuevaEmpresa?.id) {
+      setGuardando(false);
+      toast.error(nuevaEmpresa?.error ?? "No se pudo crear el cliente. Revisa los datos e inténtalo de nuevo.");
+      return;
     }
+    // El primer contacto que quede creado se pasa a la oportunidad para dejarlo
+    // ya vinculado. Se prefiere el "contacto principal"; si no, el "otro".
+    let contactoId = "";
+    if (nombreContacto.trim()) {
+      const rc = await fetch("/api/contactos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // Contacto principal: comparte el email y teléfono ingresados arriba.
+        body: JSON.stringify({ nombre: nombreContacto.trim(), email: form.email, telefono: form.telefono, empresaId: nuevaEmpresa.id }),
+      });
+      const c = await rc.json().catch(() => null);
+      if (rc.ok && c?.id) contactoId = c.id;
+    }
+    if (nuevoContactoForm.nombre.trim()) {
+      const rc = await fetch("/api/contactos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...nuevoContactoForm, empresaId: nuevaEmpresa.id }),
+      });
+      const c = await rc.json().catch(() => null);
+      if (rc.ok && c?.id && !contactoId) contactoId = c.id;
+    }
+
     setForm({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "", nombreContacto: "" });
     setNuevoContactoForm({ nombre: "", email: "", telefono: "", cargo: "" });
     setContactoTocado({ email: false, telefono: false });
     setMostrarForm(false);
-    setGuardando(false);
-    cargar(busqueda, page, filtroAnio, filtroMes);
-    cargarStats(busqueda, filtroAnio, filtroMes);
-    fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
+
+    // Crear un cliente lleva directo a crear su oportunidad (prospecto): el
+    // Pipeline abre "Nueva oportunidad" con este cliente (y contacto) ya puestos.
+    const qs = new URLSearchParams({ cliente: nuevaEmpresa.id });
+    if (contactoId) qs.set("contacto", contactoId);
+    router.push(`/dashboard/pipeline?${qs.toString()}`);
   }
 
   // Años en que se han creado clientes (para el filtro "clientes nuevos por
