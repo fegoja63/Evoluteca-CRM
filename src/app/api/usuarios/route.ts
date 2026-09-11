@@ -12,7 +12,7 @@ export async function GET() {
     where: { tenantId: session.user.tenantId },
     orderBy: { creadoEn: "asc" },
     select: {
-      id: true, nombre: true, email: true, rol: true, activo: true, creadoEn: true,
+      id: true, nombre: true, email: true, rol: true, activo: true, creadoEn: true, esTitular: true,
       // Solo la FECHA de activación, nunca el secreto ni los códigos de
       // respaldo: con esos, cualquiera podría generar los códigos de otro.
       totpActivadoEn: true,

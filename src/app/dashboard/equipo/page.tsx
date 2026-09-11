@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
 import { useSession } from "next-auth/react";
 import { RendimientoEquipo } from "@/components/rendimiento-equipo";
-import { IconDownload, IconUserPlus, IconEdit, IconCircleCheck } from "@tabler/icons-react";
+import { IconDownload, IconUserPlus, IconEdit, IconCircleCheck, IconTrash, IconAlertTriangle } from "@tabler/icons-react";
 import { CampoPassword } from "@/components/campo-password";
 
 type Usuario = {
@@ -14,6 +14,8 @@ type Usuario = {
   rol: string;
   activo: boolean;
   creadoEn: string;
+  /** Titular de la cuenta: no se puede eliminar. */
+  esTitular?: boolean;
   /** Si tiene la verificación en dos pasos activa (para ofrecer el rescate). */
   dosFactoresActiva?: boolean;
 };
@@ -43,6 +45,12 @@ export default function EquipoPage() {
   const [editNombreId, setEditNombreId] = useState<string | null>(null);
   const [editNombreValor, setEditNombreValor] = useState("");
   const [guardandoNombre, setGuardandoNombre] = useState(false);
+
+  // Eliminar usuario (definitivo). Guarda a quién se le traspasan los registros
+  // de la persona que se borra (o "" = dejarlos sin dueño).
+  const [eliminarUser, setEliminarUser] = useState<Usuario | null>(null);
+  const [eliminarReasignarA, setEliminarReasignarA] = useState("");
+  const [eliminando, setEliminando] = useState(false);
 
   const [reasignando, setReasignando] = useState(false);
   const [reasignarId, setReasignarId] = useState("");
@@ -208,6 +216,23 @@ export default function EquipoPage() {
       setUsuarios((prev) => prev.map((u) => (u.id === id ? { ...u, activo: anterior ?? u.activo } : u)));
       toast.error(data.error ?? "No se pudo actualizar el estado del usuario.");
     }
+  }
+
+  async function eliminarUsuario() {
+    if (!eliminarUser) return;
+    setEliminando(true);
+    const qs = eliminarReasignarA ? `?reasignarA=${eliminarReasignarA}` : "";
+    const res = await fetch(`/api/usuarios/${eliminarUser.id}${qs}`, { method: "DELETE" });
+    setEliminando(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.error ?? "No se pudo eliminar el usuario.");
+      return;
+    }
+    setUsuarios(prev => prev.filter(u => u.id !== eliminarUser.id));
+    toast.success(`${eliminarUser.nombre} fue eliminado del equipo.`);
+    setEliminarUser(null);
+    setEliminarReasignarA("");
   }
 
   const usuariosActivos = usuarios.filter(u => u.activo).length;
@@ -430,6 +455,17 @@ export default function EquipoPage() {
                                 {rescatando === u.id ? "Enviando…" : "Perdió su verificación en 2 pasos"}
                               </button>
                             )}
+                            {/* Eliminar definitivo: solo para quien no es el
+                                titular de la cuenta (a ese no se le puede
+                                borrar) ni uno mismo. */}
+                            {!u.esTitular && (
+                              <button
+                                onClick={() => { setEliminarUser(u); setEliminarReasignarA(""); }}
+                                className="flex items-center gap-1 text-xs text-rose-600 hover:underline"
+                              >
+                                <IconTrash size={12} stroke={1.75} /> Eliminar
+                              </button>
+                            )}
                           </div>
                         )}
                       </td>
@@ -485,6 +521,59 @@ export default function EquipoPage() {
               </span>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Modal eliminar usuario (definitivo) */}
+      {eliminarUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="rounded-full bg-rose-50 p-2 shrink-0">
+                <IconAlertTriangle size={20} stroke={1.75} className="text-rose-600" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-slate-800">Eliminar a {eliminarUser.nombre}</h2>
+                <p className="text-sm text-slate-500 mt-0.5">
+                  Se borrará su cuenta de forma <strong>definitiva</strong>. No podrá volver a entrar y esta acción no se puede deshacer.
+                </p>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="mb-1 block text-xs font-medium text-slate-600">¿Qué hacer con sus clientes, oportunidades, actividades y expedientes?</label>
+              <select
+                value={eliminarReasignarA}
+                onChange={e => setEliminarReasignarA(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+              >
+                <option value="">Dejarlos sin dueño (recuperables luego)</option>
+                {usuarios.filter(u => u.activo && u.id !== eliminarUser.id).map(u => (
+                  <option key={u.id} value={u.id}>Traspasarlos a {u.nombre}</option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-slate-400">
+                Si los dejas sin dueño, puedes reasignarlos después con el panel “Asignar registros sin dueño”.
+              </p>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={eliminarUsuario}
+                disabled={eliminando}
+                className="flex-1 rounded-xl bg-rose-600 py-2 text-sm font-medium text-white hover:bg-rose-700 disabled:opacity-50"
+              >
+                {eliminando ? "Eliminando..." : "Eliminar definitivamente"}
+              </button>
+              <button
+                onClick={() => { setEliminarUser(null); setEliminarReasignarA(""); }}
+                disabled={eliminando}
+                className="flex-1 rounded-xl border border-slate-200 py-2 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

@@ -28,6 +28,7 @@ const ETIQUETA_ACCION: Record<string, string> = {
   CAMBIAR_ROL: "Cambió el rol",
   DESACTIVAR_USUARIO: "Desactivó un usuario",
   ACTIVAR_USUARIO: "Reactivó un usuario",
+  ELIMINAR_USUARIO: "Eliminó un usuario",
   CAMBIAR_CONFIGURACION: "Cambió configuración",
   INICIAR_SESION: "Inició sesión",
 };
@@ -36,6 +37,7 @@ const ETIQUETA_ACCION: Record<string, string> = {
 // resto: en una lista larga el color hace el trabajo de la lectura.
 const COLOR_ACCION: Record<string, string> = {
   ELIMINAR_DEFINITIVO: "bg-rose-50 text-rose-700",
+  ELIMINAR_USUARIO: "bg-rose-50 text-rose-700",
   ELIMINAR: "bg-amber-50 text-amber-700",
   CAMBIAR_ROL: "bg-violet-50 text-violet-700",
   DESACTIVAR_USUARIO: "bg-violet-50 text-violet-700",
