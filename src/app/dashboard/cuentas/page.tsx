@@ -59,6 +59,10 @@ export default function ClientesPage() {
   const [form, setForm] = useState({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "", nombreContacto: "" });
   const [todasEmpresas, setTodasEmpresas] = useState<Empresa[]>([]);
   const [nuevoContactoForm, setNuevoContactoForm] = useState({ nombre: "", email: "", telefono: "", cargo: "" });
+  // El email/teléfono de "Otro contacto" arrancan heredando los del cliente
+  // (evita reteclear). En cuanto el usuario los edita a mano se marca "tocado"
+  // y dejan de seguir al cliente, para no pisar lo que escribió.
+  const [contactoTocado, setContactoTocado] = useState({ email: false, telefono: false });
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [stats, setStats] = useState({ total: 0, conContactos: 0, sinContactos: 0, contactosVinculados: 0 });
@@ -121,6 +125,17 @@ export default function ClientesPage() {
     cargar(busqueda, page, filtroAnio, filtroMes);
     fetch("/api/empresas").then(res => res.json()).then(setTodasEmpresas);
   }
+
+  // Mientras el usuario no toque a mano el email/teléfono de "Otro contacto",
+  // estos siguen a los del cliente. Así, para el caso común (el contacto usa el
+  // mismo correo que el cliente) no hay que escribir nada dos veces.
+  useEffect(() => {
+    setNuevoContactoForm(f => ({
+      ...f,
+      email: contactoTocado.email ? f.email : form.email,
+      telefono: contactoTocado.telefono ? f.telefono : form.telefono,
+    }));
+  }, [form.email, form.telefono, contactoTocado.email, contactoTocado.telefono]);
 
   // Duplicados: busca por nombre similar o email exacto
   const duplicados = todasEmpresas.filter(e => {
@@ -256,6 +271,7 @@ export default function ClientesPage() {
     }
     setForm({ nombre: "", email: "", sector: "", sitioWeb: "", telefono: "", notas: "", nombreContacto: "" });
     setNuevoContactoForm({ nombre: "", email: "", telefono: "", cargo: "" });
+    setContactoTocado({ email: false, telefono: false });
     setMostrarForm(false);
     setGuardando(false);
     cargar(busqueda, page, filtroAnio, filtroMes);
@@ -436,13 +452,13 @@ export default function ClientesPage() {
                   onChange={e => setNuevoContactoForm(f => ({ ...f, cargo: e.target.value }))}
                   className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500 bg-white" />
                 <input type="email" placeholder="Email" value={nuevoContactoForm.email}
-                  onChange={e => setNuevoContactoForm(f => ({ ...f, email: e.target.value }))}
+                  onChange={e => { setContactoTocado(t => ({ ...t, email: true })); setNuevoContactoForm(f => ({ ...f, email: e.target.value })); }}
                   className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500 bg-white" />
                 <input type="text" placeholder="Teléfono" value={nuevoContactoForm.telefono}
-                  onChange={e => setNuevoContactoForm(f => ({ ...f, telefono: e.target.value }))}
+                  onChange={e => { setContactoTocado(t => ({ ...t, telefono: true })); setNuevoContactoForm(f => ({ ...f, telefono: e.target.value })); }}
                   className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500 bg-white" />
               </div>
-              <p className="mt-2 text-[11px] text-slate-500">Si escribes un nombre, se creará automáticamente vinculado a este cliente al guardar. Puedes dejarlo en blanco.</p>
+              <p className="mt-2 text-[11px] text-slate-500">Si escribes un nombre, se creará automáticamente vinculado a este cliente al guardar. El email y teléfono vienen del cliente; cámbialos si esta persona usa otros. Puedes dejarlo en blanco.</p>
             </div>
 
             {duplicados.length > 0 && (
@@ -465,7 +481,7 @@ export default function ClientesPage() {
                 className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                 {guardando ? "Guardando..." : duplicados.length > 0 ? "Guardar de todas formas" : "Guardar"}
               </button>
-              <button type="button" onClick={() => setMostrarForm(false)}
+              <button type="button" onClick={() => { setMostrarForm(false); setContactoTocado({ email: false, telefono: false }); setNuevoContactoForm({ nombre: "", email: "", telefono: "", cargo: "" }); }}
                 className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
                 Cancelar
               </button>
