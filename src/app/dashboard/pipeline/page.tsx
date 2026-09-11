@@ -316,20 +316,72 @@ export default function PipelinePage() {
 
   async function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
-    if (modoEmpresa === "nueva" && !form.empresaId && nuevaEmpresaForm.nombre.trim()) {
-      setCreandoEmpresaError("Tienes datos de un cliente nuevo sin crear. Haz clic en \"Crear cliente\" o cambia a \"Existente\".");
-      return;
-    }
-    if (modoContacto === "nuevo" && !form.contactoId && nuevoContactoForm.nombre.trim()) {
-      setCreandoContactoError("Tienes datos de un contacto nuevo sin crear. Haz clic en \"Crear contacto\" o cambia a \"Existente\".");
-      return;
-    }
     setGuardando(true);
-    await fetch("/api/oportunidades", {
+    setCreandoEmpresaError("");
+    setCreandoContactoError("");
+
+    // Un solo "Guardar" crea lo que falte, en orden: cliente nuevo → contacto
+    // nuevo → oportunidad. Antes había que pulsar "Crear cliente" y "Crear
+    // contacto" por separado (y si no, el guardado se bloqueaba); ahora esos
+    // botones son opcionales. Se parte de lo ya elegido/creado en el form.
+    let empresaId = form.empresaId;
+    let contactoId = form.contactoId;
+
+    // 1. Cliente nuevo que todavía no se ha creado.
+    if (modoEmpresa === "nueva" && !empresaId && nuevaEmpresaForm.nombre.trim()) {
+      const res = await fetch("/api/empresas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevaEmpresaForm),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setCreandoEmpresaError(data.error ?? "No se pudo crear el cliente");
+        setGuardando(false);
+        return;
+      }
+      const nueva = await res.json();
+      empresaId = nueva.id;
+      setEmpresas(prev => [{ id: nueva.id, nombre: nueva.nombre }, ...prev]);
+    }
+
+    // 2. Contacto nuevo que todavía no se ha creado. Si no tiene correo/teléfono
+    //    propios, hereda los del cliente para no reteclear.
+    if (modoContacto === "nuevo" && !contactoId && nuevoContactoForm.nombre.trim()) {
+      const res = await fetch("/api/contactos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: nuevoContactoForm.nombre,
+          cargo: nuevoContactoForm.cargo,
+          email: nuevoContactoForm.email || nuevaEmpresaForm.email || "",
+          telefono: nuevoContactoForm.telefono || nuevaEmpresaForm.telefono || "",
+          empresaId: empresaId || null,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setCreandoContactoError(data.error ?? "No se pudo crear el contacto");
+        setGuardando(false);
+        return;
+      }
+      const nuevo = await res.json();
+      contactoId = nuevo.id;
+      setContactos(prev => [nuevo, ...prev]);
+    }
+
+    // 3. La oportunidad, ya con cliente y contacto resueltos.
+    const res = await fetch("/api/oportunidades", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, empresaId, contactoId }),
     });
+    if (!res.ok) {
+      toast.error("No se pudo crear la oportunidad. Revisa tu conexión e inténtalo de nuevo.");
+      setGuardando(false);
+      return;
+    }
+
     setForm({ titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50", fechaCierre: "", salonId: "", sede: "", fechaEvento: "", horaInicio: "", horaFin: "" });
     setModoEmpresa("existente");
     setNuevaEmpresaForm({ nombre: "", email: "", telefono: "" });
@@ -730,6 +782,7 @@ export default function PipelinePage() {
                       className="self-start rounded-lg bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                       {creandoEmpresaLoading ? "Creando..." : "Crear cliente"}
                     </button>
+                    <p className="text-[11px] text-slate-500">Opcional: si dejas los datos aquí, el cliente se crea solo al guardar la oportunidad.</p>
                   </div>
                 </div>
               )}
@@ -781,6 +834,7 @@ export default function PipelinePage() {
                       className="self-start rounded-lg bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
                       {creandoContactoLoading ? "Creando..." : "Crear contacto"}
                     </button>
+                    <p className="text-[11px] text-slate-500">Opcional: si lo dejas aquí, se crea al guardar la oportunidad (hereda el correo y teléfono del cliente si no le pones otros).</p>
                   </div>
                 </div>
               )}
