@@ -4,6 +4,7 @@ import {
 } from "@react-pdf/renderer";
 import React from "react";
 import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -31,10 +32,10 @@ const s = StyleSheet.create({
   portadaTit:  { fontSize: 30, fontFamily: "Helvetica-Bold", color: C.blanco, marginBottom: 8 },
   portadaSub:  { fontSize: 14, color: "#fde68a", marginBottom: 30 },
   portadaVer:  { fontSize: 10, color: "#fcd34d", borderTopWidth: 1, borderTopColor: "#92400e", paddingTop: 16 },
-  logoEvol:    { height: 40, width: 140, objectFit: "contain" },
+  logoEvol:    { height: 40, width: 160, objectFit: "contain" },
   logoFGJ:     { height: 44, width: 100, objectFit: "contain", borderRadius: 6 },
   pageHeader:  { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 40, paddingTop: 24, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: "#e2e8f0", marginBottom: 4 },
-  pageHeaderLogo: { height: 28, width: 90, objectFit: "contain" },
+  pageHeaderLogo: { height: 28, width: 104, objectFit: "contain" },
   pageHeaderFGJ:  { height: 28, width: 64, objectFit: "contain", borderRadius: 4 },
   seccion:     { paddingHorizontal: 40, paddingTop: 28 },
   h1:          { fontSize: 20, fontFamily: "Helvetica-Bold", color: C.ambar, marginBottom: 4 },
@@ -77,15 +78,15 @@ const s = StyleSheet.create({
   rolSub:      { fontSize: 9, color: C.gris },
 });
 
-function PageHeader() {
+function PageHeader({ base }: { base: string }) {
   return React.createElement(View, { style: s.pageHeader, fixed: true },
-    React.createElement(Image, { style: s.pageHeaderLogo, src: "https://evoluteca-crm-six.vercel.app/Logo%20Evoluteca.png" }),
-    React.createElement(Image, { style: s.pageHeaderFGJ,  src: "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" }),
+    React.createElement(Image, { style: s.pageHeaderLogo, src: `${base}/Logo%20Evoluteca%20CRM.png` }),
+    React.createElement(Image, { style: s.pageHeaderFGJ,  src: `${base}/Logo%20FGJ.jpg` }),
   );
 }
 function Footer() {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.1"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.2"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -219,6 +220,11 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
+  const h = await headers();
+  const host = h.get("host") ?? "evoluteca-crm-six.vercel.app";
+  const proto = h.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
+  const base = `${proto}://${host}`;
+
   const doc = React.createElement(Document,
     { title: "Manual de Pruebas — Cuenta Demo Evoluteca — Evoluteca CRM", author: "Evoluteca", subject: "Recorrido completo de la cuenta de demostración" },
 
@@ -226,8 +232,8 @@ export async function GET() {
     React.createElement(Page, { size: "A4", style: s.page },
       React.createElement(View, { style: s.portada },
         React.createElement(View, { style: s.portadaLogos },
-          React.createElement(Image, { style: s.logoEvol, src: "https://evoluteca-crm-six.vercel.app/Logo%20Evoluteca.png" }),
-          React.createElement(Image, { style: s.logoFGJ,  src: "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" }),
+          React.createElement(Image, { style: s.logoEvol, src: `${base}/Logo%20Evoluteca%20CRM.png` }),
+          React.createElement(Image, { style: s.logoFGJ,  src: `${base}/Logo%20FGJ.jpg` }),
         ),
         React.createElement(View, { style: s.portadaAmbar },
           React.createElement(Text, { style: s.portadaTit }, "Manual de Pruebas"),
@@ -250,7 +256,7 @@ export async function GET() {
             ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#fef3c7", marginBottom: 3 } }, item)),
           ),
           React.createElement(View, { style: { marginTop: 24 } },
-            React.createElement(Text, { style: s.portadaVer }, `Versión 2.1 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+            React.createElement(Text, { style: s.portadaVer }, `Versión 2.2 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
           ),
         ),
       ),
@@ -258,7 +264,7 @@ export async function GET() {
 
     // ── CAPÍTULO 1 y 2 ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "1. Qué es esta cuenta y qué vas a probar"),
       React.createElement(P, null, "Esta es una cuenta de demostración de Evoluteca CRM cargada con datos ficticios pero realistas de una empresa de consultoría y servicios B2B. No es una versión recortada: es el CRM completo, con datos suficientes para que cada función se vea en acción con información real."),
@@ -282,7 +288,7 @@ export async function GET() {
 
     // ── CAPÍTULO 3: CREDENCIALES Y ROLES ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "3. Credenciales y los 3 roles"),
       React.createElement(P, null, "La cuenta tiene 5 usuarios que comparten los mismos datos. La diferencia entre ellos es su rol: lo que cada uno puede ver y hacer. Empieza siempre como Administrador para ver el sistema completo."),
@@ -296,7 +302,7 @@ export async function GET() {
 
     // ── CAPÍTULO 4: ADMINISTRADOR — parte 1 (Dashboard, búsqueda, menú) ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "4. Recorrido como Administrador"),
       React.createElement(RolBadge, { pill: "ADMINISTRADOR", sub: "Entra con admin@demo-evoluteca.com · Demo2026!" }),
@@ -313,7 +319,7 @@ export async function GET() {
 
     // ── CAPÍTULO 4: ADMINISTRADOR — parte 2 (búsqueda, menú, clientes 360) ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H2, null, "4.2 Búsqueda global y menú a tu medida"),
       React.createElement(Paso, { n: 6, titulo: "Busca cualquier cosa", desc: "Arriba del menú lateral hay un buscador. Escribe 'Tech' (o el nombre de cualquier empresa, contacto u oportunidad).", esperado: "Resultados instantáneos mezclando clientes, contactos, oportunidades, cotizaciones y actividades; haz clic para saltar directo." }),
@@ -330,7 +336,7 @@ export async function GET() {
 
     // ── CAPÍTULO 4: ADMINISTRADOR — parte 3 (Configuración) ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H2, null, "4.4 Configuración — solo el administrador la ve"),
       React.createElement(P, null, "Ve a Configuración y a Equipo (menú lateral). Estas pantallas son la razón para empezar como administrador: aquí se controla cómo funciona todo el CRM."),
@@ -344,7 +350,7 @@ export async function GET() {
 
     // ── CAPÍTULO 5: FLUJO END-TO-END — parte 1 ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "5. Flujo comercial completo: de lead a venta"),
       React.createElement(P, null, "Aquí no solo miras: ejecutas el ciclo comercial completo con tus propias manos, creando datos reales. Es la mejor forma de sentir cómo fluye el CRM. Puedes hacerlo como administrador o como comercial."),
@@ -353,13 +359,13 @@ export async function GET() {
       React.createElement(Paso, { n: 1, titulo: "Crea un cliente nuevo", desc: "Ve a Clientes > Nuevo. Crea la empresa 'Prueba Demo S.A.S', ponle sector, un par de etiquetas y guárdala.", esperado: "La empresa aparece en la lista de Clientes y se abre su ficha vacía." }),
       React.createElement(Paso, { n: 2, titulo: "Agrégale un contacto", desc: "Dentro de la ficha, añade un contacto (nombre, cargo, email, teléfono).", esperado: "El contacto queda vinculado a la empresa y aparece también en el módulo Contactos." }),
       React.createElement(Paso, { n: 3, titulo: "Crea una oportunidad", desc: "Crea una oportunidad para ese cliente: título, valor (p. ej. 10.000.000), etapa inicial 'Prospecto' y una fecha de cierre estimada.", esperado: "La oportunidad aparece en el Pipeline, en la columna Prospecto. Los campos de dinero muestran separador de miles automático." }),
-      React.createElement(Paso, { n: 4, titulo: "Avánzala por el pipeline (drag & drop)", desc: "Ve a Pipeline y arrastra tu tarjeta de 'Prospecto' hasta 'Propuesta'. Suéltala en la columna.", esperado: "La tarjeta cambia de columna al instante y la etapa queda registrada en su historial." }),
+      React.createElement(Paso, { n: 4, titulo: "Avánzala por el pipeline (drag & drop)", desc: "Ve a Pipeline y arrastra tu tarjeta de 'Prospecto' hasta 'Cotización'. Suéltala en la columna.", esperado: "La tarjeta cambia de columna al instante y la etapa queda registrada en su historial." }),
       React.createElement(Paso, { n: 5, titulo: "Registra una actividad de seguimiento", desc: "Abre tu oportunidad y crea una actividad (una llamada para mañana, por ejemplo).", esperado: "La actividad aparece en la Agenda y, si la pones vencida, se sumará al panel de alertas del dashboard." }),
     ),
 
     // ── CAPÍTULO 5: FLUJO END-TO-END — parte 2 (cotización → PDF → ganar) ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(Paso, { n: 6, titulo: "Crea una cotización formal", desc: "Ve a Cotizaciones > Nueva. Selecciona tu cliente y contacto, y agrega ítems desde el Catálogo (o escríbelos a mano). Prueba también cargar una Plantilla.", esperado: "El total se calcula solo con su desglose e impuesto; cargar una plantilla llena los ítems de golpe." }),
       React.createElement(Paso, { n: 7, titulo: "Descarga el PDF", desc: "Guarda la cotización y descárgala en PDF.", esperado: "Un PDF profesional con el logo, el desglose de servicios, el impuesto y el total, listo para enviar al cliente." }),
@@ -372,7 +378,7 @@ export async function GET() {
 
     // ── CAPÍTULO 6: GERENTE ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "6. Recorrido como Gerente"),
       React.createElement(RolBadge, { pill: "GERENTE", sub: "Cierra sesión y entra con gerente@demo-evoluteca.com · Demo2026!" }),
@@ -387,7 +393,7 @@ export async function GET() {
 
     // ── CAPÍTULO 7: COMERCIAL ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "7. Recorrido como Comercial"),
       React.createElement(RolBadge, { pill: "COMERCIAL", sub: "Cierra sesión y entra con sofia@demo-evoluteca.com · Demo2026!" }),
@@ -402,13 +408,13 @@ export async function GET() {
 
     // ── CAPÍTULO 8: MÓDULOS EN DETALLE — parte A ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "8. Módulos en detalle"),
       React.createElement(P, null, "Este capítulo recorre a fondo, módulo por módulo, funciones que quizá ya viste de pasada. Puedes hacerlo con el usuario Administrador. No es necesario en orden: usa esta sección como referencia."),
 
       React.createElement(H2, null, "8.1 Pipeline a fondo"),
-      React.createElement(LI, null, "Las 6 etapas: Prospecto, Calificado, Propuesta, Negociación, Ganada y Perdida — con el valor total de cada columna."),
+      React.createElement(LI, null, "Las 6 etapas: Prospecto, Calificado, Cotización, Negociación, Ganada y Perdida — con el valor total de cada columna."),
       React.createElement(LI, null, "Indicadores de urgencia: las tarjetas señalan negocios con fecha de cierre próxima o sin movimiento reciente."),
       React.createElement(LI, null, "Drag & drop entre columnas para cambiar de etapa (lo probaste en el capítulo 5)."),
       React.createElement(LI, null, "Vista tabla: alterna del tablero (kanban) a una vista de tabla ordenable y filtrable."),
@@ -427,7 +433,7 @@ export async function GET() {
 
     // ── CAPÍTULO 8: MÓDULOS EN DETALLE — parte B ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H2, null, "8.3 Reportes y metas a fondo"),
       React.createElement(P, null, "Ve a Reportes. Es el centro de análisis del negocio; todo se recalcula al vuelo con filtros de período y vendedor."),
@@ -456,7 +462,7 @@ export async function GET() {
 
     // ── CAPÍTULO 9: IA + CAPÍTULO 10: MÓVIL ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "9. Inteligencia Artificial"),
       React.createElement(P, null, "El CRM reúne todas sus funciones de IA en una pestaña propia: 'Asistente IA' (en el menú lateral, debajo de Reportes). Son 6 asistentes que trabajan solo con los datos reales de tu cuenta —no inventan ni consultan nada externo— y comparten un mismo cupo mensual, visible como 'Acciones de IA · este mes'."),
@@ -478,7 +484,7 @@ export async function GET() {
 
     // ── CAPÍTULO 11: CHECKLIST + FAQ + PRÓXIMOS PASOS ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "11. Checklist de cobertura"),
       React.createElement(P, null, "Marca lo que ya probaste. Si completas la lista, habrás recorrido prácticamente todo lo que hace el CRM."),
