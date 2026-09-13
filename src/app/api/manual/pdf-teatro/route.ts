@@ -3,6 +3,7 @@ import {
   renderToBuffer, Document, Page, Text, View, StyleSheet, Image,
 } from "@react-pdf/renderer";
 import React from "react";
+import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { moduloActivo } from "@/lib/permisos";
@@ -65,10 +66,10 @@ const s = StyleSheet.create({
   pasoTxt:     { fontSize: 9, color: C.gris, lineHeight: 1.5 },
 });
 
-function PageHeader() {
+function PageHeader({ base }: { base: string }) {
   return React.createElement(View, { style: s.pageHeader, fixed: true },
-    React.createElement(Image, { style: s.pageHeaderLogo, src: "https://evoluteca-crm-six.vercel.app/Logo%20Evoluteca.png" }),
-    React.createElement(Image, { style: s.pageHeaderFGJ,  src: "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" }),
+    React.createElement(Image, { style: s.pageHeaderLogo, src: `${base}/Logo%20Evoluteca%20CRM.png` }),
+    React.createElement(Image, { style: s.pageHeaderFGJ,  src: `${base}/Logo%20FGJ.jpg` }),
   );
 }
 function Footer() {
@@ -142,6 +143,11 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
+  const h = await headers();
+  const host = h.get("host") ?? "evoluteca-crm-six.vercel.app";
+  const proto = h.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
+  const base = `${proto}://${host}`;
+
   const tenant = await prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { modulos: true } });
   if (!moduloActivo(tenant?.modulos, "funciones") && !moduloActivo(tenant?.modulos, "audiencia")) {
     return NextResponse.json({ error: "Este anexo aplica solo a tenants con el módulo Funciones o Audiencia activo" }, { status: 403 });
@@ -154,8 +160,8 @@ export async function GET() {
     React.createElement(Page, { size: "A4", style: s.page },
       React.createElement(View, { style: s.portada },
         React.createElement(View, { style: s.portadaLogos },
-          React.createElement(Image, { style: s.logoEvol, src: "https://evoluteca-crm-six.vercel.app/Logo%20Evoluteca.png" }),
-          React.createElement(Image, { style: s.logoFGJ,  src: "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" }),
+          React.createElement(Image, { style: s.logoEvol, src: `${base}/Logo%20Evoluteca%20CRM.png` }),
+          React.createElement(Image, { style: s.logoFGJ,  src: `${base}/Logo%20FGJ.jpg` }),
         ),
         React.createElement(View, { style: s.portadaAzul },
           React.createElement(Text, { style: s.portadaTit }, "Anexo — Teatros y"),
@@ -182,7 +188,7 @@ export async function GET() {
 
     // ── CAPÍTULO 1 y 2 ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "1. Para quién es este anexo"),
       React.createElement(P, null, "Este documento complementa el Manual de Usuario general de Evoluteca CRM y describe únicamente las funcionalidades adicionales pensadas para teatros, salas de espectáculos y espacios que venden boletería por función. Si tu empresa no gestiona funciones ni público asistente, este anexo no te aplica — todo lo que necesitas está en el manual general."),
@@ -221,7 +227,7 @@ export async function GET() {
 
     // ── CAPÍTULO 3 ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "3. Alerta de ocupación baja"),
       React.createElement(P, null, "El sistema revisa automáticamente las funciones programadas para los próximos 5 días. Si una función tiene menos del 60% de ocupación (sillas vendidas sobre sillas totales), se marca como urgente en tres lugares distintos, para que el equipo comercial tenga tiempo de reaccionar con una campaña de último momento."),
@@ -236,7 +242,7 @@ export async function GET() {
 
     // ── CAPÍTULO 4 ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "4. Módulo Audiencia — retención y recencia"),
       React.createElement(P, null, "Con el registro de asistencia por función (capítulo 2), Audiencia calcula automáticamente qué tan activo está cada espectador y qué porcentaje de tu público realmente regresa — dos datos que antes no existían en el CRM y que antes solo se podían estimar de forma manual."),
@@ -274,7 +280,7 @@ export async function GET() {
 
     // ── CAPÍTULO 5 y 6 ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "5. Niveles de membresía"),
       React.createElement(P, null, "Cada espectador puede tener asignado un nivel dentro de tu club de fidelización, editable desde su ficha o desde la tabla de Audiencia. El sistema trae tres niveles predefinidos, pensados como punto de partida:"),
@@ -298,7 +304,7 @@ export async function GET() {
 
     // ── CAPÍTULO 7: FAQ ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "7. Preguntas frecuentes"),
 

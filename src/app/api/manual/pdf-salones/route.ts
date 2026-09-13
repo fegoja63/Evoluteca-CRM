@@ -3,6 +3,7 @@ import {
   renderToBuffer, Document, Page, Text, View, StyleSheet, Image,
 } from "@react-pdf/renderer";
 import React from "react";
+import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { moduloActivo } from "@/lib/permisos";
@@ -66,10 +67,10 @@ const s = StyleSheet.create({
   pasoTxt:     { fontSize: 9, color: C.gris, lineHeight: 1.5 },
 });
 
-function PageHeader() {
+function PageHeader({ base }: { base: string }) {
   return React.createElement(View, { style: s.pageHeader, fixed: true },
-    React.createElement(Image, { style: s.pageHeaderLogo, src: "https://evoluteca-crm-six.vercel.app/Logo%20Evoluteca.png" }),
-    React.createElement(Image, { style: s.pageHeaderFGJ,  src: "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" }),
+    React.createElement(Image, { style: s.pageHeaderLogo, src: `${base}/Logo%20Evoluteca%20CRM.png` }),
+    React.createElement(Image, { style: s.pageHeaderFGJ,  src: `${base}/Logo%20FGJ.jpg` }),
   );
 }
 function Footer() {
@@ -143,6 +144,11 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
+  const h = await headers();
+  const host = h.get("host") ?? "evoluteca-crm-six.vercel.app";
+  const proto = h.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
+  const base = `${proto}://${host}`;
+
   const tenant = await prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { modulos: true } });
   if (!moduloActivo(tenant?.modulos, "salones")) {
     return NextResponse.json({ error: "Este anexo aplica solo a tenants con el módulo Salones activo" }, { status: 403 });
@@ -155,8 +161,8 @@ export async function GET() {
     React.createElement(Page, { size: "A4", style: s.page },
       React.createElement(View, { style: s.portada },
         React.createElement(View, { style: s.portadaLogos },
-          React.createElement(Image, { style: s.logoEvol, src: "https://evoluteca-crm-six.vercel.app/Logo%20Evoluteca.png" }),
-          React.createElement(Image, { style: s.logoFGJ,  src: "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" }),
+          React.createElement(Image, { style: s.logoEvol, src: `${base}/Logo%20Evoluteca%20CRM.png` }),
+          React.createElement(Image, { style: s.logoFGJ,  src: `${base}/Logo%20FGJ.jpg` }),
         ),
         React.createElement(View, { style: s.portadaAzul },
           React.createElement(Text, { style: s.portadaTit }, "Anexo — Alquiler"),
@@ -183,7 +189,7 @@ export async function GET() {
 
     // ── CAPÍTULO 1 y 2 ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "1. Para quién es este anexo"),
       React.createElement(P, null, "Este documento complementa el Manual de Usuario general de Evoluteca CRM y describe únicamente las funcionalidades adicionales del módulo Salones: catálogo de espacios, vinculación a cotizaciones y oportunidades, control de horarios y choques de fecha, calendario mensual con arrastrar y soltar, y la vista de alquileres por día. Si tu negocio no alquila salones o espacios físicos, este anexo no te aplica."),
@@ -204,7 +210,7 @@ export async function GET() {
 
     // ── CAPÍTULO 3 ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "3. Vincular un salón a una cotización u oportunidad"),
       React.createElement(P, null, "Con el módulo Salones activo, tanto el formulario de Nueva cotización como el de Nueva oportunidad (Pipeline) muestran un selector de Salón adicional al campo de texto libre \"Sede / Lugar\"."),
@@ -221,7 +227,7 @@ export async function GET() {
 
     // ── CAPÍTULO 4 ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "4. Horarios y choques de fecha"),
       React.createElement(P, null, "El sistema evita que dos eventos reserven el mismo salón en el mismo horario, pero sí permite varios eventos distintos el mismo día en el mismo salón si sus horarios no se cruzan (ej: un evento en la mañana y otro en la noche)."),
@@ -245,7 +251,7 @@ export async function GET() {
 
     // ── CAPÍTULO 5 ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "5. Calendario de reservas"),
       React.createElement(P, null, "Ve a Salones y haz clic en \"Calendario\" para ver un calendario mensual de reservas de un salón específico. Solo se muestran las cotizaciones en estado ACEPTADA — las reservas confirmadas."),
@@ -267,7 +273,7 @@ export async function GET() {
 
     // ── CAPÍTULO 6 y 7 ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "6. Alquileres por día"),
       React.createElement(P, null, "Ve a Salones y haz clic en \"Ver por día\" para ver, en una sola tabla, todos los salones de tu catálogo con sus reservas confirmadas (estado ACEPTADA) para una fecha específica."),
