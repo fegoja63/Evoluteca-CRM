@@ -3,6 +3,7 @@ import {
   renderToBuffer, Document, Page, Text, View, StyleSheet, Image,
 } from "@react-pdf/renderer";
 import React from "react";
+import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -95,16 +96,16 @@ const s = StyleSheet.create({
   badgeTxt:    { fontSize: 8, fontFamily: "Helvetica-Bold" },
 });
 
-function PageHeader() {
+function PageHeader({ base }: { base: string }) {
   return React.createElement(View, { style: s.pageHeader, fixed: true },
-    React.createElement(Image, { style: s.pageHeaderLogo, src: "https://evoluteca-crm-six.vercel.app/Logo%20Evoluteca.png" }),
-    React.createElement(Image, { style: s.pageHeaderFGJ,  src: "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" }),
+    React.createElement(Image, { style: s.pageHeaderLogo, src: `${base}/Logo%20Evoluteca%20CRM.png` }),
+    React.createElement(Image, { style: s.pageHeaderFGJ,  src: `${base}/Logo%20FGJ.jpg` }),
   );
 }
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.22"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.23"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -205,6 +206,11 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
+  const h = await headers();
+  const host = h.get("host") ?? "evoluteca-crm-six.vercel.app";
+  const proto = h.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
+  const base = `${proto}://${host}`;
+
   const doc = React.createElement(Document,
     { title: "Manual de Usuario — Evoluteca CRM", author: "Evoluteca", subject: "Guía de uso del CRM" },
 
@@ -213,8 +219,8 @@ export async function GET() {
       React.createElement(View, { style: s.portada },
         // Franja blanca con logos — FUERA del azul
         React.createElement(View, { style: s.portadaLogos },
-          React.createElement(Image, { style: s.logoEvol, src: "https://evoluteca-crm-six.vercel.app/Logo%20Evoluteca.png" }),
-          React.createElement(Image, { style: s.logoFGJ,  src: "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" }),
+          React.createElement(Image, { style: s.logoEvol, src: `${base}/Logo%20Evoluteca%20CRM.png` }),
+          React.createElement(Image, { style: s.logoFGJ,  src: `${base}/Logo%20FGJ.jpg` }),
         ),
         // Bloque azul que ocupa el resto de la página
         React.createElement(View, { style: s.portadaAzul },
@@ -245,7 +251,7 @@ export async function GET() {
 
     // ── CAPÍTULO 1: PRIMEROS PASOS ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, { numero: 2 }),
       React.createElement(H1, null, "1. Primeros pasos"),
       React.createElement(P, null, "Evoluteca CRM es una herramienta diseñada para que pequeñas y medianas empresas gestionen sus clientes, oportunidades de venta y actividades comerciales desde un solo lugar. El dashboard principal muestra un resumen ejecutivo con banner de bienvenida, KPIs en tiempo real, pipeline visual, actividades del día, funciones próximas y accesos rápidos a las acciones más frecuentes."),
@@ -326,7 +332,7 @@ export async function GET() {
 
     // ── CAPÍTULO 2: CLIENTES Y CONTACTOS ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, { numero: 3 }),
       React.createElement(H1, null, "2. Clientes y contactos"),
 
@@ -428,7 +434,7 @@ export async function GET() {
 
     // ── CAPÍTULO 3: PIPELINE ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, { numero: 4 }),
       React.createElement(H1, null, "3. Pipeline de ventas"),
       React.createElement(P, null, "El pipeline organiza visualmente las oportunidades de venta por etapa comercial. Cada tarjeta representa una oportunidad con cliente, valor y fecha."),
@@ -534,7 +540,7 @@ export async function GET() {
 
     // ── CAPÍTULO 4: AGENDA ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, { numero: 5 }),
       React.createElement(H1, null, "4. Agenda y actividades"),
       React.createElement(P, null, "La agenda centraliza todas las actividades comerciales: llamadas, reuniones, tareas y correos. Cada actividad puede vincularse a un cliente, contacto y/o oportunidad."),
@@ -603,7 +609,7 @@ export async function GET() {
 
     // ── CAPÍTULO 5: COTIZACIONES ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, { numero: 6 }),
       React.createElement(H1, null, "5. Cotizaciones formales"),
       React.createElement(P, null, "Las cotizaciones formales son documentos con desglose detallado de servicios, cantidades, precios unitarios y total. Se generan en PDF listas para enviar al cliente."),
@@ -697,7 +703,7 @@ export async function GET() {
 
     // ── CAPÍTULO 6: IMPORTACIÓN ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, { numero: 7 }),
       React.createElement(H1, null, "6. Importación de datos desde Excel"),
       React.createElement(P, null, "Si tienes una base de datos en Excel, puedes importarla directamente al CRM. El sistema crea automáticamente empresas, contactos y oportunidades vinculados entre sí."),
@@ -721,7 +727,7 @@ export async function GET() {
 
     // ── CAPÍTULO 7: REPORTES ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, { numero: 8 }),
       React.createElement(H1, null, "7. Reportes y metas"),
       React.createElement(P, null, "Los reportes muestran el desempeño comercial del equipo: valor ganado, tasa de cierre, oportunidades por etapa, top clientes y actividad mensual."),
@@ -796,7 +802,7 @@ export async function GET() {
 
     // ── CAPÍTULO 8: DASHBOARD ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, { numero: 9 }),
       React.createElement(H1, null, "8. Dashboard — Tablero gerencial One Page"),
       React.createElement(P, null, "El Dashboard es la pantalla principal del CRM. Funciona como un tablero de control gerencial que concentra en una sola página el estado completo de la operación comercial: meta del mes, KPIs clave, ranking de vendedores, oportunidades calientes y alertas de salud comercial."),
@@ -855,7 +861,7 @@ export async function GET() {
 
     // ── CAPÍTULO 9: CONFIGURACIÓN ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, { numero: 10 }),
       React.createElement(H1, null, "9. Configuración, equipo y perfiles"),
 
@@ -969,7 +975,7 @@ export async function GET() {
 
     // ── CAPÍTULO 10: INTELIGENCIA ARTIFICIAL ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, { numero: 11 }),
       React.createElement(H1, null, "10. Inteligencia Artificial"),
       React.createElement(P, null, "El CRM reúne todas sus funciones de IA en una sola pestaña: 'Asistente IA', en el menú lateral (debajo de Reportes). Todas trabajan únicamente con los datos reales dentro de tu CRM — no consultan información externa ni comparten tus datos con otras organizaciones — y comparten un mismo cupo mensual de uso."),

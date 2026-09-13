@@ -3,6 +3,7 @@ import {
   renderToBuffer, Document, Page, Text, View, StyleSheet, Image,
 } from "@react-pdf/renderer";
 import React from "react";
+import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -67,15 +68,15 @@ const s = StyleSheet.create({
   credValue:   { fontSize: 10, fontFamily: "Helvetica-Bold", color: C.blanco },
 });
 
-function PageHeader() {
+function PageHeader({ base }: { base: string }) {
   return React.createElement(View, { style: s.pageHeader, fixed: true },
-    React.createElement(Image, { style: s.pageHeaderLogo, src: "https://evoluteca-crm-six.vercel.app/Logo%20Evoluteca.png" }),
-    React.createElement(Image, { style: s.pageHeaderFGJ,  src: "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" }),
+    React.createElement(Image, { style: s.pageHeaderLogo, src: `${base}/Logo%20Evoluteca%20CRM.png` }),
+    React.createElement(Image, { style: s.pageHeaderFGJ,  src: `${base}/Logo%20FGJ.jpg` }),
   );
 }
 function Footer() {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo v1.1"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo v1.2"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -161,6 +162,11 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
+  const h = await headers();
+  const host = h.get("host") ?? "evoluteca-crm-six.vercel.app";
+  const proto = h.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
+  const base = `${proto}://${host}`;
+
   const doc = React.createElement(Document,
     { title: "Manual de Pruebas — Cuenta Demo Teatro — Evoluteca CRM", author: "Evoluteca", subject: "Recorrido guiado de la cuenta de demostración" },
 
@@ -168,8 +174,8 @@ export async function GET() {
     React.createElement(Page, { size: "A4", style: s.page },
       React.createElement(View, { style: s.portada },
         React.createElement(View, { style: s.portadaLogos },
-          React.createElement(Image, { style: s.logoEvol, src: "https://evoluteca-crm-six.vercel.app/Logo%20Evoluteca.png" }),
-          React.createElement(Image, { style: s.logoFGJ,  src: "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" }),
+          React.createElement(Image, { style: s.logoEvol, src: `${base}/Logo%20Evoluteca%20CRM.png` }),
+          React.createElement(Image, { style: s.logoFGJ,  src: `${base}/Logo%20FGJ.jpg` }),
         ),
         React.createElement(View, { style: s.portadaAmbar },
           React.createElement(Text, { style: s.portadaTit }, "Manual de Pruebas"),
@@ -196,7 +202,7 @@ export async function GET() {
 
     // ── CAPÍTULO 1 y 2 ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "1. Qué es esta cuenta y qué vas a encontrar"),
       React.createElement(P, null, "Esta es una cuenta de demostración de Evoluteca CRM, cargada con datos ficticios pero realistas para que puedas explorar de primera mano el alcance completo del producto: la parte comercial general (clientes, pipeline, cotizaciones, agenda, reportes) que usa cualquier empresa, y la parte específica para teatros y espacios de espectáculos (funciones, ocupación, audiencia, retención, membresías)."),
@@ -211,7 +217,7 @@ export async function GET() {
 
     // ── CAPÍTULO 3: RECORRIDO CRM GENERAL ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "3. Recorrido guiado — CRM general (aprox. 10 min)"),
       React.createElement(P, null, "Esta parte del sistema es idéntica a la que usan empresas de servicios, agencias o cualquier negocio B2B. En un teatro corresponde a la gestión de alquiler de sala y eventos corporativos — la 'palanca dormida' que casi nunca se trabaja con sistema."),
@@ -236,7 +242,7 @@ export async function GET() {
 
     // ── CAPÍTULO 4: RECORRIDO FUNCIONES + AUDIENCIA ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "4. Recorrido guiado — Funciones y Audiencia (aprox. 15 min)"),
       React.createElement(P, null, "Esta es la parte diseñada específicamente para teatros. Ve a Funciones en el menú lateral — verás 16 funciones: 13 ya realizadas en los últimos 5 meses y 3 próximas."),
@@ -253,7 +259,7 @@ export async function GET() {
 
     // ── CAPÍTULO 5 ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "5. Cómo probar la cola de NPS en vivo"),
       React.createElement(P, null, "Esta cuenta se dejó preparada a propósito con encuestas NPS pendientes de las dos funciones más recientes, para que puedas ver el flujo completo en acción, no solo leerlo."),
@@ -265,7 +271,7 @@ export async function GET() {
 
     // ── CAPÍTULO 6: FAQ ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "6. Preguntas frecuentes de la prueba"),
 

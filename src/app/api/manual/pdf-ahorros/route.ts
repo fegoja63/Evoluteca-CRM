@@ -3,6 +3,7 @@ import {
   renderToBuffer, Document, Page, Text, View, StyleSheet, Image,
 } from "@react-pdf/renderer";
 import React from "react";
+import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { moduloActivo } from "@/lib/permisos";
@@ -64,10 +65,10 @@ const s = StyleSheet.create({
   pasoTxt:     { fontSize: 9, color: C.gris, lineHeight: 1.5 },
 });
 
-function PageHeader() {
+function PageHeader({ base }: { base: string }) {
   return React.createElement(View, { style: s.pageHeader, fixed: true },
-    React.createElement(Image, { style: s.pageHeaderLogo, src: "https://evoluteca-crm-six.vercel.app/Logo%20Evoluteca.png" }),
-    React.createElement(Image, { style: s.pageHeaderFGJ,  src: "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" }),
+    React.createElement(Image, { style: s.pageHeaderLogo, src: `${base}/Logo%20Evoluteca%20CRM.png` }),
+    React.createElement(Image, { style: s.pageHeaderFGJ,  src: `${base}/Logo%20FGJ.jpg` }),
   );
 }
 function Footer() {
@@ -148,6 +149,11 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
+  const h = await headers();
+  const host = h.get("host") ?? "evoluteca-crm-six.vercel.app";
+  const proto = h.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
+  const base = `${proto}://${host}`;
+
   const tenant = await prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { modulos: true } });
   if (!moduloActivo(tenant?.modulos, "ahorros")) {
     return NextResponse.json({ error: "Este anexo aplica solo a tenants con el módulo Facturación por resultados activo" }, { status: 403 });
@@ -160,8 +166,8 @@ export async function GET() {
     React.createElement(Page, { size: "A4", style: s.page },
       React.createElement(View, { style: s.portada },
         React.createElement(View, { style: s.portadaLogos },
-          React.createElement(Image, { style: s.logoEvol, src: "https://evoluteca-crm-six.vercel.app/Logo%20Evoluteca.png" }),
-          React.createElement(Image, { style: s.logoFGJ,  src: "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg" }),
+          React.createElement(Image, { style: s.logoEvol, src: `${base}/Logo%20Evoluteca%20CRM.png` }),
+          React.createElement(Image, { style: s.logoFGJ,  src: `${base}/Logo%20FGJ.jpg` }),
         ),
         React.createElement(View, { style: s.portadaAzul },
           React.createElement(Text, { style: s.portadaTit }, "Anexo — Facturación"),
@@ -190,7 +196,7 @@ export async function GET() {
 
     // ── CAP 1, 2, 3 ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "1. Para quién es este anexo"),
       React.createElement(P, null, "Este documento complementa el Manual de Usuario general de Evoluteca CRM y describe únicamente el módulo Facturación por resultados: cotizar cobrando por el resultado que le generas al cliente, no por un precio fijo. Está pensado para consultoras de optimización de gasto (telecomunicaciones, TIC/nube, servicios públicos), auditoría de facturas o renegociación con proveedores, que cobran un porcentaje del ahorro logrado o un honorario mensual durante el contrato."),
@@ -218,7 +224,7 @@ export async function GET() {
 
     // ── CAP 4 y 5 ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "4. Crear una cotización Success Fee"),
       React.createElement(Paso, { n: 1, titulo: "Nueva cotización", desc: "Entra a Cotizaciones > Nueva cotización." }),
@@ -238,7 +244,7 @@ export async function GET() {
 
     // ── CAP 6, 7, 8, 9 ──
     React.createElement(Page, { size: "A4", style: s.page },
-      React.createElement(PageHeader, null),
+      React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H1, null, "6. Después de guardar"),
       React.createElement(LI, null, "La cotización aparece en el Pipeline como un negocio, con el honorario estimado como valor."),
