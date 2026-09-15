@@ -155,12 +155,12 @@ async function main() {
     { titulo: "Cierre de contrato — Clínica Salud Total", emp: 2, cont: 2, valor: 30_000_000, prob: 80, etapa: "NEGOCIACION", ultMov: 6, cierreDias: -18, vend: 0 }, // alta
     { titulo: "Ajuste de términos — Tech Solutions", emp: 6, cont: 6, valor: 26_000_000, prob: 65, etapa: "NEGOCIACION", ultMov: 3, cierreDias: -6, vend: 1, proxima: true }, // atención (cierre)
     { titulo: "Negociación estancada — Importadora Oriente", emp: 8, cont: 4, valor: 19_000_000, prob: 60, etapa: "NEGOCIACION", ultMov: 65, vend: 2 }, // riesgo
-    // GANADA (8) — ventas en JULIO y SEPTIEMBRE; suman ~$585M ≈ 78% de la meta
-    // anual ($750M) para que a septiembre el cumplimiento del año sea ≥70%.
-    { titulo: "Contrato firmado — Aseguradora Confianza", emp: 7, cont: 7, valor: 80_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: jul(8), vend: 0 },
+    // GANADA (8) — ventas en JULIO, AGOSTO y SEPTIEMBRE; suman ~$585M ≈ 78% de la
+    // meta anual ($750M) para que a septiembre el cumplimiento del año sea ≥70%.
+    { titulo: "Contrato firmado — Aseguradora Confianza", emp: 7, cont: 7, valor: 105_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: jul(8), vend: 0 },
     { titulo: "Proyecto ganado — Farmacéutica BioMed", emp: 9, cont: 9, valor: 70_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: jul(15), vend: 1 },
-    { titulo: "Implementación — Banco Regional del Norte", emp: 3, cont: 3, valor: 65_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: jul(22), vend: 2 },
-    { titulo: "Suite CRM — Tech Solutions Colombia", emp: 6, cont: 6, valor: 60_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: jul(28), vend: 0 },
+    { titulo: "Implementación — Banco Regional del Norte", emp: 3, cont: 3, valor: 65_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: ago(12), vend: 2 },
+    { titulo: "Suite CRM — Tech Solutions Colombia", emp: 6, cont: 6, valor: 35_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: ago(20), vend: 0 },
     { titulo: "Renovación anual — Clínica Salud Total", emp: 2, cont: 2, valor: 85_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: sep(2), vend: 1 },
     { titulo: "Venta cerrada — Restaurantes La Brasa", emp: 5, cont: 5, valor: 75_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: sep(6), vend: 2 },
     { titulo: "Licencia + soporte — Inversiones Pacífico", emp: 0, cont: 0, valor: 80_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: sep(10), vend: 0 },
