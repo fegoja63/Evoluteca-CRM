@@ -236,6 +236,45 @@ describe("fecha de cierre al PERDER una oportunidad", () => {
     expect(enBase?.fechaCierre?.getTime()).toBeGreaterThanOrEqual(antes - 1000);
     expect(enBase?.fechaCierre?.getTime()).toBeLessThan(estimadaFutura.getTime());
   });
+
+  it("al marcar GANADA se contabiliza el día en que se gana, no la fecha estimada", async () => {
+    comoUsuario(A, "GERENTE");
+    const estimadaFutura = new Date("2027-11-25T00:00:00.000Z");
+    await prisma.oportunidad.update({
+      where: { id: A.oportunidadDelComercial },
+      data: { fechaCierre: estimadaFutura },
+    });
+
+    const antes = Date.now();
+    const { status } = await llamar(editar, {
+      params: { id: A.oportunidadDelComercial },
+      body: { etapa: "GANADA" },
+    });
+    expect(status).toBe(200);
+
+    const enBase = await prisma.oportunidad.findFirst({
+      where: { id: A.oportunidadDelComercial, tenantId: A.tenantId },
+      select: { fechaCierre: true, etapa: true },
+    });
+    expect(enBase?.etapa).toBe("GANADA");
+    expect(enBase?.fechaCierre?.getTime()).toBeGreaterThanOrEqual(antes - 1000);
+    expect(enBase?.fechaCierre?.getTime()).toBeLessThan(estimadaFutura.getTime());
+  });
+
+  it("si la petición trae una fecha de cierre explícita, se respeta (no se sobreescribe)", async () => {
+    comoUsuario(A, "GERENTE");
+    const fechaReal = new Date("2026-06-10T00:00:00.000Z");
+    const { status } = await llamar(editar, {
+      params: { id: A.oportunidadDelComercial },
+      body: { etapa: "GANADA", fechaCierre: fechaReal.toISOString() },
+    });
+    expect(status).toBe(200);
+    const enBase = await prisma.oportunidad.findFirst({
+      where: { id: A.oportunidadDelComercial, tenantId: A.tenantId },
+      select: { fechaCierre: true },
+    });
+    expect(enBase?.fechaCierre?.toISOString().slice(0, 10)).toBe("2026-06-10");
+  });
 });
 
 describe("el guardarrail de Prisma", () => {
