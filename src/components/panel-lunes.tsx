@@ -17,6 +17,7 @@ type Datos = {
   };
   ticketPromedio: { valor: number; operaciones: number; ventana: "12m" | "historico" };
   clientes: { total: number; nuevos: number; activos: number; inactivos: number; perdidos: number };
+  rangos: { actividad: string; ticket: string; mes: string; diasInactividad: number };
 };
 
 function fmt(v: number) {
@@ -75,7 +76,7 @@ export function PanelLunes() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-sm font-bold text-slate-900">Actividad comercial</p>
-              <p className="text-xs text-slate-400 mt-0.5">Toques del equipo · últimos 7 días</p>
+              <p className="text-xs text-slate-400 mt-0.5">Toques del equipo · últimos 7 días ({d.rangos.actividad})</p>
             </div>
             <span className="text-2xl font-extrabold text-brand-600">{d.actividad.total}</span>
           </div>
@@ -145,7 +146,7 @@ export function PanelLunes() {
             <div>
               <p className="text-sm font-bold text-slate-900">Ticket promedio</p>
               <p className="text-xs text-slate-400 mt-0.5">
-                Valor medio por operación ganada · {d.ticketPromedio.ventana === "12m" ? "últimos 12 meses" : "histórico"}
+                Valor medio por operación ganada · {d.ticketPromedio.ventana === "12m" ? `últimos 12 meses (${d.rangos.ticket})` : "histórico completo"}
               </p>
             </div>
             <IconTag size={18} stroke={1.75} className="text-accent-600" />
@@ -165,15 +166,15 @@ export function PanelLunes() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-sm font-bold text-slate-900">Movimiento de clientes</p>
-              <p className="text-xs text-slate-400 mt-0.5">{d.clientes.total} clientes en total</p>
+              <p className="text-xs text-slate-400 mt-0.5">{d.clientes.total} clientes en total · {d.rangos.mes}</p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {([
-              { label: "Nuevos",    sub: "este mes",          valor: d.clientes.nuevos,    icon: IconUserPlus,  bg: "bg-emerald-50 border-emerald-100", txt: "text-emerald-700", itxt: "text-emerald-600" },
-              { label: "Activos",   sub: "negocio en curso",  valor: d.clientes.activos,   icon: IconActivity,  bg: "bg-blue-50 border-blue-100",       txt: "text-blue-700",    itxt: "text-blue-600" },
-              { label: "Inactivos", sub: `+60 días quietos`,  valor: d.clientes.inactivos, icon: IconSnowflake, bg: "bg-amber-50 border-amber-100",     txt: "text-amber-700",   itxt: "text-amber-600" },
-              { label: "Perdidos",  sub: "este mes",          valor: d.clientes.perdidos,  icon: IconUserMinus, bg: "bg-red-50 border-red-100",         txt: "text-red-700",     itxt: "text-red-500" },
+              { label: "Nuevos",    sub: `en ${d.rangos.mes}`,                    valor: d.clientes.nuevos,    icon: IconUserPlus,  bg: "bg-emerald-50 border-emerald-100", txt: "text-emerald-700", itxt: "text-emerald-600" },
+              { label: "Activos",   sub: "negocio en curso",                     valor: d.clientes.activos,   icon: IconActivity,  bg: "bg-blue-50 border-blue-100",       txt: "text-blue-700",    itxt: "text-blue-600" },
+              { label: "Inactivos", sub: `+${d.rangos.diasInactividad} días quietos`, valor: d.clientes.inactivos, icon: IconSnowflake, bg: "bg-amber-50 border-amber-100",     txt: "text-amber-700",   itxt: "text-amber-600" },
+              { label: "Perdidos",  sub: `en ${d.rangos.mes}`,                    valor: d.clientes.perdidos,  icon: IconUserMinus, bg: "bg-red-50 border-red-100",         txt: "text-red-700",     itxt: "text-red-500" },
             ] as { label: string; sub: string; valor: number; icon: Icon; bg: string; txt: string; itxt: string }[]).map(c => {
               const Icono = c.icon;
               return (

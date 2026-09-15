@@ -43,6 +43,12 @@ export async function GET() {
   const inicioMes    = new Date(Date.UTC(anio, mes, 1, 5, 0, 0));
   const hace12meses  = new Date(Date.UTC(anio, mes - 12, 1, 5, 0, 0));
 
+  // Fechas legibles (ancladas a Bogotá) para que cada indicador diga de qué día
+  // o mes a qué día o mes va su ventana, y no confunda con un simple "últimos 7
+  // días" sin referencia.
+  const fmtDia = (dt: Date) => dt.toLocaleDateString("es-CO", { day: "numeric", month: "short", timeZone: "America/Bogota" });
+  const fmtMes = (dt: Date) => dt.toLocaleDateString("es-CO", { month: "short", year: "numeric", timeZone: "America/Bogota" });
+
   const [actividades7d, cotizaciones7d, empresas, ganadas, perdidasMes] = await Promise.all([
     // 3. Actividad comercial: toques del equipo en los últimos 7 días. Se cuenta
     //    por `fecha` (cuándo ocurrió/ocurre la actividad), acotado a fecha<=ahora
@@ -152,6 +158,13 @@ export async function GET() {
       activos,
       inactivos,
       perdidos,
+    },
+    // Rangos legibles de cada ventana, para mostrarlos junto a cada indicador.
+    rangos: {
+      actividad: `${fmtDia(hace7dias)} – ${fmtDia(ahora)}`,
+      ticket: ticketVentana === "12m" ? `${fmtMes(hace12meses)} – ${fmtMes(ahora)}` : "todo el histórico",
+      mes: fmtMes(ahora),
+      diasInactividad: DIAS_INACTIVIDAD,
     },
   });
 }
