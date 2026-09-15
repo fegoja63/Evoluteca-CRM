@@ -6,6 +6,7 @@ import { toast } from "@/lib/toast";
 import { MoneyInput } from "@/components/money-input";
 import { ResumenPipelineIA } from "@/components/resumen-pipeline-ia";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
+import { estadoComercial } from "@/lib/estado-comercial";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
@@ -69,31 +70,6 @@ function mesDe(o: Oportunidad): string { return String(periodoDe(o).getMonth() +
 // trabajado ayer.
 function diasSinMovimiento(o: { ultimoMovimiento?: string | null; creadoEn: string }): number {
   return diasDesde(o.ultimoMovimiento ?? o.creadoEn);
-}
-
-type EstancTier = "ok" | "alerta" | "critico";
-
-// Nivel de estancamiento según el umbral configurado por el tenant: a partir
-// del umbral es "estancada" (amber); al doble, "muy estancada" (rojo). Los
-// negocios cerrados (Ganada/Perdida) no aplican.
-function estancTier(dias: number, umbral: number, etapa: string): EstancTier | null {
-  if (etapa === "GANADA" || etapa === "PERDIDA") return null;
-  if (dias >= umbral * 2) return "critico";
-  if (dias >= umbral) return "alerta";
-  return "ok";
-}
-
-function tierBorde(tier: EstancTier | null): string {
-  if (tier === "critico") return "border-l-4 border-l-red-400";
-  if (tier === "alerta") return "border-l-4 border-l-amber-400";
-  if (tier === "ok") return "border-l-4 border-l-emerald-400";
-  return "";
-}
-
-function tierBadgeColor(tier: EstancTier | null): string {
-  if (tier === "critico") return "text-red-600 bg-red-50";
-  if (tier === "alerta") return "text-amber-600 bg-amber-50";
-  return "text-emerald-600 bg-emerald-50";
 }
 
 function cierreBadge(fechaCierre: string | null, etapa: string): { label: string; color: string } | null {
@@ -912,17 +888,17 @@ export default function PipelinePage() {
                   const etapa = ETAPAS.find(e => e.key === o.etapa);
                   const cb = cierreBadge(o.fechaCierre, o.etapa);
                   const dias = diasDesde(o.creadoEn);
-                  const tierMov = estancTier(diasSinMovimiento(o), diasEstancamiento, o.etapa);
+                  const estado = estadoComercial(o, diasEstancamiento);
                   return (
                     <tr key={o.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3">
                         <Link href={`/dashboard/pipeline/${o.id}`} className="font-medium text-slate-900 hover:text-brand-600 transition-colors">
                           {o.titulo}
                         </Link>
-                        {tierMov && tierMov !== "ok" && (
-                          <span title={`${diasSinMovimiento(o)} días sin movimiento`}
-                            className={`ml-2 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold align-middle ${tierBadgeColor(tierMov)}`}>
-                            <IconAlertTriangle size={11} stroke={2} />Estancada
+                        {estado && (estado.clave === "riesgo" || estado.clave === "atencion") && (
+                          <span title={estado.razon}
+                            className={`ml-2 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold align-middle ${estado.badge}`}>
+                            <IconAlertTriangle size={11} stroke={2} />{estado.label}
                           </span>
                         )}
                         {o.extras?.["COTIZACION NUMERO"] && (
@@ -1004,8 +980,7 @@ export default function PipelinePage() {
                     </div>
                   )}
                   {items.map(o => {
-                    const dias = diasSinMovimiento(o);
-                    const tier = estancTier(dias, diasEstancamiento, etapa.key);
+                    const estado = estadoComercial(o, diasEstancamiento);
                     return (
                     <div key={o.id}
                       draggable
@@ -1015,7 +990,7 @@ export default function PipelinePage() {
                         setDraggingId(o.id);
                       }}
                       onDragEnd={() => { setDraggingId(null); setDragOverEtapa(null); }}
-                      className={`rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-sm cursor-grab active:cursor-grabbing transition-opacity select-none ${tierBorde(tier)} ${
+                      className={`rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-sm cursor-grab active:cursor-grabbing transition-opacity select-none ${estado ? estado.borde : ""} ${
                         draggingId === o.id ? "opacity-40" : "hover:shadow-md"
                       }`}
                     >
@@ -1080,11 +1055,11 @@ export default function PipelinePage() {
                               {o.probabilidad ?? 50}%
                             </span>
                           )}
-                          {tier && (
-                            <span title={`${dias} días sin movimiento`}
-                              className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold ${tierBadgeColor(tier)}`}>
-                              {tier !== "ok" && <IconAlertTriangle size={11} stroke={2} />}
-                              {dias}d
+                          {estado && (
+                            <span title={estado.razon}
+                              className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold ${estado.badge}`}>
+                              {(estado.clave === "riesgo" || estado.clave === "atencion") && <IconAlertTriangle size={11} stroke={2} />}
+                              {estado.label}
                             </span>
                           )}
                         </div>
