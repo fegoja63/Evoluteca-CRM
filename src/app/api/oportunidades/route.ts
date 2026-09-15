@@ -30,19 +30,24 @@ export async function GET(request: Request) {
     contacto: { select: { id: true, nombre: true, email: true } },
     actividades: { orderBy: { fecha: "desc" as const }, take: 1, select: { fecha: true } },
     cambiosEtapa: { orderBy: { creadoEn: "desc" as const }, take: 1, select: { creadoEn: true } },
+    // El último correo (entrante o saliente) también es señal de vida: un cliente
+    // que respondió hace poco NO está estancado aunque no haya actividad anotada.
+    correos: { orderBy: { fecha: "desc" as const }, take: 1, select: { fecha: true } },
   };
 
   type ConMovimiento = {
     creadoEn: Date;
     actividades: { fecha: Date }[];
     cambiosEtapa: { creadoEn: Date }[];
+    correos: { fecha: Date }[];
   };
   function conUltimoMovimiento<T extends ConMovimiento>(o: T) {
-    const { actividades, cambiosEtapa, ...resto } = o;
+    const { actividades, cambiosEtapa, correos, ...resto } = o;
     const candidatos = [
       o.creadoEn,
       actividades[0]?.fecha,
       cambiosEtapa[0]?.creadoEn,
+      correos[0]?.fecha,
     ].filter((d): d is Date => !!d);
     const ultimoMovimiento = candidatos.reduce((a, b) => (b > a ? b : a));
     return { ...resto, ultimoMovimiento };

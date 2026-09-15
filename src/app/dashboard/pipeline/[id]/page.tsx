@@ -39,6 +39,7 @@ type Oportunidad = {
   contacto: { id: string; nombre: string; email: string | null; telefono: string | null; cargo: string | null } | null;
   actividades: { id: string; tipo: string; titulo: string; fecha: string; completada: boolean; notas: string | null }[];
   cambiosEtapa: { id: string; etapaAnterior: string; etapaNueva: string; creadoEn: string; creadoByNombre: string | null }[];
+  correos?: { fecha: string }[];
 };
 
 // El nombre visible de cada etapa es configurable por tenant (Configuración →

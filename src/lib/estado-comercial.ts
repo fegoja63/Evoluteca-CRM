@@ -52,19 +52,26 @@ function plural(n: number, sing: string, plur: string): string {
 }
 
 // Última señal de vida = la más reciente entre la última actividad, el último
-// cambio de etapa y la creación. Reproduce el cálculo de la API de oportunidades
-// (conUltimoMovimiento), para que el detalle —que tiene los arrays crudos— y el
-// Pipeline —que ya recibe la fecha calculada— coincidan.
+// cambio de etapa, el último correo (entrante o saliente) y la creación.
+// Reproduce el cálculo de la API de oportunidades (conUltimoMovimiento), para que
+// el detalle —que tiene los arrays crudos— y el Pipeline —que ya recibe la fecha
+// calculada— coincidan.
+//
+// Los correos cuentan como señal: si el cliente respondió (o se le escribió) hace
+// poco, el negocio NO está estancado aunque el vendedor no haya registrado una
+// actividad. Así el estado detecta interés real, no solo lo que se anota a mano.
 export function ultimoMovimientoDe(o: {
   creadoEn: string | Date;
   actividades?: { fecha: string | Date }[];
   cambiosEtapa?: { creadoEn: string | Date }[];
+  correos?: { fecha: string | Date }[];
 }): Date {
   const base = aFecha(o.creadoEn) ?? new Date();
   const candidatos = [
     base,
     ...(o.actividades ?? []).map((a) => aFecha(a.fecha)),
     ...(o.cambiosEtapa ?? []).map((c) => aFecha(c.creadoEn)),
+    ...(o.correos ?? []).map((c) => aFecha(c.fecha)),
   ].filter((d): d is Date => !!d);
   return candidatos.reduce((a, b) => (b > a ? b : a), base);
 }

@@ -98,4 +98,22 @@ describe("ultimoMovimientoDe", () => {
     const r = ultimoMovimientoDe({ creadoEn: haceDias(5) });
     expect(r.toISOString()).toBe(haceDias(5));
   });
+
+  it("un correo reciente cuenta como última señal de vida", () => {
+    const r = ultimoMovimientoDe({
+      creadoEn: haceDias(40),
+      actividades: [{ fecha: haceDias(35) }],
+      correos: [{ fecha: haceDias(2) }],
+    });
+    expect(r.toISOString()).toBe(haceDias(2));
+  });
+
+  it("un correo reciente saca a un negocio de 'requiere atención' (deja de estar estancado)", () => {
+    // 20 días sin movimiento (entre el umbral 14 y su doble 28) => atención.
+    const o = base({ etapa: "PROPUESTA", ultimoMovimiento: haceDias(20) });
+    expect(calc(o)?.clave).toBe("atencion");
+    // Con un correo de hace 2 días, la última señal de vida es reciente.
+    const um = ultimoMovimientoDe({ creadoEn: haceDias(60), correos: [{ fecha: haceDias(2) }] });
+    expect(estadoComercial({ ...o, ultimoMovimiento: um }, UMBRAL, AHORA)?.clave).not.toBe("atencion");
+  });
 });
