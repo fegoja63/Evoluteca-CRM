@@ -1,6 +1,6 @@
 /**
  * Demo completa para el tenant `demo-evoluteca`: clientes, contactos, pipeline
- * con 24 oportunidades en las 6 etapas, cotizaciones, actividades, campos
+ * con 28 oportunidades en las 6 etapas, cotizaciones, actividades, campos
  * personalizados, automatizaciones y objeciones.
  *
  * Las fechas de "última señal de vida" están escalonadas a propósito para que el
@@ -27,6 +27,11 @@ const SLUG = "demo-evoluteca";
 const DIA = 86_400_000;
 const ahora = new Date();
 const d = (dias: number) => new Date(ahora.getTime() - dias * DIA); // dias>0 = pasado
+// Meses concretos del año en curso, para fechas de cierre con lógica de calendario.
+const Y = ahora.getFullYear();
+const jul = (dia: number) => new Date(Y, 6, dia);
+const ago = (dia: number) => new Date(Y, 7, dia);
+const sep = (dia: number) => new Date(Y, 8, dia);
 const EMAILS_VENDEDORES = ["sofia@demo-evoluteca.com", "andres@demo-evoluteca.com", "miguel@demo-evoluteca.com"];
 
 function verificarEntorno() {
@@ -93,12 +98,13 @@ async function main() {
     { nombre: "Editorial Nuevos Horizontes", sector: "Medios y Comunicación", nit: "901.222.333-1", tel: "609 900 1000" },
     { nombre: "Cooperativa Agropecuaria Llanos", sector: "Otro", nit: "901.333.444-2", tel: "607 700 8000" },
   ];
-  const empresas = await Promise.all(empresasData.map(e => prisma.empresa.create({
+  // Cada cliente se asigna a un vendedor de forma pareja (4 por vendedor).
+  const empresas = await Promise.all(empresasData.map((e, i) => prisma.empresa.create({
     data: {
       nombre: e.nombre, sector: e.sector, telefono: e.tel,
       email: `contacto@${e.nombre.toLowerCase().replace(/[^a-z]/g, "").slice(0, 12)}.co`,
       etiquetas: ["cliente-demo"], notas: `${MARCA} Cliente de demostración.`,
-      extras: { cp_demo_nit: e.nit }, tenantId: tId,
+      extras: { cp_demo_nit: e.nit }, creadoBy: V[i % 3], tenantId: tId,
     },
   })));
   const E = empresas.map(x => x.id);
@@ -124,7 +130,7 @@ async function main() {
   type Spec = {
     titulo: string; emp: number; cont: number; valor: number; prob: number;
     etapa: "PROSPECTO" | "CALIFICADO" | "PROPUESTA" | "NEGOCIACION" | "GANADA" | "PERDIDA";
-    ultMov: number; cierreDias?: number; vend: number; proxima?: boolean; vencida?: boolean; motivo?: string;
+    ultMov: number; cierreDias?: number; cierre?: Date; vend: number; proxima?: boolean; vencida?: boolean; motivo?: string;
   };
   const specs: Spec[] = [
     // PROSPECTO (5)
@@ -149,25 +155,36 @@ async function main() {
     { titulo: "Cierre de contrato — Clínica Salud Total", emp: 2, cont: 2, valor: 30_000_000, prob: 80, etapa: "NEGOCIACION", ultMov: 6, cierreDias: -18, vend: 0 }, // alta
     { titulo: "Ajuste de términos — Tech Solutions", emp: 6, cont: 6, valor: 26_000_000, prob: 65, etapa: "NEGOCIACION", ultMov: 3, cierreDias: -6, vend: 1, proxima: true }, // atención (cierre)
     { titulo: "Negociación estancada — Importadora Oriente", emp: 8, cont: 4, valor: 19_000_000, prob: 60, etapa: "NEGOCIACION", ultMov: 65, vend: 2 }, // riesgo
-    // GANADA (4)
-    { titulo: "Contrato firmado — Aseguradora Confianza", emp: 7, cont: 7, valor: 55_000_000, prob: 100, etapa: "GANADA", ultMov: 20, cierreDias: 20, vend: 0 },
-    { titulo: "Proyecto ganado — Farmacéutica BioMed", emp: 9, cont: 9, valor: 42_000_000, prob: 100, etapa: "GANADA", ultMov: 45, cierreDias: 45, vend: 1 },
-    { titulo: "Renovación anual — Clínica Salud Total", emp: 2, cont: 2, valor: 28_000_000, prob: 100, etapa: "GANADA", ultMov: 80, cierreDias: 80, vend: 2 },
-    { titulo: "Venta cerrada — Restaurantes La Brasa", emp: 5, cont: 5, valor: 14_000_000, prob: 100, etapa: "GANADA", ultMov: 110, cierreDias: 110, vend: 0 },
-    // PERDIDA (2)
-    { titulo: "Oportunidad perdida — Constructora Andina", emp: 1, cont: 1, valor: 21_000_000, prob: 0, etapa: "PERDIDA", ultMov: 55, cierreDias: 55, vend: 1, motivo: "Precio muy alto" },
-    { titulo: "No prosperó — Editorial Nuevos Horizontes", emp: 10, cont: 10, valor: 9_000_000, prob: 0, etapa: "PERDIDA", ultMov: 95, cierreDias: 95, vend: 2, motivo: "Eligió a la competencia" },
+    // GANADA (8) — ventas en JULIO y SEPTIEMBRE; suman ~$585M ≈ 78% de la meta
+    // anual ($750M) para que a septiembre el cumplimiento del año sea ≥70%.
+    { titulo: "Contrato firmado — Aseguradora Confianza", emp: 7, cont: 7, valor: 80_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: jul(8), vend: 0 },
+    { titulo: "Proyecto ganado — Farmacéutica BioMed", emp: 9, cont: 9, valor: 70_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: jul(15), vend: 1 },
+    { titulo: "Implementación — Banco Regional del Norte", emp: 3, cont: 3, valor: 65_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: jul(22), vend: 2 },
+    { titulo: "Suite CRM — Tech Solutions Colombia", emp: 6, cont: 6, valor: 60_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: jul(28), vend: 0 },
+    { titulo: "Renovación anual — Clínica Salud Total", emp: 2, cont: 2, valor: 85_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: sep(2), vend: 1 },
+    { titulo: "Venta cerrada — Restaurantes La Brasa", emp: 5, cont: 5, valor: 75_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: sep(6), vend: 2 },
+    { titulo: "Licencia + soporte — Inversiones Pacífico", emp: 0, cont: 0, valor: 80_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: sep(10), vend: 0 },
+    { titulo: "Contrato marco — Coop. Agropecuaria Llanos", emp: 11, cont: 11, valor: 70_000_000, prob: 100, etapa: "GANADA", ultMov: 0, cierre: sep(12), vend: 1 },
+    // PERDIDA (2) — nunca más allá del mes en curso (fechas ≤ hoy)
+    { titulo: "Oportunidad perdida — Constructora Andina", emp: 1, cont: 1, valor: 21_000_000, prob: 0, etapa: "PERDIDA", ultMov: 0, cierre: ago(19), vend: 1, motivo: "Precio muy alto" },
+    { titulo: "No prosperó — Editorial Nuevos Horizontes", emp: 10, cont: 10, valor: 9_000_000, prob: 0, etapa: "PERDIDA", ultMov: 0, cierre: sep(9), vend: 2, motivo: "Eligió a la competencia" },
   ];
 
   const ORDEN = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION", "GANADA", "PERDIDA"];
   const opps: { id: string; spec: Spec }[] = [];
   for (const s of specs) {
+    const vIdx = s.emp % 3; // el negocio pertenece al vendedor de su cliente
+    const esCerrada = s.etapa === "GANADA" || s.etapa === "PERDIDA";
+    const cierreFecha = s.cierre ?? (s.cierreDias !== undefined ? d(s.cierreDias) : null);
+    // "Última señal de vida": cerradas = su fecha de cierre; activas = ultMov.
+    const ultMovFecha = esCerrada && cierreFecha ? cierreFecha : d(s.ultMov);
+    const creadoEn = esCerrada && cierreFecha ? new Date(cierreFecha.getTime() - 45 * DIA) : d(Math.max(s.ultMov + 5, 30));
     const op = await prisma.oportunidad.create({
       data: {
         titulo: s.titulo, valor: s.valor, etapa: s.etapa, probabilidad: s.prob,
-        empresaId: E[s.emp], contactoId: C[s.cont], creadoBy: V[s.vend],
-        creadoEn: d(Math.max(s.ultMov + 5, 30)),
-        fechaCierre: s.cierreDias !== undefined ? d(s.cierreDias) : null,
+        empresaId: E[s.emp], contactoId: C[s.cont], creadoBy: V[vIdx],
+        creadoEn,
+        fechaCierre: cierreFecha,
         motivoPerdida: s.motivo ?? null,
         notas: `${MARCA} Oportunidad de demostración.`,
         extras: { cp_demo_competidor: s.prob >= 60 ? "Competidor X" : "" },
@@ -179,25 +196,25 @@ async function main() {
     const cambios: { etapaAnterior: string; etapaNueva: string; creadoEn: Date }[] = [];
     for (let i = 1; i <= idx; i++) {
       const esUltimo = i === idx;
-      cambios.push({ etapaAnterior: ORDEN[i - 1], etapaNueva: ORDEN[i], creadoEn: esUltimo ? d(s.ultMov) : d(s.ultMov + (idx - i) * 7 + 5) });
+      cambios.push({ etapaAnterior: ORDEN[i - 1], etapaNueva: ORDEN[i], creadoEn: esUltimo ? ultMovFecha : new Date(ultMovFecha.getTime() - ((idx - i) * 7 + 5) * DIA) });
     }
     if (cambios.length) {
-      await prisma.cambioEtapa.createMany({ data: cambios.map(c => ({ ...c, oportunidadId: op.id, creadoByNombre: vendedores[s.vend].nombre })) });
+      await prisma.cambioEtapa.createMany({ data: cambios.map(c => ({ ...c, oportunidadId: op.id, creadoByNombre: vendedores[vIdx].nombre })) });
     }
     // Actividad pasada (completada), más antigua que ultMov para no alterarlo.
     await prisma.actividad.create({
-      data: { tipo: "LLAMADA", titulo: `Contacto inicial — ${s.titulo.slice(0, 40)}`, fecha: d(s.ultMov + 2), completada: true, estado: "COMPLETADA", responsableId: V[s.vend], oportunidadId: op.id, empresaId: E[s.emp], contactoId: C[s.cont], notas: `${MARCA} Actividad de demostración.`, tenantId: tId },
+      data: { tipo: "LLAMADA", titulo: `Contacto inicial — ${s.titulo.slice(0, 40)}`, fecha: new Date(ultMovFecha.getTime() - 2 * DIA), completada: true, estado: "COMPLETADA", responsableId: V[vIdx], oportunidadId: op.id, empresaId: E[s.emp], contactoId: C[s.cont], notas: `${MARCA} Actividad de demostración.`, tenantId: tId },
     });
     // Actividad próxima (pendiente, futura) para poblar Agenda.
     if (s.proxima) {
       await prisma.actividad.create({
-        data: { tipo: "REUNION", titulo: `Reunión de seguimiento — ${s.titulo.slice(0, 40)}`, fecha: d(-3), completada: false, estado: "PENDIENTE", responsableId: V[s.vend], oportunidadId: op.id, empresaId: E[s.emp], contactoId: C[s.cont], notas: `${MARCA} Actividad de demostración.`, tenantId: tId },
+        data: { tipo: "REUNION", titulo: `Reunión de seguimiento — ${s.titulo.slice(0, 40)}`, fecha: d(-3), completada: false, estado: "PENDIENTE", responsableId: V[vIdx], oportunidadId: op.id, empresaId: E[s.emp], contactoId: C[s.cont], notas: `${MARCA} Actividad de demostración.`, tenantId: tId },
       });
     }
     // Actividad vencida (pendiente, en el pasado) para encender la alerta.
     if (s.vencida) {
       await prisma.actividad.create({
-        data: { tipo: "TAREA", titulo: `Enviar información — ${s.titulo.slice(0, 40)}`, fecha: d(2), completada: false, estado: "PENDIENTE", responsableId: V[s.vend], oportunidadId: op.id, empresaId: E[s.emp], contactoId: C[s.cont], notas: `${MARCA} Actividad de demostración.`, tenantId: tId },
+        data: { tipo: "TAREA", titulo: `Enviar información — ${s.titulo.slice(0, 40)}`, fecha: d(2), completada: false, estado: "PENDIENTE", responsableId: V[vIdx], oportunidadId: op.id, empresaId: E[s.emp], contactoId: C[s.cont], notas: `${MARCA} Actividad de demostración.`, tenantId: tId },
       });
     }
     opps.push({ id: op.id, spec: s });
@@ -258,6 +275,12 @@ async function main() {
   } else {
     console.log(`ℹ️  Objeciones: ya había ${yaHayObj}, no se tocaron.`);
   }
+
+  // ── REGLA: una PERDIDA no puede cerrarse en el futuro ─────────────────────
+  // No tiene lógica "perder" un negocio mañana. Se corrige cualquier caso del
+  // tenant (incluye registros viejos que no son [demo]).
+  const futFix = await prisma.oportunidad.updateMany({ where: { tenantId: tId, etapa: "PERDIDA", fechaCierre: { gt: ahora } }, data: { fechaCierre: ago(15) } });
+  if (futFix.count) console.log(`🛠  Perdidas con fecha futura corregidas: ${futFix.count}`);
 
   // ── RESUMEN ────────────────────────────────────────────────────────────────
   const porEtapa = await prisma.oportunidad.groupBy({ by: ["etapa"], where: { tenantId: tId, eliminadoEn: null }, _count: true });
