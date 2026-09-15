@@ -94,13 +94,22 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
 
   const cambioDeEtapa = etapa !== undefined && etapa !== oportunidad.etapa;
 
-  // Al CERRAR un negocio (pasa a GANADA/PERDIDA) se fija la fecha de cierre si no
-  // viene una explícita y aún no la tiene. Sin esto, el negocio cerrado queda con
-  // fechaCierre nula y el Pipeline lo oculta de sus filtros por período — ese era
-  // el bug del "registro de perdidos" que no mostraba los negocios marcados como
-  // perdidos.
-  if (cambioDeEtapa && (etapa === "GANADA" || etapa === "PERDIDA") && fechaCierre === undefined && !oportunidad.fechaCierre) {
-    data.fechaCierre = new Date();
+  // Al CERRAR un negocio se fija su fecha de cierre real (cuando no viene una
+  // explícita en la petición). Los reportes ubican el negocio en el tiempo por
+  // esta fecha (ver fechaEfectiva), así que debe reflejar cuándo se cerró:
+  //  - PERDIDA: es el día en que se PIERDE, no el día en que se pensaba cerrar.
+  //    Por eso se sobreescribe cualquier fecha estimada previa — un negocio no se
+  //    "pierde" en una fecha futura estimada, se pierde hoy. (Sin esto, una
+  //    oportunidad con cierre estimado a futuro quedaba reportada como perdida en
+  //    ese mes futuro.)
+  //  - GANADA: se fija hoy solo si aún no tenía fecha, respetando una fecha de
+  //    cierre real que el usuario haya puesto.
+  if (cambioDeEtapa && fechaCierre === undefined) {
+    if (etapa === "PERDIDA") {
+      data.fechaCierre = new Date();
+    } else if (etapa === "GANADA" && !oportunidad.fechaCierre) {
+      data.fechaCierre = new Date();
+    }
   }
 
   // Actualizar la oportunidad y registrar el cambio de etapa (si aplica) de forma

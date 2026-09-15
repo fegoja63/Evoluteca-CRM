@@ -209,6 +209,35 @@ describe("último movimiento (base de la alerta de estancamiento)", () => {
   });
 });
 
+describe("fecha de cierre al PERDER una oportunidad", () => {
+  it("al marcar PERDIDA se registra el día en que se pierde, no la fecha estimada de cierre", async () => {
+    comoUsuario(A, "GERENTE");
+    // La oportunidad tenía una fecha de cierre ESTIMADA a futuro.
+    const estimadaFutura = new Date("2027-11-25T00:00:00.000Z");
+    await prisma.oportunidad.update({
+      where: { id: A.oportunidadDelComercial },
+      data: { fechaCierre: estimadaFutura },
+    });
+
+    const antes = Date.now();
+    const { status } = await llamar(editar, {
+      params: { id: A.oportunidadDelComercial },
+      body: { etapa: "PERDIDA", motivoPerdida: "Precio muy alto" },
+    });
+    expect(status).toBe(200);
+
+    const enBase = await prisma.oportunidad.findFirst({
+      where: { id: A.oportunidadDelComercial, tenantId: A.tenantId },
+      select: { fechaCierre: true, etapa: true },
+    });
+    expect(enBase?.etapa).toBe("PERDIDA");
+    // La fecha estimada a futuro se sobreescribió por la fecha real de la pérdida
+    // (~ahora), no quedó registrada en 2027.
+    expect(enBase?.fechaCierre?.getTime()).toBeGreaterThanOrEqual(antes - 1000);
+    expect(enBase?.fechaCierre?.getTime()).toBeLessThan(estimadaFutura.getTime());
+  });
+});
+
 describe("el guardarrail de Prisma", () => {
   // Sin esta prueba, un guardarrail roto pasaria inadvertido: todas las demas
   // pruebas seguirian en verde y creeriamos estar protegidos cuando no.
