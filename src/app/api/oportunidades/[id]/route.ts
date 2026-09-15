@@ -94,22 +94,15 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
 
   const cambioDeEtapa = etapa !== undefined && etapa !== oportunidad.etapa;
 
-  // Al CERRAR un negocio se fija su fecha de cierre real (cuando no viene una
-  // explícita en la petición). Los reportes ubican el negocio en el tiempo por
-  // esta fecha (ver fechaEfectiva), así que debe reflejar cuándo se cerró:
-  //  - PERDIDA: es el día en que se PIERDE, no el día en que se pensaba cerrar.
-  //    Por eso se sobreescribe cualquier fecha estimada previa — un negocio no se
-  //    "pierde" en una fecha futura estimada, se pierde hoy. (Sin esto, una
-  //    oportunidad con cierre estimado a futuro quedaba reportada como perdida en
-  //    ese mes futuro.)
-  //  - GANADA: se fija hoy solo si aún no tenía fecha, respetando una fecha de
-  //    cierre real que el usuario haya puesto.
-  if (cambioDeEtapa && fechaCierre === undefined) {
-    if (etapa === "PERDIDA") {
-      data.fechaCierre = new Date();
-    } else if (etapa === "GANADA" && !oportunidad.fechaCierre) {
-      data.fechaCierre = new Date();
-    }
+  // Al CERRAR un negocio se fija su fecha de cierre real = el día en que se cierra
+  // (hoy), no el día en que se pensaba cerrar. Los reportes ubican el negocio en
+  // el tiempo por esta fecha (ver fechaEfectiva): una venta se contabiliza el día
+  // que se GANA y una pérdida el día que se PIERDE. Por eso se sobreescribe
+  // cualquier fecha estimada previa — un negocio no se gana ni se pierde en una
+  // fecha futura estimada. Una fecha explícita en la petición SÍ se respeta (p.
+  // ej. registrar un cierre con su fecha real pasada), vía fechaCierre===undefined.
+  if (cambioDeEtapa && (etapa === "GANADA" || etapa === "PERDIDA") && fechaCierre === undefined) {
+    data.fechaCierre = new Date();
   }
 
   // Actualizar la oportunidad y registrar el cambio de etapa (si aplica) de forma
