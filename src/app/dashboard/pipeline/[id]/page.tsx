@@ -15,9 +15,10 @@ import { CamposPersonalizadosVista } from "@/components/campos-personalizados-vi
 import { CorreosPanel } from "@/components/correos-panel";
 import { CoachObjecionesIA } from "@/components/coach-objeciones-ia";
 import { esClaveCampoPersonalizado } from "@/lib/campos-personalizados";
+import { estadoComercial, ultimoMovimientoDe } from "@/lib/estado-comercial";
 import {
   IconAlertTriangle, IconHistory, IconTarget, IconTrophy, IconX, IconArrowRight,
-  IconMoodSad,
+  IconMoodSad, IconBolt,
 } from "@tabler/icons-react";
 
 type Oportunidad = {
@@ -92,6 +93,10 @@ export default function OportunidadDetallePage() {
   // Edición rápida de la fecha de cierre desde el recuadro (sin abrir Editar).
   const [editandoCierre, setEditandoCierre] = useState(false);
   const [guardandoCierre, setGuardandoCierre] = useState(false);
+  // Umbral de "días sin movimiento" del tenant (default 14). Lo lee la misma
+  // config que el Pipeline, para que el estado comercial coincida en ambos.
+  const [diasEstancamiento, setDiasEstancamiento] = useState(14);
+  const [guardandoAccion, setGuardandoAccion] = useState(false);
 
   const MOTIVOS_PERDIDA = [
     "Precio muy alto",
@@ -132,6 +137,41 @@ export default function OportunidadDetallePage() {
 
   useEffect(() => { cargar(); }, [id]);
 
+  // "Actuar ahora": crea una tarea de seguimiento para hoy a partir de la acción
+  // recomendada por el estado comercial. Reusa el POST de actividades (la misma
+  // creación que hacen las automatizaciones), sin motor nuevo.
+  async function actuarAhora() {
+    if (!op || guardandoAccion) return;
+    const estado = estadoComercial(
+      { etapa: op.etapa, probabilidad: op.probabilidad, ultimoMovimiento: ultimoMovimientoDe(op), creadoEn: op.creadoEn, fechaCierre: op.fechaCierre },
+      diasEstancamiento,
+    );
+    if (!estado) return;
+    setGuardandoAccion(true);
+    try {
+      const res = await fetch("/api/actividades", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tipo: estado.accionTipo,
+          titulo: `${estado.accion}: ${op.titulo}`,
+          fecha: new Date().toISOString(),
+          oportunidadId: op.id,
+          empresaId: op.empresa?.id ?? undefined,
+          contactoId: op.contacto?.id ?? undefined,
+          notas: `Seguimiento sugerido por el estado "${estado.label}" (${estado.razon}).`,
+        }),
+      });
+      if (!res.ok) { toast.error("No se pudo crear el seguimiento"); return; }
+      toast.success("Seguimiento creado para hoy");
+      await cargar();
+    } catch {
+      toast.error("No se pudo crear el seguimiento");
+    } finally {
+      setGuardandoAccion(false);
+    }
+  }
+
   // Guarda la fecha de cierre editada desde el recuadro "Cierre estimado".
   async function guardarCierreRapido(valor: string) {
     if (!op) return;
@@ -163,6 +203,7 @@ export default function OportunidadDetallePage() {
       const salonesActivo = !!config?.modulos?.salones;
       setModuloSalones(salonesActivo);
       setModuloObjeciones(!!config?.modulos?.objeciones);
+      setDiasEstancamiento(Number(config?.diasEstancamiento) || 14);
       if (salonesActivo) {
         fetch("/api/salones").then(r => r.json()).then(s => setSalones(Array.isArray(s) ? s : []));
       }
@@ -451,6 +492,37 @@ export default function OportunidadDetallePage() {
                 </button>
               </div>
             </div>
+
+            {/* Estado comercial: qué está pasando, por qué y qué hacer ahora.
+                Solo para negocios activos (estadoComercial devuelve null en
+                Ganada/Perdida). */}
+            {(() => {
+              const estado = estadoComercial(
+                { etapa: op.etapa, probabilidad: op.probabilidad, ultimoMovimiento: ultimoMovimientoDe(op), creadoEn: op.creadoEn, fechaCierre: op.fechaCierre },
+                diasEstancamiento,
+              );
+              if (!estado) return null;
+              return (
+                <div className={`mb-5 rounded-xl border border-slate-200 bg-white p-4 flex flex-wrap items-center justify-between gap-3 ${estado.borde}`}>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${estado.badge}`}>
+                        {(estado.clave === "riesgo" || estado.clave === "atencion") && <IconAlertTriangle size={12} stroke={2} />}
+                        {estado.label}
+                      </span>
+                      <span className="text-sm text-slate-500">{estado.razon}</span>
+                    </div>
+                    <p className="mt-1.5 text-sm font-medium text-slate-700">
+                      Acción recomendada: <span className="text-slate-900">{estado.accion}</span>
+                    </p>
+                  </div>
+                  <button type="button" onClick={actuarAhora} disabled={guardandoAccion}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60 shrink-0">
+                    <IconBolt size={16} stroke={2} />{guardandoAccion ? "Creando…" : "Actuar ahora"}
+                  </button>
+                </div>
+              );
+            })()}
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
               <div className="rounded-xl bg-slate-50 p-4">
