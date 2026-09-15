@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { Resend } from "resend";
 import { EtapaOportunidad } from "@prisma/client";
+import { estadoComercial, ultimoMovimientoDe } from "@/lib/estado-comercial";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -68,16 +69,17 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
   const esComercial = u.rol === "COMERCIAL";
   const ownerWhere = esComercial ? { creadoBy: u.id } : {};
   const ownerWhereAct = esComercial ? { OR: [{ creadoBy: u.id }, { responsableId: u.id }] } : {};
-  const corteEstancamiento = new Date(ahora.getTime() - tenantInfo.diasEstancamiento * 86_400_000);
 
   const [opActivas, ganadas, perdidas, actividades7d, proximas7d] = await Promise.all([
     prisma.oportunidad.findMany({
       where: { tenantId: u.tenantId, eliminadoEn: null, etapa: { in: ETAPAS_ACTIVAS }, ...ownerWhere },
       select: {
-        titulo: true, valor: true, etapa: true, fechaCierre: true, creadoEn: true,
+        titulo: true, valor: true, etapa: true, probabilidad: true, fechaCierre: true, creadoEn: true,
         empresa: { select: { nombre: true } },
         actividades: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
         cambiosEtapa: { orderBy: { creadoEn: "desc" }, take: 1, select: { creadoEn: true } },
+        // El correo (entrante o saliente) cuenta como señal de vida para el estado.
+        correos: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
       },
     }),
     prisma.oportunidad.count({ where: { tenantId: u.tenantId, eliminadoEn: null, etapa: "GANADA", ...ownerWhere } }),
@@ -94,10 +96,17 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
   // Nada que contar: ni pipeline activo, ni actividad reciente, ni próxima.
   if (opActivas.length === 0 && actividades7d.length === 0 && proximas7d === 0) return null;
 
-  const ultimoMovimiento = (o: (typeof opActivas)[number]): Date => {
-    const ds = [o.creadoEn, o.actividades[0]?.fecha, o.cambiosEtapa[0]?.creadoEn].filter((d): d is Date => !!d);
-    return ds.reduce((a, b) => (b > a ? b : a), o.creadoEn);
-  };
+  // Estado comercial de cada oportunidad, con el MISMO cálculo que el Pipeline,
+  // el detalle y el dashboard (incluye el correo como señal de vida). Así el
+  // correo del lunes dice lo mismo que ve el vendedor dentro del CRM.
+  const conEstado = opActivas.map(o => ({
+    o,
+    ultMov: ultimoMovimientoDe(o),
+    estado: estadoComercial(
+      { etapa: o.etapa, probabilidad: o.probabilidad, ultimoMovimiento: ultimoMovimientoDe(o), creadoEn: o.creadoEn, fechaCierre: o.fechaCierre },
+      tenantInfo.diasEstancamiento,
+    ),
+  }));
 
   const pipelineValor = opActivas.reduce((a, o) => a + Number(o.valor ?? 0), 0);
   const cerradas = ganadas + perdidas;
@@ -110,6 +119,10 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
     .slice(0, 5);
   const valiosas = [...opActivas].sort((a, b) => Number(b.valor ?? 0) - Number(a.valor ?? 0)).slice(0, 3);
 
+  // Oportunidades de alta intención (etapa avanzada + alta probabilidad, con
+  // movimiento reciente): son las que conviene empujar al cierre esta semana.
+  const altaIntencion = conEstado.filter(x => x.estado?.clave === "alta").map(x => x.o).slice(0, 3);
+
   let q1 = "";
   if (cierranSemana.length > 0) {
     q1 += `<p style="margin:0 0 6px;font-size:12px;font-weight:600;color:#1d4ed8">Con cierre esta semana</p>`;
@@ -118,25 +131,31 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
       return fila(o.titulo, `${o.empresa?.nombre ?? ""} · ${fmt(o.valor as unknown as number)} · ${dias <= 0 ? "hoy" : dias === 1 ? "mañana" : `en ${dias} días`}`, "#2563eb");
     }).join("");
   }
+  if (altaIntencion.length > 0) {
+    q1 += `<p style="margin:${cierranSemana.length ? "10" : "0"}px 0 6px;font-size:12px;font-weight:600;color:#059669">🟢 Alta intención — empújalos al cierre</p>`;
+    q1 += altaIntencion.map(o => fila(o.titulo, `${o.empresa?.nombre ?? ""} · ${o.etapa} · ${o.probabilidad ?? 50}% · ${fmt(o.valor as unknown as number)}`, "#10b981")).join("");
+  }
   if (valiosas.length > 0) {
-    q1 += `<p style="margin:${cierranSemana.length ? "10" : "0"}px 0 6px;font-size:12px;font-weight:600;color:#334155">Las más valiosas en curso</p>`;
+    q1 += `<p style="margin:${cierranSemana.length || altaIntencion.length ? "10" : "0"}px 0 6px;font-size:12px;font-weight:600;color:#334155">Las más valiosas en curso</p>`;
     q1 += valiosas.map(o => fila(o.titulo, `${o.empresa?.nombre ?? ""} · ${o.etapa} · ${fmt(o.valor as unknown as number)}`, "#10b981")).join("");
   }
   if (!q1) q1 = `<p style="margin:0;font-size:12px;color:#94a3b8">No tienes oportunidades activas por ahora.</p>`;
 
-  // ── Q2: ¿Qué está bloqueado? — negocios estancados ──
-  const estancados = opActivas
-    .filter(o => ultimoMovimiento(o) < corteEstancamiento)
-    .sort((a, b) => ultimoMovimiento(a).getTime() - ultimoMovimiento(b).getTime())
+  // ── Q2: ¿Qué está bloqueado? — negocios En riesgo / Requieren atención ──
+  // Usa el estado comercial (que ya cuenta el correo como señal): un cliente que
+  // respondió hace poco NO sale como bloqueado aunque no haya actividad anotada.
+  const enRiesgo = conEstado
+    .filter(x => x.estado?.clave === "riesgo" || x.estado?.clave === "atencion")
+    .sort((a, b) => a.ultMov.getTime() - b.ultMov.getTime())
     .slice(0, 5);
   let q2 = "";
-  if (estancados.length > 0) {
-    q2 = estancados.map(o => {
-      const dias = Math.floor((ahora.getTime() - ultimoMovimiento(o).getTime()) / 86_400_000);
-      return fila(o.titulo, `${o.empresa?.nombre ?? ""} · ${o.etapa} · ${dias} días sin movimiento`, "#f59e0b");
+  if (enRiesgo.length > 0) {
+    q2 = enRiesgo.map(x => {
+      const color = x.estado?.clave === "riesgo" ? "#ef4444" : "#f59e0b";
+      return fila(x.o.titulo, `${x.o.empresa?.nombre ?? ""} · ${x.o.etapa} · ${x.estado?.label}: ${x.estado?.razon}`, color);
     }).join("");
   } else {
-    q2 = `<p style="margin:0;font-size:12px;color:#94a3b8">Nada estancado — todos tus negocios se han movido en los últimos ${tenantInfo.diasEstancamiento} días. 👏</p>`;
+    q2 = `<p style="margin:0;font-size:12px;color:#94a3b8">Nada bloqueado — todos tus negocios se han movido en los últimos ${tenantInfo.diasEstancamiento} días. 👏</p>`;
   }
 
   // ── Q3: ¿Qué generará ventas futuras? — actividad de la semana + agenda ──
