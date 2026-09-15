@@ -5,6 +5,7 @@ import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { componentesHoyBogota, medianocheBogota } from "@/lib/fecha-bogota";
 import { plazoVencido } from "@/lib/plazo-legal";
 import { numeroCotizacion } from "@/lib/cotizaciones";
+import { estadoComercial, ultimoMovimientoDe, type EstadoClave } from "@/lib/estado-comercial";
 import Link from "next/link";
 import {
   IconBuilding, IconUsers, IconChartFunnel, IconClipboardList, IconActivityHeartbeat,
@@ -68,6 +69,7 @@ export default async function DashboardPage() {
     terminosProximos,
     funcionesProximas,
     etapasPipeline,
+    tenantCfg,
   ] = await Promise.all([
     prisma.empresa.count({ where: { tenantId, eliminadoEn: null, ...ownerFiltro } }),
     prisma.contacto.count({ where: { tenantId, eliminadoEn: null } }),
@@ -163,7 +165,13 @@ export default async function DashboardPage() {
     }),
     prisma.oportunidad.findMany({
       where: { tenantId, eliminadoEn: null, etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] }, ...ownerFiltro },
-      select: { id: true, titulo: true, etapa: true, empresa: { select: { nombre: true } }, creadoBy: true, actividades: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } } },
+      select: {
+        id: true, titulo: true, etapa: true, probabilidad: true, fechaCierre: true, creadoEn: true,
+        empresa: { select: { nombre: true } }, creadoBy: true,
+        actividades: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
+        cambiosEtapa: { orderBy: { creadoEn: "desc" }, take: 1, select: { creadoEn: true } },
+        correos: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
+      },
     }),
     prisma.actividad.findFirst({ where: { tenantId, completada: true, ...ownerFiltro }, orderBy: { fecha: "desc" }, select: { fecha: true } }),
     prisma.terminoExpediente.findMany({
@@ -185,6 +193,7 @@ export default async function DashboardPage() {
       orderBy: { orden: "asc" },
       select: { key: true, nombre: true, oculta: true },
     }),
+    prisma.tenant.findUnique({ where: { id: tenantId }, select: { diasEstancamiento: true } }),
   ]);
 
   // Funciones a <=5 días con ocupación por debajo del umbral del plan de Belarte
@@ -199,6 +208,29 @@ export default async function DashboardPage() {
   const negociosEstancados = opActivasConActividad
     .filter(o => o.actividades.length === 0 || new Date(o.actividades[0].fecha) < hace14dias)
     .slice(0, 5);
+
+  // ── Estado comercial de cada oportunidad activa (qué está pasando) ─────────
+  // Agrupa el pipeline por su "estado real" para el tablero del dashboard. Usa
+  // el mismo cálculo determinista que el Pipeline y el detalle, incluyendo el
+  // correo como señal de vida (ultimoMovimientoDe).
+  const diasEstancamiento = tenantCfg?.diasEstancamiento ?? 14;
+  type OpEstado = (typeof opActivasConActividad)[number] & { estadoRazon: string };
+  const opsPorEstado: Record<EstadoClave, OpEstado[]> = { riesgo: [], atencion: [], alta: [], marcha: [] };
+  for (const o of opActivasConActividad) {
+    const estado = estadoComercial(
+      { etapa: o.etapa, probabilidad: o.probabilidad, ultimoMovimiento: ultimoMovimientoDe(o), creadoEn: o.creadoEn, fechaCierre: o.fechaCierre },
+      diasEstancamiento,
+    );
+    if (estado) opsPorEstado[estado.clave].push({ ...o, estadoRazon: estado.razon });
+  }
+  // Orden de urgencia para el tablero: primero lo que requiere acción.
+  const ESTADOS_TABLERO: { clave: EstadoClave; label: string; dot: string; texto: string }[] = [
+    { clave: "riesgo",   label: "En riesgo",         dot: "bg-red-400",     texto: "text-red-600" },
+    { clave: "atencion", label: "Requieren atención", dot: "bg-amber-400",   texto: "text-amber-600" },
+    { clave: "alta",     label: "Alta intención",     dot: "bg-emerald-400", texto: "text-emerald-600" },
+    { clave: "marcha",   label: "En marcha",          dot: "bg-blue-400",    texto: "text-blue-600" },
+  ];
+  const totalConEstado = ESTADOS_TABLERO.reduce((a, e) => a + opsPorEstado[e.clave].length, 0);
 
   // ── Métricas principales ──────────────────────────────────────────────────
   const opActivas = oportunidades.filter(o => !["PERDIDA","GANADA"].includes(o.etapa));
@@ -551,6 +583,59 @@ export default async function DashboardPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ══ OPORTUNIDADES POR ESTADO (qué está pasando y qué requiere acción) ══ */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-sm font-bold text-slate-900">Oportunidades por estado</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Qué está pasando en el pipeline · {totalConEstado} activa{totalConEstado !== 1 ? "s" : ""}</p>
+          </div>
+          <Link href="/dashboard/pipeline" className="text-xs font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-lg px-2.5 py-1 transition-colors">Ver pipeline →</Link>
+        </div>
+
+        {totalConEstado === 0 ? (
+          <div className="flex flex-col items-center justify-center py-10 text-center">
+            <IconChartFunnel size={28} stroke={1.5} className="text-slate-300 mb-2" />
+            <p className="text-xs text-slate-500">Sin oportunidades activas</p>
+          </div>
+        ) : (
+          <>
+            {/* Conteo por estado */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              {ESTADOS_TABLERO.map(e => (
+                <div key={e.clave} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`inline-block w-2 h-2 rounded-full ${e.dot}`} />
+                    <span className="text-xs text-slate-500">{e.label}</span>
+                  </div>
+                  <p className={`text-2xl font-extrabold mt-1 ${e.texto}`}>{opsPorEstado[e.clave].length}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Requieren tu acción hoy: riesgo + atención */}
+            {(opsPorEstado.riesgo.length > 0 || opsPorEstado.atencion.length > 0) && (
+              <div>
+                <p className="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+                  <IconAlertTriangle size={13} stroke={1.75} className="text-amber-500" />
+                  Requieren tu acción
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  {[...opsPorEstado.riesgo, ...opsPorEstado.atencion].slice(0, 5).map(o => (
+                    <Link key={o.id} href={`/dashboard/pipeline/${o.id}`}
+                      className="flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 hover:bg-brand-50 hover:border-brand-100 px-2.5 py-1.5 transition-colors group">
+                      <span className="text-xs font-semibold text-slate-800 truncate flex-1 group-hover:text-brand-700">{o.empresa?.nombre ?? o.titulo}</span>
+                      <span className="text-xs text-slate-400 shrink-0 hidden sm:inline">{o.estadoRazon}</span>
+                      <span className="text-xs text-slate-300 shrink-0">{ETAPA_LABEL[o.etapa]}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* ══ FILA INFERIOR: Alertas | Actividades hoy | Semana ══════════════ */}

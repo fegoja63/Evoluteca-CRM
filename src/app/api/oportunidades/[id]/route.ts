@@ -20,6 +20,8 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
       contacto: { select: { id: true, nombre: true, email: true, telefono: true, cargo: true } },
       actividades: { orderBy: { fecha: "desc" }, take: 10 },
       cambiosEtapa: { orderBy: { creadoEn: "asc" } },
+      // Último correo (entrante o saliente) como señal de vida para el estado comercial.
+      correos: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
     },
   });
 
