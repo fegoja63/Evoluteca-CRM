@@ -92,7 +92,7 @@ async function main() {
       const fe = fechaValida(c.fechaEvento); if (fe) candidatas.push(fe);
     }
 
-    let masAntigua: Date | null = candidatas.length ? candidatas.reduce((a, b) => (b < a ? b : a)) : null;
+    const masAntigua: Date | null = candidatas.length ? candidatas.reduce((a, b) => (b < a ? b : a)) : null;
 
     // Evidencia por fecha estructurada anterior al año en curso.
     if (masAntigua && masAntigua < INICIO_ANIO) {

@@ -51,15 +51,18 @@ export function descubrirRutas(): RutaDescubierta[] {
  * asi se detecta tambien un handler re-exportado desde otro modulo, y de paso
  * un route.ts que ni siquiera compila.
  */
+/** Un handler de ruta de Next: recibe request (+ contexto) y responde. */
+type RouteHandler = (...args: unknown[]) => unknown;
+
 export async function cargarHandlers(archivo: string) {
   const modulo = (await import(/* @vite-ignore */ pathToFileURL(archivo).href)) as Record<
     string,
     unknown
   >;
 
-  const handlers: Partial<Record<MetodoHttp, Function>> = {};
+  const handlers: Partial<Record<MetodoHttp, RouteHandler>> = {};
   for (const metodo of METODOS_HTTP) {
-    if (typeof modulo[metodo] === "function") handlers[metodo] = modulo[metodo] as Function;
+    if (typeof modulo[metodo] === "function") handlers[metodo] = modulo[metodo] as RouteHandler;
   }
   return handlers;
 }
