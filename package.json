@@ -17,6 +17,7 @@
     "@prisma/client": "5.22.0",
     "@react-pdf/renderer": "^4.6.1",
     "@tabler/icons-react": "^3.44.0",
+    "@vercel/blob": "^2.8.0",
     "bcryptjs": "^3.0.3",
     "exceljs": "^4.4.0",
     "imapflow": "^1.6.6",

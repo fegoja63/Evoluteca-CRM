@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { gzipSync } from "node:zlib";
+import { put } from "@vercel/blob";
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
+import { cifrar, hayClaveRespaldo } from "@/lib/respaldo-cifrado";
 
 /**
  * Respaldo diario del lado del servidor.
@@ -10,10 +12,14 @@ import { prisma } from "@/lib/prisma";
  * de tareas de Windows: si el computador está apagado, de viaje o se daña,
  * ese día no hay copia. Aquí no depende de ninguna máquina de nadie.
  *
- * El volcado sale por correo comprimido. Se eligió así porque no añade
- * ninguna cuenta ni servicio nuevo —Resend ya está configurado— y porque
- * deja la copia FUERA de Neon y FUERA de Vercel: si se perdiera el acceso a
- * cualquiera de los dos, el respaldo sigue en el buzón.
+ * El volcado se comprime, se CIFRA (AES-256-GCM) y se sube a Vercel Blob;
+ * el correo solo lleva el ENLACE de descarga y el resumen. Antes iba como
+ * adjunto, pero el adjunto tiene un tope (~15 MB) y el día que la base lo
+ * cruzaba —sobre todo por los archivos que se guardan dentro de ella— el
+ * respaldo dejaba de salir. Blob no tiene ese tope y escala solo. Se cifra
+ * porque las URLs de Blob son públicas: aunque el enlace se filtre, sin la
+ * clave (RESPALDO_CLAVE) el contenido es ilegible. La copia queda FUERA de
+ * Neon, y para leerla hace falta la clave, que vive aparte.
  *
  * Lo invoca el cron de Vercel (ver vercel.json), autenticado con CRON_SECRET,
  * todos los días a las 07:00 UTC = 02:00 en Colombia: cuando nadie usa el CRM
@@ -24,13 +30,6 @@ import { prisma } from "@/lib/prisma";
 // el límite por defecto.
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
-
-/**
- * Tope de seguridad del adjunto. Resend admite bastante más, pero un respaldo
- * que crece sin control acabaría rebotando en silencio justo el día que hace
- * falta. Al pasarse, se avisa por correo en vez de fallar callado.
- */
-const MAXIMO_ADJUNTO_MB = 15;
 
 /** Igual que en el script: se serializa lo que la lectura cruda devuelve como objeto. */
 function serializar(_clave: string, valor: unknown) {
@@ -61,6 +60,16 @@ export async function GET(req: Request) {
     );
   }
 
+  // Falla cerrado: sin dónde subir la copia o sin con qué cifrarla, no se hace
+  // un respaldo a medias. BLOB_READ_WRITE_TOKEN lo pone Vercel al conectar un
+  // Blob store; RESPALDO_CLAVE la genera el equipo (openssl rand -hex 32).
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    return NextResponse.json({ error: "Falta BLOB_READ_WRITE_TOKEN (conecta un Blob store en Vercel)" }, { status: 503 });
+  }
+  if (!hayClaveRespaldo()) {
+    return NextResponse.json({ error: "Falta RESPALDO_CLAVE válida (32 bytes en hex: openssl rand -hex 32)" }, { status: 503 });
+  }
+
   // Se leen las tablas que EXISTEN, no las que declara el esquema: si el
   // código va por delante de la base (una migración sin desplegar), el
   // respaldo tiene que salir igual. Ese fallo ya ocurrió una vez.
@@ -85,7 +94,10 @@ export async function GET(req: Request) {
   const fecha = new Date().toISOString();
   const contenido = JSON.stringify({ fecha, tablas: resumen, datos: volcado }, serializar);
   const comprimido = gzipSync(Buffer.from(contenido, "utf8"));
-  const tamanoMb = comprimido.length / (1024 * 1024);
+  // Se cifra el .gz antes de que salga de este proceso: lo que se sube a Blob
+  // (URL pública) ya va ilegible sin RESPALDO_CLAVE.
+  const cifrado = cifrar(comprimido);
+  const tamanoMb = cifrado.length / (1024 * 1024);
 
   const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -103,7 +115,7 @@ export async function GET(req: Request) {
     if (error) throw new Error(`Resend rechazó el envío: ${error.name} — ${error.message}`);
   }
 
-  const nombreArchivo = `respaldo-evoluteca-${fecha.slice(0, 10)}.json.gz`;
+  const nombreArchivo = `respaldo-evoluteca-${fecha.slice(0, 10)}.json.gz.enc`;
 
   const filasTotales = Object.values(resumen).reduce((a, b) => a + b, 0);
   const lineas = Object.entries(resumen)
@@ -111,23 +123,34 @@ export async function GET(req: Request) {
     .map(([t, n]) => `<tr><td style="padding:2px 12px 2px 0">${t}</td><td align="right">${n}</td></tr>`)
     .join("");
 
-  // Demasiado grande: se avisa en vez de mandar un adjunto que el correo
-  // rechazaría. Un respaldo que falla en silencio es peor que no tenerlo.
-  if (tamanoMb > MAXIMO_ADJUNTO_MB) {
-    await enviar({
-      from: "Evoluteca CRM <noreply@evoluteca.com>",
-      to: destino,
-      subject: `⚠️ El respaldo diario ya no cabe en un correo (${tamanoMb.toFixed(1)} MB)`,
-      html:
-        `<p>El respaldo de hoy pesa <b>${tamanoMb.toFixed(1)} MB</b> comprimido, por encima del tope de ${MAXIMO_ADJUNTO_MB} MB.</p>` +
-        `<p><b>No se envió el archivo.</b> Hay que mover el respaldo a un almacenamiento de archivos.</p>` +
-        `<p>Suele deberse a los adjuntos, que se guardan dentro de la base.</p>`,
+  // Se sube la copia cifrada a Blob. addRandomSuffix: cada día es un archivo
+  // distinto (no se pisan) y la URL lleva un sufijo aleatorio no adivinable.
+  let urlRespaldo: string;
+  try {
+    const blob = await put(nombreArchivo, cifrado, {
+      access: "public",
+      addRandomSuffix: true,
+      contentType: "application/octet-stream",
+      token: process.env.BLOB_READ_WRITE_TOKEN,
     });
-
-    return NextResponse.json(
-      { ok: false, motivo: "adjunto demasiado grande", tamanoMb: Number(tamanoMb.toFixed(2)) },
-      { status: 500 }
-    );
+    urlRespaldo = blob.url;
+  } catch (e) {
+    // Si la subida falla, se avisa por correo en vez de fallar callado: un
+    // respaldo que no salió y nadie lo supo es el peor de los casos.
+    const motivo = e instanceof Error ? e.message : String(e);
+    console.error("[respaldo] no se pudo subir a Blob:", motivo);
+    try {
+      await enviar({
+        from: "Evoluteca CRM <noreply@evoluteca.com>",
+        to: destino,
+        subject: "⚠️ El respaldo diario NO se pudo guardar",
+        html:
+          `<p>El respaldo de hoy no se pudo subir al almacenamiento (Blob).</p>` +
+          `<p>Motivo técnico: <code>${motivo}</code></p>` +
+          `<p>Revisa que el Blob store siga conectado en Vercel. Mientras tanto, corre el respaldo manual: <code>node --env-file=.env scripts/backup-db.ts</code>.</p>`,
+      });
+    } catch { /* si ni el aviso sale, queda en los logs de Vercel */ }
+    return NextResponse.json({ ok: false, motivo, tamanoMb: Number(tamanoMb.toFixed(2)) }, { status: 500 });
   }
 
   try {
@@ -136,23 +159,24 @@ export async function GET(req: Request) {
     to: destino,
     subject: `Respaldo Evoluteca CRM — ${fecha.slice(0, 10)}`,
     html:
-      `<p>Respaldo automático de la base de datos.</p>` +
+      `<p>Respaldo automático de la base de datos, guardado en el almacenamiento seguro.</p>` +
       `<p><b>${filasTotales}</b> registros en ${Object.keys(resumen).length} tablas · ` +
-      `${tamanoMb.toFixed(2)} MB comprimidos</p>` +
+      `${tamanoMb.toFixed(2)} MB (cifrado)</p>` +
+      `<p><a href="${urlRespaldo}">Descargar respaldo (${nombreArchivo})</a></p>` +
       `<table style="font:13px sans-serif;border-collapse:collapse">${lineas}</table>` +
-      `<p style="color:#64748b;font-size:12px">Guarda este correo. Para restaurarlo: ` +
-      `descomprime el .gz y usa <code>scripts/restaurar-db.ts</code>.</p>`,
-    attachments: [{ filename: nombreArchivo, content: comprimido.toString("base64") }],
+      `<p style="color:#64748b;font-size:12px">El archivo está CIFRADO: para leerlo hace falta la clave ` +
+      `<code>RESPALDO_CLAVE</code>. Para restaurarlo: descárgalo, ` +
+      `<code>node --env-file=.env scripts/descifrar-respaldo.ts &lt;archivo.enc&gt; &lt;carpeta&gt;</code> ` +
+      `y luego <code>scripts/restaurar-db.ts &lt;carpeta&gt;</code>.</p>`,
     });
   } catch (e) {
-    // El motivo se devuelve en la respuesta y se deja en los logs de Vercel:
-    // la ruta solo la invoca el cron con CRON_SECRET, así que no hay a quién
-    // filtrarle nada, y sin el motivo el diagnóstico es adivinar.
+    // La copia YA quedó en Blob; falló solo el aviso. Se reporta pero el
+    // respaldo existe. El motivo se devuelve y queda en los logs de Vercel.
     const motivo = e instanceof Error ? e.message : String(e);
-    console.error("[respaldo] no se pudo enviar:", motivo);
+    console.error("[respaldo] copia subida pero el aviso falló:", motivo);
     return NextResponse.json(
-      { ok: false, motivo, destino, tamanoMb: Number(tamanoMb.toFixed(2)) },
-      { status: 500 }
+      { ok: true, avisoFallo: motivo, url: urlRespaldo, destino, tamanoMb: Number(tamanoMb.toFixed(2)) },
+      { status: 200 }
     );
   }
 
@@ -160,6 +184,7 @@ export async function GET(req: Request) {
     ok: true,
     fecha,
     destino,
+    url: urlRespaldo,
     tablas: Object.keys(resumen).length,
     filas: filasTotales,
     tamanoMb: Number(tamanoMb.toFixed(2)),
