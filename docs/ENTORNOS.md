@@ -165,26 +165,30 @@ explícitamente a `-05:00` antes de guardarlas, en
 ## 7. Respaldo diario (producción)
 
 El cron `/api/cron/respaldo` (Vercel, 02:00 Colombia) vuelca toda la base,
-la comprime, la **cifra** (AES-256-GCM) y la sube a **Vercel Blob**. El correo
-solo lleva el **enlace** de descarga y el resumen — ya no un adjunto, así que
-**no hay tope de 15 MB** y el respaldo no deja de salir cuando la base crece.
-Se cifra porque las URLs de Blob son públicas: aunque el enlace se filtre, sin
-la clave el contenido es ilegible.
+la comprime, la **cifra** (AES-256-GCM) y la sube a **Vercel Blob** como blob
+**privado**. El correo lleva un **enlace firmado temporal** (7 días) y el
+resumen — ya no un adjunto, así que **no hay tope de 15 MB** y el respaldo no
+deja de salir cuando la base crece. **Doble candado:** el store es privado (la
+URL directa no sirve sin firma) *y* el contenido va cifrado (sin la clave es
+ilegible). Se conservan los últimos **30 días** (`RESPALDO_RETENCION_DIAS`); los
+más viejos se borran solos en cada corrida.
 
 ### Puesta en marcha (una vez)
 
 1. **Blob store:** Vercel → proyecto `evoluteca-crm` → **Storage → Create/Connect**
-   un **Blob** store y conéctalo al proyecto. Vercel agrega solo la variable
-   `BLOB_READ_WRITE_TOKEN` (Production).
+   un **Blob** store (privado está bien) y conéctalo al proyecto. Vercel agrega
+   solas `BLOB_READ_WRITE_TOKEN` y `BLOB_STORE_ID` (Production).
 2. **Clave de cifrado:** genera una con `openssl rand -hex 32` y ponla en Vercel
    como `RESPALDO_CLAVE` (Production). **Guárdala aparte** (gestor de contraseñas):
    sin ella el respaldo no se puede restaurar.
 3. **Destino del aviso (opcional):** `RESPALDO_EMAIL` (si falta, usa `GMAIL_USER`).
+4. **Redeploy** para que tome las variables.
 
 ### Restaurar un respaldo (en una base de PRUEBA, nunca producción)
 
 ```bash
-# 1. Descarga el archivo .json.gz.enc desde el enlace del correo.
+# 1. Descarga el archivo .json.gz.enc (enlace del correo, o Vercel → Storage →
+#    Blob → Manage Blobs si el enlace ya caducó).
 # 2. Descífralo y conviértelo al formato de carpeta (necesita RESPALDO_CLAVE en .env):
 node --env-file=.env scripts/descifrar-respaldo.ts <archivo.json.gz.enc> <carpeta>
 # 3. Restaura esa carpeta en la base de prueba:

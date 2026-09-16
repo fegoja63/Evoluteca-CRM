@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { gzipSync } from "node:zlib";
-import { put } from "@vercel/blob";
+import { put, list, del, issueSignedToken, presignUrl } from "@vercel/blob";
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { cifrar, hayClaveRespaldo } from "@/lib/respaldo-cifrado";
@@ -12,14 +12,15 @@ import { cifrar, hayClaveRespaldo } from "@/lib/respaldo-cifrado";
  * de tareas de Windows: si el computador está apagado, de viaje o se daña,
  * ese día no hay copia. Aquí no depende de ninguna máquina de nadie.
  *
- * El volcado se comprime, se CIFRA (AES-256-GCM) y se sube a Vercel Blob;
- * el correo solo lleva el ENLACE de descarga y el resumen. Antes iba como
- * adjunto, pero el adjunto tiene un tope (~15 MB) y el día que la base lo
+ * El volcado se comprime, se CIFRA (AES-256-GCM) y se sube a Vercel Blob como
+ * blob PRIVADO; el correo lleva un ENLACE FIRMADO temporal (además de las
+ * instrucciones para bajarlo del panel de Vercel). Antes iba como adjunto de
+ * correo, pero el adjunto tiene un tope (~15 MB) y el día que la base lo
  * cruzaba —sobre todo por los archivos que se guardan dentro de ella— el
- * respaldo dejaba de salir. Blob no tiene ese tope y escala solo. Se cifra
- * porque las URLs de Blob son públicas: aunque el enlace se filtre, sin la
- * clave (RESPALDO_CLAVE) el contenido es ilegible. La copia queda FUERA de
- * Neon, y para leerla hace falta la clave, que vive aparte.
+ * respaldo dejaba de salir. Blob no tiene ese tope y escala solo. Doble
+ * candado: el store es privado (el enlace público directo no sirve) y encima
+ * el contenido va cifrado (sin RESPALDO_CLAVE es ilegible). La copia queda
+ * FUERA de Neon.
  *
  * Lo invoca el cron de Vercel (ver vercel.json), autenticado con CRON_SECRET,
  * todos los días a las 07:00 UTC = 02:00 en Colombia: cuando nadie usa el CRM
@@ -30,6 +31,14 @@ import { cifrar, hayClaveRespaldo } from "@/lib/respaldo-cifrado";
 // el límite por defecto.
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
+
+// Se conservan los respaldos de los últimos RETENCION_DIAS en Blob; los más
+// viejos se borran en cada corrida para no llenar el almacenamiento.
+const RETENCION_DIAS = Number(process.env.RESPALDO_RETENCION_DIAS ?? 30);
+// Cuánto vale el enlace firmado del correo. Pasado ese tiempo, la copia SIGUE
+// en Blob (se baja desde el panel de Vercel); solo caduca el enlace directo.
+const ENLACE_VALIDO_DIAS = 7;
+const PREFIJO = "respaldos/";
 
 /** Igual que en el script: se serializa lo que la lectura cruda devuelve como objeto. */
 function serializar(_clave: string, valor: unknown) {
@@ -98,6 +107,8 @@ export async function GET(req: Request) {
   // (URL pública) ya va ilegible sin RESPALDO_CLAVE.
   const cifrado = cifrar(comprimido);
   const tamanoMb = cifrado.length / (1024 * 1024);
+  // Nota: se cifra siempre, aunque el store ya sea privado, como segundo
+  // candado (defensa en profundidad).
 
   const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -123,17 +134,19 @@ export async function GET(req: Request) {
     .map(([t, n]) => `<tr><td style="padding:2px 12px 2px 0">${t}</td><td align="right">${n}</td></tr>`)
     .join("");
 
-  // Se sube la copia cifrada a Blob. addRandomSuffix: cada día es un archivo
-  // distinto (no se pisan) y la URL lleva un sufijo aleatorio no adivinable.
-  let urlRespaldo: string;
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+
+  // Se sube la copia cifrada a Blob como PRIVADA. addRandomSuffix: cada día es
+  // un archivo distinto (no se pisan). El prefijo agrupa los respaldos.
+  let pathnameRespaldo: string;
   try {
-    const blob = await put(nombreArchivo, cifrado, {
-      access: "public",
+    const blob = await put(`${PREFIJO}${nombreArchivo}`, cifrado, {
+      access: "private",
       addRandomSuffix: true,
       contentType: "application/octet-stream",
-      token: process.env.BLOB_READ_WRITE_TOKEN,
+      token,
     });
-    urlRespaldo = blob.url;
+    pathnameRespaldo = blob.pathname;
   } catch (e) {
     // Si la subida falla, se avisa por correo en vez de fallar callado: un
     // respaldo que no salió y nadie lo supo es el peor de los casos.
@@ -153,16 +166,48 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, motivo, tamanoMb: Number(tamanoMb.toFixed(2)) }, { status: 500 });
   }
 
+  // Purga de respaldos viejos (no fatal): mantener solo los últimos
+  // RETENCION_DIAS para no llenar el almacenamiento. Si falla, el respaldo de
+  // hoy ya está subido, así que solo se registra.
+  try {
+    const limite = Date.now() - RETENCION_DIAS * 24 * 60 * 60 * 1000;
+    const { blobs } = await list({ prefix: PREFIJO, token });
+    const viejos = blobs.filter(b => new Date(b.uploadedAt).getTime() < limite).map(b => b.url);
+    if (viejos.length) await del(viejos, { token });
+  } catch (e) {
+    console.error("[respaldo] no se pudieron purgar respaldos viejos:", e instanceof Error ? e.message : String(e));
+  }
+
+  // Enlace firmado temporal para el correo (no fatal): el store es privado, así
+  // que la URL directa no sirve. Si esto falla, la copia SIGUE en Blob y el
+  // correo explica cómo bajarla del panel de Vercel.
+  let enlace: string | null = null;
+  try {
+    const validUntil = Date.now() + ENLACE_VALIDO_DIAS * 24 * 60 * 60 * 1000;
+    const firma = await issueSignedToken({ pathname: pathnameRespaldo, operations: ["get"], validUntil, token });
+    const { presignedUrl } = await presignUrl(
+      { clientSigningToken: firma.clientSigningToken, delegationToken: firma.delegationToken },
+      { operation: "get", pathname: pathnameRespaldo, access: "private", validUntil: firma.validUntil },
+    );
+    enlace = presignedUrl;
+  } catch (e) {
+    console.error("[respaldo] no se pudo firmar el enlace de descarga:", e instanceof Error ? e.message : String(e));
+  }
+
+  const bloqueDescarga = enlace
+    ? `<p><a href="${enlace}">Descargar respaldo (${nombreArchivo})</a> — enlace válido ${ENLACE_VALIDO_DIAS} días.</p>`
+    : `<p>Descárgalo desde Vercel → proyecto <b>evoluteca-crm</b> → Storage → tu Blob → Manage Blobs → <code>${pathnameRespaldo}</code>.</p>`;
+
   try {
     await enviar({
     from: "Evoluteca CRM <noreply@evoluteca.com>",
     to: destino,
     subject: `Respaldo Evoluteca CRM — ${fecha.slice(0, 10)}`,
     html:
-      `<p>Respaldo automático de la base de datos, guardado en el almacenamiento seguro.</p>` +
+      `<p>Respaldo automático de la base de datos, guardado en el almacenamiento seguro (privado y cifrado).</p>` +
       `<p><b>${filasTotales}</b> registros en ${Object.keys(resumen).length} tablas · ` +
       `${tamanoMb.toFixed(2)} MB (cifrado)</p>` +
-      `<p><a href="${urlRespaldo}">Descargar respaldo (${nombreArchivo})</a></p>` +
+      bloqueDescarga +
       `<table style="font:13px sans-serif;border-collapse:collapse">${lineas}</table>` +
       `<p style="color:#64748b;font-size:12px">El archivo está CIFRADO: para leerlo hace falta la clave ` +
       `<code>RESPALDO_CLAVE</code>. Para restaurarlo: descárgalo, ` +
@@ -175,7 +220,7 @@ export async function GET(req: Request) {
     const motivo = e instanceof Error ? e.message : String(e);
     console.error("[respaldo] copia subida pero el aviso falló:", motivo);
     return NextResponse.json(
-      { ok: true, avisoFallo: motivo, url: urlRespaldo, destino, tamanoMb: Number(tamanoMb.toFixed(2)) },
+      { ok: true, avisoFallo: motivo, pathname: pathnameRespaldo, destino, tamanoMb: Number(tamanoMb.toFixed(2)) },
       { status: 200 }
     );
   }
@@ -184,7 +229,7 @@ export async function GET(req: Request) {
     ok: true,
     fecha,
     destino,
-    url: urlRespaldo,
+    pathname: pathnameRespaldo,
     tablas: Object.keys(resumen).length,
     filas: filasTotales,
     tamanoMb: Number(tamanoMb.toFixed(2)),
