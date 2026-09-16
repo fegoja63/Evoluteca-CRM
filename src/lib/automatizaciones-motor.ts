@@ -3,6 +3,7 @@ import type { Automatizacion } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { escapeHtml } from "@/lib/html";
 import { notificarTareaAsignada } from "@/lib/notificar-tarea";
+import { registrarErrorServidor } from "@/lib/registrar-error-servidor";
 import {
   aplicarPlantilla,
   validarConfigAccion,
@@ -178,13 +179,24 @@ async function ejecutarEnviarCorreo(
 
   const resend = new Resend(process.env.RESEND_API_KEY);
   // Se envía un correo por destinatario (no se exponen las direcciones entre sí).
+  // Un fallo de envío no debe tumbar el resto: se registra y se sigue.
   for (const to of correos) {
-    await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: "Evoluteca CRM <noreply@evoluteca.com>",
       to,
       subject: asunto,
       html,
     });
+    if (error) {
+      console.error("automatizacion enviarCorreo resend:", JSON.stringify(error));
+      await registrarErrorServidor({
+        mensaje: `No se pudo enviar el correo de la automatización "${regla.nombre}": ${error.message}`,
+        stack: JSON.stringify(error),
+        tipo: "email",
+        tenantId: params.tenantId,
+        usuarioEmail: to,
+      });
+    }
   }
 }
 

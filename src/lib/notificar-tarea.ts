@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { escapeHtml } from "@/lib/html";
+import { registrarErrorServidor } from "@/lib/registrar-error-servidor";
 
 const BASE_URL = process.env.NEXTAUTH_URL ?? "https://evoluteca-crm-six.vercel.app";
 const LOGO_FGJ = "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg";
@@ -86,8 +87,23 @@ export async function notificarTareaAsignada(p: Params): Promise<void> {
       subject,
       html,
     });
-    if (error) console.error("notificarTareaAsignada resend:", JSON.stringify(error));
+    if (error) {
+      console.error("notificarTareaAsignada resend:", JSON.stringify(error));
+      await registrarErrorServidor({
+        mensaje: `No se pudo enviar el correo de tarea asignada: ${error.message}`,
+        stack: JSON.stringify(error),
+        tipo: "email",
+        tenantId: p.tenantId,
+        usuarioEmail: responsable.email,
+      });
+    }
   } catch (e) {
     console.error("notificarTareaAsignada:", e instanceof Error ? e.message : String(e));
+    await registrarErrorServidor({
+      mensaje: `Excepción enviando correo de tarea asignada: ${e instanceof Error ? e.message : String(e)}`,
+      stack: e instanceof Error ? e.stack : null,
+      tipo: "email",
+      tenantId: p.tenantId,
+    });
   }
 }
