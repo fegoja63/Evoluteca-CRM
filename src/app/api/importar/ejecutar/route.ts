@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import ExcelJS from "exceljs";
 import { excedeTope } from "@/lib/importar-limite";
 import { normalizarEmail } from "@/lib/duplicados";
+import { parseMonto } from "@/lib/parse-monto";
 
 type Mapeo = Record<string, string>; // campoDelCRM -> columnaDelExcel
 
@@ -163,12 +164,11 @@ export async function POST(request: Request) {
       const empresaId = empresaNombre ? empresaMap.get(empresaNombre.toLowerCase()) : null;
       const etapaRaw = getCol(fila, "etapa")?.toUpperCase().replace(/\s/g, "_") ?? "";
       const etapa = ETAPAS_VALIDAS.includes(etapaRaw) ? etapaRaw as "PROSPECTO" | "CALIFICADO" | "PROPUESTA" | "NEGOCIACION" | "GANADA" | "PERDIDA" : "PROSPECTO";
-      const valorRaw = getCol(fila, "valor");
-      const valor = valorRaw ? Number(valorRaw.replace(/[^0-9.]/g, "")) : null;
+      const valor = parseMonto(getCol(fila, "valor"));
       data.push({
         titulo,
         etapa,
-        valor: valor && !isNaN(valor) ? valor : null,
+        valor,
         notas: getCol(fila, "notas"),
         extras: getExtras(fila) ?? undefined,
         empresaId: empresaId || null,
@@ -202,12 +202,11 @@ export async function POST(request: Request) {
     for (const fila of filas) {
       const nombre = getCol(fila, "nombre");
       if (!nombre) { errores++; continue; }
-      const precioRaw = getCol(fila, "precioBase");
-      const precio = precioRaw ? Number(precioRaw.replace(/[^0-9.]/g, "")) : 0;
+      const precio = parseMonto(getCol(fila, "precioBase"));
       data.push({
         nombre,
         descripcion: getCol(fila, "descripcion"),
-        precioBase: precio && !isNaN(precio) ? precio : 0,
+        precioBase: precio ?? 0,
         tenantId,
       });
     }
@@ -224,15 +223,14 @@ export async function POST(request: Request) {
       const canalRaw = getCol(fila, "canal")?.toUpperCase() ?? "";
       const canal = CANALES_VALIDOS.includes(canalRaw)
         ? canalRaw as "PLATAFORMA" | "TAQUILLA" | "INVITADOS" | "EMPRESA" : "PLATAFORMA";
-      const ingresoRaw = getCol(fila, "ingresoEstimado");
-      const ingreso = ingresoRaw ? Number(ingresoRaw.replace(/[^0-9.]/g, "")) : null;
+      const ingreso = parseMonto(getCol(fila, "ingresoEstimado"));
       data.push({
         titulo,
         fecha,
         canal,
         sillasTotales: enteroODefault(getCol(fila, "sillasTotales"), 239),
         sillasVendidas: enteroODefault(getCol(fila, "sillasVendidas"), 0),
-        ingresoEstimado: ingreso && !isNaN(ingreso) ? ingreso : null,
+        ingresoEstimado: ingreso,
         notas: getCol(fila, "notas"),
         tenantId,
       });
