@@ -76,7 +76,7 @@ export function PanelLunes() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-sm font-bold text-slate-900">Actividad comercial</p>
-              <p className="text-xs text-slate-400 mt-0.5">Toques del equipo · últimos 7 días ({d.rangos.actividad})</p>
+              <p className="text-xs text-slate-400 mt-0.5">Toques del equipo · últimos 7 días <span className="font-semibold text-slate-600">({d.rangos.actividad})</span></p>
             </div>
             <span className="text-2xl font-extrabold text-brand-600">{d.actividad.total}</span>
           </div>
@@ -146,7 +146,7 @@ export function PanelLunes() {
             <div>
               <p className="text-sm font-bold text-slate-900">Ticket promedio</p>
               <p className="text-xs text-slate-400 mt-0.5">
-                Valor medio por operación ganada · {d.ticketPromedio.ventana === "12m" ? `últimos 12 meses (${d.rangos.ticket})` : "histórico completo"}
+                Valor medio por operación ganada · {d.ticketPromedio.ventana === "12m" ? <>últimos 12 meses <span className="font-semibold text-slate-600">({d.rangos.ticket})</span></> : "histórico completo"}
               </p>
             </div>
             <IconTag size={18} stroke={1.75} className="text-accent-600" />
@@ -166,7 +166,7 @@ export function PanelLunes() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-sm font-bold text-slate-900">Movimiento de clientes</p>
-              <p className="text-xs text-slate-400 mt-0.5">{d.clientes.total} clientes en total · {d.rangos.mes}</p>
+              <p className="text-xs text-slate-400 mt-0.5">{d.clientes.total} clientes en total · <span className="font-semibold text-slate-600">{d.rangos.mes}</span></p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -184,7 +184,7 @@ export function PanelLunes() {
                     <span className={`text-2xl font-extrabold ${c.txt}`}>{c.valor}</span>
                   </div>
                   <p className={`text-xs font-semibold mt-1 ${c.txt}`}>{c.label}</p>
-                  <p className="text-[11px] text-slate-400">{c.sub}</p>
+                  <p className="text-[11px] font-medium text-slate-500">{c.sub}</p>
                 </div>
               );
             })}
