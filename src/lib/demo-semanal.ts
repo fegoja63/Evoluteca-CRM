@@ -56,6 +56,17 @@ const ITEMS_PROPUESTA: { descripcion: string; precioUnit: number }[] = [
   { descripcion: "Consultoría de configuración", precioUnit: 3_000_000 },
 ];
 
+// Negocios ganados del mes, para que el dashboard no muestre "$0 ganado este mes"
+// y se vea una empresa que cierra ventas. Se fechan dentro del mes en curso.
+const GANADOS_MIN = 4;
+const GANADOS_MAX = 7;
+const VALOR_GANADO_MIN = 3_000_000;
+const VALOR_GANADO_MAX = 22_000_000;
+const TITULOS_GANADOS = [
+  "Venta cerrada — plan Equipo", "Renovación anual de licencias", "Ampliación de puestos",
+  "Nuevo contrato de servicios", "Cierre: implementación CRM", "Upgrade a plan superior",
+];
+
 function rnd<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 function rndInt(min: number, max: number) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
@@ -75,14 +86,24 @@ function fechaLaboral(offsetDias: number): Date {
   return d;
 }
 
+// Fecha aleatoria dentro del mes en curso, entre el día 1 y HOY (nunca futura),
+// para fechar los negocios ganados del mes.
+function fechaEsteMes(): Date {
+  const hoy = new Date();
+  const dia = rndInt(1, hoy.getDate());
+  return new Date(hoy.getFullYear(), hoy.getMonth(), dia, rndInt(8, 17), rndInt(0, 59), 0, 0);
+}
+
 export type ResultadoDemoSemanal = {
   ok: boolean;
   error?: string;
   tenant?: string;
   actividadesCreadas?: number;
   propuestasCreadas?: number;
+  ganadosCreados?: number;
   actividadesBorradas?: number;
   propuestasBorradas?: number;
+  ganadosBorrados?: number;
 };
 
 /**
@@ -124,10 +145,15 @@ export async function refrescarDemoSemanal(
   if (empresas.length === 0) return { ok: false, error: "El demo no tiene empresas; nada que poblar." };
 
   // 1) Borrar el relleno anterior (marcado con TAG). Así el volumen no crece.
+  //    Primero actividades y cotizaciones (pueden referenciar oportunidades),
+  //    luego las oportunidades ganadas de relleno.
   const borradoActs = await prisma.actividad.deleteMany({
     where: { tenantId: T, notas: { startsWith: TAG_DEMO } },
   });
   const borradoCots = await prisma.cotizacion.deleteMany({
+    where: { tenantId: T, notas: { startsWith: TAG_DEMO } },
+  });
+  const borradoOps = await prisma.oportunidad.deleteMany({
     where: { tenantId: T, notas: { startsWith: TAG_DEMO } },
   });
 
@@ -192,12 +218,36 @@ export async function refrescarDemoSemanal(
     propuestasCreadas++;
   }
 
+  // 4) Negocios GANADOS del mes, para que "Ganado este mes" no salga en $0.
+  //    Se fechan con fechaCierre dentro del mes en curso (fechaEfectiva los
+  //    agrupa por esa fecha) y se cuelgan de una empresa existente.
+  const cuantosGanados = rndInt(GANADOS_MIN, GANADOS_MAX);
+  const ganados = Array.from({ length: cuantosGanados }, () => {
+    const emp = rnd(empresas);
+    const vendedor = rnd(vendedores).id;
+    return {
+      titulo: rnd(TITULOS_GANADOS),
+      valor: rndInt(VALOR_GANADO_MIN / 100_000, VALOR_GANADO_MAX / 100_000) * 100_000,
+      etapa: "GANADA" as const,
+      probabilidad: 100,
+      fechaCierre: fechaEsteMes(),
+      notas: `${TAG_DEMO} negocio ganado de demostración`,
+      tenantId: T,
+      empresaId: emp.id,
+      contactoId: emp.contactos.length ? rnd(emp.contactos).id : null,
+      creadoBy: vendedor,
+    };
+  });
+  await prisma.oportunidad.createMany({ data: ganados });
+
   return {
     ok: true,
     tenant: tenant.nombre,
     actividadesCreadas: nuevas.length,
     propuestasCreadas,
+    ganadosCreados: ganados.length,
     actividadesBorradas: borradoActs.count,
     propuestasBorradas: borradoCots.count,
+    ganadosBorrados: borradoOps.count,
   };
 }
