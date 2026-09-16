@@ -70,10 +70,12 @@ export async function GET(req: Request) {
   }
 
   // Falla cerrado: sin dónde subir la copia o sin con qué cifrarla, no se hace
-  // un respaldo a medias. BLOB_READ_WRITE_TOKEN lo pone Vercel al conectar un
-  // Blob store; RESPALDO_CLAVE la genera el equipo (openssl rand -hex 32).
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return NextResponse.json({ error: "Falta BLOB_READ_WRITE_TOKEN (conecta un Blob store en Vercel)" }, { status: 503 });
+  // un respaldo a medias. Al conectar un Blob store, Vercel deja BLOB_STORE_ID
+  // (stores privados nuevos, que autentican por OIDC) o BLOB_READ_WRITE_TOKEN
+  // (modelo clásico); el SDK usa el que haya. RESPALDO_CLAVE la genera el
+  // equipo (openssl rand -hex 32).
+  if (!process.env.BLOB_READ_WRITE_TOKEN && !process.env.BLOB_STORE_ID) {
+    return NextResponse.json({ error: "Falta conectar un Blob store en Vercel (BLOB_STORE_ID o BLOB_READ_WRITE_TOKEN)" }, { status: 503 });
   }
   if (!hayClaveRespaldo()) {
     return NextResponse.json({ error: "Falta RESPALDO_CLAVE válida (32 bytes en hex: openssl rand -hex 32)" }, { status: 503 });
