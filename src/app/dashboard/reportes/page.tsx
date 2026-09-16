@@ -457,7 +457,7 @@ export default function ReportesPage() {
     if (total === 0) return valores.map(() => 0);
     const exactos = valores.map(v => (v / total) * 100);
     const enteros = exactos.map(Math.floor);
-    let faltante = 100 - enteros.reduce((a, b) => a + b, 0);
+    const faltante = 100 - enteros.reduce((a, b) => a + b, 0);
     const ordenPorResto = exactos
       .map((v, i) => ({ i, resto: v - Math.floor(v) }))
       .sort((a, b) => b.resto - a.resto);
