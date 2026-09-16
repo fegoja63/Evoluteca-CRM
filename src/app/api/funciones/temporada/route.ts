@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { crearTemporadaSchema, MAX_FUNCIONES_TEMPORADA } from "@/lib/validations/funciones";
 import { parseOrError } from "@/lib/validations/helpers";
+import { fechaDesdeBogota } from "@/lib/fecha-bogota";
 
 // Crea en un solo paso todas las funciones de una temporada a partir de un
 // patrón: recorre el rango [desde, hasta] día por día, y por cada fecha que
@@ -35,7 +36,9 @@ export async function POST(request: Request) {
     const mm = String(cursor.getUTCMonth() + 1).padStart(2, "0");
     const dd = String(cursor.getUTCDate()).padStart(2, "0");
     for (const h of horariosUnicos) {
-      fechas.push(new Date(`${yyyy}-${mm}-${dd}T${h}`));
+      // Se ancla a Bogotá (UTC-5) para que el horario elegido no se corra con
+      // la zona del servidor (Vercel corre en UTC).
+      fechas.push(fechaDesdeBogota(`${yyyy}-${mm}-${dd}T${h}`));
     }
     if (fechas.length > MAX_FUNCIONES_TEMPORADA) break;
   }

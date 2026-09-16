@@ -5,6 +5,7 @@ import { toast } from "@/lib/toast";
 import { KpiCard } from "@/components/kpi-card";
 import { MoneyInput } from "@/components/money-input";
 import { Pager } from "@/components/pager";
+import { aInputDatetimeLocal } from "@/lib/fecha-bogota";
 import {
   IconTheater, IconArmchair, IconCoin, IconStar, IconDownload, IconPlus,
   IconAlertTriangle,
@@ -170,7 +171,7 @@ export default function FuncionesPage() {
     setEditandoId(f.id);
     setEditForm({
       titulo: f.titulo,
-      fecha: new Date(f.fecha).toISOString().slice(0, 16),
+      fecha: aInputDatetimeLocal(f.fecha),
       sillasTotales: String(f.sillasTotales),
       sillasVendidas: String(f.sillasVendidas),
       canal: f.canal,

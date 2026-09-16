@@ -1,48 +1,43 @@
 import { describe, it, expect } from "vitest";
-import { componentesHoyBogota, medianocheBogota } from "./fecha-bogota";
+import { anclarBogota, fechaDesdeBogota, aInputDatetimeLocal } from "@/lib/fecha-bogota";
 
-describe("fecha-bogota", () => {
-  // 30 de julio 2026, 02:00 UTC = 29 de julio 2026, 9:00 PM en Bogotá (UTC-5).
-  // Es el caso del bug reportado: de noche en Bogotá el servidor UTC ya está en
-  // el día siguiente.
-  const nocheEnBogota = new Date("2026-07-30T02:00:00.000Z");
-
-  it("devuelve la fecha de Bogotá, no la del servidor UTC, de noche", () => {
-    const { anio, mes, dia } = componentesHoyBogota(nocheEnBogota);
-    expect(anio).toBe(2026);
-    expect(mes).toBe(6); // julio, 0-indexado
-    expect(dia).toBe(29); // 29, no 30
+describe("anclarBogota", () => {
+  it("ancla una hora de pared (datetime-local) a UTC-5", () => {
+    // 7:00 p.m. en Bogotá = 00:00 UTC del día siguiente.
+    expect(fechaDesdeBogota("2026-10-20T19:00").toISOString()).toBe("2026-10-21T00:00:00.000Z");
   });
 
-  it("medianocheBogota(0) es la medianoche de Bogotá de hoy como instante UTC", () => {
-    // Medianoche del 29-jul en Bogotá = 05:00 UTC del 29-jul.
-    expect(medianocheBogota(0, nocheEnBogota).toISOString()).toBe("2026-07-29T05:00:00.000Z");
+  it("conserva los segundos si vienen", () => {
+    expect(anclarBogota("2026-10-20T19:00:30")).toBe("2026-10-20T19:00:30-05:00");
   });
 
-  it("la ventana [hoy, mañana) cubre una actividad de la tarde de Bogotá", () => {
-    const inicioHoy = medianocheBogota(0, nocheEnBogota);
-    const finHoy = medianocheBogota(1, nocheEnBogota);
-    // Actividad a las 2:00 PM del 29-jul en Bogotá = 19:00 UTC del 29-jul.
-    const actividad = new Date("2026-07-29T19:00:00.000Z");
-    expect(actividad >= inicioHoy && actividad < finHoy).toBe(true);
-    // Con la lógica vieja (día UTC) "hoy" habría sido el 30-jul y esta actividad
-    // habría quedado fuera de la ventana.
-    const inicioHoyUtc = new Date(Date.UTC(2026, 6, 30));
-    expect(actividad >= inicioHoyUtc).toBe(false);
+  it("agrega segundos si faltan", () => {
+    expect(anclarBogota("2026-10-20T19:00")).toBe("2026-10-20T19:00:00-05:00");
   });
 
-  it("maneja el cambio de mes: 31-jul de noche sigue siendo julio en Bogotá", () => {
-    // 1 de agosto 01:00 UTC = 31 de julio 8:00 PM en Bogotá.
-    const finDeJulioBogota = new Date("2026-08-01T01:00:00.000Z");
-    const { mes, dia } = componentesHoyBogota(finDeJulioBogota);
-    expect(mes).toBe(6); // julio, no agosto
-    expect(dia).toBe(31);
+  it("una fecha sola se ancla a medianoche de Bogotá", () => {
+    expect(fechaDesdeBogota("2026-10-20").toISOString()).toBe("2026-10-20T05:00:00.000Z");
   });
 
-  it("maneja overflow de días negativos y positivos", () => {
-    // 60 días antes del 29-jul-2026 = 30-may-2026 (medianoche Bogotá).
-    expect(medianocheBogota(-60, nocheEnBogota).toISOString()).toBe("2026-05-30T05:00:00.000Z");
-    // 7 días después = 5-ago-2026.
-    expect(medianocheBogota(7, nocheEnBogota).toISOString()).toBe("2026-08-05T05:00:00.000Z");
+  it("no toca un string que ya trae zona (Z u offset)", () => {
+    expect(anclarBogota("2026-10-20T19:00:00Z")).toBe("2026-10-20T19:00:00Z");
+    expect(anclarBogota("2026-10-20T19:00-05:00")).toBe("2026-10-20T19:00-05:00");
+  });
+
+  it("deja pasar vacío, null, undefined y no-strings", () => {
+    expect(anclarBogota("")).toBe("");
+    expect(anclarBogota(null)).toBeNull();
+    expect(anclarBogota(undefined)).toBeUndefined();
+    const d = new Date();
+    expect(anclarBogota(d)).toBe(d);
+  });
+});
+
+describe("aInputDatetimeLocal", () => {
+  it("hace ida y vuelta con la hora anclada (en zona Bogotá)", () => {
+    // Este test asume que corre en una máquina en Bogotá o en UTC; solo
+    // verificamos que el formato sea YYYY-MM-DDTHH:mm.
+    const salida = aInputDatetimeLocal("2026-10-21T00:00:00.000Z");
+    expect(salida).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
   });
 });

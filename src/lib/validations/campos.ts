@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { anclarBogota } from "@/lib/fecha-bogota";
 
 // Bloques de campo reutilizables entre los esquemas de cada entidad. Los
 // campos "opcionales" aceptan "" (lo que mandan los formularios cuando un
@@ -62,8 +63,14 @@ export const enteroOpcional = (max = 1_000_000) =>
 
 export const porcentajeOpcional = z.preprocess(sinVacio, porcentaje.optional());
 
-export const fechaValida = z.coerce.date({ error: "Fecha inválida" });
+// `anclarBogota` interpreta la hora "de pared" del formulario como hora
+// colombiana (UTC-5), en vez de la zona del servidor (UTC en Vercel). Ver
+// src/lib/fecha-bogota.ts.
+export const fechaValida = z.preprocess(anclarBogota, z.coerce.date({ error: "Fecha inválida" }));
 
-export const fechaOpcional = z.union([z.coerce.date({ error: "Fecha inválida" }), z.literal("")]).optional().nullable();
+export const fechaOpcional = z.preprocess(
+  anclarBogota,
+  z.union([z.coerce.date({ error: "Fecha inválida" }), z.literal("")]).optional().nullable(),
+);
 
 export const horaOpcional = z.union([z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Hora inválida (HH:mm)"), z.literal("")]).optional().nullable();
