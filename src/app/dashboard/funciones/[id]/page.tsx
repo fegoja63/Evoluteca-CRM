@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { IconUpload } from "@tabler/icons-react";
 import { MoneyInput } from "@/components/money-input";
+import { aInputDatetimeLocal } from "@/lib/fecha-bogota";
 
 type NpsRespuesta = {
   id: string;
@@ -79,8 +80,8 @@ export default function FichaFuncionPage() {
       setFn(data);
       setForm({
         titulo: data.titulo,
-        // datetime-local (no solo la fecha) para no perder la hora real del show al guardar
-        fecha: new Date(data.fecha).toISOString().slice(0, 16),
+        // datetime-local en hora de Bogotá (no UTC) para no correr la hora al editar
+        fecha: aInputDatetimeLocal(data.fecha),
         sillasTotales: String(data.sillasTotales),
         sillasVendidas: String(data.sillasVendidas),
         canal: data.canal,

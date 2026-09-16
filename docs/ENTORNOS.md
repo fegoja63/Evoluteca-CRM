@@ -126,7 +126,7 @@ grep -E '^DATABASE_URL' .env    # debe decir la rama dev, NO ep-holy-leaf
 
 ---
 
-## 6. Zona horaria (producción) — OBLIGATORIA
+## 6. Zona horaria (producción) — resuelta en el código
 
 Vercel corre las funciones en **UTC** por defecto. Los campos de **fecha-hora**
 (horarios de funciones, actividades de la agenda) llegan del formulario como hora
@@ -135,23 +135,29 @@ interpreta con `new Date(...)` **en la zona del servidor**. En UTC, "7:00 p.m."
 se guarda como `19:00Z` y un usuario en Colombia (UTC-5) la ve como **2:00 p.m.**
 — corrimiento de 5 horas. En local no se ve porque el equipo ya está en Bogotá.
 
-**Arreglo:** como Evoluteca es 100% Colombia, se fija la zona del servidor a
-Bogotá con una variable de entorno en Vercel:
+**No se puede** arreglar con una variable `TZ` en Vercel: `TZ` es un **nombre
+reservado** (AWS Lambda la fija en UTC) y el dashboard rechaza guardarla.
 
-| Variable | Valor | Scope |
-|---|---|---|
-| `TZ` | `America/Bogota` | Production (y Preview, para que el preview coincida) |
+**Arreglo (en código, sin configurar nada):** como Colombia es **UTC-5 fijo**
+todo el año (sin horario de verano), las horas de formulario se anclan
+explícitamente a `-05:00` antes de guardarlas, en
+[`src/lib/fecha-bogota.ts`](../src/lib/fecha-bogota.ts):
 
-Pasos: Vercel → proyecto `evoluteca-crm` → **Settings → Environment Variables** →
-agregar `TZ` = `America/Bogota` (Production + Preview) → **Redeploy** para que
-tome efecto (la zona se lee al arrancar el proceso).
+- `anclarBogota` — `preprocess` de Zod en `fechaValida`/`fechaOpcional`
+  ([`src/lib/validations/campos.ts`](../src/lib/validations/campos.ts)); cubre
+  funciones, agenda y expedientes.
+- `fechaDesdeBogota` — para código que arma la fecha a mano (creación de
+  temporadas, `api/funciones/temporada`).
+- `aInputDatetimeLocal` — precarga el `<input datetime-local>` al editar en hora
+  de Bogotá (antes usaba `toISOString()`, que corría 5h).
 
-> Verificado: toda la lógica de fechas de reportes/plazos/cotizaciones es
-> **robusta a la zona** (51 tests pasan bajo `TZ=UTC` y bajo `TZ=America/Bogota`)
-> y los crons usan instantes absolutos. Fijar `TZ=America/Bogota` solo corrige el
-> parseo de las horas de formulario, sin efectos colaterales.
+> Verificado: la lógica de reportes/plazos/cotizaciones ya era **robusta a la
+> zona** (tests pasan bajo `TZ=UTC` y `TZ=America/Bogota`) y los crons usan
+> instantes absolutos. Este arreglo solo corrige el parseo de las horas de
+> formulario, sin efectos colaterales — y funciona sin importar la zona del
+> servidor.
 >
-> Los registros de fecha-hora creados por formulario **antes** de esta variable
+> Los registros de fecha-hora creados por formulario **antes** de este arreglo
 > quedaron corridos; corregirlos es una limpieza de datos aparte.
 
 ---
