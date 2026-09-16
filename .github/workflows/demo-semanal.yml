@@ -1,0 +1,45 @@
+# Refresca la actividad de la cuenta demo una vez por semana, para que quien
+# entra a probar el CRM lo vea "vivo" (llamadas, reuniones, correos, propuestas
+# de la semana) y no en ceros.
+#
+# Por qué GitHub Actions y no un cron de Vercel: el proyecto está en el plan
+# Hobby de Vercel, que solo permite 2 crons diarios (ya usados por notificaciones
+# y respaldo). Este workflow llama al endpoint del CRM con el CRON_SECRET; toda la
+# lógica vive en /api/cron/demo-semanal (src/lib/demo-semanal.ts).
+#
+# Horario: lunes 11:00 UTC = 6:00 a.m. en Bogotá (UTC-5), antes de que empiece la
+# jornada. Los cron de GitHub corren en UTC y pueden retrasarse unos minutos; para
+# un refresco semanal es irrelevante. Si el repo queda 60 días sin actividad,
+# GitHub desactiva el schedule (se reactiva con un push o desde la pestaña Actions).
+#
+# Usa los MISMOS secrets/variables que el resumen del lunes (CRON_SECRET y, opcional,
+# la variable CRM_URL) — no hay que configurar nada nuevo.
+
+name: Refrescar demo CRM
+
+on:
+  schedule:
+    - cron: "0 11 * * 1"
+  workflow_dispatch: {} # permite dispararlo a mano (poblar la primera vez / probar)
+
+jobs:
+  refrescar-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar al endpoint de refresco del demo
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          CRM_URL: ${{ vars.CRM_URL || 'https://evoluteca-crm-six.vercel.app' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "Falta el secret CRON_SECRET en el repositorio." >&2
+            exit 1
+          fi
+          codigo=$(curl -sS -o respuesta.json -w "%{http_code}" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$CRM_URL/api/cron/demo-semanal")
+          echo "HTTP $codigo"
+          cat respuesta.json || true
+          echo ""
+          # 2xx = OK; cualquier otro código marca el run como fallido.
+          [ "$codigo" -ge 200 ] && [ "$codigo" -lt 300 ]

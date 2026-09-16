@@ -1,0 +1,203 @@
+// Mantiene "viva" la cuenta demo generando una semana de actividad comercial
+// realista (llamadas, correos, reuniones, visitas, tareas y algunas propuestas)
+// fechada alrededor de HOY. Pensado para correr una vez por semana (cron) contra
+// la cuenta demo de producción, de modo que el panel "El Lunes" y la agenda
+// nunca se vean en ceros para quien entra a probar el CRM.
+//
+// Idempotente: TODO lo que genera queda marcado con el prefijo TAG en `notas`.
+// En cada corrida borra primero lo marcado (actividades y cotizaciones) y vuelve
+// a crear una banda fresca, así el volumen no crece con el tiempo y la ventana
+// de "últimos 7 días" siempre queda poblada sin importar qué día se mire.
+//
+// Solo toca datos de relleno del demo; jamás actividades/cotizaciones reales
+// (las que no llevan el TAG) ni ningún otro tenant.
+
+import type { PrismaClient, TipoActividad } from "@prisma/client";
+
+export const TAG_DEMO = "[demo-auto]";
+const SLUG_DEMO = "demo-evoluteca";
+
+// Banda de fechas: desde hace 6 días hasta dentro de 6 días. Las pasadas cuentan
+// como "toques" hechos (completadas); las futuras alimentan la agenda viva.
+const DIAS_ATRAS = 6;
+const DIAS_ADELANTE = 6;
+
+type Plantilla = { tipo: TipoActividad; titulos: string[]; peso: number };
+
+// Mezcla de toques típica de un equipo B2B activo. `peso` = probabilidad relativa.
+const PLANTILLAS: Plantilla[] = [
+  { tipo: "LLAMADA", peso: 34, titulos: [
+    "Llamada de seguimiento", "Llamada para agendar reunión", "Llamada de prospección",
+    "Llamada: resolver dudas de la propuesta", "Llamada de cierre",
+  ] },
+  { tipo: "EMAIL", peso: 24, titulos: [
+    "Correo de seguimiento", "Envío de propuesta por correo", "Correo con información solicitada",
+    "Correo de reactivación", "Correo: confirmar próxima reunión",
+  ] },
+  { tipo: "REUNION", peso: 16, titulos: [
+    "Reunión de descubrimiento", "Reunión de presentación de propuesta",
+    "Reunión de negociación", "Demo del producto", "Reunión de seguimiento",
+  ] },
+  { tipo: "VISITA_COMERCIAL", peso: 10, titulos: [
+    "Visita comercial al cliente", "Visita de relacionamiento", "Visita para levantar necesidades",
+  ] },
+  { tipo: "TAREA", peso: 16, titulos: [
+    "Preparar cotización", "Actualizar información del cliente", "Enviar documentación",
+    "Preparar propuesta comercial", "Dar seguimiento a pendientes",
+  ] },
+];
+
+// Ítems verosímiles para las propuestas de relleno.
+const ITEMS_PROPUESTA: { descripcion: string; precioUnit: number }[] = [
+  { descripcion: "Implementación y puesta en marcha", precioUnit: 4_500_000 },
+  { descripcion: "Licenciamiento anual — plan Equipo", precioUnit: 7_200_000 },
+  { descripcion: "Capacitación y acompañamiento", precioUnit: 1_800_000 },
+  { descripcion: "Soporte y mantenimiento (12 meses)", precioUnit: 2_400_000 },
+  { descripcion: "Consultoría de configuración", precioUnit: 3_000_000 },
+];
+
+function rnd<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
+function rndInt(min: number, max: number) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function tipoPonderado(): Plantilla {
+  const total = PLANTILLAS.reduce((s, p) => s + p.peso, 0);
+  let r = Math.random() * total;
+  for (const p of PLANTILLAS) { r -= p.peso; if (r <= 0) return p; }
+  return PLANTILLAS[0];
+}
+
+// Fecha en horario laboral (8:00–17:59) del día indicado por offset (en días
+// respecto a hoy), anclada a la hora local del servidor.
+function fechaLaboral(offsetDias: number): Date {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDias);
+  d.setHours(rndInt(8, 17), rndInt(0, 59), 0, 0);
+  return d;
+}
+
+export type ResultadoDemoSemanal = {
+  ok: boolean;
+  error?: string;
+  tenant?: string;
+  actividadesCreadas?: number;
+  propuestasCreadas?: number;
+  actividadesBorradas?: number;
+  propuestasBorradas?: number;
+};
+
+/**
+ * Regenera la actividad de relleno de la cuenta demo.
+ * @param prisma  cliente Prisma (el del app en el cron, o uno propio en scripts)
+ * @param slug    slug del tenant demo (por defecto `demo-evoluteca`)
+ */
+export async function refrescarDemoSemanal(
+  prisma: PrismaClient,
+  slug: string = SLUG_DEMO,
+): Promise<ResultadoDemoSemanal> {
+  const tenant = await prisma.tenant.findFirst({ where: { slug }, select: { id: true, nombre: true } });
+  if (!tenant) return { ok: false, error: `No existe el tenant demo con slug "${slug}"` };
+  const T = tenant.id;
+  const ahora = new Date();
+
+  // Vendedores a quienes atribuir la actividad (comerciales y gerentes).
+  let vendedores = await prisma.usuario.findMany({
+    where: { tenantId: T, rol: { in: ["COMERCIAL", "GERENTE"] } },
+    select: { id: true },
+  });
+  if (vendedores.length === 0) {
+    vendedores = await prisma.usuario.findMany({ where: { tenantId: T }, select: { id: true } });
+  }
+
+  // Empresas con sus contactos y oportunidades abiertas, para colgar cada toque
+  // de algo real del demo.
+  const empresas = await prisma.empresa.findMany({
+    where: { tenantId: T, eliminadoEn: null },
+    select: {
+      id: true,
+      contactos: { where: { eliminadoEn: null }, select: { id: true }, take: 5 },
+      oportunidades: {
+        where: { eliminadoEn: null, etapa: { in: ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"] } },
+        select: { id: true },
+      },
+    },
+  });
+  if (empresas.length === 0) return { ok: false, error: "El demo no tiene empresas; nada que poblar." };
+
+  // 1) Borrar el relleno anterior (marcado con TAG). Así el volumen no crece.
+  const borradoActs = await prisma.actividad.deleteMany({
+    where: { tenantId: T, notas: { startsWith: TAG_DEMO } },
+  });
+  const borradoCots = await prisma.cotizacion.deleteMany({
+    where: { tenantId: T, notas: { startsWith: TAG_DEMO } },
+  });
+
+  // 2) Generar la banda de actividad (pasado reciente + próximos días).
+  const nuevas: {
+    tipo: TipoActividad; titulo: string; fecha: Date; completada: boolean;
+    estado: "COMPLETADA" | "PENDIENTE"; notas: string; tenantId: string;
+    responsableId: string; creadoBy: string; empresaId: string;
+    contactoId: string | null; oportunidadId: string | null;
+  }[] = [];
+
+  for (let off = -DIAS_ATRAS; off <= DIAS_ADELANTE; off++) {
+    const porDia = rndInt(2, 5);
+    for (let i = 0; i < porDia; i++) {
+      const fecha = fechaLaboral(off);
+      const emp = rnd(empresas);
+      const plantilla = tipoPonderado();
+      const vendedor = rnd(vendedores).id;
+      const pasada = fecha <= ahora;
+      nuevas.push({
+        tipo: plantilla.tipo,
+        titulo: rnd(plantilla.titulos),
+        fecha,
+        completada: pasada,
+        estado: pasada ? "COMPLETADA" : "PENDIENTE",
+        notas: `${TAG_DEMO} actividad de demostración`,
+        tenantId: T,
+        responsableId: vendedor,
+        creadoBy: vendedor,
+        empresaId: emp.id,
+        contactoId: emp.contactos.length ? rnd(emp.contactos).id : null,
+        oportunidadId: emp.oportunidades.length ? rnd(emp.oportunidades).id : null,
+      });
+    }
+  }
+  await prisma.actividad.createMany({ data: nuevas });
+
+  // 3) Un par de propuestas (cotizaciones ENVIADAS) de la semana.
+  const empresasConOpo = empresas.filter(e => e.oportunidades.length > 0);
+  const cuantasProp = Math.min(rndInt(2, 4), empresasConOpo.length || 0);
+  let propuestasCreadas = 0;
+  for (let i = 0; i < cuantasProp; i++) {
+    const emp = rnd(empresasConOpo);
+    const creadoEn = fechaLaboral(-rndInt(0, DIAS_ATRAS));
+    const items = Array.from({ length: rndInt(1, 2) }, () => rnd(ITEMS_PROPUESTA));
+    await prisma.cotizacion.create({
+      data: {
+        tenantId: T,
+        estado: "ENVIADA",
+        modalidad: "FEE_FIJO",
+        notas: `${TAG_DEMO} propuesta de demostración`,
+        creadoEn,
+        fechaValidez: new Date(creadoEn.getTime() + 30 * 864e5),
+        empresaId: emp.id,
+        contactoId: emp.contactos.length ? rnd(emp.contactos).id : null,
+        oportunidadId: rnd(emp.oportunidades).id,
+        items: {
+          create: items.map(it => ({ descripcion: it.descripcion, cantidad: rndInt(1, 3), precioUnit: it.precioUnit })),
+        },
+      },
+    });
+    propuestasCreadas++;
+  }
+
+  return {
+    ok: true,
+    tenant: tenant.nombre,
+    actividadesCreadas: nuevas.length,
+    propuestasCreadas,
+    actividadesBorradas: borradoActs.count,
+    propuestasBorradas: borradoCots.count,
+  };
+}
