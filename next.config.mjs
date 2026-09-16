@@ -29,6 +29,14 @@ const securityHeaders = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // @react-pdf/renderer y sus dependencias nativas (fontkit, yoga) no se
+  // empaquetan bien con Turbopack (el bundler por defecto de `next dev` en
+  // Next 16): las rutas /api/manual/pdf* daban 404 en desarrollo aunque en
+  // producción funcionaban. Marcarlo como paquete externo del servidor hace
+  // que se cargue vía require de Node en vez de empaquetarse, y las rutas de
+  // PDF sirven igual en dev y en prod.
+  serverExternalPackages: ["@react-pdf/renderer"],
+
   async headers() {
     return [
       {
