@@ -22,9 +22,13 @@ export default function LoginPage() {
   // la gente el login sigue siendo exactamente igual que siempre.
   const [pideCodigo, setPideCodigo] = useState(false);
   const [codigo, setCodigo] = useState("");
+  // Cuando la empresa está suspendida, además del aviso mostramos un botón para
+  // escribirle a Evoluteca (mailto) pidiendo la reactivación.
+  const [suspendida, setSuspendida] = useState(false);
 
   const onSubmit = async (data: LoginInput) => {
     setError(null);
+    setSuspendida(false);
     setCargando(true);
     const resultado = await signIn("credentials", {
       ...data,
@@ -39,6 +43,11 @@ export default function LoginPage() {
       if (resultado.code === "segundo_factor_requerido") {
         setPideCodigo(true);
         setError("Escribe el código de tu aplicación de autenticación.");
+        return;
+      }
+      if (resultado.code === "cuenta_suspendida") {
+        setSuspendida(true);
+        setError("Tu cuenta está suspendida temporalmente. Escríbenos para reactivarla.");
         return;
       }
       setError(
@@ -115,8 +124,19 @@ export default function LoginPage() {
             )}
 
             {error && (
-              <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3">
-                <p className="text-sm text-red-400">{error}</p>
+              <div className={`rounded-xl px-4 py-3 ${suspendida ? "bg-amber-500/10 border border-amber-500/25" : "bg-red-500/10 border border-red-500/20"}`}>
+                <p className={`text-sm ${suspendida ? "text-amber-300" : "text-red-400"}`}>{error}</p>
+                {suspendida && (
+                  <a
+                    href={"mailto:felipe.gomez@evoluteca.com?subject=" +
+                      encodeURIComponent("Reactivación de mi cuenta — Evoluteca CRM") +
+                      "&body=" +
+                      encodeURIComponent("Hola, mi cuenta aparece suspendida y quisiera reactivarla.\n\nCorreo de acceso: \nEmpresa: \n\nGracias.")}
+                    className="mt-3 inline-flex items-center justify-center rounded-lg bg-amber-500 hover:bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition-colors"
+                  >
+                    Escribir a Evoluteca
+                  </a>
+                )}
               </div>
             )}
 

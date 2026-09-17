@@ -22,12 +22,20 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
   const modulosActuales = (existente.modulos as Record<string, boolean> | null) ?? {};
   const modulosNuevos = modulos ? { ...modulosActuales, ...modulos } : undefined;
 
+  // Suspender/reactivar arrastra los correos automáticos: al suspender (activo
+  // = false) se apagan, para no seguir escribiéndole a un cliente cortado; al
+  // reactivar se reencienden. Si el PATCH trae `emailsActivos` explícito, ese
+  // valor manda (permite ajustar los correos sin tocar el estado).
+  const emailsFinal = emailsActivos !== undefined
+    ? emailsActivos
+    : activo !== undefined ? activo : undefined;
+
   const tenant = await prisma.tenant.update({
     where: { id: params.id },
     data: {
       ...(activo !== undefined && { activo }),
       ...(plan !== undefined && { plan }),
-      ...(emailsActivos !== undefined && { emailsActivos }),
+      ...(emailsFinal !== undefined && { emailsActivos: emailsFinal }),
       ...(limiteUsuarios !== undefined && { limiteUsuarios }),
       ...(limiteResumenesIA !== undefined && { limiteResumenesIA }),
       ...(modulosNuevos !== undefined && { modulos: modulosNuevos }),
