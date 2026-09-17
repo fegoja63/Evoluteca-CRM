@@ -165,19 +165,21 @@ explícitamente a `-05:00` antes de guardarlas, en
 ## 7. Respaldo diario (producción)
 
 El cron `/api/cron/respaldo` (Vercel, 02:00 Colombia) vuelca toda la base,
-la comprime, la **cifra** (AES-256-GCM) y la sube a **Vercel Blob** como blob
-**privado**. El correo lleva un **enlace firmado temporal** (7 días) y el
-resumen — ya no un adjunto, así que **no hay tope de 15 MB** y el respaldo no
-deja de salir cuando la base crece. **Doble candado:** el store es privado (la
-URL directa no sirve sin firma) *y* el contenido va cifrado (sin la clave es
-ilegible). Se conservan los últimos **30 días** (`RESPALDO_RETENCION_DIAS`); los
-más viejos se borran solos en cada corrida.
+la comprime, la **cifra** (AES-256-GCM) y la sube a **Vercel Blob**. El correo
+lleva el **enlace** de descarga y el resumen — ya no un adjunto, así que **no
+hay tope de 15 MB** y el respaldo no deja de salir cuando la base crece. La URL
+de Blob es pública pero el contenido va **cifrado**: sin la clave es ilegible.
+Se conservan los últimos **30 días** (`RESPALDO_RETENCION_DIAS`); los más viejos
+se borran solos en cada corrida.
+
+> El código sube con `access: "public"` (el store del proyecto es público). Un
+> store privado requeriría `access: "private"` y URLs firmadas — no se usa.
 
 ### Puesta en marcha (una vez)
 
 1. **Blob store:** Vercel → proyecto `evoluteca-crm` → **Storage → Create/Connect**
-   un **Blob** store (privado está bien) y conéctalo al proyecto. Vercel agrega
-   solas `BLOB_READ_WRITE_TOKEN` y `BLOB_STORE_ID` (Production).
+   un **Blob** store y conéctalo al proyecto. Vercel agrega `BLOB_STORE_ID` (y en
+   stores clásicos `BLOB_READ_WRITE_TOKEN`); el código usa el que haya (OIDC).
 2. **Clave de cifrado:** genera una con `openssl rand -hex 32` y ponla en Vercel
    como `RESPALDO_CLAVE` (Production). **Guárdala aparte** (gestor de contraseñas):
    sin ella el respaldo no se puede restaurar.
