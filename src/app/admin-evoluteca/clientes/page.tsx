@@ -105,7 +105,10 @@ export default function ClientesInternoPage() {
 
   function toggleActivo(t: Tenant) {
     const accion = t.activo ? "suspender" : "reactivar";
-    if (!confirm(`¿Seguro que quieres ${accion} el acceso de "${t.nombre}"?${t.activo ? " Sus usuarios no podrán iniciar sesión." : ""}`)) return;
+    const detalle = t.activo
+      ? " Sus usuarios no podrán iniciar sesión y se apagarán sus correos automáticos. Los datos se conservan."
+      : " Sus usuarios podrán volver a entrar y se reactivarán sus correos automáticos.";
+    if (!confirm(`¿Seguro que quieres ${accion} el acceso de "${t.nombre}"?${detalle}`)) return;
     actualizar(t.id, { activo: !t.activo });
   }
 

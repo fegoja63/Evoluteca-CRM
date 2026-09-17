@@ -24,6 +24,17 @@ class SegundoFactorRequerido extends CredentialsSignin {
   code = "segundo_factor_requerido";
 }
 
+/**
+ * Señal de que la empresa (tenant) está suspendida —por ejemplo, por pago
+ * pendiente—. Se lanza SOLO después de validar la contraseña, igual que el
+ * segundo factor: así un extraño no puede averiguar si una cuenta está
+ * suspendida probando correos; solo el propio cliente, que sí conoce su clave,
+ * ve el aviso y la opción de escribirnos.
+ */
+class CuentaSuspendida extends CredentialsSignin {
+  code = "cuenta_suspendida";
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: "jwt", maxAge: 12 * 60 * 60, updateAge: 60 * 60 }, // 12h de sesión, se renueva cada hora de uso activo
   pages: {
@@ -62,10 +73,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           await registrarIntentoFallido(clave, VENTANA_LOGIN_MS);
           return null;
         }
-        if (!usuario.tenant.activo) {
-          await registrarIntentoFallido(clave, VENTANA_LOGIN_MS);
-          return null;
-        }
 
         const passwordValida = await bcrypt.compare(
           password,
@@ -74,6 +81,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!passwordValida) {
           await registrarIntentoFallido(clave, VENTANA_LOGIN_MS);
           return null;
+        }
+
+        // Empresa suspendida (p. ej. por pago pendiente): se comprueba DESPUÉS
+        // de la contraseña a propósito —igual que el segundo factor— para no
+        // revelar a un extraño si una cuenta existe/está suspendida. No cuenta
+        // como intento fallido: la clave era correcta, la cuenta solo está en
+        // pausa. El formulario mostrará el aviso y un botón para escribirnos.
+        if (!usuario.tenant.activo) {
+          throw new CuentaSuspendida();
         }
 
         // Segundo factor, solo para quien lo tenga activo. Se comprueba
