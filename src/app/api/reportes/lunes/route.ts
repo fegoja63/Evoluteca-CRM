@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { filtroOwner, filtroOwnerActividad } from "@/lib/permisos";
 import { componentesHoyBogota, medianocheBogota } from "@/lib/fecha-bogota";
+import { calcularCumplimiento } from "@/lib/cumplimiento-proceso";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,8 @@ export const dynamic = "force-dynamic";
 //   3. Actividad comercial — cuántas llamadas/reuniones/visitas/propuestas en 7 días.
 //   5. Ticket promedio     — valor medio de una operación ganada (últimos 12 meses).
 //   7. Movimiento de clientes — nuevos / activos / inactivos / perdidos.
+//   Cumplimiento del proceso — por vendedor: % de lo agendado que se hizo (7 días),
+//      tareas vencidas y negocios sin próximo paso (ver lib/cumplimiento-proceso).
 //
 // Etapas que cuentan como "negocio en curso" (ni ganado ni perdido).
 const ETAPAS_ACTIVAS = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];
@@ -39,6 +42,7 @@ export async function GET() {
   const { anio, mes } = componentesHoyBogota();
   const ahora        = new Date();
   const hace7dias    = medianocheBogota(-7);
+  const inicioHoy    = medianocheBogota(0);
   const hace60dias   = medianocheBogota(-DIAS_INACTIVIDAD);
   const inicioMes    = new Date(Date.UTC(anio, mes, 1, 5, 0, 0));
   const hace12meses  = new Date(Date.UTC(anio, mes - 12, 1, 5, 0, 0));
@@ -49,7 +53,7 @@ export async function GET() {
   const fmtDia = (dt: Date) => dt.toLocaleDateString("es-CO", { day: "numeric", month: "short", timeZone: "America/Bogota" });
   const fmtMes = (dt: Date) => dt.toLocaleDateString("es-CO", { month: "short", year: "numeric", timeZone: "America/Bogota" });
 
-  const [actividades7d, cotizaciones7d, empresas, ganadas, perdidasMes] = await Promise.all([
+  const [actividades7d, cotizaciones7d, empresas, ganadas, perdidasMes, actsCumplimiento, opsCumplimiento, usuarios] = await Promise.all([
     // 3. Actividad comercial: toques del equipo en los últimos 7 días. Se cuenta
     //    por `fecha` (cuándo ocurrió/ocurre la actividad), acotado a fecha<=ahora
     //    para no contar lo agendado a futuro como ya hecho.
@@ -91,6 +95,28 @@ export async function GET() {
       },
       select: { oportunidad: { select: { empresaId: true } } },
     }),
+    // Cumplimiento: lo agendado en los últimos 7 días (hecho o no) + TODA
+    // pendiente vencida, sin importar su antigüedad.
+    prisma.actividad.findMany({
+      where: {
+        tenantId, ...ownerFiltroActividad,
+        AND: [{ OR: [
+          { fecha: { gte: hace7dias, lt: inicioHoy } },
+          { completada: false, fecha: { lt: inicioHoy } },
+        ] }],
+      },
+      select: { fecha: true, completada: true, responsableId: true, creadoBy: true },
+    }),
+    // Negocios activos con su número de pendientes de hoy en adelante (0 = sin
+    // próximo paso). El dueño es quien lo creó, igual que el filtro del Pipeline.
+    prisma.oportunidad.findMany({
+      where: { tenantId, eliminadoEn: null, etapa: { in: ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"] }, ...ownerFiltro },
+      select: {
+        creadoBy: true,
+        _count: { select: { actividades: { where: { completada: false, fecha: { gte: inicioHoy } } } } },
+      },
+    }),
+    prisma.usuario.findMany({ where: { tenantId }, select: { id: true, nombre: true } }),
   ]);
 
   // ── 3. Actividad comercial (últimos 7 días) ──
@@ -141,6 +167,15 @@ export async function GET() {
   );
   const perdidos = empresasPerdidasMes.size;
 
+  // ── Cumplimiento del proceso (por vendedor) ──
+  const cumplimiento = calcularCumplimiento(
+    actsCumplimiento,
+    opsCumplimiento.map(o => ({ creadoBy: o.creadoBy, pendientesDesdeHoy: o._count.actividades })),
+    new Map(usuarios.map(u => [u.id, u.nombre])),
+    inicioHoy,
+    hace7dias,
+  );
+
   return NextResponse.json({
     actividad: {
       total: totalActividad,
@@ -160,9 +195,11 @@ export async function GET() {
       inactivos,
       perdidos,
     },
+    cumplimiento,
     // Rangos legibles de cada ventana, para mostrarlos junto a cada indicador.
     rangos: {
       actividad: `${fmtDia(hace7dias)} – ${fmtDia(ahora)}`,
+      cumplimiento: `${fmtDia(hace7dias)} – ${fmtDia(new Date(inicioHoy.getTime() - 1))}`,
       ticket: ticketVentana === "12m" ? `${fmtMes(hace12meses)} – ${fmtMes(ahora)}` : "todo el histórico",
       mes: fmtMes(ahora),
       diasInactividad: DIAS_INACTIVIDAD,

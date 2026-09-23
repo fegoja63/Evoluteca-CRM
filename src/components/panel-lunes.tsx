@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   IconCalendarStats, IconPhone, IconUsers, IconMapPin, IconMail, IconFileText,
   IconTag, IconUserPlus, IconActivity, IconSnowflake, IconUserMinus, IconChecklist,
-  IconChevronRight, type Icon,
+  IconChevronRight, IconListCheck, type Icon,
 } from "@tabler/icons-react";
 
 type Datos = {
@@ -17,8 +17,20 @@ type Datos = {
   };
   ticketPromedio: { valor: number; operaciones: number; ventana: "12m" | "historico" };
   clientes: { total: number; nuevos: number; activos: number; inactivos: number; perdidos: number };
-  rangos: { actividad: string; ticket: string; mes: string; diasInactividad: number };
+  cumplimiento: {
+    id: string; nombre: string;
+    agendadas7d: number; hechas7d: number; pct7d: number | null;
+    vencidas: number; sinProximoPaso: number;
+  }[];
+  rangos: { actividad: string; cumplimiento: string; ticket: string; mes: string; diasInactividad: number };
 };
+
+// Color del % de cumplimiento: verde ≥ 80, ámbar ≥ 50, rojo por debajo.
+function colorPct(p: number) {
+  return p >= 80 ? { barra: "bg-emerald-400", txt: "text-emerald-700" }
+    : p >= 50 ? { barra: "bg-amber-400", txt: "text-amber-700" }
+    : { barra: "bg-red-400", txt: "text-red-600" };
+}
 
 function fmt(v: number) {
   if (v >= 1_000_000_000) return `$${(v / 1_000_000_000).toFixed(1)}B`;
@@ -192,6 +204,66 @@ export function PanelLunes() {
         </div>
 
       </div>
+
+      {/* ── Cumplimiento del proceso (por vendedor) ──
+          Mide si el equipo hace lo que agenda, no solo cuánto vende. */}
+      {d.cumplimiento.length > 0 && (
+        <div className="mt-4 bg-white rounded-2xl border border-slate-200 p-5">
+          <div className="flex flex-wrap items-start justify-between gap-2 mb-4">
+            <div>
+              <p className="text-sm font-bold text-slate-900">Cumplimiento del proceso</p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                ¿Se hace lo que se agenda? · cumplidas de lo agendado <span className="font-semibold text-slate-600">({d.rangos.cumplimiento})</span>, tareas vencidas y negocios sin próximo paso
+              </p>
+            </div>
+            <IconListCheck size={18} stroke={1.75} className="text-brand-600" />
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                  <th className="pb-2 pr-3 font-semibold">Vendedor</th>
+                  <th className="pb-2 pr-3 font-semibold min-w-[160px]">Cumplidas 7 días</th>
+                  <th className="pb-2 pr-3 font-semibold text-right">Vencidas</th>
+                  <th className="pb-2 font-semibold text-right">Sin próximo paso</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {d.cumplimiento.map(f => {
+                  const c = f.pct7d !== null ? colorPct(f.pct7d) : null;
+                  return (
+                    <tr key={f.id}>
+                      <td className="py-2 pr-3 text-slate-700 whitespace-nowrap">{f.nombre.split(" ").slice(0, 2).join(" ")}</td>
+                      <td className="py-2 pr-3">
+                        {f.pct7d !== null && c ? (
+                          <div className="flex items-center gap-2" title={`${f.hechas7d} de ${f.agendadas7d} actividades agendadas se marcaron como hechas`}>
+                            <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div className={`h-2 rounded-full ${c.barra}`} style={{ width: `${Math.max(f.pct7d, 4)}%` }} />
+                            </div>
+                            <span className={`text-xs font-bold w-9 text-right ${c.txt}`}>{f.pct7d}%</span>
+                            <span className="text-[11px] text-slate-400 w-10 shrink-0">{f.hechas7d}/{f.agendadas7d}</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-400">nada agendado</span>
+                        )}
+                      </td>
+                      <td className="py-2 pr-3 text-right">
+                        {f.vencidas > 0 ? (
+                          <Link href="/dashboard/agenda?vencidas=1" title="Ver las tareas vencidas en la Agenda"
+                            className="text-sm font-bold text-red-600 hover:underline">{f.vencidas}</Link>
+                        ) : <span className="text-sm text-slate-300">0</span>}
+                      </td>
+                      <td className="py-2 text-right">
+                        <span className={`text-sm font-bold ${f.sinProximoPaso > 0 ? "text-amber-600" : "text-slate-300"}`}>{f.sinProximoPaso}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
