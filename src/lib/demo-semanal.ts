@@ -22,6 +22,24 @@ const SLUG_DEMO = "demo-evoluteca";
 const DIAS_ATRAS = 6;
 const DIAS_ADELANTE = 6;
 
+// "Próximo paso" de cada oportunidad abierta (regla "sin siguiente paso, no hay
+// oportunidad" del estado comercial). Se agenda a 7–13 días para que siga
+// vigente toda la semana, hasta la siguiente corrida del lunes; las tareas de la
+// banda de arriba vencen a mitad de semana y dejarían el demo "sin próximo paso".
+// Unas pocas oportunidades quedan SIN paso a propósito, para que el demo muestre
+// la alerta en acción sin verse abandonado.
+const PROXIMO_PASO_DIAS_MIN = 7;
+const PROXIMO_PASO_DIAS_MAX = 13;
+const SIN_PASO_A_PROPOSITO = 2;
+const TITULOS_PROXIMO_PASO: { tipo: TipoActividad; titulo: string }[] = [
+  { tipo: "LLAMADA", titulo: "Llamada de seguimiento a la propuesta" },
+  { tipo: "REUNION", titulo: "Reunión con el decisor" },
+  { tipo: "REUNION", titulo: "Demo del producto al equipo" },
+  { tipo: "EMAIL", titulo: "Enviar propuesta ajustada" },
+  { tipo: "LLAMADA", titulo: "Confirmar decisión y fecha de arranque" },
+  { tipo: "TAREA", titulo: "Preparar cotización final" },
+];
+
 type Plantilla = { tipo: TipoActividad; titulos: string[]; peso: number };
 
 // Mezcla de toques típica de un equipo B2B activo. `peso` = probabilidad relativa.
@@ -70,6 +88,15 @@ const TITULOS_GANADOS = [
 function rnd<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 function rndInt(min: number, max: number) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
+function barajar<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 function tipoPonderado(): Plantilla {
   const total = PLANTILLAS.reduce((s, p) => s + p.peso, 0);
   let r = Math.random() * total;
@@ -99,6 +126,7 @@ export type ResultadoDemoSemanal = {
   error?: string;
   tenant?: string;
   actividadesCreadas?: number;
+  proximosPasosCreados?: number;
   propuestasCreadas?: number;
   ganadosCreados?: number;
   actividadesBorradas?: number;
@@ -189,6 +217,29 @@ export async function refrescarDemoSemanal(
       });
     }
   }
+  // 2b) Próximo paso agendado para casi todas las oportunidades abiertas.
+  //     Mismo TAG → se borra y recrea en cada corrida (no acumula).
+  const abiertas = barajar(empresas.flatMap(e => e.oportunidades.map(o => ({ oportunidadId: o.id, emp: e }))));
+  const conPaso = abiertas.slice(Math.min(SIN_PASO_A_PROPOSITO, Math.max(0, abiertas.length - 1)));
+  for (const { oportunidadId, emp } of conPaso) {
+    const paso = rnd(TITULOS_PROXIMO_PASO);
+    const vendedor = rnd(vendedores).id;
+    nuevas.push({
+      tipo: paso.tipo,
+      titulo: paso.titulo,
+      fecha: fechaLaboral(rndInt(PROXIMO_PASO_DIAS_MIN, PROXIMO_PASO_DIAS_MAX)),
+      completada: false,
+      estado: "PENDIENTE",
+      notas: `${TAG_DEMO} próximo paso de demostración`,
+      tenantId: T,
+      responsableId: vendedor,
+      creadoBy: vendedor,
+      empresaId: emp.id,
+      contactoId: emp.contactos.length ? rnd(emp.contactos).id : null,
+      oportunidadId,
+    });
+  }
+
   await prisma.actividad.createMany({ data: nuevas });
 
   // 3) Un par de propuestas (cotizaciones ENVIADAS) de la semana.
@@ -244,6 +295,7 @@ export async function refrescarDemoSemanal(
     ok: true,
     tenant: tenant.nombre,
     actividadesCreadas: nuevas.length,
+    proximosPasosCreados: conPaso.length,
     propuestasCreadas,
     ganadosCreados: ganados.length,
     actividadesBorradas: borradoActs.count,
