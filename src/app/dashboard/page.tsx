@@ -168,7 +168,8 @@ export default async function DashboardPage() {
       select: {
         id: true, titulo: true, etapa: true, probabilidad: true, fechaCierre: true, creadoEn: true,
         empresa: { select: { nombre: true } }, creadoBy: true,
-        actividades: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
+        // Solo lo que ya ocurrió: una tarea agendada a futuro no es contacto.
+        actividades: { where: { fecha: { lte: hoy } }, orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
         cambiosEtapa: { orderBy: { creadoEn: "desc" }, take: 1, select: { creadoEn: true } },
         correos: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
         _count: { select: { actividades: { where: { completada: false, fecha: { gte: inicioProximoPaso() } } } } },

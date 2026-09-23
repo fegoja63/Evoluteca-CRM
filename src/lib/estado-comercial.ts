@@ -65,16 +65,20 @@ function plural(n: number, sing: string, plur: string): string {
 // Los correos cuentan como señal: si el cliente respondió (o se le escribió) hace
 // poco, el negocio NO está estancado aunque el vendedor no haya registrado una
 // actividad. Así el estado detecta interés real, no solo lo que se anota a mano.
+//
+// Solo cuentan actividades que YA ocurrieron (fecha ≤ ahora): una tarea agendada
+// a futuro no es contacto con el cliente y no debe "resetear" los días sin
+// movimiento. Las consultas del servidor aplican el mismo filtro.
 export function ultimoMovimientoDe(o: {
   creadoEn: string | Date;
   actividades?: { fecha: string | Date }[];
   cambiosEtapa?: { creadoEn: string | Date }[];
   correos?: { fecha: string | Date }[];
-}): Date {
+}, ahora: Date = new Date()): Date {
   const base = aFecha(o.creadoEn) ?? new Date();
   const candidatos = [
     base,
-    ...(o.actividades ?? []).map((a) => aFecha(a.fecha)),
+    ...(o.actividades ?? []).map((a) => aFecha(a.fecha)).filter((d) => !!d && d <= ahora),
     ...(o.cambiosEtapa ?? []).map((c) => aFecha(c.creadoEn)),
     ...(o.correos ?? []).map((c) => aFecha(c.fecha)),
   ].filter((d): d is Date => !!d);
