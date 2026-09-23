@@ -22,13 +22,15 @@ export async function GET(request: Request) {
   const where = { tenantId: session.user.tenantId, eliminadoEn: null, ...(todas ? {} : filtroOwner(session.user.rol, session.user.id)) };
 
   // "Último movimiento" de una oportunidad = la fecha más reciente entre su
-  // última actividad, su último cambio de etapa y su creación. Es lo que usa el
+  // última actividad (ya ocurrida), su último cambio de etapa y su creación. Es lo que usa el
   // Pipeline para marcar negocios estancados (días sin movimiento ≥ umbral del
   // tenant), en vez de la edad desde que se creó, que daba falsos positivos.
   const includeMovimiento = {
     empresa: { select: { id: true, nombre: true } },
     contacto: { select: { id: true, nombre: true, email: true } },
-    actividades: { orderBy: { fecha: "desc" as const }, take: 1, select: { fecha: true } },
+    // Solo actividades que ya ocurrieron: una tarea agendada a futuro no es
+    // contacto y no debe "resetear" los días sin movimiento.
+    actividades: { where: { fecha: { lte: new Date() } }, orderBy: { fecha: "desc" as const }, take: 1, select: { fecha: true } },
     cambiosEtapa: { orderBy: { creadoEn: "desc" as const }, take: 1, select: { creadoEn: true } },
     // El último correo (entrante o saliente) también es señal de vida: un cliente
     // que respondió hace poco NO está estancado aunque no haya actividad anotada.

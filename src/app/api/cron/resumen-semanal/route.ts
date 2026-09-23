@@ -76,7 +76,8 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
       select: {
         titulo: true, valor: true, etapa: true, probabilidad: true, fechaCierre: true, creadoEn: true,
         empresa: { select: { nombre: true } },
-        actividades: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
+        // Solo lo que ya ocurrió: una tarea agendada a futuro no es contacto.
+        actividades: { where: { fecha: { lte: ahora } }, orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
         cambiosEtapa: { orderBy: { creadoEn: "desc" }, take: 1, select: { creadoEn: true } },
         // El correo (entrante o saliente) cuenta como señal de vida para el estado.
         correos: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },

@@ -116,4 +116,17 @@ describe("ultimoMovimientoDe", () => {
     const um = ultimoMovimientoDe({ creadoEn: haceDias(60), correos: [{ fecha: haceDias(2) }] });
     expect(estadoComercial({ ...o, ultimoMovimiento: um }, UMBRAL, AHORA)?.clave).not.toBe("atencion");
   });
+
+  it("una tarea agendada a futuro NO cuenta como movimiento", () => {
+    const r = ultimoMovimientoDe({
+      creadoEn: haceDias(40),
+      actividades: [{ fecha: enDias(10) }, { fecha: haceDias(20) }],
+    }, AHORA);
+    expect(r.toISOString()).toBe(haceDias(20));
+  });
+
+  it("un negocio sin contacto sigue estancado aunque tenga una tarea futura agendada", () => {
+    const um = ultimoMovimientoDe({ creadoEn: haceDias(60), actividades: [{ fecha: enDias(5) }] }, AHORA);
+    expect(calc(base({ ultimoMovimiento: um }))?.clave).toBe("riesgo");
+  });
 });
