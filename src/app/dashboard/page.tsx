@@ -5,7 +5,7 @@ import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { componentesHoyBogota, medianocheBogota } from "@/lib/fecha-bogota";
 import { plazoVencido } from "@/lib/plazo-legal";
 import { numeroCotizacion } from "@/lib/cotizaciones";
-import { estadoComercial, ultimoMovimientoDe, type EstadoClave } from "@/lib/estado-comercial";
+import { estadoComercial, ultimoMovimientoDe, inicioProximoPaso, type EstadoClave } from "@/lib/estado-comercial";
 import Link from "next/link";
 import {
   IconBuilding, IconUsers, IconChartFunnel, IconClipboardList, IconActivityHeartbeat,
@@ -172,6 +172,7 @@ export default async function DashboardPage() {
         actividades: { where: { fecha: { lte: hoy } }, orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
         cambiosEtapa: { orderBy: { creadoEn: "desc" }, take: 1, select: { creadoEn: true } },
         correos: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
+        _count: { select: { actividades: { where: { completada: false, fecha: { gte: inicioProximoPaso() } } } } },
       },
     }),
     prisma.actividad.findFirst({ where: { tenantId, completada: true, ...ownerFiltro }, orderBy: { fecha: "desc" }, select: { fecha: true } }),
@@ -219,7 +220,7 @@ export default async function DashboardPage() {
   const opsPorEstado: Record<EstadoClave, OpEstado[]> = { riesgo: [], atencion: [], alta: [], marcha: [] };
   for (const o of opActivasConActividad) {
     const estado = estadoComercial(
-      { etapa: o.etapa, probabilidad: o.probabilidad, ultimoMovimiento: ultimoMovimientoDe(o), creadoEn: o.creadoEn, fechaCierre: o.fechaCierre },
+      { etapa: o.etapa, probabilidad: o.probabilidad, ultimoMovimiento: ultimoMovimientoDe(o), creadoEn: o.creadoEn, fechaCierre: o.fechaCierre, tieneProximoPaso: o._count.actividades > 0 },
       diasEstancamiento,
     );
     if (estado) opsPorEstado[estado.clave].push({ ...o, estadoRazon: estado.razon });

@@ -13,7 +13,7 @@ import {
   IconSearch, IconX, IconPlus, IconLayoutKanban, IconTable, IconSelector,
   IconArrowNarrowUp, IconArrowNarrowDown, IconCalendarEvent, IconTrash,
   IconChartFunnel, IconTrendingUp, IconTrophy, IconTarget, IconBuildingPavilion,
-  IconAlertTriangle, IconMoodSad, type Icon,
+  IconAlertTriangle, IconMoodSad, IconCalendarX, type Icon,
 } from "@tabler/icons-react";
 
 const MOTIVOS_PERDIDA = [
@@ -43,6 +43,8 @@ type Oportunidad = {
   // Fecha (ISO) de la última señal de vida: actividad, cambio de etapa o, en su
   // defecto, la creación. La calcula la API de oportunidades.
   ultimoMovimiento?: string | null;
+  // ¿Tiene una actividad pendiente agendada de hoy en adelante? La calcula la API.
+  tieneProximoPaso?: boolean;
 };
 
 function diasDesde(fecha: string): number {
@@ -153,6 +155,7 @@ export default function PipelinePage() {
   // Lo define el ADMIN en Configuración (default 14); aquí solo se lee.
   const [diasEstancamiento, setDiasEstancamiento] = useState(14);
   const [soloEstancadas, setSoloEstancadas] = useState(false);
+  const [soloSinPaso, setSoloSinPaso] = useState(false);
   const [vista, setVista] = useState<"kanban" | "tabla">("kanban");
   const [orden, setOrden] = useState<{ col: string; dir: "asc" | "desc" }>({ col: "creadoEn", dir: "desc" });
   const [form, setForm] = useState({
@@ -451,6 +454,7 @@ export default function PipelinePage() {
     if (filtroEtapa && o.etapa !== filtroEtapa) return false;
     if (filtroVendedor && o.creadoBy !== filtroVendedor) return false;
     if (soloEstancadas && !(esActiva && diasSinMovimiento(o) >= diasEstancamiento)) return false;
+    if (soloSinPaso && !(esActiva && o.tieneProximoPaso === false)) return false;
     if (busqueda) {
       const q = busqueda.toLowerCase();
       if (!o.titulo.toLowerCase().includes(q) &&
@@ -460,7 +464,7 @@ export default function PipelinePage() {
     return true;
   });
 
-  const hayFiltro = busqueda || filtroAnio || filtroMes || filtroEtapa || filtroVendedor || soloEstancadas;
+  const hayFiltro = busqueda || filtroAnio || filtroMes || filtroEtapa || filtroVendedor || soloEstancadas || soloSinPaso;
 
   // Conteo de negocios ACTIVOS estancados (respetando el filtro de vendedor,
   // no el de período: un negocio activo sigue vivo aunque su año de cierre no
@@ -469,6 +473,13 @@ export default function PipelinePage() {
     ETAPAS_ACTIVAS.includes(o.etapa) &&
     (!filtroVendedor || o.creadoBy === filtroVendedor) &&
     diasSinMovimiento(o) >= diasEstancamiento
+  ).length;
+  // Negocios ACTIVOS sin ninguna actividad pendiente agendada (regla "sin
+  // siguiente paso, no hay oportunidad"). Mismo criterio de vendedor que arriba.
+  const sinPasoCount = oportunidades.filter(o =>
+    ETAPAS_ACTIVAS.includes(o.etapa) &&
+    (!filtroVendedor || o.creadoBy === filtroVendedor) &&
+    o.tieneProximoPaso === false
   ).length;
 
   // Etiqueta del período activo — se muestra bien grande en la barra oscura del
@@ -631,6 +642,19 @@ export default function PipelinePage() {
           </button>
         )}
 
+        {/* Acceso rápido: negocios activos sin ninguna tarea pendiente agendada. */}
+        {(sinPasoCount > 0 || soloSinPaso) && (
+          <button
+            onClick={() => setSoloSinPaso(v => !v)}
+            title={`${sinPasoCount} negocio(s) activo(s) sin ninguna actividad pendiente agendada de hoy en adelante`}
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${
+              soloSinPaso ? "bg-amber-600 text-white" : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+            }`}>
+            <IconCalendarX size={14} stroke={2} />
+            {sinPasoCount} sin próximo paso
+          </button>
+        )}
+
         {/* Etapa (solo en tabla) */}
         {vista === "tabla" && (
           <div className="flex items-center gap-1.5">
@@ -647,7 +671,7 @@ export default function PipelinePage() {
         {hayFiltro && (
           <div className="flex items-center gap-3">
             <span className="text-xs text-slate-500">{filtradas.length} de {oportunidades.length}</span>
-            <button onClick={() => { setBusqueda(""); setFiltroAnio(""); setFiltroMes(""); setFiltroEtapa(""); setFiltroVendedor(""); setAnioPuro(false); setSoloEstancadas(false); }}
+            <button onClick={() => { setBusqueda(""); setFiltroAnio(""); setFiltroMes(""); setFiltroEtapa(""); setFiltroVendedor(""); setAnioPuro(false); setSoloEstancadas(false); setSoloSinPaso(false); }}
               className="text-xs text-brand-600 hover:underline flex items-center gap-0.5">
               <IconX size={12} stroke={2} />Limpiar
             </button>
