@@ -243,7 +243,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.22 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.23 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -468,14 +468,16 @@ export async function GET() {
       React.createElement(Tip, null, "El valor de la oportunidad es fundamental para los reportes. Ingrésalo siempre aunque sea estimado."),
       React.createElement(Tip, null, "El título de la oportunidad debe describir el tipo de negocio (ej: \"Congreso anual\", \"Alquiler sala\", \"Función privada\"), no el nombre del cliente — el cliente ya queda registrado en el campo Empresa. Repetirlo en el título solo genera texto redundante en el pipeline y los reportes."),
 
-      React.createElement(H2, null, "3.3 Indicadores de estancamiento"),
-      React.createElement(P, null, "Cada tarjeta del kanban muestra un borde de color en su lado izquierdo que indica hace cuánto la oportunidad no tiene movimiento — sin actividad registrada ni cambio de etapa (no la simple antigüedad desde que se creó, para que un negocio viejo pero trabajado ayer no se marque en rojo por error):"),
-      React.createElement(LI, null, "Verde — Al día: por debajo del umbral de días definido por tu organización"),
-      React.createElement(LI, null, "Ámbar — Estancada: alcanzó el umbral de días sin movimiento"),
-      React.createElement(LI, null, "Rojo — Muy estancada: llegó al doble del umbral"),
-      React.createElement(P, null, "El badge de cada tarjeta muestra los días sin movimiento (ej: '22d'). Las oportunidades en etapa Ganada o Perdida no muestran indicador. El umbral (por defecto 14 días) lo define el Administrador en Configuración → Alerta de negocios estancados — ver 9.7."),
-      React.createElement(P, null, "Cuando hay negocios estancados, en la barra de filtros aparece un chip rojo \"N estancadas\": haz clic para ver solo esas oportunidades activas que superan el umbral de días sin movimiento."),
-      React.createElement(Tip, null, "Usa el chip \"estancadas\" para priorizar tu día: son los negocios activos que llevan más tiempo sin que nadie los toque."),
+      React.createElement(H2, null, "3.3 Estado comercial de cada negocio"),
+      React.createElement(P, null, "Cada oportunidad activa muestra su estado comercial: el CRM lee sus señales (días sin contacto, fecha de cierre, etapa, probabilidad y si tiene un próximo paso agendado) y la clasifica en uno de cuatro estados. El estado se ve como barra de color a la izquierda de la tarjeta y como etiqueta; al pasar el cursor por la etiqueta verás el porqué (ej: '18 días sin contacto')."),
+      React.createElement(LI, null, "Rojo — En riesgo: lleva el doble del umbral de días sin contacto, o su fecha de cierre ya venció. Acción recomendada: reactivar hoy."),
+      React.createElement(LI, null, "Ámbar — Requiere atención: llegó al umbral de días sin contacto, cierra en 7 días o menos, o no tiene próximo paso agendado."),
+      React.createElement(LI, null, "Verde — Alta intención: está en Cotización o Negociación con 70% o más de probabilidad. Acción: empujar al cierre."),
+      React.createElement(LI, null, "Azul — En marcha: con contacto reciente y sin alarmas."),
+      React.createElement(P, null, "Cuenta como contacto solo lo que ya ocurrió: una actividad registrada con fecha de hoy o anterior, un cambio de etapa o un correo enviado o recibido. Una tarea agendada a futuro no cuenta, para que agendar algo para dentro de un mes no esconda un negocio que nadie ha tocado. El umbral (por defecto 14 días) lo define el Administrador en Configuración → Alerta de negocios estancados — ver 9.7. Ganadas y Perdidas no muestran estado."),
+      React.createElement(P, null, "Regla \"sin próximo paso, no hay oportunidad\": todo negocio activo debe tener al menos una actividad pendiente con fecha de hoy en adelante. Si no la tiene, pasa a 'Requiere atención — Sin próximo paso agendado' aunque esté caliente: un negocio sin siguiente paso es justo el que se enfría sin que nadie lo note. Una tarea vencida de días anteriores no cuenta; hay que agendar un paso nuevo."),
+      React.createElement(P, null, "En la barra de filtros aparecen dos chips de acceso rápido cuando aplican: el rojo \"N estancadas\" (negocios activos que superan el umbral de días sin contacto) y el ámbar \"N sin próximo paso\". Haz clic en cualquiera para ver solo esos negocios."),
+      React.createElement(Tip, null, "Empieza el día con los dos chips: primero reactiva lo estancado y luego agenda el siguiente paso de lo que no lo tiene. Así ningún negocio queda en el aire."),
 
       React.createElement(H2, null, "3.4 Drag & Drop"),
       React.createElement(P, null, "Arrastra cualquier tarjeta de una columna a otra para cambiar su etapa. El cambio se guarda automáticamente. También puedes cambiar la etapa desde la ficha de la oportunidad."),
@@ -499,6 +501,7 @@ export async function GET() {
       React.createElement(LI, null, "Crear actividades vinculadas a esta oportunidad"),
       React.createElement(LI, null, "Ver y crear cotizaciones formales asociadas"),
       React.createElement(LI, null, "Registrar notas internas con edición rápida"),
+      React.createElement(LI, null, "Ver arriba su estado comercial (ver 3.3) con el porqué y la acción recomendada, y resolverla con el botón \"Actuar ahora\", que crea esa actividad para hoy ya vinculada a la oportunidad, el cliente y el contacto"),
 
       React.createElement(H2, null, "3.7 Vista tabla del pipeline"),
       React.createElement(P, null, "Además del kanban, el pipeline tiene una vista de tabla. Usa el toggle Kanban / Tabla en la barra de filtros para cambiar entre vistas. La vista tabla muestra todas las oportunidades en filas con columnas ordenables:"),
@@ -571,7 +574,7 @@ export async function GET() {
       React.createElement(LI, null, "Cierres próximos: negocios con fecha de cierre estimada en los próximos 7 días"),
       React.createElement(P, null, "Además, en la Agenda las actividades vencidas muestran un ícono de campana. Al tocarlo recibes el recordatorio inmediatamente sin esperar al día siguiente."),
       React.createElement(Tip, null, "Solo recibirás el email de cada tipo si tienes situaciones reales en esa categoría. Si no tienes actividades vencidas, ese email no se envía."),
-      React.createElement(P, null, "Aparte de las alertas diarias, cada lunes en la mañana llega el \"Resumen del Lunes\": un solo correo por persona que abre la semana con una cabecera de indicadores (pipeline activo, nº de oportunidades y tasa de cierre) y responde las tres preguntas del lunes comercial — ① ¿Qué puedo cerrar? (cierres de la semana y las más valiosas), ② ¿Qué está bloqueado? (negocios estancados) y ③ ¿Qué generará ventas futuras? (tu actividad de los últimos 7 días y lo agendado), con un botón directo al Panel del Lunes en Reportes."),
+      React.createElement(P, null, "Aparte de las alertas diarias, cada lunes en la mañana llega el \"Resumen del Lunes\": un solo correo por persona que abre la semana con una cabecera de indicadores (pipeline activo, nº de oportunidades y tasa de cierre) y responde las tres preguntas del lunes comercial — ① ¿Qué puedo cerrar? (cierres de la semana y las más valiosas), ② ¿Qué está bloqueado? (negocios en riesgo o que requieren atención, incluidos los que no tienen próximo paso agendado) y ③ ¿Qué generará ventas futuras? (tu actividad de los últimos 7 días y lo agendado), con un botón directo al Panel del Lunes en Reportes."),
       React.createElement(Nota, null, "Tanto las alertas diarias como el Resumen del Lunes dependen del mismo interruptor \"Notificaciones automáticas por email\" en Configuración; si se apaga, no se envía ninguno. El resumen solo llega a quien tenga pipeline o actividad que resumir esa semana."),
 
       React.createElement(H2, null, "4.5 Lista o Calendario"),
@@ -785,10 +788,11 @@ export async function GET() {
       React.createElement(P, null, "Si tu base de datos tiene información de segmento o sede/zona (por ejemplo, cargada por importación de Excel), en la barra de filtros de Reportes aparecen selectores adicionales \"Segmento\" y \"Sede\" para acotar todos los reportes a esa información. Si ningún registro tiene esos datos, los selectores simplemente no aparecen."),
 
       React.createElement(H2, null, "7.12 Panel \"El Lunes\" (foto de tu semana)"),
-      React.createElement(P, null, "Al inicio de Reportes, el bloque \"El Lunes\" muestra una foto del presente, independiente de los filtros de año/mes de abajo. Reúne tres indicadores para empezar la semana:"),
+      React.createElement(P, null, "Al inicio de Reportes, el bloque \"El Lunes\" muestra una foto del presente, independiente de los filtros de año/mes de abajo. Reúne cuatro indicadores para empezar la semana:"),
       React.createElement(LI, null, "Actividad comercial: los toques del equipo en los últimos 7 días, contados por tipo (llamadas, reuniones, visitas y correos) más las propuestas enviadas. Administrador y Gerente ven además el desglose por vendedor."),
       React.createElement(LI, null, "Ticket promedio: el valor medio de una operación ganada en los últimos 12 meses (si no hay negocios ganados en ese lapso, usa todo el histórico)."),
       React.createElement(LI, null, "Movimiento de clientes: nuevos del mes, activos (con al menos un negocio en curso), inactivos (sin negocio en curso y +60 días sin actividad) y perdidos del mes."),
+      React.createElement(LI, null, "Cumplimiento del proceso: por vendedor, si el equipo hace lo que agenda. Muestra el porcentaje de actividades agendadas en los últimos 7 días que se marcaron como hechas (verde 80% o más, ámbar 50% o más, rojo por debajo), las tareas vencidas (el número lleva a la Agenda) y los negocios activos sin próximo paso. Un Comercial ve solo su fila; Gerente y Administrador ven al equipo."),
       React.createElement(Nota, null, "La actividad comercial se cuenta por la fecha de la actividad; si el equipo no registra sus llamadas y reuniones, aparecerá en cero aunque sí esté trabajando. \"Propuestas\" cuenta las cotizaciones enviadas (no borradores) de los últimos 7 días."),
 
       React.createElement(H2, null, "7.13 Pronóstico de cierre a 30/60/90 días"),
@@ -857,6 +861,9 @@ export async function GET() {
       React.createElement(H2, null, "8.8 Panel de alertas (\"Requieren atención\")"),
       React.createElement(P, null, "Reúne las situaciones que necesitan seguimiento: actividades vencidas, negocios sin actividad reciente, cierres previstos para esta semana, cotizaciones enviadas sin respuesta y, si el tenant tiene los módulos correspondientes activos, plazos procesales próximos a vencer o funciones con ocupación baja."),
       React.createElement(Tip, null, "El objetivo diario es llegar al Dashboard sin alertas pendientes en este panel."),
+
+      React.createElement(H2, null, "8.9 Oportunidades por estado"),
+      React.createElement(P, null, "Agrupa todo el pipeline activo por su estado comercial (ver 3.3): cuántos negocios hay En riesgo, Requieren atención, Alta intención y En marcha. Debajo, \"Requieren tu acción\" lista los más urgentes con su porqué (ej: 'Sin próximo paso agendado' o '30 días sin contacto'); un clic abre la oportunidad para actuar."),
     ),
 
     // ── CAPÍTULO 9: CONFIGURACIÓN ──
@@ -951,7 +958,7 @@ export async function GET() {
 
       React.createElement(H2, null, "9.7 Alerta de negocios estancados"),
       React.createElement(P, null, "En Configuración, sección \"Alerta de negocios estancados\", el Administrador define a partir de cuántos días SIN MOVIMIENTO (sin actividad registrada ni cambio de etapa) una oportunidad activa se considera estancada. Por defecto son 14 días."),
-      React.createElement(P, null, "Ese umbral controla por igual dos cosas, para que la pantalla y el correo digan lo mismo: el color de la barra de las tarjetas del Pipeline (ver 3.3) y la lista de negocios estancados del aviso diario por correo (ver 4.4). A partir del umbral la oportunidad se marca estancada (ámbar); al doble, muy estancada (rojo)."),
+      React.createElement(P, null, "Ese umbral controla por igual el estado comercial (Pipeline, ficha y Dashboard — ver 3.3) y la lista de negocios estancados del aviso diario por correo (ver 4.4), para que la pantalla y el correo digan lo mismo. A partir del umbral la oportunidad pasa a Requiere atención (ámbar); al doble, a En riesgo (rojo)."),
       React.createElement(Tip, null, "Ajusta el umbral al ciclo de venta de tu negocio: más corto para ventas rápidas (por ejemplo 7 días), más largo para ventas de varios meses (por ejemplo 30)."),
 
       React.createElement(H2, null, "9.8 Campos personalizados"),

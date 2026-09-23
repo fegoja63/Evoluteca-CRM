@@ -415,7 +415,7 @@ export async function GET() {
 
       React.createElement(H2, null, "8.1 Pipeline a fondo"),
       React.createElement(LI, null, "Las 6 etapas: Prospecto, Calificado, Cotización, Negociación, Ganada y Perdida — con el valor total de cada columna."),
-      React.createElement(LI, null, "Indicadores de urgencia: las tarjetas señalan negocios con fecha de cierre próxima o sin movimiento reciente."),
+      React.createElement(LI, null, "Estado comercial: cada tarjeta dice si el negocio está En riesgo, Requiere atención, Alta intención o En marcha, y por qué. Prueba los chips \"estancadas\" y \"sin próximo paso\" de la barra de filtros, y el botón \"Actuar ahora\" dentro de una oportunidad."),
       React.createElement(LI, null, "Drag & drop entre columnas para cambiar de etapa (lo probaste en el capítulo 5)."),
       React.createElement(LI, null, "Vista tabla: alterna del tablero (kanban) a una vista de tabla ordenable y filtrable."),
       React.createElement(LI, null, "Historial de etapas: dentro de una oportunidad, ve por qué etapas pasó y cuándo."),
@@ -443,7 +443,7 @@ export async function GET() {
       React.createElement(LI, null, "Tiempo promedio de cierre de los negocios ganados."),
       React.createElement(LI, null, "Motivos de pérdida: el desglose de por qué se caen los negocios —Precio muy alto, Eligió a la competencia, Sin respuesta del cliente y Presupuesto insuficiente— con la cantidad y el valor perdido por cada motivo."),
       React.createElement(LI, null, "Metas de venta (mes y año) y metas por vendedor, con su porcentaje de avance."),
-      React.createElement(LI, null, "Panel \"El Lunes\" (arriba del todo): actividad comercial de los últimos 7 días, ticket promedio de una operación ganada y movimiento de clientes (nuevos, activos, inactivos y perdidos)."),
+      React.createElement(LI, null, "Panel \"El Lunes\" (arriba del todo): actividad comercial de los últimos 7 días, ticket promedio de una operación ganada y movimiento de clientes (nuevos, activos, inactivos y perdidos) y cumplimiento del proceso por vendedor (qué parte de lo agendado se hizo, tareas vencidas y negocios sin próximo paso)."),
       React.createElement(LI, null, "Pronóstico de cierre a 30/60/90 días y conversión Contacto → Oportunidad → Venta, para leer el pipeline hacia adelante y ver dónde se pierde el avance."),
 
       React.createElement(H2, null, "8.4 Agenda a fondo"),
