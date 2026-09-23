@@ -1103,15 +1103,18 @@ export default function PipelinePage() {
           })}
         </div>
 
-        {/* Leyenda: qué significan los colores del borde de cada tarjeta */}
+        {/* Leyenda: qué significan los colores del borde de cada tarjeta. El
+            borde lo pone el estado comercial (lib/estado-comercial), así que la
+            leyenda describe esos cuatro estados, no solo los días sin movimiento. */}
         <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
           <p className="text-xs font-semibold text-slate-500 mb-2">¿Qué significan los colores de las tarjetas?</p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-600">
-            <span className="text-slate-400">La barra de color a la izquierda indica hace cuánto el negocio no tiene movimiento (actividad o cambio de etapa):</span>
-            <span className="flex items-center gap-1.5"><span className="inline-block h-3.5 w-1 rounded bg-emerald-400" />Menos de {diasEstancamiento} días — al día</span>
-            <span className="flex items-center gap-1.5"><span className="inline-block h-3.5 w-1 rounded bg-amber-400" />{diasEstancamiento}+ días — estancada</span>
-            <span className="flex items-center gap-1.5"><span className="inline-block h-3.5 w-1 rounded bg-red-400" />{diasEstancamiento * 2}+ días — muy estancada</span>
-            <span className="text-slate-400">El umbral se ajusta en Configuración. Ganada y Perdida no muestran barra (ya están cerradas).</span>
+            <span className="text-slate-400">La barra de color a la izquierda es el estado comercial del negocio (pasa el cursor por la etiqueta para ver el porqué):</span>
+            <span className="flex items-center gap-1.5"><span className="inline-block h-3.5 w-1 rounded bg-red-400" />En riesgo — {diasEstancamiento * 2}+ días sin contacto o cierre vencido</span>
+            <span className="flex items-center gap-1.5"><span className="inline-block h-3.5 w-1 rounded bg-amber-400" />Requiere atención — {diasEstancamiento}+ días sin contacto, cierra en ≤ 7 días o sin próximo paso agendado</span>
+            <span className="flex items-center gap-1.5"><span className="inline-block h-3.5 w-1 rounded bg-emerald-400" />Alta intención — etapa avanzada y 70%+ de probabilidad</span>
+            <span className="flex items-center gap-1.5"><span className="inline-block h-3.5 w-1 rounded bg-blue-400" />En marcha — al día</span>
+            <span className="text-slate-400">El umbral de {diasEstancamiento} días se ajusta en Configuración. Ganada y Perdida no muestran barra (ya están cerradas).</span>
           </div>
         </div>
         </>
