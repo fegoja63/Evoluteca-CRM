@@ -474,7 +474,7 @@ export async function GET() {
       React.createElement(LI, null, "Ámbar — Requiere atención: llegó al umbral de días sin contacto, cierra en 7 días o menos, o no tiene próximo paso agendado."),
       React.createElement(LI, null, "Verde — Alta intención: está en Cotización o Negociación con 70% o más de probabilidad. Acción: empujar al cierre."),
       React.createElement(LI, null, "Azul — En marcha: con contacto reciente y sin alarmas."),
-      React.createElement(P, null, "Cuenta como contacto solo lo que ya ocurrió: una actividad registrada con fecha de hoy o anterior, un cambio de etapa o un correo enviado o recibido. Una tarea agendada a futuro no cuenta, para que agendar algo para dentro de un mes no esconda un negocio que nadie ha tocado. El umbral (por defecto 14 días) lo define el Administrador en Configuración → Alerta de negocios estancados — ver 9.7. Ganadas y Perdidas no muestran estado."),
+      React.createElement(P, null, "Cuenta como contacto solo lo que ya ocurrió: una actividad registrada con fecha de hoy o anterior, un cambio de etapa o un correo enviado o recibido. Una tarea agendada a futuro no cuenta, para que agendar algo para dentro de un mes no esconda un negocio que nadie ha tocado. El umbral (por defecto 14 días) lo define el Administrador en Configuración › Alerta de negocios estancados — ver 9.7. Ganadas y Perdidas no muestran estado."),
       React.createElement(P, null, "Regla \"sin próximo paso, no hay oportunidad\": todo negocio activo debe tener al menos una actividad pendiente con fecha de hoy en adelante. Si no la tiene, pasa a 'Requiere atención — Sin próximo paso agendado' aunque esté caliente: un negocio sin siguiente paso es justo el que se enfría sin que nadie lo note. Una tarea vencida de días anteriores no cuenta; hay que agendar un paso nuevo."),
       React.createElement(P, null, "En la barra de filtros aparecen dos chips de acceso rápido cuando aplican: el rojo \"N estancadas\" (negocios activos que superan el umbral de días sin contacto) y el ámbar \"N sin próximo paso\". Haz clic en cualquiera para ver solo esos negocios."),
       React.createElement(Tip, null, "Empieza el día con los dos chips: primero reactiva lo estancado y luego agenda el siguiente paso de lo que no lo tiene. Así ningún negocio queda en el aire."),
@@ -574,7 +574,7 @@ export async function GET() {
       React.createElement(LI, null, "Cierres próximos: negocios con fecha de cierre estimada en los próximos 7 días"),
       React.createElement(P, null, "Además, en la Agenda las actividades vencidas muestran un ícono de campana. Al tocarlo recibes el recordatorio inmediatamente sin esperar al día siguiente."),
       React.createElement(Tip, null, "Solo recibirás el email de cada tipo si tienes situaciones reales en esa categoría. Si no tienes actividades vencidas, ese email no se envía."),
-      React.createElement(P, null, "Aparte de las alertas diarias, cada lunes en la mañana llega el \"Resumen del Lunes\": un solo correo por persona que abre la semana con una cabecera de indicadores (pipeline activo, nº de oportunidades y tasa de cierre) y responde las tres preguntas del lunes comercial — ① ¿Qué puedo cerrar? (cierres de la semana y las más valiosas), ② ¿Qué está bloqueado? (negocios en riesgo o que requieren atención, incluidos los que no tienen próximo paso agendado) y ③ ¿Qué generará ventas futuras? (tu actividad de los últimos 7 días y lo agendado), con un botón directo al Panel del Lunes en Reportes."),
+      React.createElement(P, null, "Aparte de las alertas diarias, cada lunes en la mañana llega el \"Resumen del Lunes\": un solo correo por persona que abre la semana con una cabecera de indicadores (pipeline activo, nº de oportunidades y tasa de cierre) y responde las tres preguntas del lunes comercial — (1) ¿Qué puedo cerrar? (cierres de la semana y las más valiosas), (2) ¿Qué está bloqueado? (negocios en riesgo o que requieren atención, incluidos los que no tienen próximo paso agendado) y (3) ¿Qué generará ventas futuras? (tu actividad de los últimos 7 días y lo agendado), con un botón directo al Panel del Lunes en Reportes."),
       React.createElement(Nota, null, "Tanto las alertas diarias como el Resumen del Lunes dependen del mismo interruptor \"Notificaciones automáticas por email\" en Configuración; si se apaga, no se envía ninguno. El resumen solo llega a quien tenga pipeline o actividad que resumir esa semana."),
 
       React.createElement(H2, null, "4.5 Lista o Calendario"),
@@ -643,7 +643,7 @@ export async function GET() {
 
       React.createElement(H2, null, "5.4 La cotización siembra el Pipeline"),
       React.createElement(P, null, "La cotización es la base del pipeline: al guardar una cotización que no vinculaste a una oportunidad existente, el sistema crea automáticamente un negocio en el Pipeline en la etapa \"Cotización\", con el mismo cliente, salón, fecha y valor. Así toda cotización aparece como un negocio sin que tengas que crearlo aparte."),
-      React.createElement(P, null, "En el detalle de la cotización, el campo \"Negocio (Pipeline)\" muestra el nombre del negocio con una flecha (→): haz clic para ir directo a esa tarjeta en el Kanban del Pipeline y seguir su avance."),
+      React.createElement(P, null, "En el detalle de la cotización, el campo \"Negocio (Pipeline)\" muestra el nombre del negocio con una flecha (›): haz clic para ir directo a esa tarjeta en el Kanban del Pipeline y seguir su avance."),
 
       React.createElement(H2, null, "5.5 Recotizaciones y versiones"),
       React.createElement(P, null, "Un mismo negocio puede tener varias cotizaciones (por ejemplo, cuando ajustas el precio tras negociar). Para recotizar, crea una nueva cotización vinculada a la misma oportunidad, o usa el botón \"Duplicar\" desde el detalle. La versión más reciente queda como la vigente y las anteriores se marcan solas con un badge gris \"Reemplazada\"."),
@@ -800,8 +800,8 @@ export async function GET() {
       React.createElement(P, null, "A diferencia del resto del reporte, este bloque mira las oportunidades abiertas desde hoy hacia adelante según su fecha de cierre, así que no depende del filtro de año/mes (sí respeta vendedor, segmento y sede). Debajo señala aparte las oportunidades activas con fecha de cierre vencida, sin fecha o a más de 90 días."),
       React.createElement(Tip, null, "Un número alto en \"con fecha vencida\" es una señal de higiene del pipeline: son negocios abiertos cuya fecha de cierre ya pasó. Conviene actualizar su fecha o moverlos de etapa para que el pronóstico sea confiable."),
 
-      React.createElement(H2, null, "7.14 Conversión (contacto → oportunidad → venta)"),
-      React.createElement(P, null, "La tarjeta \"Conversión\", junto al embudo, muestra el avance en dos tasas: Contacto → Oportunidad (qué porcentaje de tus contactos ya generó al menos una oportunidad) y Oportunidad → Venta (la tasa de cierre del período). La primera es acumulada y a nivel de todo el equipo —los contactos son un recurso compartido—; la segunda respeta el período y los filtros activos."),
+      React.createElement(H2, null, "7.14 Conversión (contacto › oportunidad › venta)"),
+      React.createElement(P, null, "La tarjeta \"Conversión\", junto al embudo, muestra el avance en dos tasas: Contacto › Oportunidad (qué porcentaje de tus contactos ya generó al menos una oportunidad) y Oportunidad › Venta (la tasa de cierre del período). La primera es acumulada y a nivel de todo el equipo —los contactos son un recurso compartido—; la segunda respeta el período y los filtros activos."),
     ),
 
     // ── CAPÍTULO 8: DASHBOARD ──
@@ -966,10 +966,10 @@ export async function GET() {
       React.createElement(Paso, { n: 1, titulo: "Elegir la entidad", desc: "Con las pestañas Cliente / Oportunidad eliges dónde vivirá el campo." }),
       React.createElement(Paso, { n: 2, titulo: "Crear el campo", desc: "Ponle un nombre y elige el tipo: Texto, Número, Fecha, Lista (menú de opciones fijas) o Sí/No. Puedes marcarlo como obligatorio." }),
       React.createElement(Paso, { n: 3, titulo: "Usarlo", desc: "El campo aparece en el formulario de edición de cada Cliente u Oportunidad y su valor se muestra en la ficha, en la sección \"Datos personalizados\"." }),
-      React.createElement(Nota, null, "Los campos se pueden reordenar (flechas ↑/↓) y eliminar. No se puede cambiar el tipo de un campo ya creado (para no invalidar los datos guardados): si necesitas otro tipo, elimínalo y créalo de nuevo."),
+      React.createElement(Nota, null, "Los campos se pueden reordenar (flechas arriba/abajo) y eliminar. No se puede cambiar el tipo de un campo ya creado (para no invalidar los datos guardados): si necesitas otro tipo, elimínalo y créalo de nuevo."),
 
       React.createElement(H2, null, "9.9 Automatizaciones"),
-      React.createElement(P, null, "En Configuración, sección \"Automatizaciones\", el Administrador crea reglas del tipo \"cuando pasa X → haz Y\" que se ejecutan solas. Con el botón Nueva defines un evento y una acción:"),
+      React.createElement(P, null, "En Configuración, sección \"Automatizaciones\", el Administrador crea reglas del tipo \"cuando pasa X › haz Y\" que se ejecutan solas. Con el botón Nueva defines un evento y una acción:"),
       React.createElement(H3, null, "Evento (cuándo)"),
       React.createElement(LI, null, "Una oportunidad cambia de etapa — con filtro opcional por etapa destino (\"solo cuando pase a Cotización\")"),
       React.createElement(LI, null, "Se crea una oportunidad — incluye los leads que entran por la Captura externa (9.6)"),
@@ -977,7 +977,7 @@ export async function GET() {
       React.createElement(LI, null, "Crear una tarea de seguimiento — con título, tipo, plazo en días y responsable (el dueño del negocio o un usuario fijo)"),
       React.createElement(LI, null, "Enviar un correo — al dueño del negocio o a los gerentes, con asunto y cuerpo"),
       React.createElement(P, null, "En los textos del título, asunto o cuerpo puedes usar los marcadores {oportunidad} y {cliente}, que se reemplazan por el nombre real al ejecutarse. Cada regla se puede activar/desactivar y muestra cuántas veces se ha ejecutado."),
-      React.createElement(Tip, null, "Ejemplo: \"Cuando una oportunidad pase a Cotización → crear la tarea 'Llamar a {cliente}' a 3 días para el dueño\". Empieza con una regla sencilla y verifica que la tarea aparezca en la Agenda antes de crear reglas más agresivas."),
+      React.createElement(Tip, null, "Ejemplo: \"Cuando una oportunidad pase a Cotización › crear la tarea 'Llamar a {cliente}' a 3 días para el dueño\". Empieza con una regla sencilla y verifica que la tarea aparezca en la Agenda antes de crear reglas más agresivas."),
     ),
 
     // ── CAPÍTULO 10: INTELIGENCIA ARTIFICIAL ──
