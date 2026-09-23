@@ -85,6 +85,25 @@ const TITULOS_GANADOS = [
   "Nuevo contrato de servicios", "Cierre: implementación CRM", "Upgrade a plan superior",
 ];
 
+// Papelera: unos pocos registros eliminados hace pocos días, para que la
+// pestaña Papelera del demo no se vea vacía y se pueda probar "Restaurar" y
+// "Eliminar definitivamente". Todo va marcado con TAG en `notas`, así que se
+// borra y recrea en cada corrida: si quien prueba el demo restaura o elimina
+// uno, la corrida siguiente lo repone.
+const PAPELERA_DIAS_MAX = 12;
+const EMPRESAS_PAPELERA = [
+  { nombre: "Distribuidora Andina del Sur", sector: "Comercio", email: "compras@andinadelsur.com.co" },
+  { nombre: "Taller Creativo Macondo", sector: "Servicios", email: "hola@tallermacondo.co" },
+];
+const CONTACTOS_PAPELERA = [
+  { nombre: "Julián Restrepo", cargo: "Jefe de compras", email: "julian.restrepo@correo.co" },
+  { nombre: "Marcela Ortiz", cargo: "Asistente administrativa", email: "marcela.ortiz@correo.co" },
+];
+const OPORTUNIDADES_PAPELERA = [
+  { titulo: "Cotización duplicada — plan Equipo", valor: 6_500_000, etapa: "PROPUESTA" as const },
+  { titulo: "Prueba piloto (creada por error)", valor: 2_000_000, etapa: "PROSPECTO" as const },
+];
+
 function rnd<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 function rndInt(min: number, max: number) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
@@ -129,6 +148,7 @@ export type ResultadoDemoSemanal = {
   proximosPasosCreados?: number;
   propuestasCreadas?: number;
   ganadosCreados?: number;
+  papeleraCreados?: number;
   actividadesBorradas?: number;
   propuestasBorradas?: number;
   ganadosBorrados?: number;
@@ -184,6 +204,10 @@ export async function refrescarDemoSemanal(
   const borradoOps = await prisma.oportunidad.deleteMany({
     where: { tenantId: T, notas: { startsWith: TAG_DEMO } },
   });
+  // Relleno de la Papelera (clientes y contactos marcados; las oportunidades y
+  // cotizaciones marcadas ya se borraron arriba).
+  await prisma.contacto.deleteMany({ where: { tenantId: T, notas: { startsWith: TAG_DEMO } } });
+  await prisma.empresa.deleteMany({ where: { tenantId: T, notas: { startsWith: TAG_DEMO } } });
 
   // 2) Generar la banda de actividad (pasado reciente + próximos días).
   const nuevas: {
@@ -291,6 +315,42 @@ export async function refrescarDemoSemanal(
   });
   await prisma.oportunidad.createMany({ data: ganados });
 
+  // 5) Papelera: clientes, contactos, oportunidades y una cotización
+  //    eliminados hace 1–12 días (soft delete, igual que al borrar desde la app).
+  const eliminadoHace = () => fechaLaboral(-rndInt(1, PAPELERA_DIAS_MAX));
+  const notaPapelera = `${TAG_DEMO} registro eliminado de demostración`;
+  const vendedorPapelera = () => rnd(vendedores).id;
+  for (const e of EMPRESAS_PAPELERA) {
+    await prisma.empresa.create({
+      data: { ...e, notas: notaPapelera, tenantId: T, creadoBy: vendedorPapelera(),
+        creadoEn: fechaLaboral(-rndInt(30, 90)), eliminadoEn: eliminadoHace() },
+    });
+  }
+  for (const c of CONTACTOS_PAPELERA) {
+    await prisma.contacto.create({
+      data: { ...c, notas: notaPapelera, tenantId: T, empresaId: rnd(empresas).id,
+        creadoEn: fechaLaboral(-rndInt(30, 90)), eliminadoEn: eliminadoHace() },
+    });
+  }
+  for (const o of OPORTUNIDADES_PAPELERA) {
+    const emp = rnd(empresas);
+    await prisma.oportunidad.create({
+      data: { ...o, probabilidad: 30, notas: notaPapelera, tenantId: T, empresaId: emp.id,
+        contactoId: emp.contactos.length ? rnd(emp.contactos).id : null,
+        creadoBy: vendedorPapelera(), creadoEn: fechaLaboral(-rndInt(20, 60)), eliminadoEn: eliminadoHace() },
+    });
+  }
+  const empCot = rnd(empresas);
+  await prisma.cotizacion.create({
+    data: {
+      tenantId: T, estado: "BORRADOR", modalidad: "FEE_FIJO", notas: notaPapelera,
+      creadoEn: fechaLaboral(-rndInt(15, 40)), eliminadoEn: eliminadoHace(),
+      empresaId: empCot.id, contactoId: empCot.contactos.length ? rnd(empCot.contactos).id : null,
+      items: { create: [{ descripcion: rnd(ITEMS_PROPUESTA).descripcion, cantidad: 1, precioUnit: rnd(ITEMS_PROPUESTA).precioUnit }] },
+    },
+  });
+  const papeleraCreados = EMPRESAS_PAPELERA.length + CONTACTOS_PAPELERA.length + OPORTUNIDADES_PAPELERA.length + 1;
+
   return {
     ok: true,
     tenant: tenant.nombre,
@@ -298,6 +358,7 @@ export async function refrescarDemoSemanal(
     proximosPasosCreados: conPaso.length,
     propuestasCreadas,
     ganadosCreados: ganados.length,
+    papeleraCreados,
     actividadesBorradas: borradoActs.count,
     propuestasBorradas: borradoCots.count,
     ganadosBorrados: borradoOps.count,
