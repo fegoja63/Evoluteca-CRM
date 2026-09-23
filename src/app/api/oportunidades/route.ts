@@ -5,6 +5,7 @@ import { filtroOwner } from "@/lib/permisos";
 import { crearOportunidadSchema } from "@/lib/validations/oportunidades";
 import { parseOrError } from "@/lib/validations/helpers";
 import { dispararAutomatizaciones } from "@/lib/automatizaciones-motor";
+import { inicioProximoPaso } from "@/lib/estado-comercial";
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -22,17 +23,22 @@ export async function GET(request: Request) {
   const where = { tenantId: session.user.tenantId, eliminadoEn: null, ...(todas ? {} : filtroOwner(session.user.rol, session.user.id)) };
 
   // "Último movimiento" de una oportunidad = la fecha más reciente entre su
-  // última actividad, su último cambio de etapa y su creación. Es lo que usa el
+  // última actividad (ya ocurrida), su último cambio de etapa y su creación. Es lo que usa el
   // Pipeline para marcar negocios estancados (días sin movimiento ≥ umbral del
   // tenant), en vez de la edad desde que se creó, que daba falsos positivos.
   const includeMovimiento = {
     empresa: { select: { id: true, nombre: true } },
     contacto: { select: { id: true, nombre: true, email: true } },
-    actividades: { orderBy: { fecha: "desc" as const }, take: 1, select: { fecha: true } },
+    // Solo actividades que ya ocurrieron: una tarea agendada a futuro no es
+    // contacto y no debe "resetear" los días sin movimiento.
+    actividades: { where: { fecha: { lte: new Date() } }, orderBy: { fecha: "desc" as const }, take: 1, select: { fecha: true } },
     cambiosEtapa: { orderBy: { creadoEn: "desc" as const }, take: 1, select: { creadoEn: true } },
     // El último correo (entrante o saliente) también es señal de vida: un cliente
     // que respondió hace poco NO está estancado aunque no haya actividad anotada.
     correos: { orderBy: { fecha: "desc" as const }, take: 1, select: { fecha: true } },
+    // Actividades pendientes agendadas de hoy en adelante: si no hay ninguna, el
+    // negocio queda "sin próximo paso" (ver estadoComercial).
+    _count: { select: { actividades: { where: { completada: false, fecha: { gte: inicioProximoPaso() } } } } },
   };
 
   type ConMovimiento = {
@@ -40,9 +46,10 @@ export async function GET(request: Request) {
     actividades: { fecha: Date }[];
     cambiosEtapa: { creadoEn: Date }[];
     correos: { fecha: Date }[];
+    _count: { actividades: number };
   };
   function conUltimoMovimiento<T extends ConMovimiento>(o: T) {
-    const { actividades, cambiosEtapa, correos, ...resto } = o;
+    const { actividades, cambiosEtapa, correos, _count, ...resto } = o;
     const candidatos = [
       o.creadoEn,
       actividades[0]?.fecha,
@@ -50,7 +57,7 @@ export async function GET(request: Request) {
       correos[0]?.fecha,
     ].filter((d): d is Date => !!d);
     const ultimoMovimiento = candidatos.reduce((a, b) => (b > a ? b : a));
-    return { ...resto, ultimoMovimiento };
+    return { ...resto, ultimoMovimiento, tieneProximoPaso: _count.actividades > 0 };
   }
 
   // Sin "page" se mantiene el comportamiento anterior (lista completa) — el

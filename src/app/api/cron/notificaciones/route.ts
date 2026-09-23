@@ -112,7 +112,9 @@ async function procesarUsuario(
       where: { tenantId: u.tenantId, eliminadoEn: null, etapa: { in: etapasActivas }, ...ownerWhere },
       include: {
         empresa: { select: { nombre: true } },
-        actividades: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
+        // Solo actividades que ya ocurrieron: una tarea agendada a futuro no es
+        // contacto y no debe "resetear" los días sin movimiento.
+        actividades: { where: { fecha: { lte: ahora } }, orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
         cambiosEtapa: { orderBy: { creadoEn: "desc" }, take: 1, select: { creadoEn: true } },
       },
     });

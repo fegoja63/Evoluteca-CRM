@@ -74,7 +74,8 @@ export async function GET() {
         id: true,
         creadoEn: true,
         oportunidades: { where: { eliminadoEn: null }, select: { etapa: true } },
-        actividades: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
+        // Solo lo que ya ocurrió: una tarea agendada a futuro no hace "activo" al cliente.
+        actividades: { where: { fecha: { lte: ahora } }, orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
       },
     }),
     // 5. Ticket promedio: operaciones ganadas para promediar su valor (se filtra

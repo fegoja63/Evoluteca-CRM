@@ -15,7 +15,7 @@ import { CamposPersonalizadosVista } from "@/components/campos-personalizados-vi
 import { CorreosPanel } from "@/components/correos-panel";
 import { CoachObjecionesIA } from "@/components/coach-objeciones-ia";
 import { esClaveCampoPersonalizado } from "@/lib/campos-personalizados";
-import { estadoComercial, ultimoMovimientoDe } from "@/lib/estado-comercial";
+import { estadoComercial, ultimoMovimientoDe, tieneProximoPasoDe } from "@/lib/estado-comercial";
 import {
   IconAlertTriangle, IconHistory, IconTarget, IconTrophy, IconX, IconArrowRight,
   IconMoodSad, IconBolt,
@@ -144,7 +144,7 @@ export default function OportunidadDetallePage() {
   async function actuarAhora() {
     if (!op || guardandoAccion) return;
     const estado = estadoComercial(
-      { etapa: op.etapa, probabilidad: op.probabilidad, ultimoMovimiento: ultimoMovimientoDe(op), creadoEn: op.creadoEn, fechaCierre: op.fechaCierre },
+      { etapa: op.etapa, probabilidad: op.probabilidad, ultimoMovimiento: ultimoMovimientoDe(op), creadoEn: op.creadoEn, fechaCierre: op.fechaCierre, tieneProximoPaso: tieneProximoPasoDe(op.actividades) },
       diasEstancamiento,
     );
     if (!estado) return;
@@ -499,7 +499,7 @@ export default function OportunidadDetallePage() {
                 Ganada/Perdida). */}
             {(() => {
               const estado = estadoComercial(
-                { etapa: op.etapa, probabilidad: op.probabilidad, ultimoMovimiento: ultimoMovimientoDe(op), creadoEn: op.creadoEn, fechaCierre: op.fechaCierre },
+                { etapa: op.etapa, probabilidad: op.probabilidad, ultimoMovimiento: ultimoMovimientoDe(op), creadoEn: op.creadoEn, fechaCierre: op.fechaCierre, tieneProximoPaso: tieneProximoPasoDe(op.actividades) },
                 diasEstancamiento,
               );
               if (!estado) return null;
