@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { Resend } from "resend";
 import { EtapaOportunidad } from "@prisma/client";
-import { estadoComercial, ultimoMovimientoDe } from "@/lib/estado-comercial";
+import { estadoComercial, ultimoMovimientoDe, inicioProximoPaso } from "@/lib/estado-comercial";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -80,6 +80,7 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
         cambiosEtapa: { orderBy: { creadoEn: "desc" }, take: 1, select: { creadoEn: true } },
         // El correo (entrante o saliente) cuenta como señal de vida para el estado.
         correos: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
+        _count: { select: { actividades: { where: { completada: false, fecha: { gte: inicioProximoPaso(ahora) } } } } },
       },
     }),
     prisma.oportunidad.count({ where: { tenantId: u.tenantId, eliminadoEn: null, etapa: "GANADA", ...ownerWhere } }),
@@ -103,7 +104,7 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
     o,
     ultMov: ultimoMovimientoDe(o),
     estado: estadoComercial(
-      { etapa: o.etapa, probabilidad: o.probabilidad, ultimoMovimiento: ultimoMovimientoDe(o), creadoEn: o.creadoEn, fechaCierre: o.fechaCierre },
+      { etapa: o.etapa, probabilidad: o.probabilidad, ultimoMovimiento: ultimoMovimientoDe(o), creadoEn: o.creadoEn, fechaCierre: o.fechaCierre, tieneProximoPaso: o._count.actividades > 0 },
       tenantInfo.diasEstancamiento,
     ),
   }));
