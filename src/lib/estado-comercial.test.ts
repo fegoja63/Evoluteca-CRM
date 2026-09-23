@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { estadoComercial, ultimoMovimientoDe, type SenalesOportunidad } from "./estado-comercial";
+import { estadoComercial, ultimoMovimientoDe, tieneProximoPasoDe, type SenalesOportunidad } from "./estado-comercial";
 
 // Fecha de referencia fija para que las pruebas no dependan del reloj real.
 const AHORA = new Date("2026-09-15T12:00:00.000Z");
@@ -115,5 +115,51 @@ describe("ultimoMovimientoDe", () => {
     // Con un correo de hace 2 días, la última señal de vida es reciente.
     const um = ultimoMovimientoDe({ creadoEn: haceDias(60), correos: [{ fecha: haceDias(2) }] });
     expect(estadoComercial({ ...o, ultimoMovimiento: um }, UMBRAL, AHORA)?.clave).not.toBe("atencion");
+  });
+});
+
+describe("sin próximo paso", () => {
+  it("una oportunidad sana sin próximo paso pasa a Requiere atención", () => {
+    const e = calc(base({ tieneProximoPaso: false }));
+    expect(e?.clave).toBe("atencion");
+    expect(e?.razon).toBe("Sin próximo paso agendado");
+    expect(e?.accion).toBe("Agendar el próximo paso");
+    expect(e?.accionTipo).toBe("TAREA");
+  });
+
+  it("manda sobre alta intención", () => {
+    const o = base({ etapa: "NEGOCIACION", probabilidad: 80 });
+    expect(calc(o)?.clave).toBe("alta");
+    expect(calc({ ...o, tieneProximoPaso: false })?.razon).toBe("Sin próximo paso agendado");
+  });
+
+  it("no tapa las alarmas más urgentes (riesgo / estancada / cierre próximo)", () => {
+    expect(calc(base({ ultimoMovimiento: haceDias(28), tieneProximoPaso: false }))?.clave).toBe("riesgo");
+    expect(calc(base({ ultimoMovimiento: haceDias(15), tieneProximoPaso: false }))?.razon).toContain("sin contacto");
+    expect(calc(base({ fechaCierre: enDias(3), tieneProximoPaso: false }))?.razon).toContain("Cierra en");
+  });
+
+  it("con próximo paso, o sin el dato cargado, no cambia nada", () => {
+    expect(calc(base({ tieneProximoPaso: true }))?.clave).toBe("marcha");
+    expect(calc(base())?.clave).toBe("marcha");
+  });
+
+  it("no aplica a cerradas", () => {
+    expect(calc(base({ etapa: "GANADA", tieneProximoPaso: false }))).toBeNull();
+  });
+});
+
+describe("tieneProximoPasoDe", () => {
+  // AHORA = 2026-09-15 12:00Z = 07:00 en Bogotá; el día en Bogotá empieza a las 05:00Z.
+  it("cuenta una pendiente futura o de hoy (aunque la hora ya pasó)", () => {
+    expect(tieneProximoPasoDe([{ fecha: enDias(3), completada: false }], AHORA)).toBe(true);
+    expect(tieneProximoPasoDe([{ fecha: "2026-09-15T06:00:00.000Z", completada: false }], AHORA)).toBe(true);
+  });
+
+  it("no cuenta completadas ni pendientes vencidas de días anteriores", () => {
+    expect(tieneProximoPasoDe([{ fecha: enDias(3), completada: true }], AHORA)).toBe(false);
+    expect(tieneProximoPasoDe([{ fecha: "2026-09-15T04:00:00.000Z", completada: false }], AHORA)).toBe(false);
+    expect(tieneProximoPasoDe([{ fecha: haceDias(2), completada: false }], AHORA)).toBe(false);
+    expect(tieneProximoPasoDe([], AHORA)).toBe(false);
   });
 });

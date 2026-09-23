@@ -5,6 +5,7 @@ import { filtroOwner } from "@/lib/permisos";
 import { crearOportunidadSchema } from "@/lib/validations/oportunidades";
 import { parseOrError } from "@/lib/validations/helpers";
 import { dispararAutomatizaciones } from "@/lib/automatizaciones-motor";
+import { inicioProximoPaso } from "@/lib/estado-comercial";
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -33,6 +34,9 @@ export async function GET(request: Request) {
     // El último correo (entrante o saliente) también es señal de vida: un cliente
     // que respondió hace poco NO está estancado aunque no haya actividad anotada.
     correos: { orderBy: { fecha: "desc" as const }, take: 1, select: { fecha: true } },
+    // Actividades pendientes agendadas de hoy en adelante: si no hay ninguna, el
+    // negocio queda "sin próximo paso" (ver estadoComercial).
+    _count: { select: { actividades: { where: { completada: false, fecha: { gte: inicioProximoPaso() } } } } },
   };
 
   type ConMovimiento = {
@@ -40,9 +44,10 @@ export async function GET(request: Request) {
     actividades: { fecha: Date }[];
     cambiosEtapa: { creadoEn: Date }[];
     correos: { fecha: Date }[];
+    _count: { actividades: number };
   };
   function conUltimoMovimiento<T extends ConMovimiento>(o: T) {
-    const { actividades, cambiosEtapa, correos, ...resto } = o;
+    const { actividades, cambiosEtapa, correos, _count, ...resto } = o;
     const candidatos = [
       o.creadoEn,
       actividades[0]?.fecha,
@@ -50,7 +55,7 @@ export async function GET(request: Request) {
       correos[0]?.fecha,
     ].filter((d): d is Date => !!d);
     const ultimoMovimiento = candidatos.reduce((a, b) => (b > a ? b : a));
-    return { ...resto, ultimoMovimiento };
+    return { ...resto, ultimoMovimiento, tieneProximoPaso: _count.actividades > 0 };
   }
 
   // Sin "page" se mantiene el comportamiento anterior (lista completa) — el

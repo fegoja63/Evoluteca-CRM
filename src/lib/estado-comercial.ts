@@ -11,6 +11,7 @@
 // una probabilidad de dos dígitos inventada por una fórmula.
 
 import type { TipoActividad } from "@prisma/client";
+import { medianocheBogota } from "./fecha-bogota";
 
 export type EstadoClave = "riesgo" | "atencion" | "alta" | "marcha";
 
@@ -34,6 +35,10 @@ export type SenalesOportunidad = {
   ultimoMovimiento?: string | Date | null;
   creadoEn: string | Date;
   fechaCierre?: string | Date | null;
+  // ¿Tiene al menos una actividad pendiente agendada de hoy en adelante? Es la
+  // regla "sin siguiente paso, no hay oportunidad". `undefined` = el llamador no
+  // cargó el dato, y la regla simplemente no se evalúa (compatibilidad).
+  tieneProximoPaso?: boolean;
 };
 
 const DIA_MS = 86_400_000;
@@ -74,6 +79,25 @@ export function ultimoMovimientoDe(o: {
     ...(o.correos ?? []).map((c) => aFecha(c.fecha)),
   ].filter((d): d is Date => !!d);
   return candidatos.reduce((a, b) => (b > a ? b : a), base);
+}
+
+// "Próximo paso" = actividad NO completada con fecha desde el inicio de hoy
+// (hora Bogotá) en adelante. Una tarea vencida de días anteriores no cuenta:
+// el negocio necesita un paso nuevo con fecha. Lo usa el detalle, que tiene el
+// array completo; las consultas del servidor filtran lo mismo con Prisma
+// (`inicioProximoPaso` + `completada: false`).
+export function inicioProximoPaso(ahora: Date = new Date()): Date {
+  return medianocheBogota(0, ahora);
+}
+export function tieneProximoPasoDe(
+  actividades: { fecha: string | Date; completada: boolean }[],
+  ahora: Date = new Date(),
+): boolean {
+  const desde = inicioProximoPaso(ahora);
+  return actividades.some((a) => {
+    const f = aFecha(a.fecha);
+    return !a.completada && !!f && f >= desde;
+  });
 }
 
 const ROJO = { badge: "text-red-600 bg-red-50", borde: "border-l-4 border-l-red-400" };
@@ -127,6 +151,15 @@ export function estadoComercial(
     return { clave: "atencion", label: "Requiere atención", ...AMBAR,
       razon: diasParaCierre === 0 ? "La fecha de cierre es hoy" : `Cierra en ${plural(diasParaCierre, "día", "días")}`,
       accion: "Hacer seguimiento hoy", accionTipo: "LLAMADA" };
+  }
+
+  // 2b) SIN PRÓXIMO PASO — activa y con movimiento reciente, pero nadie agendó
+  //     qué sigue. Manda incluso sobre "alta intención": un negocio caliente sin
+  //     siguiente paso es justo el que se enfría sin que nadie lo note.
+  if (o.tieneProximoPaso === false) {
+    return { clave: "atencion", label: "Requiere atención", ...AMBAR,
+      razon: "Sin próximo paso agendado",
+      accion: "Agendar el próximo paso", accionTipo: "TAREA" };
   }
 
   // 3) ALTA INTENCIÓN — etapa avanzada + probabilidad alta (y, por descarte de
