@@ -233,8 +233,8 @@ export async function GET() {
       React.createElement(P, null, "El sistema revisa automáticamente las funciones programadas para los próximos 5 días. Si una función tiene menos del 60% de ocupación (sillas vendidas sobre sillas totales), se marca como urgente en tres lugares distintos, para que el equipo comercial tenga tiempo de reaccionar con una campaña de último momento."),
 
       React.createElement(H2, null, "3.1 Dónde aparece la alerta"),
-      React.createElement(LI, null, "Dashboard principal: bloque '🎭 función(es) con ocupación baja' dentro del panel de Alertas, con el nombre, el % de ocupación y la fecha"),
-      React.createElement(LI, null, "Lista de Funciones: la función aparece con un badge '⚠ urgente' junto al título"),
+      React.createElement(LI, null, "Dashboard principal: bloque 'función(es) con ocupación baja' dentro del panel de Alertas, con el nombre, el % de ocupación y la fecha"),
+      React.createElement(LI, null, "Lista de Funciones: la función aparece con un badge 'urgente' junto al título"),
       React.createElement(LI, null, "Email diario automático (8am): si tienes las notificaciones activas en Configuración, recibirás un correo con el listado de funciones en riesgo"),
       React.createElement(Nota, null, "El umbral (60% de ocupación, 5 días de anticipación) es fijo en esta versión del sistema. No requiere configuración — se calcula automáticamente cada vez que cargas el Dashboard o se ejecuta el correo diario."),
       React.createElement(Tip, null, "Usa esta alerta como disparador de una campaña puntual: descuento de última hora, publicación en redes o mensaje directo al Club de fidelización (ver capítulo 5)."),
@@ -294,7 +294,7 @@ export async function GET() {
       React.createElement(P, null, "Antes, enviar la encuesta de satisfacción a cada asistente era un proceso manual y fácil de olvidar. Ahora el sistema identifica automáticamente a quién le falta enviarla y arma el mensaje por ti."),
 
       React.createElement(H2, null, "6.1 Cómo funciona"),
-      React.createElement(P, null, "En Audiencia, el botón '💬 Cola de NPS' (con un contador cuando hay pendientes) lleva a una lista de asistentes que cumplen tres condiciones: la función terminó hace 24 horas o más, la persona tiene teléfono registrado, y todavía no se le ha enviado ni ha respondido la encuesta."),
+      React.createElement(P, null, "En Audiencia, el botón 'Cola de NPS' (con un contador cuando hay pendientes) lleva a una lista de asistentes que cumplen tres condiciones: la función terminó hace 24 horas o más, la persona tiene teléfono registrado, y todavía no se le ha enviado ni ha respondido la encuesta."),
       React.createElement(Paso, { n: 1, titulo: "Abrir la Cola de NPS", desc: "Ve a Audiencia y haz clic en el botón con el contador de pendientes." }),
       React.createElement(Paso, { n: 2, titulo: "Clic en WhatsApp", desc: "Por cada persona pendiente, haz clic en el botón de WhatsApp. El mensaje de encuesta ya viene redactado (puedes editarlo antes de enviar)." }),
       React.createElement(Paso, { n: 3, titulo: "Abrir WhatsApp y enviar", desc: "Se abre WhatsApp Web o la app con el mensaje listo. Al hacer clic en 'Abrir WhatsApp', el sistema marca automáticamente a esa persona como 'ya contactada' y desaparece de la cola." }),
