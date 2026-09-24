@@ -189,14 +189,14 @@ describe("último movimiento (base de la alerta de estancamiento)", () => {
 
   it("ultimoMovimiento toma la señal más reciente: una actividad posterior manda sobre la creación", async () => {
     comoUsuario(A, "GERENTE");
-    // Futura y muy posterior a la creación (now) y a la actividad sembrada
-    // (2026-03-15): debe ganar como último movimiento.
-    const futura = new Date("2027-01-15T12:00:00.000Z");
+    // Ya ocurrida (ahora), posterior a la creación sembrada y a la actividad
+    // sembrada (2026-03-15): debe ganar como último movimiento.
+    const reciente = new Date();
     await prisma.actividad.create({
       data: {
         tenantId: A.tenantId,
-        titulo: "Seguimiento programado",
-        fecha: futura,
+        titulo: "Llamada de seguimiento",
+        fecha: reciente,
         tipo: "LLAMADA",
         oportunidadId: A.oportunidadDelComercial,
         creadoBy: A.comercial,
@@ -205,7 +205,27 @@ describe("último movimiento (base de la alerta de estancamiento)", () => {
     const { cuerpo } = await llamar(listar);
     const op = (cuerpo as Array<{ id: string; ultimoMovimiento?: string }>)
       .find(o => o.id === A.oportunidadDelComercial);
-    expect(op?.ultimoMovimiento).toBe(futura.toISOString());
+    expect(op?.ultimoMovimiento).toBe(reciente.toISOString());
+  });
+
+  it("una tarea agendada a futuro NO cuenta como último movimiento", async () => {
+    comoUsuario(A, "GERENTE");
+    const antes = (await llamar(listar)).cuerpo as Array<{ id: string; ultimoMovimiento?: string }>;
+    const previo = antes.find(o => o.id === A.oportunidadDelComercial)?.ultimoMovimiento;
+    await prisma.actividad.create({
+      data: {
+        tenantId: A.tenantId,
+        titulo: "Seguimiento programado",
+        fecha: new Date("2099-01-15T12:00:00.000Z"),
+        tipo: "LLAMADA",
+        oportunidadId: A.oportunidadDelComercial,
+        creadoBy: A.comercial,
+      },
+    });
+    const { cuerpo } = await llamar(listar);
+    const op = (cuerpo as Array<{ id: string; ultimoMovimiento?: string }>)
+      .find(o => o.id === A.oportunidadDelComercial);
+    expect(op?.ultimoMovimiento).toBe(previo);
   });
 });
 
