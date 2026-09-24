@@ -9,6 +9,10 @@ export default defineConfig({
     include: ["src/**/*.test.ts"],
     // Carga .env.test y aborta si apunta a una base que no sea la de pruebas.
     setupFiles: [path.resolve(src, "test/setup.ts")],
+    // Una vez por corrida: verifica que el cliente de Prisma sea el de este
+    // esquema y toma el candado de la base de pruebas, para que dos corridas
+    // (de dos sesiones o dos carpetas) no se pisen. Ver src/test/candado.ts.
+    globalSetup: [path.resolve(src, "test/global-setup.ts")],
     // Los archivos de prueba comparten una sola base y cada uno la resiembra,
     // asi que corren de a uno. Sin esto, dos archivos en paralelo se borrarian
     // los datos entre si y los fallos serian intermitentes e imposibles de leer.
