@@ -1,17 +1,18 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { filtroOwner } from "@/lib/permisos";
+import { filtroOwner, moduloActivo } from "@/lib/permisos";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { componentesHoyBogota, medianocheBogota } from "@/lib/fecha-bogota";
 import { plazoVencido } from "@/lib/plazo-legal";
 import { numeroCotizacion } from "@/lib/cotizaciones";
 import { estadoComercial, ultimoMovimientoDe, inicioProximoPaso, type EstadoClave } from "@/lib/estado-comercial";
+import { MODULO_POSTVENTA, DIAS_AVISO_RENOVACION, estadoRenovacion } from "@/lib/postventa";
 import Link from "next/link";
 import {
   IconBuilding, IconUsers, IconChartFunnel, IconClipboardList, IconActivityHeartbeat,
   IconPhone, IconCheck, IconMail, IconTarget, IconTrophy, IconAlertTriangle,
   IconCircleCheck, IconScale, IconTheater, IconAlertCircle, IconSnowflake,
-  IconMoodSmile, IconPinned, IconFilePlus, IconCalendarPlus, IconReportAnalytics,
+  IconMoodSmile, IconPinned, IconFilePlus, IconCalendarPlus, IconReportAnalytics, IconHeartHandshake,
   type Icon,
 } from "@tabler/icons-react";
 
@@ -70,6 +71,7 @@ export default async function DashboardPage() {
     funcionesProximas,
     etapasPipeline,
     tenantCfg,
+    renovacionesCandidatas,
   ] = await Promise.all([
     prisma.empresa.count({ where: { tenantId, eliminadoEn: null, ...ownerFiltro } }),
     prisma.contacto.count({ where: { tenantId, eliminadoEn: null } }),
@@ -195,8 +197,23 @@ export default async function DashboardPage() {
       orderBy: { orden: "asc" },
       select: { key: true, nombre: true, oculta: true },
     }),
-    prisma.tenant.findUnique({ where: { id: tenantId }, select: { diasEstancamiento: true } }),
+    prisma.tenant.findUnique({ where: { id: tenantId }, select: { diasEstancamiento: true, modulos: true } }),
+    // Postventa: negocios ganados con renovación vencida o dentro del aviso y
+    // sin su oportunidad de renovación creada (se muestran si el módulo está activo).
+    prisma.oportunidad.findMany({
+      where: {
+        tenantId, eliminadoEn: null, etapa: "GANADA",
+        postventaEtapa: { in: ["ENTREGA", "SEGUIMIENTO", "RENOVACION"] },
+        fechaRenovacion: { lte: new Date(hoy.getTime() + DIAS_AVISO_RENOVACION * 86_400_000) },
+        renovaciones: { none: { eliminadoEn: null } },
+        ...ownerFiltro,
+      },
+      select: { id: true, titulo: true, fechaRenovacion: true, empresa: { select: { nombre: true } } },
+      orderBy: { fechaRenovacion: "asc" },
+      take: 10,
+    }),
   ]);
+  const renovacionesProximas = moduloActivo(tenantCfg?.modulos, MODULO_POSTVENTA) ? renovacionesCandidatas : [];
 
   // Funciones a <=5 días con ocupación por debajo del umbral del plan de Belarte
   // (Fase 3: "si <60% con 5 días de anticipación -> campaña de urgencia").
@@ -295,7 +312,7 @@ export default async function DashboardPage() {
   const saludBg    = saludScore >= 75 ? "bg-emerald-500" : saludScore >= 50 ? "bg-amber-500" : "bg-red-500";
   const saludColor = saludScore >= 75 ? "text-emerald-600" : saludScore >= 50 ? "text-amber-600" : "text-red-500";
 
-  const hayAlertas = actividadesVencidas.length > 0 || cotizacionesSinMovimiento.length > 0 || negociosEstancados.length > 0 || cierranEstaSemana.length > 0 || cotizacionesVencidas.length > 0 || cotizacionesSinRespuesta.length > 0 || terminosProximos.length > 0 || funcionesBajaOcupacion.length > 0;
+  const hayAlertas = renovacionesProximas.length > 0 || actividadesVencidas.length > 0 || cotizacionesSinMovimiento.length > 0 || negociosEstancados.length > 0 || cierranEstaSemana.length > 0 || cotizacionesVencidas.length > 0 || cotizacionesSinRespuesta.length > 0 || terminosProximos.length > 0 || funcionesBajaOcupacion.length > 0;
 
   // Helpers
   function fmt(v: number) {
@@ -722,6 +739,20 @@ export default async function DashboardPage() {
                       <span className="text-xs text-amber-600 font-semibold shrink-0">{new Date(o.fechaCierre!).toLocaleDateString("es-CO",{day:"2-digit",month:"short",timeZone:"UTC"})}</span>
                     </Link>
                   ))}
+                </div>
+              )}
+              {renovacionesProximas.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold text-amber-700 mb-1.5 flex items-center gap-1.5"><IconHeartHandshake size={13} stroke={1.75} />{renovacionesProximas.length} renovaci{renovacionesProximas.length!==1?"ones":"ón"} por gestionar</p>
+                  {renovacionesProximas.slice(0,2).map(o => {
+                    const e = estadoRenovacion(o.fechaRenovacion, hoy);
+                    return (
+                      <Link key={o.id} href={`/dashboard/pipeline/${o.id}`} className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-2.5 py-1.5 mb-1 hover:border-amber-300 transition-colors">
+                        <span className="text-xs font-medium text-slate-800 truncate flex-1">{o.empresa?.nombre ?? o.titulo}</span>
+                        <span className={`text-xs font-semibold shrink-0 ${e?.tipo === "vencida" ? "text-red-600" : "text-amber-600"}`}>{e?.tipo === "vencida" ? `vencida ${e.dias}d` : e?.dias === 0 ? "hoy" : `en ${e?.dias}d`}</span>
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
               {cotizacionesSinRespuesta.length > 0 && (

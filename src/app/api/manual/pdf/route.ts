@@ -243,7 +243,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.23 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.24 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -894,6 +894,7 @@ export async function GET() {
       React.createElement(LI, null, "Audiencia: gestión de espectadores con segmentación por tipo (individual, grupo, empresa, colegio)"),
       React.createElement(LI, null, "Expedientes: para firmas de abogados y servicios profesionales. Gestiona casos con bitácora, registro de horas, plazos procesales y control de conflictos de interés"),
       React.createElement(LI, null, "Salones: para alquiler de espacios y eventos. Catálogo de salones, calendario de reservas con arrastrar y soltar, control de choques de fecha y tabla de alquileres por día"),
+      React.createElement(LI, null, "Postventa y renovaciones: tablero de lo que pasa después de ganar (Entrega › Seguimiento › Renovación › Cerrado), aviso 30 días antes de cada renovación y creación con un clic de la oportunidad de renovación"),
       React.createElement(LI, null, "Manejo de objeciones: guía de ventas del equipo (objeciones frecuentes con respuesta recomendada y lo que conviene evitar), coach con IA en cada negocio y enlace con los motivos de pérdida"),
       React.createElement(P, null, "Activa o desactiva estos módulos según tu tipo de negocio desde la sección Configuración > Módulos. Cada vertical cuenta además con un anexo específico descargable desde la Guía de inicio."),
       React.createElement(H2, null, "9.2.1 Módulo Manejo de objeciones"),
@@ -902,6 +903,14 @@ export async function GET() {
       React.createElement(LI, null, "Coach con IA en el negocio: en la ficha de la oportunidad, eliges una objeción de la guía o escribes la del cliente y la IA sugiere una respuesta a la medida del negocio (usa cliente, sector, etapa, valor y últimas gestiones). Comparte el cupo mensual de IA."),
       React.createElement(LI, null, "Enlace con Motivos de pérdida: cada objeción puede asociarse a un motivo; en Reportes, ese motivo muestra un botón \"Cómo responder\" con la respuesta de la guía."),
       React.createElement(Nota, null, "La idea no es pelear la objeción, sino entender la prioridad, el contexto y el valor percibido del cliente — y de paso alinear al equipo y acortar la curva de los vendedores nuevos."),
+
+      React.createElement(H2, null, "9.2.2 Módulo Postventa y renovaciones"),
+      React.createElement(P, null, "Para quien vende contratos, licencias, suscripciones o servicios que se renuevan. Al activarlo aparece la pestaña \"Postventa\" y cada negocio que se gana entra solo a su tablero, en la etapa Entrega. Esto pasa tanto al moverlo a Ganada en el Pipeline como al aceptar su cotización. Los negocios importados de Excel no entran solos."),
+      React.createElement(LI, null, "Tablero de postventa: cuatro etapas fijas (Entrega, Seguimiento, Renovación y Cerrado). Arrastra las tarjetas entre columnas, como en el Pipeline. Un Comercial ve solo sus negocios."),
+      React.createElement(LI, null, "Fecha de renovación: en la ficha de un negocio ganado, el panel Postventa permite cambiar la etapa y poner la fecha en que toca renovar."),
+      React.createElement(LI, null, "Aviso de renovación: 30 días antes (o si la fecha ya pasó), el negocio se marca \"por renovar\" en el tablero, aparece en el panel \"Requieren atención\" del Dashboard y en el Resumen del Lunes."),
+      React.createElement(LI, null, "Oportunidad de renovación: el botón \"Crear oportunidad de renovación\" abre un negocio nuevo en el Pipeline, en Calificado, del mismo vendedor, con el mismo valor y con cierre estimado en la fecha de renovación. Queda ligado al original y trae la tarea \"Preparar propuesta de renovación\" para hoy. El original pasa a la etapa Renovación. No se duplica: si ya existe, el botón lleva a ella."),
+      React.createElement(Tip, null, "Si ganaste negocios antes de activar el módulo, ábrelos y usa \"Pasar a postventa\" para sumarlos al tablero."),
 
       React.createElement(H2, null, "9.3 Gestión del equipo y roles"),
       React.createElement(P, null, 'Ve a Equipo para ver los usuarios de tu organización. El Administrador puede crear nuevos miembros y asignarles uno de tres roles. Esto es lo que puede hacer cada uno:'),

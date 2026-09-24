@@ -261,6 +261,15 @@ enum EtapaOportunidad {
   PERDIDA
 }
 
+// Etapas del tablero de Postventa (módulo opcional "postventa"). Solo aplican a
+// oportunidades GANADAS: lo que pasa después de la venta hasta la renovación.
+enum EtapaPostventa {
+  ENTREGA
+  SEGUIMIENTO
+  RENOVACION
+  CERRADO
+}
+
 model Oportunidad {
   id            String           @id @default(uuid())
   titulo        String
@@ -279,6 +288,19 @@ model Oportunidad {
   notas         String?
   extras        Json?
   probabilidad  Int?             @default(50)
+
+  // ---- Postventa (módulo opcional) ----
+  // null = el negocio no está en el tablero de Postventa. Entra en ENTREGA al
+  // ganarse (si el módulo está activo) o con "Pasar a postventa" en la ficha.
+  postventaEtapa   EtapaPostventa?
+  // Cuándo hay que renovar (contrato, licencia, servicio). Dispara el aviso de
+  // "renovaciones próximas" 30 días antes.
+  fechaRenovacion  DateTime?
+  // Si esta oportunidad es la RENOVACIÓN de otra, apunta al negocio original.
+  origenRenovacionId String?
+  origenRenovacion   Oportunidad?  @relation("RenovacionDe", fields: [origenRenovacionId], references: [id], onDelete: SetNull)
+  renovaciones       Oportunidad[] @relation("RenovacionDe")
+
   creadoEn      DateTime         @default(now())
   creadoBy      String?
   eliminadoEn   DateTime?
@@ -306,6 +328,7 @@ model Oportunidad {
   @@index([tenantId, etapa])
   @@index([tenantId, eliminadoEn])
   @@index([salonId, fechaEvento])
+  @@index([tenantId, postventaEtapa])
   @@map("oportunidades")
 }
 

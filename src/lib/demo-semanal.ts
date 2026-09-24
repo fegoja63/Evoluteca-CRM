@@ -12,7 +12,7 @@
 // Solo toca datos de relleno del demo; jamás actividades/cotizaciones reales
 // (las que no llevan el TAG) ni ningún otro tenant.
 
-import type { PrismaClient, TipoActividad } from "@prisma/client";
+import type { PrismaClient, TipoActividad, EtapaPostventa } from "@prisma/client";
 
 export const TAG_DEMO = "[demo-auto]";
 const SLUG_DEMO = "demo-evoluteca";
@@ -104,6 +104,20 @@ const OPORTUNIDADES_PAPELERA = [
   { titulo: "Prueba piloto (creada por error)", valor: 2_000_000, etapa: "PROSPECTO" as const },
 ];
 
+// Postventa: el demo muestra el módulo activo y los ganados del mes repartidos
+// en su tablero. Cada ganado toma, en orden, una etapa y una fecha de
+// renovación (días desde hoy); las de 12 y 25 días caen dentro del aviso de 30
+// días, así el tablero y el dashboard muestran "por renovar".
+const POSTVENTA_DEMO: { etapa: EtapaPostventa; renuevaEnDias: number | null }[] = [
+  { etapa: "SEGUIMIENTO", renuevaEnDias: 12 },
+  { etapa: "ENTREGA",     renuevaEnDias: 330 },
+  { etapa: "RENOVACION",  renuevaEnDias: 25 },
+  { etapa: "SEGUIMIENTO", renuevaEnDias: 180 },
+  { etapa: "ENTREGA",     renuevaEnDias: null },
+  { etapa: "CERRADO",     renuevaEnDias: null },
+  { etapa: "SEGUIMIENTO", renuevaEnDias: 240 },
+];
+
 function rnd<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 function rndInt(min: number, max: number) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
@@ -163,7 +177,7 @@ export async function refrescarDemoSemanal(
   prisma: PrismaClient,
   slug: string = SLUG_DEMO,
 ): Promise<ResultadoDemoSemanal> {
-  const tenant = await prisma.tenant.findFirst({ where: { slug }, select: { id: true, nombre: true } });
+  const tenant = await prisma.tenant.findFirst({ where: { slug }, select: { id: true, nombre: true, modulos: true } });
   if (!tenant) return { ok: false, error: `No existe el tenant demo con slug "${slug}"` };
   const T = tenant.id;
   const ahora = new Date();
@@ -297,8 +311,9 @@ export async function refrescarDemoSemanal(
   //    Se fechan con fechaCierre dentro del mes en curso (fechaEfectiva los
   //    agrupa por esa fecha) y se cuelgan de una empresa existente.
   const cuantosGanados = rndInt(GANADOS_MIN, GANADOS_MAX);
-  const ganados = Array.from({ length: cuantosGanados }, () => {
+  const ganados = Array.from({ length: cuantosGanados }, (_, i) => {
     const emp = rnd(empresas);
+    const pv = POSTVENTA_DEMO[i % POSTVENTA_DEMO.length];
     const vendedor = rnd(vendedores).id;
     return {
       titulo: rnd(TITULOS_GANADOS),
@@ -307,6 +322,8 @@ export async function refrescarDemoSemanal(
       probabilidad: 100,
       fechaCierre: fechaEsteMes(),
       notas: `${TAG_DEMO} negocio ganado de demostración`,
+      postventaEtapa: pv.etapa,
+      fechaRenovacion: pv.renuevaEnDias === null ? null : fechaLaboral(pv.renuevaEnDias),
       tenantId: T,
       empresaId: emp.id,
       contactoId: emp.contactos.length ? rnd(emp.contactos).id : null,
@@ -314,6 +331,12 @@ export async function refrescarDemoSemanal(
     };
   });
   await prisma.oportunidad.createMany({ data: ganados });
+
+  // El demo muestra el módulo Postventa activo (sin tocar los demás módulos).
+  const modulosActuales = (tenant.modulos && typeof tenant.modulos === "object" ? tenant.modulos : {}) as Record<string, unknown>;
+  if (modulosActuales.postventa !== true) {
+    await prisma.tenant.update({ where: { id: T }, data: { modulos: { ...modulosActuales, postventa: true } } });
+  }
 
   // 5) Papelera: clientes, contactos, oportunidades y una cotización
   //    eliminados hace 1–12 días (soft delete, igual que al borrar desde la app).

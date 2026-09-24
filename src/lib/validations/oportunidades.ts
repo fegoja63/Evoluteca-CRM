@@ -2,6 +2,7 @@ import { z } from "zod";
 import { nombreRequerido, textoOpcional, idOpcional, montoOpcional, porcentajeOpcional, fechaOpcional, horaOpcional } from "./campos";
 
 const ETAPAS = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION", "GANADA", "PERDIDA"] as const;
+const ETAPAS_POSTVENTA = ["ENTREGA", "SEGUIMIENTO", "RENOVACION", "CERRADO"] as const;
 
 export const crearOportunidadSchema = z.object({
   titulo: nombreRequerido(2, 300),
@@ -23,4 +24,7 @@ export const crearOportunidadSchema = z.object({
 
 export const editarOportunidadSchema = crearOportunidadSchema.extend({
   titulo: nombreRequerido(2, 300).optional(),
+  // Postventa (módulo opcional). null saca el negocio del tablero de postventa.
+  postventaEtapa: z.enum(ETAPAS_POSTVENTA, { error: "Etapa de postventa inválida" }).nullable().optional(),
+  fechaRenovacion: fechaOpcional,
 });

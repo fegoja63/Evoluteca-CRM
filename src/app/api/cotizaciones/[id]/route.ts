@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { puedeEliminar } from "@/lib/permisos";
+import { puedeEliminar, moduloActivo } from "@/lib/permisos";
+import { datosPostventaAlGanar, MODULO_POSTVENTA } from "@/lib/postventa";
 import { editarCotizacionSchema } from "@/lib/validations/cotizaciones";
 import { parseOrError } from "@/lib/validations/helpers";
 import { idsReemplazadas, valorConImpuestos } from "@/lib/cotizaciones";
@@ -141,11 +142,15 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
     if (cotActual.oportunidadId) {
       const op = await prisma.oportunidad.findFirst({
         where: { id: cotActual.oportunidadId, tenantId: session.user.tenantId, eliminadoEn: null },
-        select: { id: true, etapa: true },
+        select: { id: true, etapa: true, postventaEtapa: true },
       });
       if (op && op.etapa !== "GANADA") {
+        // Con el módulo Postventa activo, el negocio ganado entra al tablero de
+        // postventa (Entrega), igual que al ganarlo desde el pipeline.
+        const tenant = await prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { modulos: true } });
+        const postventa = datosPostventaAlGanar(moduloActivo(tenant?.modulos, MODULO_POSTVENTA), op.postventaEtapa);
         await prisma.$transaction([
-          prisma.oportunidad.update({ where: { id: op.id }, data: { etapa: "GANADA" } }),
+          prisma.oportunidad.update({ where: { id: op.id }, data: { etapa: "GANADA", ...postventa } }),
           prisma.cambioEtapa.create({
             data: {
               oportunidadId: op.id,

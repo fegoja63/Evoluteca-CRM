@@ -14,6 +14,8 @@ import { CamposPersonalizadosForm } from "@/components/campos-personalizados-for
 import { CamposPersonalizadosVista } from "@/components/campos-personalizados-vista";
 import { CorreosPanel } from "@/components/correos-panel";
 import { CoachObjecionesIA } from "@/components/coach-objeciones-ia";
+import { PanelPostventa } from "@/components/panel-postventa";
+import type { EtapaPostventa } from "@prisma/client";
 import { esClaveCampoPersonalizado } from "@/lib/campos-personalizados";
 import { estadoComercial, ultimoMovimientoDe, tieneProximoPasoDe } from "@/lib/estado-comercial";
 import {
@@ -40,6 +42,11 @@ type Oportunidad = {
   actividades: { id: string; tipo: string; titulo: string; fecha: string; completada: boolean; notas: string | null }[];
   cambiosEtapa: { id: string; etapaAnterior: string; etapaNueva: string; creadoEn: string; creadoByNombre: string | null }[];
   correos?: { fecha: string }[];
+  // Postventa (módulo opcional)
+  postventaEtapa?: EtapaPostventa | null;
+  fechaRenovacion?: string | null;
+  origenRenovacion?: { id: string; titulo: string } | null;
+  renovaciones?: { id: string; titulo: string; etapa: string }[];
 };
 
 // El nombre visible de cada etapa es configurable por tenant (Configuración →
@@ -89,6 +96,7 @@ export default function OportunidadDetallePage() {
   const [salones, setSalones] = useState<Salon[]>([]);
   const [moduloSalones, setModuloSalones] = useState(false);
   const [moduloObjeciones, setModuloObjeciones] = useState(false);
+  const [moduloPostventa, setModuloPostventa] = useState(false);
   const [disponibilidad, setDisponibilidad] = useState<Disponibilidad | null>(null);
   const disponibilidadClaveRef = useRef("");
   // Edición rápida de la fecha de cierre desde el recuadro (sin abrir Editar).
@@ -204,6 +212,7 @@ export default function OportunidadDetallePage() {
       const salonesActivo = !!config?.modulos?.salones;
       setModuloSalones(salonesActivo);
       setModuloObjeciones(!!config?.modulos?.objeciones);
+      setModuloPostventa(!!config?.modulos?.postventa);
       setDiasEstancamiento(Number(config?.diasEstancamiento) || 14);
       if (salonesActivo) {
         fetch("/api/salones").then(r => r.json()).then(s => setSalones(Array.isArray(s) ? s : []));
@@ -476,6 +485,11 @@ export default function OportunidadDetallePage() {
                 {op.extras?.["COTIZACION NUMERO"] && (
                   <p className="text-sm text-slate-400 mt-0.5">{op.extras["COTIZACION NUMERO"]}</p>
                 )}
+                {op.origenRenovacion && (
+                  <p className="text-sm text-slate-500 mt-0.5">
+                    Renovación de <Link href={`/dashboard/pipeline/${op.origenRenovacion.id}`} className="text-brand-600 hover:underline">{op.origenRenovacion.titulo}</Link>
+                  </p>
+                )}
                 {op.etapa === "PERDIDA" && op.motivoPerdida && (
                   <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
                     <IconMoodSad size={14} stroke={1.75} />Motivo: {op.motivoPerdida}
@@ -524,6 +538,15 @@ export default function OportunidadDetallePage() {
                 </div>
               );
             })()}
+
+            {/* Postventa: solo negocios ganados y con el módulo activo. */}
+            {moduloPostventa && op.etapa === "GANADA" && (
+              <PanelPostventa
+                key={`${op.postventaEtapa ?? "fuera"}-${op.fechaRenovacion ?? ""}`}
+                op={{ id: op.id, postventaEtapa: op.postventaEtapa ?? null, fechaRenovacion: op.fechaRenovacion ?? null, renovaciones: op.renovaciones }}
+                onCambio={cargar}
+              />
+            )}
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
               <div className="rounded-xl bg-slate-50 p-4">
