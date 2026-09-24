@@ -12,11 +12,13 @@ import type { EtapaPostventa } from "@prisma/client";
 export const MODULO_POSTVENTA = "postventa";
 export const DIAS_AVISO_RENOVACION = 30;
 
-export const ETAPAS_POSTVENTA: { key: EtapaPostventa; label: string; descripcion: string; color: string; dot: string }[] = [
-  { key: "ENTREGA",     label: "Entrega",     descripcion: "Implementar o entregar lo vendido",       color: "text-blue-700 bg-blue-50",       dot: "bg-blue-400" },
-  { key: "SEGUIMIENTO", label: "Seguimiento", descripcion: "Cliente activo: acompañar y cuidar",      color: "text-violet-700 bg-violet-50",   dot: "bg-violet-400" },
-  { key: "RENOVACION",  label: "Renovación",  descripcion: "Se acerca la renovación: negociarla",     color: "text-amber-700 bg-amber-50",     dot: "bg-amber-400" },
-  { key: "CERRADO",     label: "Cerrado",     descripcion: "Ciclo terminado (renovado o finalizado)", color: "text-emerald-700 bg-emerald-50", dot: "bg-emerald-400" },
+// color/dot: chips y puntos; borde/badge: columnas del tablero, con el mismo
+// estilo que las columnas del Pipeline (borde superior de color y contador).
+export const ETAPAS_POSTVENTA: { key: EtapaPostventa; label: string; descripcion: string; color: string; dot: string; borde: string; badge: string }[] = [
+  { key: "ENTREGA",     label: "Entrega",     descripcion: "Implementar o entregar lo vendido",       color: "text-blue-700 bg-blue-50",       dot: "bg-blue-400",    borde: "border-t-blue-400",    badge: "bg-blue-100 text-blue-700" },
+  { key: "SEGUIMIENTO", label: "Seguimiento", descripcion: "Cliente activo: acompañar y cuidar",      color: "text-violet-700 bg-violet-50",   dot: "bg-violet-400",  borde: "border-t-violet-400",  badge: "bg-violet-100 text-violet-700" },
+  { key: "RENOVACION",  label: "Renovación",  descripcion: "Se acerca la renovación: negociarla",     color: "text-amber-700 bg-amber-50",     dot: "bg-amber-400",   borde: "border-t-amber-400",   badge: "bg-amber-100 text-amber-700" },
+  { key: "CERRADO",     label: "Cerrado",     descripcion: "Ciclo terminado (renovado o finalizado)", color: "text-emerald-700 bg-emerald-50", dot: "bg-emerald-400", borde: "border-t-emerald-400", badge: "bg-emerald-100 text-emerald-700" },
 ];
 
 export const ETAPA_POSTVENTA_LABEL: Record<EtapaPostventa, string> = Object.fromEntries(
