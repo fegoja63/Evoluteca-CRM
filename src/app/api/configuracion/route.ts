@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { normalizarCuerpo } from "@/lib/cuerpo-cotizacion";
+import { normalizarColorMarca } from "@/lib/color-marca";
 
 export async function GET() {
   const session = await auth();
@@ -9,13 +10,14 @@ export async function GET() {
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: session.user.tenantId },
-    select: { modulos: true, nombre: true, logoUrl: true, email: true, emailsActivos: true, limiteUsuarios: true, cuerpoCotizacion: true, diasEstancamiento: true },
+    select: { modulos: true, nombre: true, logoUrl: true, colorMarca: true, email: true, emailsActivos: true, limiteUsuarios: true, cuerpoCotizacion: true, diasEstancamiento: true },
   });
 
   return NextResponse.json({
     modulos: tenant?.modulos ?? {},
     tenantNombre: tenant?.nombre ?? "",
     logoUrl: tenant?.logoUrl ?? "",
+    colorMarca: tenant?.colorMarca ?? "",
     email: tenant?.email ?? "",
     emailsActivos: tenant?.emailsActivos ?? true,
     cuerpoCotizacion: normalizarCuerpo(tenant?.cuerpoCotizacion),
@@ -42,6 +44,16 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "El logo no puede pesar más de 2MB" }, { status: 400 });
     }
     data.logoUrl = body.logoUrl;
+  }
+  if (body.colorMarca !== undefined) {
+    // Vacío/null = volver al azul de Evoluteca. Si trae valor, debe ser #rrggbb
+    // (se revalida aquí: el selector del frontend no protege llamadas directas).
+    const vacio = body.colorMarca === null || String(body.colorMarca).trim() === "";
+    const color = normalizarColorMarca(body.colorMarca);
+    if (!vacio && !color) {
+      return NextResponse.json({ error: "El color debe tener el formato #RRGGBB (ej. #DC2626)" }, { status: 400 });
+    }
+    data.colorMarca = color;
   }
   if (body.emailsActivos !== undefined) data.emailsActivos = body.emailsActivos;
   if (body.email !== undefined) {
@@ -78,6 +90,7 @@ export async function PATCH(request: Request) {
   return NextResponse.json({
     modulos: tenant.modulos,
     logoUrl: tenant.logoUrl ?? "",
+    colorMarca: tenant.colorMarca ?? "",
     email: tenant.email ?? "",
     emailsActivos: tenant.emailsActivos,
     cuerpoCotizacion: normalizarCuerpo(tenant.cuerpoCotizacion),

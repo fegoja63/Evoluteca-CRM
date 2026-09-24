@@ -13,6 +13,7 @@ import {
 } from "@tabler/icons-react";
 import { CamposPersonalizadosAdmin } from "@/components/campos-personalizados-admin";
 import { AutomatizacionesAdmin } from "@/components/automatizaciones-admin";
+import { paletaMarca, normalizarColorMarca, PALETA_EVOLUTECA } from "@/lib/color-marca";
 
 type EtapaPipeline = { id: string; key: string; nombre: string; orden: number; oculta: boolean };
 
@@ -76,6 +77,11 @@ export default function ConfiguracionPage() {
   const { data: session } = useSession();
   const [modulos, setModulos] = useState<Modulos>({});
   const [logoUrl, setLogoUrl] = useState("");
+  // Color de marca: "" = azul de Evoluteca. colorInput es lo que se está editando.
+  const [colorMarca, setColorMarca] = useState("");
+  const [colorInput, setColorInput] = useState("");
+  const [guardandoColor, setGuardandoColor] = useState(false);
+  const [tenantNombreVista, setTenantNombreVista] = useState("");
   const [logoInput, setLogoInput] = useState("");
   const [emailsActivos, setEmailsActivos] = useState(true);
   const [guardandoEmails, setGuardandoEmails] = useState(false);
@@ -215,6 +221,9 @@ export default function ConfiguracionPage() {
         setModulos((data.modulos as Modulos) ?? {});
         setLogoUrl(data.logoUrl ?? "");
         setLogoInput(data.logoUrl ?? "");
+        setColorMarca(data.colorMarca ?? "");
+        setTenantNombreVista(data.tenantNombre ?? "");
+        setColorInput(data.colorMarca ?? "");
         setEmailsActivos(data.emailsActivos ?? true);
         setEmailEmpresa(data.email ?? "");
         setDiasEstancamiento(String(data.diasEstancamiento ?? 14));
@@ -248,6 +257,28 @@ export default function ConfiguracionPage() {
     setTimeout(() => setLogoOk(false), 2500);
   }
 
+
+  async function guardarColor(valor: string) {
+    const color = valor.trim() === "" ? "" : normalizarColorMarca(valor);
+    if (color === null) {
+      toast.error("Escribe el color en formato #RRGGBB, por ejemplo #DC2626.");
+      return;
+    }
+    setGuardandoColor(true);
+    const res = await fetch("/api/configuracion", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ colorMarca: color }),
+    });
+    setGuardandoColor(false);
+    if (!res.ok) {
+      toast.error("No se pudo guardar el color. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
+    setColorMarca(color);
+    setColorInput(color);
+    toast.success(color ? "Color de marca guardado" : "Se volvió al azul por defecto");
+  }
 
   async function guardarEmailEmpresa() {
     if (!esAdmin) return;
@@ -393,6 +424,67 @@ export default function ConfiguracionPage() {
           </div>
         </div>
       </div>
+
+      {/* Color de marca: lo que ve el cliente final (PDF, página pública y
+          correo de la cotización). La paleta se deriva en lib/color-marca, que
+          oscurece los colores muy claros para que el texto siga siendo legible. */}
+      {(() => {
+        const valido = colorInput.trim() === "" ? "" : normalizarColorMarca(colorInput);
+        const p = paletaMarca(valido || null);
+        const cambio = (valido ?? "") !== colorMarca;
+        return (
+          <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-5">
+            <h2 className="text-sm font-semibold text-slate-700 mb-1">Color de marca</h2>
+            <p className="text-xs text-slate-400 mb-4">
+              Tus cotizaciones en PDF, la página donde tu cliente las ve en línea y el correo con que se envían salen con este color en vez del azul de Evoluteca. Si eliges un color muy claro, se oscurece solo para que el texto se lea bien.
+            </p>
+            <div className="flex flex-col md:flex-row gap-5">
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <input type="color" value={normalizarColorMarca(colorInput) ?? PALETA_EVOLUTECA.principal}
+                    onChange={e => setColorInput(e.target.value)} disabled={!esAdmin}
+                    aria-label="Elegir color de marca"
+                    className="h-10 w-14 cursor-pointer rounded-lg border border-slate-200 bg-white p-1 disabled:opacity-50" />
+                  <input type="text" value={colorInput} onChange={e => setColorInput(e.target.value)} disabled={!esAdmin}
+                    placeholder="Azul por defecto" maxLength={7}
+                    className="w-32 rounded-xl border border-slate-200 px-3 py-2 text-sm font-mono uppercase outline-none focus:border-brand-500 disabled:opacity-50" />
+                </div>
+                {valido === null && <p className="text-xs text-red-600">Formato #RRGGBB, por ejemplo #DC2626.</p>}
+                <div className="flex items-center gap-2">
+                  <button onClick={() => guardarColor(colorInput)} disabled={!esAdmin || guardandoColor || valido === null || !cambio}
+                    className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 transition-colors">
+                    {guardandoColor ? "Guardando..." : "Guardar color"}
+                  </button>
+                  {colorMarca && (
+                    <button onClick={() => guardarColor("")} disabled={!esAdmin || guardandoColor}
+                      className="text-xs text-slate-500 hover:underline disabled:opacity-50">
+                      Volver al azul por defecto
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Vista previa: encabezado y total de una cotización */}
+              <div className="flex-1 min-w-0 rounded-xl border border-slate-200 overflow-hidden" aria-label="Vista previa">
+                <div className="px-4 py-3" style={{ backgroundColor: p.oscuro }}>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: p.sobreOscuroSuave }}>Propuesta comercial</p>
+                  <p className="text-sm font-bold text-white truncate">{tenantNombreVista || "Tu empresa"}</p>
+                </div>
+                <div className="bg-white px-4 py-3 flex items-center justify-between gap-3" style={{ borderTop: `2px solid ${p.principal}` }}>
+                  <div>
+                    <p className="text-[10px] font-bold tracking-widest" style={{ color: p.texto }}>COTIZACIÓN</p>
+                    <span className="inline-block mt-1 rounded px-2 py-0.5 text-[10px] font-bold" style={{ backgroundColor: p.claro, color: p.textoSobreClaro }}>Enviada</span>
+                  </div>
+                  <div className="rounded-lg px-3 py-2 text-right" style={{ backgroundColor: p.oscuro }}>
+                    <p className="text-[9px]" style={{ color: p.sobreOscuro }}>TOTAL</p>
+                    <p className="text-sm font-bold text-white">$ 12.500.000</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="mb-8">
         <h2 className="text-sm font-semibold text-slate-700 mb-1">Módulos estándar</h2>

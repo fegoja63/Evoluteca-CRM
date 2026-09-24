@@ -43,6 +43,9 @@ model Tenant {
   creadoEn          DateTime @default(now())
   modulos           Json     @default("{}")
   logoUrl           String?
+  // Color corporativo (#rrggbb) para lo que ve el cliente final: PDF, página
+  // pública y correo de la cotización. null = azul de Evoluteca (ver lib/color-marca).
+  colorMarca        String?
   emailsActivos     Boolean  @default(true)
   // Correo de la empresa. Se usa como "Responder-a" en los correos de
   // cotización, para que las respuestas del cliente lleguen al buzón del tenant
