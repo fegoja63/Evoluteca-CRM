@@ -15,6 +15,7 @@ import { CamposPersonalizadosVista } from "@/components/campos-personalizados-vi
 import { CorreosPanel } from "@/components/correos-panel";
 import { CoachObjecionesIA } from "@/components/coach-objeciones-ia";
 import { PanelPostventa } from "@/components/panel-postventa";
+import { MinutasIA } from "@/components/minutas-ia";
 import type { EtapaPostventa } from "@prisma/client";
 import { esClaveCampoPersonalizado } from "@/lib/campos-personalizados";
 import { estadoComercial, ultimoMovimientoDe, tieneProximoPasoDe } from "@/lib/estado-comercial";
@@ -619,6 +620,8 @@ export default function OportunidadDetallePage() {
           cargar();
         }}
       />
+
+      <MinutasIA oportunidadId={op.id} empresaNombre={op.empresa?.nombre ?? null} onGuardada={cargar} />
 
       {moduloObjeciones && <CoachObjecionesIA oportunidadId={op.id} />}
 

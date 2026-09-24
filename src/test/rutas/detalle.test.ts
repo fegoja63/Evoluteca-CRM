@@ -49,6 +49,7 @@ const PARAMS_DEL_CLIENTE_A: Record<string, Record<string, string>> = {
   "/api/funciones/asistencias/[asistenciaId]": { asistenciaId: A.asistencia },
   "/api/funciones/asistencias/[asistenciaId]/marcar-nps-enviado": { asistenciaId: A.asistencia },
   "/api/ia/resumen-cliente/[id]": { id: A.empresa },
+  "/api/minutas/[id]": { id: A.minuta },
   "/api/oportunidades/[id]": { id: A.oportunidadDelComercial },
   "/api/oportunidades/[id]/renovacion": { id: A.oportunidadDelComercial },
   "/api/papelera/[tipo]/[id]": { tipo: "empresa", id: A.empresa },

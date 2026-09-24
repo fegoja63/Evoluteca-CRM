@@ -424,6 +424,8 @@ export async function GET() {
 
       React.createElement(LI, null, "Postventa: en la pestaña Postventa, los negocios ganados del mes están repartidos en Entrega, Seguimiento, Renovación y Cerrado. Usa el chip \"por renovar\", abre uno y pulsa \"Crear oportunidad de renovación\": aparece el negocio nuevo en el Pipeline, ligado al original y con su tarea para hoy."),
 
+      React.createElement(LI, null, "Minutas con IA: en la ficha de una oportunidad, pulsa \"Minuta con IA\" y pega unas notas de reunión inventadas (quién asistió, qué se acordó, quién quedó en hacer qué). Revisa la propuesta, guárdala y mira cómo aparecen la reunión y las tareas en las actividades del negocio. Después usa \"Copiar para enviar\"."),
+
       React.createElement(H2, null, "8.2 Cotizaciones a fondo"),
       React.createElement(LI, null, "Estados: Borrador, Enviada, Aceptada y Rechazada (con motivo). La cuenta ya trae ejemplos de cada uno."),
       React.createElement(LI, null, "La cotización siembra el pipeline: crear una puede generar la oportunidad asociada."),
