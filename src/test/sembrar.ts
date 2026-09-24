@@ -52,6 +52,7 @@ function ids(letra: "a" | "b") {
     automatizacion: `aut-${letra}-1`,
     correo: `cor-${letra}-1`,
     minuta: `min-${letra}-1`,
+    objecion: `obj-${letra}-1`,
   } as const;
 }
 
@@ -314,6 +315,16 @@ function operacionesDeModulos(m: Molde, nombre: string) {
         oportunidadId: m.oportunidadDelComercial,
         empresaId: m.empresa,
         creadoBy: m.comercial,
+      },
+    }),
+
+    prisma.objecion.create({
+      data: {
+        id: m.objecion,
+        tenantId: m.tenantId,
+        categoria: "Precio",
+        objecion: `Objecion de ${nombre}`,
+        respuesta: "Respuesta recomendada",
       },
     }),
   ];
