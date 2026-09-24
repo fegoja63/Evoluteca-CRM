@@ -50,6 +50,7 @@ const PARAMS_DEL_CLIENTE_A: Record<string, Record<string, string>> = {
   "/api/funciones/asistencias/[asistenciaId]/marcar-nps-enviado": { asistenciaId: A.asistencia },
   "/api/ia/resumen-cliente/[id]": { id: A.empresa },
   "/api/minutas/[id]": { id: A.minuta },
+  "/api/objeciones/[id]": { id: A.objecion },
   "/api/oportunidades/[id]": { id: A.oportunidadDelComercial },
   "/api/oportunidades/[id]/renovacion": { id: A.oportunidadDelComercial },
   "/api/papelera/[tipo]/[id]": { tipo: "empresa", id: A.empresa },
@@ -74,7 +75,7 @@ const HUELLAS_DE_A = [
   A.tenantId, A.admin, A.gerente, A.comercial, A.empresa, A.contacto,
   A.oportunidadDelComercial, A.oportunidadAjena, A.actividad, A.adjunto,
   A.cotizacion, A.expediente, A.funcion, A.espectador, A.producto, A.salon,
-  A.plantilla, "Cliente A",
+  A.plantilla, A.objecion, "Cliente A",
 ];
 
 const rutas = descubrirRutas();

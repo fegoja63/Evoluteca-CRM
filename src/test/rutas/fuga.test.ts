@@ -14,11 +14,19 @@
  * Se barren las rutas GET sin parametros dinamicos: las de detalle necesitan
  * un id real de cada tipo de entidad y se cubren aparte.
  */
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, vi } from "vitest";
 import { descubrirRutas, cargarHandlers } from "./descubrir";
 import { RUTAS_SIN_SESION, RUTAS_NO_INVOCADAS } from "./excepciones";
 import { A, B, sembrar } from "../sembrar";
 import { comoUsuario, llamar } from "../helpers";
+
+// Los manuales en PDF (/api/manual/*) arman la URL de sus logos con
+// `headers()` de next/headers, que fuera de un servidor de Next revienta con
+// "headers was called outside a request scope". Aqui las rutas se llaman como
+// funciones sueltas, asi que se le da una cabecera fija.
+vi.mock("next/headers", () => ({
+  headers: async () => new Headers({ host: "localhost:3000" }),
+}));
 
 /** Todo lo que identifica al cliente A y jamas debe salir en una respuesta a B. */
 const HUELLAS_DE_A = [
