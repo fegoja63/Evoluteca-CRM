@@ -50,4 +50,5 @@ multi-tenant (cada empresa es un `Tenant` aislado) · roles ADMINISTRADOR / GERE
 
 Las sesiones trabajan en worktrees y mergean por GitHub, así que la carpeta principal se queda atrás de
 `master`. `node scripts/sincronizar-carpeta-principal.mjs` la adelanta (solo fast-forward, solo si está en
-`master` y limpia; si no, no toca nada y lo dice). Correrlo después de cada merge.
+`master` y limpia; si no, no toca nada y lo dice). Corre solo al abrir cada sesión (hook `SessionStart`
+en [.claude/settings.json](.claude/settings.json)); también se puede correr a mano tras un merge.
