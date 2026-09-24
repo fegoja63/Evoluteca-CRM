@@ -16,7 +16,7 @@ export async function GET(_req: Request, props: { params: Promise<{ token: strin
       contacto: { select: { nombre: true, email: true } },
       items:    { orderBy: { id: "asc" } },
       lineasAhorro: { orderBy: { id: "asc" } },
-      tenant:   { select: { nombre: true, logoUrl: true, cuerpoCotizacion: true } },
+      tenant:   { select: { nombre: true, logoUrl: true, colorMarca: true, cuerpoCotizacion: true } },
     },
   });
   if (!cot) return NextResponse.json({ error: "No encontrada" }, { status: 404 });

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { renderToBuffer, Document, Page, Text, View, StyleSheet, Font, Image } from "@react-pdf/renderer";
 import { MODALIDAD_LABEL, numeroCotizacion } from "@/lib/cotizaciones";
 import { seccionesVisibles } from "@/lib/cuerpo-cotizacion";
+import { paletaMarca } from "@/lib/color-marca";
 import React from "react";
 
 export const dynamic = "force-dynamic";
@@ -111,7 +112,7 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
       oportunidad: { select: { titulo: true } },
       items:       { orderBy: { id: "asc" } },
       lineasAhorro:{ orderBy: { id: "asc" } },
-      tenant:      { select: { nombre: true, logoUrl: true, cuerpoCotizacion: true } },
+      tenant:      { select: { nombre: true, logoUrl: true, colorMarca: true, cuerpoCotizacion: true } },
     },
   });
   if (!cot) return new NextResponse("No encontrada", { status: 404 });
@@ -154,15 +155,18 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
   }
 
   const numEtiqueta = numeroCotizacion(cot);
+  // Color de marca del tenant (azul de Evoluteca si no eligió uno). Se aplica
+  // encima de los estilos base, que conservan el azul por defecto.
+  const marca = paletaMarca(cot.tenant.colorMarca);
   const doc = React.createElement(Document, { title: `Cotización ${numEtiqueta}` },
     React.createElement(Page, { size: "A4", style: styles.page },
 
       // Header
-      React.createElement(View, { style: styles.header },
+      React.createElement(View, { style: [styles.header, { borderBottomColor: marca.principal }] },
         React.createElement(View, { style: { flexDirection: "row", alignItems: "center", gap: 10 } },
           logoUrl
             ? React.createElement(Image, { src: logoUrl, style: { width: 44, height: 44, objectFit: "contain" } })
-            : React.createElement(View, { style: styles.logoBox },
+            : React.createElement(View, { style: [styles.logoBox, { backgroundColor: marca.oscuro }] },
                 React.createElement(Text, { style: styles.logoText }, "E")
               ),
           React.createElement(View, null,
@@ -171,11 +175,11 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
           )
         ),
         React.createElement(View, { style: styles.cotNumBox },
-          React.createElement(Text, { style: styles.cotLabel }, "COTIZACIÓN"),
+          React.createElement(Text, { style: [styles.cotLabel, { color: marca.texto }] }, "COTIZACIÓN"),
           React.createElement(Text, { style: styles.cotNum }, `N.º ${numEtiqueta.replace(/^#/, "")}`),
           React.createElement(Text, { style: styles.cotMeta }, `Emitida el ${fmtFecha(cot.creadoEn)}`),
-          React.createElement(View, { style: styles.badge },
-            React.createElement(Text, { style: styles.badgeText }, ESTADO[cot.estado] ?? cot.estado)
+          React.createElement(View, { style: [styles.badge, { backgroundColor: marca.claro }] },
+            React.createElement(Text, { style: [styles.badgeText, { color: marca.textoSobreClaro }] }, ESTADO[cot.estado] ?? cot.estado)
           )
         )
       ),
@@ -232,13 +236,13 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
           })
         ),
         React.createElement(View, { style: styles.totalBox, wrap: false },
-          React.createElement(View, { style: styles.totalInner },
+          React.createElement(View, { style: [styles.totalInner, { backgroundColor: marca.oscuro }] },
             (pctImpuesto > 0 || pctImpuesto2 > 0) ? React.createElement(View, { style: { marginBottom: 6, alignItems: "flex-end" } },
-              React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `Subtotal: ${fmt(subtotal)}`),
-              pctImpuesto > 0 ? React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `${cot.impuestoNombre ?? "Impuesto"} (${pctImpuesto}%): ${fmt(valorImpuesto)}`) : null,
-              pctImpuesto2 > 0 ? React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `${cot.impuesto2Nombre ?? "Impuesto"} (${pctImpuesto2}%): ${fmt(valorImpuesto2)}`) : null,
+              React.createElement(Text, { style: { fontSize: 8, color: marca.sobreOscuro } }, `Subtotal: ${fmt(subtotal)}`),
+              pctImpuesto > 0 ? React.createElement(Text, { style: { fontSize: 8, color: marca.sobreOscuro } }, `${cot.impuestoNombre ?? "Impuesto"} (${pctImpuesto}%): ${fmt(valorImpuesto)}`) : null,
+              pctImpuesto2 > 0 ? React.createElement(Text, { style: { fontSize: 8, color: marca.sobreOscuro } }, `${cot.impuesto2Nombre ?? "Impuesto"} (${pctImpuesto2}%): ${fmt(valorImpuesto2)}`) : null,
             ) : null,
-            React.createElement(Text, { style: styles.totalLabel }, "TOTAL"),
+            React.createElement(Text, { style: [styles.totalLabel, { color: marca.sobreOscuro }] }, "TOTAL"),
             React.createElement(Text, { style: styles.totalValue }, fmt(total)),
           )
         )
@@ -259,14 +263,14 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
           )
         ) : null,
         React.createElement(View, { style: styles.totalBox, wrap: false },
-          React.createElement(View, { style: styles.totalInner },
+          React.createElement(View, { style: [styles.totalInner, { backgroundColor: marca.oscuro }] },
             React.createElement(View, { style: { marginBottom: 6, alignItems: "flex-end" } },
-              cot.modalidad === "SUCCESS_FEE" ? React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `Ahorro mensual estimado: ${fmt(ahorroMes)}`) : null,
-              cot.modalidad === "SUCCESS_FEE" ? React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `Honorarios: ${pctHon}% del ahorro`) : null,
-              cot.modalidad === "FEE_MENSUAL" ? React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `Fee mensual: ${fmt(feeMes)}`) : null,
-              React.createElement(Text, { style: { fontSize: 8, color: "#93c5fd" } }, `Horizonte: ${mesesHz} meses`),
+              cot.modalidad === "SUCCESS_FEE" ? React.createElement(Text, { style: { fontSize: 8, color: marca.sobreOscuro } }, `Ahorro mensual estimado: ${fmt(ahorroMes)}`) : null,
+              cot.modalidad === "SUCCESS_FEE" ? React.createElement(Text, { style: { fontSize: 8, color: marca.sobreOscuro } }, `Honorarios: ${pctHon}% del ahorro`) : null,
+              cot.modalidad === "FEE_MENSUAL" ? React.createElement(Text, { style: { fontSize: 8, color: marca.sobreOscuro } }, `Fee mensual: ${fmt(feeMes)}`) : null,
+              React.createElement(Text, { style: { fontSize: 8, color: marca.sobreOscuro } }, `Horizonte: ${mesesHz} meses`),
             ),
-            React.createElement(Text, { style: styles.totalLabel }, cot.modalidad === "SUCCESS_FEE" ? "HONORARIO ESTIMADO" : "TOTAL DEL CONTRATO"),
+            React.createElement(Text, { style: [styles.totalLabel, { color: marca.sobreOscuro }] }, cot.modalidad === "SUCCESS_FEE" ? "HONORARIO ESTIMADO" : "TOTAL DEL CONTRATO"),
             React.createElement(Text, { style: styles.totalValue }, fmt(valorContrato)),
           )
         ),

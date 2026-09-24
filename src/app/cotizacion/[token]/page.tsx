@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { numeroCotizacion } from "@/lib/cotizaciones";
+import { paletaMarca } from "@/lib/color-marca";
 
 type Item = { descripcion: string; cantidad: number; precioUnit: string };
 type Cotizacion = {
@@ -26,7 +27,7 @@ type Cotizacion = {
   feeMensual: string | null;
   empresa:  { nombre: string } | null;
   contacto: { nombre: string; email: string | null } | null;
-  tenant:   { nombre: string; logoUrl: string | null };
+  tenant:   { nombre: string; logoUrl: string | null; colorMarca?: string | null };
   items: Item[];
   lineasAhorro: { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string }[];
   cuerpo?: { titulo: string; contenido: string }[];
@@ -89,7 +90,7 @@ export default function CotizacionPublicaPage() {
   if (cargando) return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center">
       <div className="flex gap-1">{[0,1,2].map(i => (
-        <div key={i} className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />
+        <div key={i} className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />
       ))}</div>
     </div>
   );
@@ -121,16 +122,18 @@ export default function CotizacionPublicaPage() {
   const valorContrato = cot.modalidad === "SUCCESS_FEE" ? ahorroMes * (pctHon / 100) * mesesHz
     : cot.modalidad === "FEE_MENSUAL" ? feeMes * mesesHz : total;
   const yaRespondida = cot.estado === "ACEPTADA" || cot.estado === "RECHAZADA";
+  // Color de marca del tenant (azul de Evoluteca si no eligió uno).
+  const marca = paletaMarca(cot.tenant.colorMarca);
 
   return (
     <div className="min-h-screen bg-slate-100 py-10 px-4">
       <div className="max-w-2xl mx-auto">
 
         {/* Header — identidad de la empresa + metadatos de la cotización */}
-        <div className="bg-[#1e3a8a] rounded-2xl rounded-b-none px-8 pt-6 pb-5">
+        <div className="rounded-2xl rounded-b-none px-8 pt-6 pb-5" style={{ backgroundColor: marca.oscuro }}>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-blue-200 text-[11px] font-semibold uppercase tracking-[0.18em]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: marca.sobreOscuroSuave }}>
                 Propuesta comercial
               </p>
               <h1 className="text-white text-2xl font-bold mt-1">
@@ -142,12 +145,12 @@ export default function CotizacionPublicaPage() {
           </div>
           <div className="mt-5 pt-4 border-t border-white/15 flex flex-wrap items-center gap-x-8 gap-y-1.5">
             <div className="text-xs">
-              <span className="text-blue-300 uppercase tracking-wide">Cotización</span>
+              <span className="uppercase tracking-wide" style={{ color: marca.sobreOscuro }}>Cotización</span>
               <span className="text-white font-semibold ml-2">N.º {numeroCotizacion(cot).replace(/^#/, "")}</span>
             </div>
             {cot.fechaValidez && (
               <div className="text-xs">
-                <span className="text-blue-300 uppercase tracking-wide">Válida hasta</span>
+                <span className="uppercase tracking-wide" style={{ color: marca.sobreOscuro }}>Válida hasta</span>
                 <span className="text-white font-medium ml-2">{fmtFecha(cot.fechaValidez)}</span>
               </div>
             )}
@@ -223,7 +226,7 @@ export default function CotizacionPublicaPage() {
                 )}
                 <tr className="bg-slate-50 border-t-2 border-slate-200">
                   <td colSpan={3} className="px-4 py-3 font-bold text-slate-700 text-sm">TOTAL</td>
-                  <td className="px-4 py-3 text-right font-bold text-[#1e3a8a] text-lg">{fmt(total)}</td>
+                  <td className="px-4 py-3 text-right font-bold text-lg" style={{ color: marca.oscuro }}>{fmt(total)}</td>
                 </tr>
               </tfoot>
             </table>
@@ -251,7 +254,7 @@ export default function CotizacionPublicaPage() {
                 <tfoot>
                   <tr><td colSpan={2} className="px-4 py-1.5 text-right text-xs text-slate-500">Ahorro mensual estimado</td><td className="px-4 py-1.5 text-right text-sm text-slate-600">{fmt(ahorroMes)}</td></tr>
                   <tr><td colSpan={2} className="px-4 py-1.5 text-right text-xs text-slate-500">Honorarios</td><td className="px-4 py-1.5 text-right text-sm text-slate-600">{pctHon}% × {mesesHz} meses</td></tr>
-                  <tr className="bg-slate-50 border-t-2 border-slate-200"><td colSpan={2} className="px-4 py-3 font-bold text-slate-700 text-sm">HONORARIO ESTIMADO</td><td className="px-4 py-3 text-right font-bold text-[#1e3a8a] text-lg">{fmt(valorContrato)}</td></tr>
+                  <tr className="bg-slate-50 border-t-2 border-slate-200"><td colSpan={2} className="px-4 py-3 font-bold text-slate-700 text-sm">HONORARIO ESTIMADO</td><td className="px-4 py-3 text-right font-bold text-lg" style={{ color: marca.oscuro }}>{fmt(valorContrato)}</td></tr>
                 </tfoot>
               </table>
             ) : (
@@ -259,7 +262,7 @@ export default function CotizacionPublicaPage() {
                 <tbody className="divide-y divide-slate-100">
                   <tr><td className="px-4 py-3 text-slate-800">Fee mensual</td><td className="px-4 py-3 text-right text-slate-500">{fmt(feeMes)}</td></tr>
                   <tr><td className="px-4 py-3 text-slate-800">Horizonte</td><td className="px-4 py-3 text-right text-slate-500">{mesesHz} meses</td></tr>
-                  <tr className="bg-slate-50 border-t-2 border-slate-200"><td className="px-4 py-3 font-bold text-slate-700 text-sm">TOTAL DEL CONTRATO</td><td className="px-4 py-3 text-right font-bold text-[#1e3a8a] text-lg">{fmt(valorContrato)}</td></tr>
+                  <tr className="bg-slate-50 border-t-2 border-slate-200"><td className="px-4 py-3 font-bold text-slate-700 text-sm">TOTAL DEL CONTRATO</td><td className="px-4 py-3 text-right font-bold text-lg" style={{ color: marca.oscuro }}>{fmt(valorContrato)}</td></tr>
                 </tbody>
               </table>
             )}
