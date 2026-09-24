@@ -104,7 +104,9 @@ export const FAQS: Faq[] = [
   { categoria: "Cotizaciones", pregunta: "¿Cómo agrego impuesto (IVA) a una cotización?",
     respuesta: "Junto a la tabla de ítems escribe el nombre del impuesto (por defecto \"IVA\", editable) y su porcentaje. El sistema calcula automáticamente Subtotal, Impuesto y Total, y lo muestra igual en el PDF, el email y el link público." },
   { categoria: "Cotizaciones", pregunta: "¿El PDF de la cotización incluye el logo de mi empresa?",
-    respuesta: "Sí, si lo configuraste en Configuración → Logo de la empresa (imagen PNG o JPG, máximo 2MB, subida directo desde tu computador)." },
+    respuesta: "Sí, si lo configuraste en Configuración → Logo de la empresa (imagen PNG o JPG, máximo 2MB, subida directo desde tu computador). También puedes elegir el color de tu marca para que el PDF salga con tus colores (ver la pregunta siguiente)." },
+  { categoria: "Cotizaciones", pregunta: "¿Puedo poner el color de mi empresa en las cotizaciones?",
+    respuesta: "Sí. En Configuración → \"Color de marca\" (solo Administrador) elige tu color corporativo con el selector o escribe su código (ej. #DC2626). El PDF de la cotización, la página donde tu cliente la ve en línea y el correo con que se la envías salen con ese color en vez del azul de Evoluteca. Si el color es muy claro, el CRM lo oscurece solo donde va texto blanco para que se lea bien. El interior del CRM no cambia. Con \"Volver al azul por defecto\" lo quitas." },
   { categoria: "Cotizaciones", pregunta: "¿Puedo enviar la cotización a un correo distinto al del contacto registrado?",
     respuesta: "Sí. Al hacer clic en \"✉ Enviar email\" el campo de destinatario viene pre-llenado con el correo del contacto, pero es editable antes de enviar." },
   { categoria: "Cotizaciones", pregunta: "¿A nombre de quién le llega el correo de la cotización al cliente, y a dónde responde?",
@@ -148,7 +150,7 @@ export const FAQS: Faq[] = [
 
   // ── Dashboard ──
   { categoria: "Dashboard", pregunta: "¿Qué es el Dashboard y qué muestra?",
-    respuesta: "Es la pantalla principal: un tablero gerencial de una sola página con meta del mes y del año, KPIs clave (pipeline activo, forecast, ganados del mes, actividades vencidas y de hoy), ranking de vendedores, oportunidades calientes, últimas ganadas, salud comercial y \"Oportunidades por estado\": cuántos negocios activos hay En riesgo, Requieren atención, Alta intención y En marcha, con la lista de los que requieren tu acción y su porqué." },
+    respuesta: "Es la pantalla principal: un tablero gerencial de una sola página con meta del mes y del año, KPIs clave (pipeline activo, forecast, ganados del mes, actividades vencidas y de hoy), ranking de vendedores, oportunidades calientes, últimas ganadas, salud comercial y \"Oportunidades por estado\": cuántos negocios activos hay En riesgo, Requieren atención, Alta intención y En marcha, con la lista de los que requieren tu acción y su porqué. Si tienes el módulo Postventa activo, el panel \"Requieren atención\" también muestra las renovaciones por gestionar." },
   { categoria: "Dashboard", pregunta: "¿Por qué no veo el medidor circular de meta del mes?",
     respuesta: "Los gauges de meta del mes y del año solo aparecen si tienes una meta configurada para ese período. Configúrala desde Reportes → Configurar metas." },
 
