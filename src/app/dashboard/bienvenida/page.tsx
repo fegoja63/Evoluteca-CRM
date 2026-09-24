@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import {
   IconDatabaseImport, IconBuilding, IconChartFunnel, IconUsers, IconFileText,
   IconCalendar, IconReportAnalytics, IconBooks, IconTheater, IconBuildingPavilion,
-  IconFlask, IconDownload, IconCircleCheck, IconApi, IconReportMoney, type Icon,
+  IconFlask, IconDownload, IconCircleCheck, IconApi, IconReportMoney, IconHeartHandshake, type Icon,
 } from "@tabler/icons-react";
 
 export default function BienvenidaPage() {
@@ -13,6 +13,7 @@ export default function BienvenidaPage() {
   const [esTeatro, setEsTeatro] = useState(false);
   const [esSalones, setEsSalones] = useState(false);
   const [esAhorros, setEsAhorros] = useState(false);
+  const [postventaActivo, setPostventaActivo] = useState(false);
   const [esDemoTeatro, setEsDemoTeatro] = useState(false);
   const [esDemoEvoluteca, setEsDemoEvoluteca] = useState(false);
 
@@ -24,6 +25,7 @@ export default function BienvenidaPage() {
         setEsTeatro(!!d.modulos?.funciones || !!d.modulos?.audiencia);
         setEsSalones(!!d.modulos?.salones);
         setEsAhorros(!!d.modulos?.ahorros);
+        setPostventaActivo(!!d.modulos?.postventa);
         setEsDemoTeatro(d.tenantNombre === "Demo Teatro");
         setEsDemoEvoluteca(d.tenantNombre === "Demo Evoluteca");
       });
@@ -69,6 +71,20 @@ export default function BienvenidaPage() {
       href: "/dashboard/configuracion",
       color: "border-amber-200 bg-amber-50",
       btnColor: "bg-amber-600 hover:bg-amber-700",
+    },
+    // Postventa es un módulo opcional: aquí se da a conocer. Si ya está activo
+    // (p. ej. en el demo), el paso lleva directo al tablero.
+    {
+      num: 5,
+      icon: IconHeartHandshake,
+      titulo: postventaActivo ? "Cuida a tus clientes después de la venta" : "¿Vendes algo que se renueva? Activa Postventa (opcional)",
+      desc: postventaActivo
+        ? "Tu módulo Postventa está activo: cada negocio que ganes entra solo a un tablero (Entrega → Seguimiento → Renovación → Cerrado). Ponle fecha de renovación y el CRM te avisa 30 días antes y crea con un clic la oportunidad de renovación en el pipeline."
+        : "Si vendes contratos, licencias, suscripciones o servicios que se renuevan, activa el módulo Postventa en Configuración → Módulos. Cada negocio ganado entra a un tablero de entrega y seguimiento, y el CRM te avisa 30 días antes de cada renovación para que no se te escape ninguna.",
+      accion: postventaActivo ? "Ir al tablero de Postventa" : "Activar en Configuración",
+      href: postventaActivo ? "/dashboard/postventa" : "/dashboard/configuracion",
+      color: "border-violet-200 bg-violet-50",
+      btnColor: "bg-violet-600 hover:bg-violet-700",
     },
   ];
 

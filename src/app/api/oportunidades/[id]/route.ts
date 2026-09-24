@@ -3,7 +3,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { editarOportunidadSchema } from "@/lib/validations/oportunidades";
 import { parseOrError } from "@/lib/validations/helpers";
-import { puedeEliminar } from "@/lib/permisos";
+import { puedeEliminar, moduloActivo } from "@/lib/permisos";
+import { datosPostventaAlGanar, MODULO_POSTVENTA } from "@/lib/postventa";
 import { operacionAuditoria } from "@/lib/auditoria";
 import { construirExtrasConCampos } from "@/lib/campos-servidor";
 import { dispararAutomatizaciones } from "@/lib/automatizaciones-motor";
@@ -22,6 +23,9 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
       cambiosEtapa: { orderBy: { creadoEn: "asc" } },
       // Último correo (entrante o saliente) como señal de vida para el estado comercial.
       correos: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
+      // Postventa: de qué negocio es renovación, y sus renovaciones creadas.
+      origenRenovacion: { select: { id: true, titulo: true } },
+      renovaciones: { where: { eliminadoEn: null }, select: { id: true, titulo: true, etapa: true }, orderBy: { creadoEn: "desc" } },
     },
   });
 
@@ -37,7 +41,7 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
   const body = await request.json();
   const { data: parsed, error } = parseOrError(editarOportunidadSchema, body);
   if (error) return error;
-  const { titulo, valor, etapa, motivoPerdida, cotizacionNumero, notas, empresaId, contactoId, probabilidad, fechaCierre, salonId, sede, fechaEvento, horaInicio, horaFin } = parsed;
+  const { titulo, valor, etapa, motivoPerdida, cotizacionNumero, notas, empresaId, contactoId, probabilidad, fechaCierre, salonId, sede, fechaEvento, horaInicio, horaFin, postventaEtapa, fechaRenovacion } = parsed;
 
   const oportunidad = await prisma.oportunidad.findFirst({
     where: { id: params.id, tenantId: session.user.tenantId, eliminadoEn: null },
@@ -93,6 +97,16 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
   if (fechaEvento !== undefined) data.fechaEvento = fechaEvento || null;
   if (horaInicio !== undefined) data.horaInicio = horaInicio || null;
   if (horaFin !== undefined) data.horaFin = horaFin || null;
+  if (fechaRenovacion !== undefined) data.fechaRenovacion = fechaRenovacion || null;
+  if (postventaEtapa !== undefined) {
+    // Solo un negocio GANADO (o que se está ganando en esta misma petición)
+    // puede estar en el tablero de postventa.
+    const etapaFinal = etapa ?? oportunidad.etapa;
+    if (postventaEtapa !== null && etapaFinal !== "GANADA") {
+      return NextResponse.json({ error: "Solo los negocios ganados pueden pasar a postventa" }, { status: 400 });
+    }
+    data.postventaEtapa = postventaEtapa;
+  }
 
   const cambioDeEtapa = etapa !== undefined && etapa !== oportunidad.etapa;
 
@@ -105,6 +119,13 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
   // ej. registrar un cierre con su fecha real pasada), vía fechaCierre===undefined.
   if (cambioDeEtapa && (etapa === "GANADA" || etapa === "PERDIDA") && fechaCierre === undefined) {
     data.fechaCierre = new Date();
+  }
+
+  // Al GANAR, con el módulo Postventa activo, el negocio entra solo al tablero
+  // de postventa (etapa Entrega), salvo que la petición ya diga otra cosa.
+  if (cambioDeEtapa && etapa === "GANADA" && postventaEtapa === undefined) {
+    const tenant = await prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { modulos: true } });
+    Object.assign(data, datosPostventaAlGanar(moduloActivo(tenant?.modulos, MODULO_POSTVENTA), oportunidad.postventaEtapa));
   }
 
   // Actualizar la oportunidad y registrar el cambio de etapa (si aplica) de forma

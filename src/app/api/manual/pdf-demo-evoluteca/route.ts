@@ -422,6 +422,8 @@ export async function GET() {
       React.createElement(LI, null, "Motivo de pérdida: abre una oportunidad de la columna Perdida —por ejemplo 'Diagnóstico organizacional Banco Regional' (Sin respuesta del cliente) o 'Rediseño malla curricular San Marcos' (Eligió a la competencia)— y verás el motivo en rojo bajo el título; en la lista de oportunidades del cliente aparece entre paréntesis."),
       React.createElement(LI, null, "Número de cotización al avanzar de etapa y archivos adjuntos por oportunidad."),
 
+      React.createElement(LI, null, "Postventa: en la pestaña Postventa, los negocios ganados del mes están repartidos en Entrega, Seguimiento, Renovación y Cerrado. Usa el chip \"por renovar\", abre uno y pulsa \"Crear oportunidad de renovación\": aparece el negocio nuevo en el Pipeline, ligado al original y con su tarea para hoy."),
+
       React.createElement(H2, null, "8.2 Cotizaciones a fondo"),
       React.createElement(LI, null, "Estados: Borrador, Enviada, Aceptada y Rechazada (con motivo). La cuenta ya trae ejemplos de cada uno."),
       React.createElement(LI, null, "La cotización siembra el pipeline: crear una puede generar la oportunidad asociada."),

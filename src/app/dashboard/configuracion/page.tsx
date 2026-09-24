@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
 import { useSession } from "next-auth/react";
 import {
-  IconTheater, IconTicket, IconScale, IconBuildingPavilion, IconReportMoney, IconMessageChatbot,
+  IconTheater, IconTicket, IconScale, IconBuildingPavilion, IconReportMoney, IconMessageChatbot, IconHeartHandshake,
   IconBuilding, IconUsers, IconChartFunnel, IconCalendar, IconFileText,
   IconReportAnalytics, IconUsersGroup, IconDownload, IconTrash, IconCheck,
   IconKey, IconCopy, IconRefresh, IconGripVertical, IconEye, IconEyeOff,
@@ -60,6 +60,12 @@ const MODULOS_DISPONIBLES: { key: string; titulo: string; descripcion: string; i
     titulo: "Módulo Manejo de objeciones",
     descripcion: "Una guía de ventas editable por tu equipo: las objeciones más frecuentes de tus clientes con la respuesta recomendada (y lo que conviene evitar). Se precarga con 15 objeciones probadas y las adaptas a tu negocio. Ideal para alinear al equipo comercial y acortar la curva de aprendizaje de los nuevos.",
     icon: IconMessageChatbot,
+  },
+  {
+    key: "postventa",
+    titulo: "Módulo Postventa y renovaciones",
+    descripcion: "Lo que pasa después de ganar: cada negocio ganado entra solo a un tablero de postventa (Entrega → Seguimiento → Renovación → Cerrado). Con su fecha de renovación, el CRM avisa 30 días antes y crea con un clic la oportunidad de renovación en el pipeline. Ideal para quien vende contratos, licencias o servicios que se renuevan.",
+    icon: IconHeartHandshake,
   },
 ];
 

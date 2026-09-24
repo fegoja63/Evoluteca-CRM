@@ -10,7 +10,7 @@ import {
   IconUsersGroup, IconTheater, IconTicket, IconScale, IconBuildingPavilion, IconMessageChatbot,
   IconDatabaseImport, IconTrash, IconRocket, IconLifebuoy, IconSettings, IconHistory,
   IconUserCircle, IconLogout, IconSearch, IconX, IconArrowsSort, IconCheck,
-  IconGripVertical, IconArrowBackUp, IconSparkles, type Icon,
+  IconGripVertical, IconArrowBackUp, IconSparkles, IconHeartHandshake, type Icon,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/cn";
 
@@ -39,6 +39,7 @@ const navOpcionales: Record<string, NavItem> = {
   expedientes: { href: "/dashboard/expedientes", label: "Expedientes", icon: IconScale },
   salones: { href: "/dashboard/salones", label: "Salones", icon: IconBuildingPavilion },
   objeciones: { href: "/dashboard/objeciones", label: "Objeciones", icon: IconMessageChatbot },
+  postventa: { href: "/dashboard/postventa", label: "Postventa", icon: IconHeartHandshake },
 };
 
 function iniciales(nombre: string) {

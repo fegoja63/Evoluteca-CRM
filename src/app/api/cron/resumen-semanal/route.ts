@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth";
 import { Resend } from "resend";
 import { EtapaOportunidad } from "@prisma/client";
 import { estadoComercial, ultimoMovimientoDe, inicioProximoPaso } from "@/lib/estado-comercial";
+import { moduloActivo } from "@/lib/permisos";
+import { MODULO_POSTVENTA, DIAS_AVISO_RENOVACION, estadoRenovacion } from "@/lib/postventa";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -55,7 +57,7 @@ function bloquePregunta(pregunta: string, cuerpoHtml: string, bg: string) {
 }
 
 type Usuario = { id: string; nombre: string; email: string; tenantId: string; rol: string };
-type TenantInfo = { emailsActivos: boolean; logoUrl: string | null; diasEstancamiento: number };
+type TenantInfo = { emailsActivos: boolean; logoUrl: string | null; diasEstancamiento: number; postventa: boolean };
 type Fechas = { ahora: Date; hace7: Date; en7: Date };
 
 const TIPO_LABEL: Record<string, string> = {
@@ -95,8 +97,25 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
     }),
   ]);
 
-  // Nada que contar: ni pipeline activo, ni actividad reciente, ni próxima.
-  if (opActivas.length === 0 && actividades7d.length === 0 && proximas7d === 0) return null;
+  // Postventa: renovaciones vencidas o dentro del aviso, sin su oportunidad de
+  // renovación creada (solo si el módulo está activo).
+  const renovaciones = tenantInfo.postventa
+    ? await prisma.oportunidad.findMany({
+        where: {
+          tenantId: u.tenantId, eliminadoEn: null, etapa: "GANADA",
+          postventaEtapa: { in: ["ENTREGA", "SEGUIMIENTO", "RENOVACION"] },
+          fechaRenovacion: { lte: new Date(ahora.getTime() + DIAS_AVISO_RENOVACION * 86_400_000) },
+          renovaciones: { none: { eliminadoEn: null } },
+          ...ownerWhere,
+        },
+        select: { titulo: true, valor: true, fechaRenovacion: true, empresa: { select: { nombre: true } } },
+        orderBy: { fechaRenovacion: "asc" },
+        take: 5,
+      })
+    : [];
+
+  // Nada que contar: ni pipeline activo, ni actividad reciente, ni próxima, ni renovaciones.
+  if (opActivas.length === 0 && actividades7d.length === 0 && proximas7d === 0 && renovaciones.length === 0) return null;
 
   // Estado comercial de cada oportunidad, con el MISMO cálculo que el Pipeline,
   // el detalle y el dashboard (incluye el correo como señal de vida). Así el
@@ -137,8 +156,16 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
     q1 += `<p style="margin:${cierranSemana.length ? "10" : "0"}px 0 6px;font-size:12px;font-weight:600;color:#059669">🟢 Alta intención — empújalos al cierre</p>`;
     q1 += altaIntencion.map(o => fila(o.titulo, `${o.empresa?.nombre ?? ""} · ${o.etapa} · ${o.probabilidad ?? 50}% · ${fmt(o.valor as unknown as number)}`, "#10b981")).join("");
   }
+  if (renovaciones.length > 0) {
+    q1 += `<p style="margin:${cierranSemana.length || altaIntencion.length ? "10" : "0"}px 0 6px;font-size:12px;font-weight:600;color:#b45309">Renovaciones por gestionar</p>`;
+    q1 += renovaciones.map(o => {
+      const e = estadoRenovacion(o.fechaRenovacion, ahora);
+      const cuando = e?.tipo === "vencida" ? `vencida hace ${e.dias} días` : e?.dias === 0 ? "hoy" : `en ${e?.dias} días`;
+      return fila(o.titulo, `${o.empresa?.nombre ?? ""} · ${fmt(o.valor as unknown as number)} · renueva ${cuando}`, "#f59e0b");
+    }).join("");
+  }
   if (valiosas.length > 0) {
-    q1 += `<p style="margin:${cierranSemana.length || altaIntencion.length ? "10" : "0"}px 0 6px;font-size:12px;font-weight:600;color:#334155">Las más valiosas en curso</p>`;
+    q1 += `<p style="margin:${cierranSemana.length || altaIntencion.length || renovaciones.length ? "10" : "0"}px 0 6px;font-size:12px;font-weight:600;color:#334155">Las más valiosas en curso</p>`;
     q1 += valiosas.map(o => fila(o.titulo, `${o.empresa?.nombre ?? ""} · ${o.etapa} · ${fmt(o.valor as unknown as number)}`, "#10b981")).join("");
   }
   if (!q1) q1 = `<p style="margin:0;font-size:12px;color:#94a3b8">No tienes oportunidades activas por ahora.</p>`;
@@ -207,8 +234,11 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
 
 async function obtenerTenantInfo(tenantId: string, cache: Record<string, TenantInfo>): Promise<TenantInfo> {
   if (cache[tenantId] === undefined) {
-    const t = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { emailsActivos: true, logoUrl: true, diasEstancamiento: true } });
-    cache[tenantId] = { emailsActivos: t?.emailsActivos ?? true, logoUrl: t?.logoUrl ?? null, diasEstancamiento: t?.diasEstancamiento ?? 14 };
+    const t = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { emailsActivos: true, logoUrl: true, diasEstancamiento: true, modulos: true } });
+    cache[tenantId] = {
+      emailsActivos: t?.emailsActivos ?? true, logoUrl: t?.logoUrl ?? null, diasEstancamiento: t?.diasEstancamiento ?? 14,
+      postventa: moduloActivo(t?.modulos, MODULO_POSTVENTA),
+    };
   }
   return cache[tenantId];
 }
