@@ -243,7 +243,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.25 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.26 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -585,7 +585,7 @@ export async function GET() {
       React.createElement(LI, null, "Cierres próximos: negocios con fecha de cierre estimada en los próximos 7 días"),
       React.createElement(P, null, "Además, en la Agenda las actividades vencidas muestran un ícono de campana. Al tocarlo recibes el recordatorio inmediatamente sin esperar al día siguiente."),
       React.createElement(Tip, null, "Solo recibirás el email de cada tipo si tienes situaciones reales en esa categoría. Si no tienes actividades vencidas, ese email no se envía."),
-      React.createElement(P, null, "Aparte de las alertas diarias, cada lunes en la mañana llega el \"Resumen del Lunes\": un solo correo por persona que abre la semana con una cabecera de indicadores (pipeline activo, nº de oportunidades y tasa de cierre) y responde las tres preguntas del lunes comercial — (1) ¿Qué puedo cerrar? (cierres de la semana y las más valiosas), (2) ¿Qué está bloqueado? (negocios en riesgo o que requieren atención, incluidos los que no tienen próximo paso agendado) y (3) ¿Qué generará ventas futuras? (tu actividad de los últimos 7 días y lo agendado), con un botón directo al Panel del Lunes en Reportes."),
+      React.createElement(P, null, "Aparte de las alertas diarias, cada lunes en la mañana llega el \"Resumen del Lunes\": un solo correo por persona que abre la semana con una cabecera de indicadores (pipeline activo, nº de oportunidades y tasa de cierre) y responde las tres preguntas del lunes comercial — (1) ¿Qué puedo cerrar? (cierres de la semana, las más valiosas y, con el módulo Postventa activo, las renovaciones por gestionar), (2) ¿Qué está bloqueado? (negocios en riesgo o que requieren atención, incluidos los que no tienen próximo paso agendado) y (3) ¿Qué generará ventas futuras? (tu actividad de los últimos 7 días y lo agendado), con un botón directo al Panel del Lunes en Reportes."),
       React.createElement(Nota, null, "Tanto las alertas diarias como el Resumen del Lunes dependen del mismo interruptor \"Notificaciones automáticas por email\" en Configuración; si se apaga, no se envía ninguno. El resumen solo llega a quien tenga pipeline o actividad que resumir esa semana."),
 
       React.createElement(H2, null, "4.5 Lista o Calendario"),
@@ -870,7 +870,7 @@ export async function GET() {
       React.createElement(P, null, "Debajo de las actividades de hoy, la misma tarjeta incluye una sección \"Próximas actividades\" con las siguientes 5 actividades pendientes desde mañana en adelante (título, empresa o contacto y fecha), para que veas lo que viene sin salir del Dashboard. Si no tienes actividades futuras pendientes, la sección muestra el aviso \"No hay actividades próximas programadas\"."),
 
       React.createElement(H2, null, "8.8 Panel de alertas (\"Requieren atención\")"),
-      React.createElement(P, null, "Reúne las situaciones que necesitan seguimiento: actividades vencidas, negocios sin actividad reciente, cierres previstos para esta semana, cotizaciones enviadas sin respuesta y, si el tenant tiene los módulos correspondientes activos, plazos procesales próximos a vencer o funciones con ocupación baja."),
+      React.createElement(P, null, "Reúne las situaciones que necesitan seguimiento: actividades vencidas, negocios sin actividad reciente, cierres previstos para esta semana, cotizaciones enviadas sin respuesta y, si el tenant tiene los módulos correspondientes activos, renovaciones por gestionar (módulo Postventa, ver 9.2.2), plazos procesales próximos a vencer o funciones con ocupación baja."),
       React.createElement(Tip, null, "El objetivo diario es llegar al Dashboard sin alertas pendientes en este panel."),
 
       React.createElement(H2, null, "8.9 Oportunidades por estado"),
@@ -889,6 +889,8 @@ export async function GET() {
       React.createElement(P, null, "En la sección \"Correo de la empresa\" (solo Administrador) guardas el correo de tu organización. Es un respaldo del buzón de respuesta de las cotizaciones: normalmente las respuestas del cliente se capturan solas en el CRM (ver 5.8), y este correo solo se usaría como \"Responder-a\" si la captura automática no estuviera disponible. Déjalo vacío si no quieres usarlo."),
       React.createElement(Nota, null, "El correo de cotización sale desde el dominio del sistema con el nombre de tu empresa. Enviarlo desde tu propio dominio (por ejemplo cotizaciones@tuempresa.com) es un paso adicional que requiere verificar ese dominio; solicítalo si lo necesitas."),
       React.createElement(Tip, null, "El archivo de logo debe pesar máximo 2MB. Si tu imagen es más pesada, redúcela antes de subirla (herramientas de compresión de imágenes en línea funcionan bien para esto)."),
+      React.createElement(P, null, "Junto al logo está la sección \"Color de marca\" (solo Administrador). Elige el color corporativo de tu empresa con el selector o escribe su código (por ejemplo #DC2626). Lo que ve tu cliente sale con ese color en vez del azul de Evoluteca: el PDF de la cotización (encabezado, título, estado y total), la página donde ve y responde la cotización en línea, y el correo con que se la envías. Una vista previa muestra cómo queda antes de guardar."),
+      React.createElement(Nota, null, "Si eliges un color muy claro (por ejemplo amarillo), el CRM lo oscurece solo en los fondos que llevan texto blanco, para que siempre se lea bien; las líneas conservan tu color exacto. El interior del CRM no cambia de color. Con \"Volver al azul por defecto\" se quita el color de marca."),
 
       React.createElement(H2, null, "9.1.1 Notificaciones automáticas por email"),
       React.createElement(P, null, "En Configuración encontrarás el toggle 'Notificaciones automáticas por email'. Cuando está activo (azul), el CRM envía cada mañana correos automáticos a cada usuario del equipo con:"),
