@@ -51,6 +51,7 @@ function ids(letra: "a" | "b") {
     campoPersonalizado: `cp-${letra}-1`,
     automatizacion: `aut-${letra}-1`,
     correo: `cor-${letra}-1`,
+    minuta: `min-${letra}-1`,
   } as const;
 }
 
@@ -298,6 +299,20 @@ function operacionesDeModulos(m: Molde, nombre: string) {
         cuerpo: "Cuerpo de prueba",
         empresaId: m.empresa,
         contactoId: m.contacto,
+        creadoBy: m.comercial,
+      },
+    }),
+
+    prisma.minuta.create({
+      data: {
+        id: m.minuta,
+        tenantId: m.tenantId,
+        titulo: `Minuta de ${nombre}`,
+        fecha: new Date("2026-03-20T17:00:00.000Z"),
+        resumen: `Resumen de la reunión de ${nombre}`,
+        acuerdos: ["Enviar propuesta"],
+        oportunidadId: m.oportunidadDelComercial,
+        empresaId: m.empresa,
         creadoBy: m.comercial,
       },
     }),

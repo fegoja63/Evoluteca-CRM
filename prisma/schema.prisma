@@ -106,6 +106,7 @@ model Tenant {
   automatizaciones     Automatizacion[]
   correos              CorreoRegistrado[]
   objeciones           Objecion[]
+  minutas              Minuta[]
 
   @@map("tenants")
 }
@@ -214,6 +215,7 @@ model Empresa {
   expedientes     Expediente[]
   adjuntos        Adjunto[]
   correos         CorreoRegistrado[]
+  minutas         Minuta[]
 
   @@index([tenantId])
   @@index([tenantId, creadoEn])
@@ -300,6 +302,7 @@ model Oportunidad {
   origenRenovacionId String?
   origenRenovacion   Oportunidad?  @relation("RenovacionDe", fields: [origenRenovacionId], references: [id], onDelete: SetNull)
   renovaciones       Oportunidad[] @relation("RenovacionDe")
+  minutas            Minuta[]
 
   creadoEn      DateTime         @default(now())
   creadoBy      String?
@@ -450,10 +453,54 @@ model Actividad {
   oportunidadId String?
   oportunidad   Oportunidad? @relation(fields: [oportunidadId], references: [id], onDelete: SetNull)
 
+  minutas Minuta[]
+
   @@index([tenantId])
   @@index([tenantId, fecha])
   @@index([tenantId, responsableId])
   @@map("actividades")
+}
+
+// ---- Minutas de reunión (generadas con IA y revisadas por el usuario) ----
+//
+// La IA propone la minuta a partir de las notas o la transcripción pegadas; el
+// usuario la revisa y edita antes de guardar. Al guardar se registra además la
+// reunión como Actividad (REUNION, completada) y, por cada compromiso de
+// nuestro lado que el usuario marque, una tarea pendiente.
+model Minuta {
+  id            String   @id @default(uuid())
+  titulo        String
+  fecha         DateTime // cuándo fue la reunión
+  resumen       String
+  // [{ nombre, rol, lado: "NOSOTROS" | "CLIENTE" | "DESCONOCIDO" }]
+  asistentes    Json     @default("[]")
+  acuerdos      String[] @default([])
+  // [{ descripcion, responsable, lado: "NOSOTROS" | "CLIENTE", fecha }]
+  compromisos   Json     @default("[]")
+  proximosPasos String[] @default([])
+  riesgos       String[] @default([])
+  // Notas/transcripción originales, para poder volver a la fuente.
+  textoOriginal String?
+  creadoBy      String?
+  creadoEn      DateTime @default(now())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  oportunidadId String?
+  oportunidad   Oportunidad? @relation(fields: [oportunidadId], references: [id], onDelete: SetNull)
+
+  empresaId String?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+
+  // La actividad REUNION que se creó al guardar la minuta.
+  actividadId String?
+  actividad   Actividad? @relation(fields: [actividadId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, oportunidadId])
+  @@index([tenantId, empresaId])
+  @@map("minutas")
 }
 
 enum EstadoCotizacion {

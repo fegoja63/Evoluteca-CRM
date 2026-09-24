@@ -243,7 +243,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.24 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.25 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -415,6 +415,17 @@ export async function GET() {
       React.createElement(P, null, "Puedes volver a pulsar \"Regenerar\" para obtener una nueva versión con los datos más recientes. El panel muestra tu consumo del mes (por ejemplo \"12 / 100 este mes\")."),
       React.createElement(Nota, null, "Los Resúmenes con IA dependen del plan de tu organización: pueden ser ilimitados o tener un tope mensual. Ese cupo mensual es compartido con el Brief del pipeline con IA (ver 3.12): ambas funciones descuentan del mismo contador. Si tu plan no las incluye, o si ya alcanzaste el tope del mes, el botón aparece deshabilitado con el aviso correspondiente. Escríbenos para ampliar tu plan."),
       React.createElement(Tip, null, "Úsalo antes de una llamada o reunión para ponerte al día de una cuenta en 5 segundos sin tener que leer todo el historial. El informe se apoya solo en los datos reales del CRM — no inventa cifras."),
+
+      React.createElement(H2, null, "2.10.1 Minutas de reunión con IA"),
+      React.createElement(P, null, "En la ficha de un cliente o de una oportunidad, el panel \"Minutas de reunión\" convierte tus notas de una reunión en una minuta ordenada. Pulsa \"Minuta con IA\", indica la fecha de la reunión y pega tus notas o la transcripción, como estén. La IA propone:"),
+      React.createElement(LI, null, "Título y resumen de la reunión"),
+      React.createElement(LI, null, "Asistentes, de nuestro lado y del cliente"),
+      React.createElement(LI, null, "Acuerdos alcanzados"),
+      React.createElement(LI, null, "Compromisos, con responsable y fecha, separados entre los de nuestro equipo y los del cliente"),
+      React.createElement(LI, null, "Próximos pasos, y riesgos u objeciones del cliente (nota interna)"),
+      React.createElement(P, null, "Antes de guardar puedes corregir todo: nada se guarda sin tu revisión. Al pulsar \"Guardar minuta\" quedan registradas la minuta, la reunión como actividad completada y el evento en la línea de tiempo del cliente. Además, cada compromiso de nuestro equipo marcado con \"Crear tarea\" queda como tarea pendiente a tu nombre; sin fecha, queda para mañana. Así el negocio sale de la reunión con su próximo paso agendado."),
+      React.createElement(P, null, "En cada minuta guardada, el botón \"Copiar para enviar\" copia un texto listo para pegar en un correo o WhatsApp al cliente. Ese texto no incluye los riesgos, que son solo para el equipo. Si eliminas una minuta, la reunión y las tareas que creó se conservan."),
+      React.createElement(Nota, null, "Cada minuta generada usa una acción del cupo mensual de IA de tu plan, el mismo que usa el Resumen con IA. La IA solo usa lo que dicen tus notas y no inventa datos: si algo no aparece, lo deja vacío para que lo completes."),
 
       React.createElement(H2, null, "2.11 Editar y eliminar desde las listas"),
       React.createElement(P, null, "No necesitas abrir la ficha completa para corregir o eliminar un registro. En las listas de Clientes, Contactos y Cotizaciones, cada fila tiene dos botones de acción rápida:"),

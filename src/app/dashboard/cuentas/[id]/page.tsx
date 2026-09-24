@@ -24,6 +24,7 @@ import { Etiquetas } from "@/components/etiquetas";
 import { guardarJson } from "@/lib/guardar";
 import { WhatsAppBtn } from "@/components/whatsapp-btn";
 import { ResumenIA } from "@/components/resumen-ia";
+import { MinutasIA } from "@/components/minutas-ia";
 import { IconPhone, IconMail, IconUsers, IconPencil, IconTrash, IconPlus, type Icon } from "@tabler/icons-react";
 
 type Detalle = {
@@ -319,6 +320,8 @@ export default function FichaClientePage() {
       )}
 
       <ResumenIA empresaId={empresa.id} />
+
+      <MinutasIA empresaId={empresa.id} empresaNombre={empresa.nombre} onGuardada={() => cargar(true)} />
 
       <div className="mt-4">
         <CamposPersonalizadosVista entidad="EMPRESA" extras={empresa.extras} />
