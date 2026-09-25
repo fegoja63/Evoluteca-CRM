@@ -12,6 +12,10 @@ const BASE_URL = process.env.NEXTAUTH_URL ?? "https://evoluteca-crm-six.vercel.a
 const LOGO_FGJ = "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg";
 
 const ETAPAS_ACTIVAS: EtapaOportunidad[] = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];
+// Nombre y color por defecto de cada etapa activa (el nombre puede sobreescribirse
+// con el que el tenant configuró en EtapaPipeline).
+const ETAPA_LABEL: Record<string, string> = { PROSPECTO: "Prospecto", CALIFICADO: "Calificado", PROPUESTA: "Cotización", NEGOCIACION: "Negociación" };
+const ETAPA_COLOR: Record<string, string> = { PROSPECTO: "#94a3b8", CALIFICADO: "#3b82f6", PROPUESTA: "#8b5cf6", NEGOCIACION: "#f59e0b" };
 
 function fmt(v: number | null | undefined) {
   const n = Number(v ?? 0);
@@ -95,7 +99,7 @@ async function construirDatos(tenant: TenantMin) {
   const v = ventanaMesCerrado();
   const T = { tenantId: tenant.id, eliminadoEn: null };
 
-  const [ganadas, perdidasCambios, activas, metaMesRow, metaAnioRow, metasMensuales, nuevosClientes, actividadMes] =
+  const [ganadas, perdidasCambios, activas, metaMesRow, metaAnioRow, metasMensuales, nuevosClientes, actividadMes, etapasTenant] =
     await Promise.all([
       // Ganadas del tenant (se filtran por mes/año en JS con fechaEfectiva).
       prisma.oportunidad.findMany({
@@ -107,13 +111,15 @@ async function construirDatos(tenant: TenantMin) {
         where: { etapaNueva: "PERDIDA", creadoEn: { gte: v.prevStart, lt: v.curMesStart }, oportunidad: { ...T } },
         select: { oportunidad: { select: { id: true, valor: true, motivoPerdida: true } } },
       }),
-      // Pipeline activo actual (foto de hoy).
-      prisma.oportunidad.findMany({ where: { ...T, etapa: { in: ETAPAS_ACTIVAS } }, select: { valor: true } }),
+      // Pipeline activo actual (foto de hoy), con etapa para desglosar.
+      prisma.oportunidad.findMany({ where: { ...T, etapa: { in: ETAPAS_ACTIVAS } }, select: { valor: true, etapa: true } }),
       prisma.metaVenta.findFirst({ where: { tenantId: tenant.id, anio: v.anioCerrado, mes: v.mesCerrado1 }, select: { valorObjetivo: true } }),
       prisma.metaVenta.findFirst({ where: { tenantId: tenant.id, anio: v.anioCerrado, mes: null }, select: { valorObjetivo: true } }),
       prisma.metaVenta.findMany({ where: { tenantId: tenant.id, anio: v.anioCerrado, mes: { not: null } }, select: { valorObjetivo: true } }),
       prisma.empresa.count({ where: { tenantId: tenant.id, eliminadoEn: null, creadoEn: { gte: v.prevStart, lt: v.curMesStart } } }),
       prisma.actividad.count({ where: { tenantId: tenant.id, fecha: { gte: v.prevStart, lt: v.curMesStart } } }),
+      // Nombre/orden de las etapas que el tenant configuró (si personalizó).
+      prisma.etapaPipeline.findMany({ where: { tenantId: tenant.id }, orderBy: { orden: "asc" }, select: { key: true, nombre: true } }),
     ]);
 
   // Ganadas del mes cerrado y acumuladas del año, por fecha efectiva.
@@ -171,6 +177,20 @@ async function construirDatos(tenant: TenantMin) {
   const cumpAnio = metaAnio && metaAnio > 0 ? Math.round((valorGanadoAnio / metaAnio) * 100) : null;
 
   const pipelineValor = activas.reduce((a, o) => a + Number(o.valor ?? 0), 0);
+  // Pipeline por etapa (valor y nº), en el orden que el tenant configuró.
+  const ordenEtapa: Record<string, number> = {};
+  const nombreEtapa: Record<string, string> = { ...ETAPA_LABEL };
+  etapasTenant.forEach((e, i) => { ordenEtapa[e.key] = i; if (e.nombre) nombreEtapa[e.key] = e.nombre; });
+  const porEtapaMap = new Map<string, { count: number; valor: number }>();
+  for (const o of activas) {
+    const e = porEtapaMap.get(o.etapa) ?? { count: 0, valor: 0 };
+    e.count++; e.valor += Number(o.valor ?? 0);
+    porEtapaMap.set(o.etapa, e);
+  }
+  const pipelinePorEtapa = ETAPAS_ACTIVAS
+    .filter(k => porEtapaMap.has(k))
+    .map(k => ({ etapa: k as string, label: nombreEtapa[k] ?? k, count: porEtapaMap.get(k)!.count, valor: porEtapaMap.get(k)!.valor }))
+    .sort((a, b) => (ordenEtapa[a.etapa] ?? 99) - (ordenEtapa[b.etapa] ?? 99));
 
   // Ganado del mes por vendedor.
   const porVendedorMap = new Map<string, number>();
@@ -198,7 +218,7 @@ async function construirDatos(tenant: TenantMin) {
     ticketMes, tasaCierre,
     metaMes, cumpMes, metaAnio, cumpAnio,
     valorGanadoAnio,
-    pipeline: { valor: pipelineValor, count: activas.length },
+    pipeline: { valor: pipelineValor, count: activas.length, porEtapa: pipelinePorEtapa },
     nuevosClientes, actividadMes, porVendedor,
   };
 }
@@ -256,8 +276,26 @@ function render(nombre: string, tenant: TenantMin, d: Datos): { subject: string;
     }).join("") + `</div>`;
   }
 
-  const cartera = `<p style="margin:0;font-size:13px;color:#334155">Pipeline activo hoy: <strong>${fmt(d.pipeline.valor)}</strong> en <strong>${d.pipeline.count}</strong> oportunidad(es).</p>
-    <p style="margin:6px 0 0;font-size:13px;color:#334155">Clientes nuevos en el mes: <strong>${d.nuevosClientes}</strong> · Actividad registrada: <strong>${d.actividadMes}</strong> toque(s).</p>`;
+  // Pipeline por etapa (barras por valor).
+  let pipelineHtml = `<p style="margin:0 0 10px;font-size:13px;color:#334155">Total activo: <strong>${fmt(d.pipeline.valor)}</strong> en <strong>${d.pipeline.count}</strong> oportunidad(es).</p>`;
+  if (d.pipeline.porEtapa.length > 0) {
+    const maxE = Math.max(...d.pipeline.porEtapa.map(e => e.valor), 1);
+    pipelineHtml += d.pipeline.porEtapa.map(e => {
+      const pct = Math.max(4, Math.round((e.valor / maxE) * 100));
+      const color = ETAPA_COLOR[e.etapa] ?? "#3b82f6";
+      return `<div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#334155;margin-bottom:3px">
+          <span>${e.label} <span style="color:#94a3b8">(${e.count})</span></span>
+          <span style="font-weight:700">${fmt(e.valor)}</span>
+        </div>
+        <div style="height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden"><div style="height:8px;width:${pct}%;background:${color};border-radius:99px"></div></div>
+      </div>`;
+    }).join("");
+  } else {
+    pipelineHtml += `<p style="margin:0;font-size:12px;color:#94a3b8">Sin oportunidades activas.</p>`;
+  }
+
+  const cartera = `<p style="margin:0;font-size:13px;color:#334155">Clientes nuevos en el mes: <strong>${d.nuevosClientes}</strong> · Actividad registrada: <strong>${d.actividadMes}</strong> toque(s).</p>`;
 
   let vendedores = "";
   if (d.porVendedor.length > 0) {
@@ -281,6 +319,7 @@ function render(nombre: string, tenant: TenantMin, d: Datos): { subject: string;
       ${seccion("🎯 Cumplimiento de cuota", cumplimiento, "#eef2ff")}
       ${seccion("🏆 Ventas del mes", ventas, "#f0fdf4")}
       ${seccion("📉 Pérdidas del mes", perdidasHtml, "#fef2f2")}
+      ${seccion("📊 Pipeline por etapa", pipelineHtml, "#f5f3ff")}
       ${seccion("👥 Cartera y actividad", cartera, "#f8fafc")}
       ${seccion("🧑‍💼 Ganado por vendedor", vendedores, "#eff6ff")}
       <div style="margin-top:18px">${btn(`${BASE_URL}/dashboard/reportes`, "Ver Reportes")}</div>
