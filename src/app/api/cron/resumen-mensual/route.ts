@@ -100,7 +100,7 @@ async function construirDatos(tenant: TenantMin) {
       // Ganadas del tenant (se filtran por mes/año en JS con fechaEfectiva).
       prisma.oportunidad.findMany({
         where: { ...T, etapa: "GANADA" },
-        select: { valor: true, fechaCierre: true, fechaEvento: true, creadoEn: true, extras: true, creadoBy: true },
+        select: { titulo: true, valor: true, fechaCierre: true, fechaEvento: true, creadoEn: true, extras: true, creadoBy: true, empresa: { select: { nombre: true } } },
       }),
       // Perdidas del mes: por el cambio de etapa real a PERDIDA dentro de la ventana.
       prisma.cambioEtapa.findMany({
@@ -129,6 +129,10 @@ async function construirDatos(tenant: TenantMin) {
   const ganadasAnio = ganadas.filter(enAnio);
   const valorGanadoMes = ganadasMes.reduce((a, o) => a + Number(o.valor ?? 0), 0);
   const valorGanadoAnio = ganadasAnio.reduce((a, o) => a + Number(o.valor ?? 0), 0);
+  // Lista de ganadas del mes con nombre de cliente y valor (mayor a menor).
+  const ganadasLista = ganadasMes
+    .map(o => ({ nombre: o.empresa?.nombre?.trim() || o.titulo || "Cliente", valor: Number(o.valor ?? 0) }))
+    .sort((a, b) => b.valor - a.valor);
 
   // Perdidas del mes (oportunidades únicas).
   const perdidasMap = new Map<string, { valor: number; motivo: string | null }>();
@@ -138,12 +142,17 @@ async function construirDatos(tenant: TenantMin) {
   }
   const perdidas = Array.from(perdidasMap.values());
   const valorPerdidoMes = perdidas.reduce((a, o) => a + o.valor, 0);
-  const motivosCount = new Map<string, number>();
+  // Motivos con nº de casos y valor perdido, para graficarlos.
+  const motivosMap = new Map<string, { count: number; valor: number }>();
   for (const o of perdidas) {
     const m = o.motivo?.trim() || "Sin motivo";
-    motivosCount.set(m, (motivosCount.get(m) ?? 0) + 1);
+    const e = motivosMap.get(m) ?? { count: 0, valor: 0 };
+    e.count++; e.valor += o.valor;
+    motivosMap.set(m, e);
   }
-  const topMotivos = Array.from(motivosCount.entries()).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  const motivos = Array.from(motivosMap.entries())
+    .map(([motivo, x]) => ({ motivo, count: x.count, valor: x.valor }))
+    .sort((a, b) => b.count - a.count || b.valor - a.valor);
 
   // Ticket promedio del mes (solo ganadas con valor).
   const ganadasConValor = ganadasMes.filter(o => Number(o.valor ?? 0) > 0);
@@ -184,8 +193,8 @@ async function construirDatos(tenant: TenantMin) {
 
   return {
     label: v.label,
-    ganadasMes: { count: ganadasMes.length, valor: valorGanadoMes },
-    perdidas: { count: perdidas.length, valor: valorPerdidoMes, motivos: topMotivos },
+    ganadasMes: { count: ganadasMes.length, valor: valorGanadoMes, lista: ganadasLista },
+    perdidas: { count: perdidas.length, valor: valorPerdidoMes, motivos },
     ticketMes, tasaCierre,
     metaMes, cumpMes, metaAnio, cumpAnio,
     valorGanadoAnio,
@@ -216,17 +225,35 @@ function render(nombre: string, tenant: TenantMin, d: Datos): { subject: string;
     </div>
   </div>`;
 
-  const ventas = `<p style="margin:0;font-size:13px;color:#334155"><strong>${d.ganadasMes.count}</strong> operación(es) ganada(s) por <strong>${fmt(d.ganadasMes.valor)}</strong>${
-    d.ganadasMes.count === 0 ? " — sin ventas cerradas este mes." : "."
+  let ventas = `<p style="margin:0;font-size:13px;color:#334155"><strong>${d.ganadasMes.count}</strong> operación(es) ganada(s) por <strong>${fmt(d.ganadasMes.valor)}</strong>${
+    d.ganadasMes.count === 0 ? " — sin ventas cerradas este mes." : ":"
   }</p>`;
+  if (d.ganadasMes.lista.length > 0) {
+    ventas += `<div style="margin-top:8px">` + d.ganadasMes.lista.slice(0, 8).map(g =>
+      `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #dcfce7">
+        <span style="font-size:12px;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${g.nombre}</span>
+        <span style="font-size:12px;font-weight:700;color:#059669;flex-shrink:0">${fmt(g.valor)}</span>
+      </div>`).join("") + `</div>`;
+    if (d.ganadasMes.lista.length > 8) {
+      ventas += `<p style="margin:8px 0 0;font-size:11px;color:#94a3b8">+ ${d.ganadasMes.lista.length - 8} venta(s) más</p>`;
+    }
+  }
 
   let perdidasHtml = `<p style="margin:0;font-size:13px;color:#334155"><strong>${d.perdidas.count}</strong> oportunidad(es) perdida(s)${
-    d.perdidas.count > 0 ? ` por <strong>${fmt(d.perdidas.valor)}</strong>.` : "."
+    d.perdidas.count > 0 ? ` por <strong>${fmt(d.perdidas.valor)}</strong>. Razones:` : "."
   }</p>`;
   if (d.perdidas.motivos.length > 0) {
-    perdidasHtml += `<p style="margin:6px 0 0;font-size:12px;color:#94a3b8">Principales motivos: ${
-      d.perdidas.motivos.map(([m, n]) => `${m} (${n})`).join(" · ")
-    }</p>`;
+    const maxM = d.perdidas.motivos[0].count || 1;
+    perdidasHtml += `<div style="margin-top:10px">` + d.perdidas.motivos.map(m => {
+      const pct = Math.max(6, Math.round((m.count / maxM) * 100));
+      return `<div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#334155;margin-bottom:3px">
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.motivo}</span>
+          <span style="flex-shrink:0;color:#94a3b8"><strong style="color:#dc2626">${m.count}</strong> · ${fmt(m.valor)}</span>
+        </div>
+        <div style="height:8px;background:#fee2e2;border-radius:99px;overflow:hidden"><div style="height:8px;width:${pct}%;background:#ef4444;border-radius:99px"></div></div>
+      </div>`;
+    }).join("") + `</div>`;
   }
 
   const cartera = `<p style="margin:0;font-size:13px;color:#334155">Pipeline activo hoy: <strong>${fmt(d.pipeline.valor)}</strong> en <strong>${d.pipeline.count}</strong> oportunidad(es).</p>
