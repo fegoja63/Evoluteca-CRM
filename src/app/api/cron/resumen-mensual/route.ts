@@ -9,7 +9,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 const BASE_URL = process.env.NEXTAUTH_URL ?? "https://evoluteca-crm-six.vercel.app";
-const LOGO_FGJ = "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg";
+// Logo del producto (Evoluteca CRM), no el de Evoluteca Consulting.
+const LOGO_CRM = "https://evoluteca-crm-six.vercel.app/Logo%20Evoluteca%20CRM.png";
 
 const ETAPAS_ACTIVAS: EtapaOportunidad[] = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];
 // Nombre y color por defecto de cada etapa activa (el nombre puede sobreescribirse
@@ -28,13 +29,12 @@ function fmt(v: number | null | undefined) {
 function wrapper(inner: string) {
   return `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#1e293b">${inner}</div>`;
 }
-function header(subtitulo: string, logoUrl?: string | null) {
-  return `<div style="background:#1e3a8a;padding:20px 24px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between">
-    <div>
-      <h2 style="color:white;margin:0;font-size:18px">Evoluteca CRM</h2>
-      <p style="color:#93c5fd;margin:4px 0 0;font-size:13px">${subtitulo}</p>
-    </div>
-    <img src="${logoUrl || LOGO_FGJ}" alt="Logo" style="height:48px;width:auto;border-radius:8px;object-fit:contain;background:white;padding:4px" />
+function header(subtitulo: string) {
+  // Logo del CRM centrado arriba (sobre tarjeta blanca para que se lea en el azul)
+  // y el subtítulo debajo a todo el ancho, para que el mes nunca quede cortado.
+  return `<div style="background:#1e3a8a;padding:24px 24px 20px;border-radius:12px 12px 0 0;text-align:center">
+    <img src="${LOGO_CRM}" alt="Evoluteca CRM" style="height:56px;width:auto;max-width:100%;object-fit:contain;background:white;border-radius:10px;padding:8px 16px" />
+    <p style="color:#bfdbfe;margin:14px 0 0;font-size:14px;font-weight:500">${subtitulo}</p>
   </div>`;
 }
 function btn(href: string, label: string) {
@@ -312,7 +312,7 @@ function render(nombre: string, tenant: TenantMin, d: Datos): { subject: string;
     vendedores = `<p style="margin:0;font-size:12px;color:#94a3b8">Sin ventas asignadas este mes.</p>`;
   }
 
-  const html = wrapper(`${header(`Resumen mensual · ${mesTitulo}`, tenant.logoUrl)}
+  const html = wrapper(`${header(`Resumen mensual · ${mesTitulo}`)}
     <div style="background:#f8fafc;padding:22px 24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
       <p style="font-size:14px;color:#64748b;margin:0 0 14px">Hola <strong>${nombre}</strong>, este es el resumen de <strong>${tenant.nombre}</strong> en ${d.label}:</p>
       ${kpis}
