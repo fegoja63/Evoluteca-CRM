@@ -360,6 +360,23 @@ export async function GET(req: Request) {
     resend = new Resend(process.env.RESEND_API_KEY);
   }
 
+  // Modo PRUEBA: con ?to=<correo> se envía el resumen de UN tenant a ESE ÚNICO
+  // correo (nunca a la lista de admin/gerente). Sirve para revisar cómo llega el
+  // correo sin disparar el envío masivo. Tenant configurable con ?tenant=<slug>.
+  const to = searchParams.get("to");
+  if (to) {
+    const slug = searchParams.get("tenant") || "demo-evoluteca";
+    const tenant = await prisma.tenant.findFirst({ where: { slug }, select: { id: true, nombre: true, emailsActivos: true, logoUrl: true } });
+    if (!tenant) return NextResponse.json({ error: `Tenant '${slug}' no encontrado` }, { status: 404 });
+    const d = await construirDatos(tenant);
+    if (!d) return NextResponse.json({ test: true, vacio: true, mensaje: `El tenant '${slug}' no tiene datos para resumir el mes cerrado.` });
+    const { subject, html } = render("equipo", tenant, d);
+    if (dryRun) return NextResponse.json({ test: true, dryRun: true, to, tenant: slug });
+    const { error } = await resend!.emails.send({ from: "Evoluteca CRM <noreply@evoluteca.com>", to, subject: `[PRUEBA] ${subject}`, html });
+    if (error) return NextResponse.json({ test: true, error: error.message }, { status: 502 });
+    return NextResponse.json({ test: true, enviado: true, to, tenant: slug });
+  }
+
   const tenants = await prisma.tenant.findMany({
     where: { activo: true },
     select: { id: true, nombre: true, emailsActivos: true, logoUrl: true },

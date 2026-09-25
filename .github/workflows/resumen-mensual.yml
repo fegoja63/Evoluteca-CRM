@@ -20,7 +20,16 @@ name: Resumen mensual CRM
 on:
   schedule:
     - cron: "0 12 1 * *"
-  workflow_dispatch: {} # permite dispararlo a mano para probar
+  workflow_dispatch:
+    inputs:
+      test_email:
+        description: "Correo de PRUEBA: si se indica, envía SOLO a este correo (no el envío masivo)."
+        required: false
+        default: ""
+      test_tenant:
+        description: "Slug del tenant para la prueba."
+        required: false
+        default: "demo-evoluteca"
 
 jobs:
   resumen-mensual:
@@ -30,14 +39,25 @@ jobs:
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           CRM_URL: ${{ vars.CRM_URL || 'https://evoluteca-crm-six.vercel.app' }}
+          TEST_EMAIL: ${{ inputs.test_email }}
+          TEST_TENANT: ${{ inputs.test_tenant }}
         run: |
           if [ -z "$CRON_SECRET" ]; then
             echo "Falta el secret CRON_SECRET en el repositorio." >&2
             exit 1
           fi
-          codigo=$(curl -sS -o respuesta.json -w "%{http_code}" \
-            -H "Authorization: Bearer $CRON_SECRET" \
-            "$CRM_URL/api/cron/resumen-mensual")
+          if [ -n "$TEST_EMAIL" ]; then
+            echo "Modo PRUEBA → solo a $TEST_EMAIL (tenant: ${TEST_TENANT:-demo-evoluteca})"
+            codigo=$(curl -sS -G -o respuesta.json -w "%{http_code}" \
+              -H "Authorization: Bearer $CRON_SECRET" \
+              --data-urlencode "to=$TEST_EMAIL" \
+              --data-urlencode "tenant=${TEST_TENANT:-demo-evoluteca}" \
+              "$CRM_URL/api/cron/resumen-mensual")
+          else
+            codigo=$(curl -sS -o respuesta.json -w "%{http_code}" \
+              -H "Authorization: Bearer $CRON_SECRET" \
+              "$CRM_URL/api/cron/resumen-mensual")
+          fi
           echo "HTTP $codigo"
           cat respuesta.json || true
           echo ""
