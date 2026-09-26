@@ -56,22 +56,35 @@ function kpi(valor: string, label: string, color = "#1e293b") {
     <p style="margin:2px 0 0;font-size:11px;color:#94a3b8">${label}</p>
   </div>`;
 }
-// Barra de cumplimiento (0–100+%).
-function barraCumplimiento(pct: number | null, ganado: number, meta: number | null): string {
+// URL de un medidor (gauge tipo velocímetro) renderizado como imagen PNG por
+// QuickChart. Se usa imagen porque los clientes de correo (Gmail, Outlook) no
+// renderizan SVG ni rotaciones CSS; una imagen sí se ve en todos.
+function medidorUrl(pct: number, color: string): string {
+  const val = Math.max(0, Math.min(100, pct)); // el arco llena hasta 100
+  const config = {
+    type: "radialGauge",
+    data: { datasets: [{ data: [val], backgroundColor: color }] },
+    options: {
+      trackColor: "#e5e7eb",
+      roundedCorners: true,
+      centerPercentage: 74,
+      centerArea: { text: `${pct}%`, fontColor: color, fontSize: 26 },
+    },
+  };
+  return `https://quickchart.io/chart?bkg=white&w=150&h=150&c=${encodeURIComponent(JSON.stringify(config))}`;
+}
+
+// Medidor de cumplimiento (0–100+%). Imagen del velocímetro + el dato en texto
+// como respaldo (por si el cliente de correo tiene las imágenes bloqueadas).
+function medidorCumplimiento(pct: number | null, ganado: number, meta: number | null): string {
   if (meta == null || meta <= 0) {
-    return `<p style="margin:0;font-size:12px;color:#94a3b8">Sin meta definida para este período.</p>`;
+    return `<p style="margin:8px 0;font-size:12px;color:#94a3b8">Sin meta definida para este período.</p>`;
   }
   const p = pct ?? 0;
-  const ancho = Math.max(2, Math.min(100, p));
   const color = p >= 100 ? "#10b981" : p >= 70 ? "#f59e0b" : "#ef4444";
-  return `<div>
-    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
-      <span style="font-size:20px;font-weight:800;color:${color}">${p}%</span>
-      <span style="font-size:11px;color:#94a3b8">${fmt(ganado)} de ${fmt(meta)}</span>
-    </div>
-    <div style="height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden">
-      <div style="height:8px;width:${ancho}%;background:${color};border-radius:99px"></div>
-    </div>
+  return `<div style="text-align:center">
+    <img src="${medidorUrl(p, color)}" alt="${p}%" width="124" height="124" style="display:block;margin:0 auto" />
+    <p style="margin:4px 0 0;font-size:11px;color:#64748b"><strong style="color:${color}">${p}%</strong> · ${fmt(ganado)} de ${fmt(meta)}</p>
   </div>`;
 }
 
@@ -234,14 +247,14 @@ function render(nombre: string, tenant: TenantMin, d: Datos): { subject: string;
     ${kpi(`${d.tasaCierre}%`, "Tasa de cierre")}
   </div>`;
 
-  const cumplimiento = `<div style="display:flex;gap:12px">
+  const cumplimiento = `<div style="display:flex;gap:12px;text-align:center">
     <div style="flex:1">
-      <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:#64748b">Cuota del mes</p>
-      ${barraCumplimiento(d.cumpMes, d.ganadasMes.valor, d.metaMes)}
+      <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#64748b">Cuota del mes</p>
+      ${medidorCumplimiento(d.cumpMes, d.ganadasMes.valor, d.metaMes)}
     </div>
     <div style="flex:1">
-      <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:#64748b">Año acumulado</p>
-      ${barraCumplimiento(d.cumpAnio, d.valorGanadoAnio, d.metaAnio)}
+      <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#64748b">Año acumulado</p>
+      ${medidorCumplimiento(d.cumpAnio, d.valorGanadoAnio, d.metaAnio)}
     </div>
   </div>`;
 
@@ -316,7 +329,7 @@ function render(nombre: string, tenant: TenantMin, d: Datos): { subject: string;
     <div style="background:#f8fafc;padding:22px 24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
       <p style="font-size:14px;color:#64748b;margin:0 0 14px">Hola <strong>${nombre}</strong>, este es el resumen de <strong>${tenant.nombre}</strong> en ${d.label}:</p>
       ${kpis}
-      ${seccion("🎯 Cumplimiento de cuota", cumplimiento, "#eef2ff")}
+      ${seccion("🎯 Cumplimiento de cuota", cumplimiento, "#ffffff")}
       ${seccion("🏆 Ventas del mes", ventas, "#f0fdf4")}
       ${seccion("📉 Pérdidas del mes", perdidasHtml, "#fef2f2")}
       ${seccion("📊 Pipeline por etapa", pipelineHtml, "#f5f3ff")}
