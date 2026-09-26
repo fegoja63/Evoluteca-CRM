@@ -249,11 +249,11 @@ function render(nombre: string, tenant: TenantMin, d: Datos): { subject: string;
 
   const cumplimiento = `<div style="display:flex;gap:12px;text-align:center">
     <div style="flex:1">
-      <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#64748b">Cuota del mes</p>
+      <p style="margin:0 0 6px;font-size:12px;font-weight:800;color:#1e293b">Cuota del mes</p>
       ${medidorCumplimiento(d.cumpMes, d.ganadasMes.valor, d.metaMes)}
     </div>
     <div style="flex:1">
-      <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#64748b">Año acumulado</p>
+      <p style="margin:0 0 6px;font-size:12px;font-weight:800;color:#1e293b">Año acumulado</p>
       ${medidorCumplimiento(d.cumpAnio, d.valorGanadoAnio, d.metaAnio)}
     </div>
   </div>`;
