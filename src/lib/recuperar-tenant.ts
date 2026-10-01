@@ -81,25 +81,38 @@ function modelosARecuperar(modelos: readonly Modelo[]): Modelo[] {
   return modelos.filter(m => incluidos.has(m.name));
 }
 
+/** De dónde salen las filas de cada modelo del respaldo. */
+export type FuenteRespaldo = (modelo: Prisma.DMMF.Model) => Fila[];
+
+/** Respaldo en carpeta (scripts/backup-db.ts o descifrar-respaldo.ts): un <Modelo>.json por tabla. */
+export function fuenteCarpeta(carpeta: string): FuenteRespaldo {
+  return (m) => {
+    const archivo = path.join(carpeta, `${m.name}.json`);
+    return fs.existsSync(archivo) ? JSON.parse(fs.readFileSync(archivo, "utf8")) : [];
+  };
+}
+
+/** Respaldo del cron ya descifrado ({ datos: { <tabla>: filas[] } }): indexado por nombre de TABLA. */
+export function fuenteVolcado(datos: Record<string, Fila[]>): FuenteRespaldo {
+  return (m) => datos[m.dbName ?? m.name] ?? [];
+}
+
 export async function recuperarTenant(
   prisma: PrismaClient,
-  carpeta: string,
+  respaldo: string | FuenteRespaldo,
   tenantId: string,
   opciones: { aplicar: boolean },
 ): Promise<ResultadoRecuperacion> {
   const modelos = modelosARecuperar(Prisma.dmmf.datamodel.models);
   const nombres = new Set(modelos.map(m => m.name));
+  const leer = typeof respaldo === "string" ? fuenteCarpeta(respaldo) : respaldo;
 
   // 1. Filas del tenant en el respaldo. Las que tienen tenantId se filtran por
   //    él; las demás, por pertenecer a un padre ya incluido (iterando hasta
   //    que no se agregue nada, sin depender del orden de los modelos).
   const filasDe = new Map<string, Fila[]>();
   const idsDe = new Map<string, Set<unknown>>();
-  const leer = (nombre: string): Fila[] => {
-    const archivo = path.join(carpeta, `${nombre}.json`);
-    return fs.existsSync(archivo) ? JSON.parse(fs.readFileSync(archivo, "utf8")) : [];
-  };
-  const crudo = new Map(modelos.map(m => [m.name, leer(m.name)]));
+  const crudo = new Map(modelos.map(m => [m.name, leer(m)]));
 
   for (const m of modelos) {
     if (m.fields.some(f => f.name === "tenantId")) {
