@@ -1,0 +1,59 @@
+# Recupera los datos comerciales de UN tenant desde un respaldo diario de
+# Vercel Blob (ver src/app/api/cron/recuperar-tenant/route.ts). SOLO agrega lo
+# que falta: nunca borra ni modifica.
+#
+# Se corre a mano (Actions → "Recuperar tenant" → Run workflow), en este orden:
+#   1. accion=listar   → qué respaldos hay
+#   2. accion=simular  + fecha → qué recuperaría (no escribe nada)
+#   3. accion=aplicar  + fecha → lo agrega de verdad
+#
+# Usa el mismo Secret CRON_SECRET de los demás workflows.
+
+name: Recuperar tenant
+
+on:
+  workflow_dispatch:
+    inputs:
+      tenant:
+        description: "Slug del tenant a recuperar"
+        required: true
+        default: "prueba-zyynj"
+      accion:
+        description: "listar / simular / aplicar"
+        required: true
+        type: choice
+        options: [listar, simular, aplicar]
+        default: listar
+      fecha:
+        description: "Día del respaldo (AAAA-MM-DD). No aplica para listar."
+        required: false
+        default: ""
+
+jobs:
+  recuperar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar al endpoint de recuperación
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          CRM_URL: ${{ vars.CRM_URL || 'https://evoluteca-crm-six.vercel.app' }}
+          TENANT: ${{ inputs.tenant }}
+          ACCION: ${{ inputs.accion }}
+          FECHA: ${{ inputs.fecha }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "Falta el secret CRON_SECRET en el repositorio." >&2
+            exit 1
+          fi
+          args=(--data-urlencode "tenant=$TENANT")
+          case "$ACCION" in
+            listar)  args+=(--data-urlencode "listar=1") ;;
+            simular) args+=(--data-urlencode "fecha=$FECHA") ;;
+            aplicar) args+=(--data-urlencode "fecha=$FECHA" --data-urlencode "aplicar=1" --data-urlencode "confirmar=$TENANT") ;;
+          esac
+          codigo=$(curl -sS -G -o respuesta.json -w "%{http_code}" --max-time 320 \
+            -H "Authorization: Bearer $CRON_SECRET" "${args[@]}" \
+            "$CRM_URL/api/cron/recuperar-tenant")
+          echo "HTTP $codigo"
+          python3 -m json.tool respuesta.json || cat respuesta.json
+          [ "$codigo" -ge 200 ] && [ "$codigo" -lt 300 ]

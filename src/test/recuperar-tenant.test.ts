@@ -9,7 +9,7 @@ import os from "os";
 import path from "path";
 import { A, B, sembrar } from "./sembrar";
 import { prisma, sinAislamiento } from "./prisma-vigilado";
-import { recuperarTenant as recuperarSinGuardia } from "@/lib/recuperar-tenant";
+import { recuperarTenant as recuperarSinGuardia, fuenteVolcado } from "@/lib/recuperar-tenant";
 
 // El script busca por id en TODA la base a propósito: un id que ya exista,
 // aunque sea en otro tenant, no se debe reinsertar.
@@ -102,5 +102,23 @@ describe("recuperar un tenant desde un respaldo", () => {
     for (const modelo of ["Tenant", "Usuario", "Producto", "MetaVenta", "EtapaPipeline", "RegistroAuditoria"]) {
       expect(r.modelos[modelo]).toBeUndefined();
     }
+  });
+
+  it("también desde el respaldo del servidor (indexado por nombre de tabla)", { timeout: 240_000 }, async () => {
+    const antesA = await conteo(A.tenantId);
+    // Como lo arma api/cron/respaldo: { <tabla>: filas[] }, pasado por JSON.
+    const datos: Record<string, Record<string, unknown>[]> = {};
+    for (const m of Prisma.dmmf.datamodel.models) {
+      const tabla = m.dbName ?? m.name;
+      datos[tabla] = JSON.parse(JSON.stringify(await prisma.$queryRawUnsafe(`SELECT * FROM "${tabla}"`), (_k, v) =>
+        typeof v === "bigint" ? v.toString()
+          : v && typeof v === "object" && typeof (v as { toFixed?: unknown }).toFixed === "function" ? (v as { toFixed: () => string }).toFixed()
+          : v));
+    }
+
+    await borrarComoElBoton(A.tenantId);
+    const r = await recuperarTenant(prisma as unknown as PrismaClient, fuenteVolcado(datos), A.tenantId, { aplicar: true });
+    expect(Object.values(r.modelos).flatMap(m => m.fallidas)).toEqual([]);
+    expect(await conteo(A.tenantId)).toEqual(antesA);
   });
 });
