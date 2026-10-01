@@ -4,19 +4,23 @@
  *
  * USO
  *   # 1. Simulación (no escribe nada): qué hay en el respaldo y qué falta en el destino
- *   node --env-file=<archivo.env> scripts/recuperar-tenant.ts <carpeta-respaldo> <slug-del-tenant>
+ *   node --env-file=<archivo.env> scripts/recuperar-tenant.ts <carpeta-o-archivo.json.gz> <slug-del-tenant>
  *
  *   # 2. Aplicar de verdad
- *   node --env-file=<archivo.env> scripts/recuperar-tenant.ts <carpeta-respaldo> <slug> --aplicar
+ *   node --env-file=<archivo.env> scripts/recuperar-tenant.ts <carpeta-o-archivo.json.gz> <slug> --aplicar
  *
- * La carpeta es la que deja scripts/descifrar-respaldo.ts (o scripts/backup-db.ts).
+ * El respaldo puede ser:
+ *   - una carpeta (la que deja scripts/descifrar-respaldo.ts o scripts/backup-db.ts), o
+ *   - un archivo .json.gz SIN cifrar: el adjunto del correo de respaldo diario
+ *     de antes del 2026-09-16 (cuando aún no se cifraba ni se subía a Blob).
  * El destino es DATABASE_URL del .env que se pase. Sobre PRODUCCIÓN, --aplicar
  * exige además CONFIRMO_RECUPERAR=<slug>, para que no se pueda hacer por accidente.
  */
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import fs from "fs";
 import path from "path";
-import { recuperarTenant } from "../src/lib/recuperar-tenant.ts";
+import { gunzipSync } from "node:zlib";
+import { recuperarTenant, fuenteCarpeta, fuenteVolcado, type FuenteRespaldo } from "../src/lib/recuperar-tenant.ts";
 
 const SERVIDOR_PRODUCCION = "ep-holy-leaf";
 
@@ -32,8 +36,23 @@ const destino = process.env.DATABASE_URL ?? "";
 const servidor = destino.split("@")[1]?.split(".")[0] ?? "(desconocido)";
 const esProduccion = destino.includes(SERVIDOR_PRODUCCION);
 
+/** Abre el respaldo: carpeta, o .json.gz del correo ({ fecha, datos: { <tabla>: filas } }). */
+function abrirRespaldo(origen: string): { fuente: FuenteRespaldo; fecha: string } {
+  if (fs.statSync(origen).isDirectory()) {
+    let fecha = "";
+    try { fecha = JSON.parse(fs.readFileSync(path.join(origen, "_resumen.json"), "utf8")).fecha ?? ""; } catch { /* opcional */ }
+    return { fuente: fuenteCarpeta(origen), fecha };
+  }
+  const volcado = JSON.parse(gunzipSync(fs.readFileSync(origen)).toString("utf8")) as {
+    fecha: string;
+    datos: Record<string, Record<string, unknown>[]>;
+  };
+  return { fuente: fuenteVolcado(volcado.datos), fecha: volcado.fecha };
+}
+
 async function main() {
-  const tenants = JSON.parse(fs.readFileSync(path.join(carpeta, "Tenant.json"), "utf8")) as { id: string; slug: string; nombre: string }[];
+  const { fuente, fecha } = abrirRespaldo(carpeta);
+  const tenants = fuente(Prisma.dmmf.datamodel.models.find(m => m.name === "Tenant")!) as { id: string; slug: string; nombre: string }[];
   const enRespaldo = tenants.find(t => t.slug === slug);
   if (!enRespaldo) {
     console.error(`El tenant '${slug}' no está en el respaldo.`);
@@ -52,15 +71,12 @@ async function main() {
     process.exit(1);
   }
 
-  let fecha = "";
-  try { fecha = JSON.parse(fs.readFileSync(path.join(carpeta, "_resumen.json"), "utf8")).fecha ?? ""; } catch { /* opcional */ }
-
   console.log(`Respaldo : ${carpeta}${fecha ? ` (del ${fecha})` : ""}`);
   console.log(`Destino  : ${servidor}${esProduccion ? "  ← PRODUCCIÓN" : ""}`);
   console.log(`Tenant   : ${enRespaldo.nombre} (${slug})`);
   console.log(`Modo     : ${aplicar ? "APLICAR (agrega lo que falta)" : "SIMULACIÓN (no escribe nada)"}\n`);
 
-  const r = await recuperarTenant(prisma, carpeta, enRespaldo.id, { aplicar });
+  const r = await recuperarTenant(prisma, fuente, enRespaldo.id, { aplicar });
 
   console.log("Tabla".padEnd(22) + "Respaldo".padStart(10) + "Ya están".padStart(10) + (aplicar ? "Insertadas".padStart(12) + "Fallidas".padStart(10) : "Faltan".padStart(10)));
   for (const [nombre, m] of Object.entries(r.modelos).sort()) {
