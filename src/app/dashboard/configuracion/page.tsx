@@ -127,6 +127,8 @@ export default function ConfiguracionPage() {
 
   const esAdmin = session?.user?.rol === "ADMINISTRADOR";
   const [limpiando, setLimpiando] = useState(false);
+  const [mostrarLimpiar, setMostrarLimpiar] = useState(false);
+  const [confirmaLimpiar, setConfirmaLimpiar] = useState("");
   const [apiKeyLeads, setApiKeyLeads] = useState<string | null>(null);
   const [generandoKey, setGenerandoKey] = useState(false);
   const [keyCopiada, setKeyCopiada] = useState(false);
@@ -207,16 +209,29 @@ export default function ConfiguracionPage() {
     setTimeout(() => setKeyCopiada(false), 2000);
   }
 
+  // Escribir el nombre de la empresa obliga a leer lo que se va a hacer; dos
+  // "Aceptar" seguidos se dan sin pensar.
+  const nombreConfirmaLimpiar =
+    !!tenantNombreVista &&
+    confirmaLimpiar.trim().replace(/\s+/g, " ").toLowerCase() ===
+      tenantNombreVista.trim().replace(/\s+/g, " ").toLowerCase();
+
   async function handleLimpiar() {
-    if (!confirm("¿Estás seguro? Esto borrará TODAS las empresas, contactos, oportunidades, actividades, cotizaciones, funciones y espectadores. Tu usuario y configuración se conservan.")) return;
-    if (!confirm("Segunda confirmación: ¿borrar todos los datos de prueba?")) return;
+    if (!nombreConfirmaLimpiar) return;
     setLimpiando(true);
-    const res = await fetch("/api/configuracion/limpiar", { method: "DELETE" });
+    const res = await fetch("/api/configuracion/limpiar", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ confirmacion: confirmaLimpiar }),
+    });
     setLimpiando(false);
     if (!res.ok) {
-      toast.error("No se pudieron eliminar los datos. Revisa tu conexión e inténtalo de nuevo.");
+      const data = await res.json().catch(() => null);
+      toast.error(data?.error ?? "No se pudieron eliminar los datos. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
+    setConfirmaLimpiar("");
+    setMostrarLimpiar(false);
     toast.success("Datos eliminados. El CRM está limpio.");
   }
 
@@ -769,16 +784,47 @@ export default function ConfiguracionPage() {
         <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5">
           <h2 className="text-sm font-semibold text-red-800 mb-1">Zona de peligro</h2>
           <p className="text-xs text-red-600 mb-4">
-            Borra todos los datos del CRM (empresas, contactos, oportunidades, cotizaciones, actividades, funciones y espectadores). Tu usuario y configuración se conservan. Útil para limpiar datos de prueba antes de empezar en producción.
+            Borra <strong>definitivamente</strong> todos los datos del CRM (empresas, contactos, oportunidades, cotizaciones, actividades, funciones y espectadores). No pasan por la papelera y <strong>no se pueden recuperar</strong> desde el CRM. Tu usuario, productos, metas y configuración se conservan.
           </p>
-          <button
-            onClick={handleLimpiar}
-            disabled={limpiando}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-red-400 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
-          >
-            <IconTrash size={16} stroke={1.75} />
-            {limpiando ? "Limpiando..." : "Limpiar todos los datos de prueba"}
-          </button>
+          {!mostrarLimpiar ? (
+            <button
+              onClick={() => setMostrarLimpiar(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-red-400 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+            >
+              <IconTrash size={16} stroke={1.75} />
+              Borrar todos los datos del CRM…
+            </button>
+          ) : (
+            <div className="space-y-3">
+              <label className="block text-xs text-red-800">
+                Para confirmar, escribe el nombre de tu empresa: <strong>{tenantNombreVista}</strong>
+                <input
+                  value={confirmaLimpiar}
+                  onChange={(e) => setConfirmaLimpiar(e.target.value)}
+                  placeholder={tenantNombreVista}
+                  autoComplete="off"
+                  className="mt-1.5 block w-full max-w-sm rounded-xl border border-red-300 bg-white px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:outline-none"
+                />
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleLimpiar}
+                  disabled={limpiando || !nombreConfirmaLimpiar}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-40"
+                >
+                  <IconTrash size={16} stroke={1.75} />
+                  {limpiando ? "Borrando..." : "Borrar definitivamente"}
+                </button>
+                <button
+                  onClick={() => { setMostrarLimpiar(false); setConfirmaLimpiar(""); }}
+                  disabled={limpiando}
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
