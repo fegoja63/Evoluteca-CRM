@@ -66,7 +66,9 @@ function medidorUrl(pct: number, color: string): string {
     data: { datasets: [{ data: [val], backgroundColor: color }] },
     options: {
       trackColor: "#e5e7eb",
-      roundedCorners: true,
+      // Con 0% el arco redondeado se dibuja como un punto suelto arriba; sin
+      // esquinas redondeadas el medidor queda vacío, como debe ser.
+      roundedCorners: val > 0,
       centerPercentage: 74,
       centerArea: { text: `${pct}%`, fontColor: color, fontSize: 26 },
     },
