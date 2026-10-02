@@ -2,11 +2,11 @@
 // el cron /api/cron/demo-semanal). Útil para poblar la primera vez o para probar.
 //
 // Uso (desarrollo, base por defecto de .env):
-//   node --env-file=.env scripts/refrescar-demo-semanal.ts
-//   node --env-file=.env scripts/refrescar-demo-semanal.ts demo-evoluteca
+//   npx tsx --env-file=.env scripts/refrescar-demo-semanal.ts
+//   npx tsx --env-file=.env scripts/refrescar-demo-semanal.ts demo-evoluteca
 //
 // Para producción, apuntar DATABASE_URL a la rama "production" de Neon:
-//   node --env-file=.env.produccion.ref scripts/refrescar-demo-semanal.ts demo-evoluteca
+//   npx tsx --env-file=.env.produccion.ref scripts/refrescar-demo-semanal.ts demo-evoluteca
 
 import { PrismaClient } from "@prisma/client";
 import { refrescarDemoSemanal } from "../src/lib/demo-semanal.ts";
@@ -21,6 +21,7 @@ async function main() {
   console.log(`  Actividades: +${r.actividadesCreadas} (borró ${r.actividadesBorradas} de relleno anterior)`);
   console.log(`  Propuestas:  +${r.propuestasCreadas} (borró ${r.propuestasBorradas} de relleno anterior)`);
   console.log(`  Ganados mes: +${r.ganadosCreados} (borró ${r.ganadosBorrados} de relleno anterior)`);
+  console.log(`  Historia:    +${r.historiaGanadosCreados ?? 0} ganados y +${r.historiaPerdidasCreadas ?? 0} perdidos en meses anteriores sin datos`);
 }
 
 main().catch(e => { console.error(e); process.exit(1); }).finally(() => prisma.$disconnect());

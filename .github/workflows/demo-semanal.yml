@@ -1,4 +1,4 @@
-# Refresca la actividad de la cuenta demo una vez por semana, para que quien
+# Refresca la actividad de la cuenta demo cada semana y al iniciar cada mes, para que quien
 # entra a probar el CRM lo vea "vivo" (llamadas, reuniones, correos, propuestas
 # de la semana) y no en ceros.
 #
@@ -8,7 +8,10 @@
 # lógica vive en /api/cron/demo-semanal (src/lib/demo-semanal.ts).
 #
 # Horario: lunes 11:00 UTC = 6:00 a.m. en Bogotá (UTC-5), antes de que empiece la
-# jornada. Los cron de GitHub corren en UTC y pueden retrasarse unos minutos; para
+# jornada. Además el DÍA 1 de cada mes a las 00:15 de Bogotá (05:15 UTC): sin esa
+# corrida, del día 1 al primer lunes el demo mostraba "$0 ganado este mes". Los
+# ganados de meses pasados se conservan (son la historia del demo), así que esa
+# corrida no le quita nada al resumen mensual del mes que acaba de cerrar. Los cron de GitHub corren en UTC y pueden retrasarse unos minutos; para
 # un refresco semanal es irrelevante. Si el repo queda 60 días sin actividad,
 # GitHub desactiva el schedule (se reactiva con un push o desde la pestaña Actions).
 #
@@ -20,6 +23,7 @@ name: Refrescar demo CRM
 on:
   schedule:
     - cron: "0 11 * * 1"
+    - cron: "15 5 1 * *"
   workflow_dispatch: {} # permite dispararlo a mano (poblar la primera vez / probar)
 
 jobs:
