@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { descifrar, hayClaveRespaldo } from "@/lib/respaldo-cifrado";
 import { recuperarTenant, fuenteVolcado } from "@/lib/recuperar-tenant";
 import { registrarAuditoria } from "@/lib/auditoria";
+import { listarRespaldosCorreo, descargarRespaldoCorreo } from "@/lib/respaldo-correo";
 
 /**
  * Recupera los datos comerciales de UN tenant desde un respaldo diario de
@@ -23,6 +24,10 @@ import { registrarAuditoria } from "@/lib/auditoria";
  *   ?tenant=<slug>&listar=1                      lista los respaldos disponibles
  *   ?tenant=<slug>&fecha=AAAA-MM-DD               simulación con el respaldo de ese día
  *   ?tenant=<slug>&fecha=…&aplicar=1&confirmar=<slug>   aplica de verdad
+ *
+ * Con origen=correo usa en cambio los respaldos que llegaban por CORREO (adjunto
+ * .json.gz sin cifrar, hasta el 2026-09-16), leídos por IMAP con las
+ * credenciales de Gmail que ya tiene el servidor (src/lib/respaldo-correo.ts).
  */
 
 export const maxDuration = 300;
@@ -39,52 +44,71 @@ export async function GET(req: Request) {
   if (secret !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
-  if (!process.env.BLOB_READ_WRITE_TOKEN && !process.env.BLOB_STORE_ID) {
-    return NextResponse.json({ error: "Falta conectar el Blob store (BLOB_STORE_ID o BLOB_READ_WRITE_TOKEN)" }, { status: 503 });
-  }
-  if (!hayClaveRespaldo()) {
-    return NextResponse.json({ error: "Falta RESPALDO_CLAVE válida" }, { status: 503 });
+  const { searchParams } = new URL(req.url);
+  const desdeCorreo = searchParams.get("origen") === "correo";
+  if (!desdeCorreo) {
+    if (!process.env.BLOB_READ_WRITE_TOKEN && !process.env.BLOB_STORE_ID) {
+      return NextResponse.json({ error: "Falta conectar el Blob store (BLOB_STORE_ID o BLOB_READ_WRITE_TOKEN)" }, { status: 503 });
+    }
+    if (!hayClaveRespaldo()) {
+      return NextResponse.json({ error: "Falta RESPALDO_CLAVE válida" }, { status: 503 });
+    }
   }
 
-  const { searchParams } = new URL(req.url);
   const slug = searchParams.get("tenant") ?? "";
   const tenant = slug ? await prisma.tenant.findFirst({ where: { slug }, select: { id: true, nombre: true } }) : null;
   if (!tenant) return NextResponse.json({ error: `Tenant '${slug}' no encontrado` }, { status: 404 });
 
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
-  const { blobs } = await list({ prefix: PREFIJO, token, limit: 1000 });
-  const respaldos = blobs
-    .map(b => ({ url: b.url, pathname: b.pathname, subido: new Date(b.uploadedAt).toISOString(), tamanoMb: Number((b.size / 1048576).toFixed(2)) }))
-    .sort((a, b) => b.subido.localeCompare(a.subido));
-
-  if (searchParams.get("listar") === "1") {
-    return NextResponse.json({
-      tenant: { slug, nombre: tenant.nombre },
-      respaldos: respaldos.map(({ pathname, subido, tamanoMb }) => ({ pathname, subido, tamanoMb })),
-    });
-  }
-
+  const listar = searchParams.get("listar") === "1";
   const fecha = searchParams.get("fecha") ?? "";
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+  if (!listar && !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
     return NextResponse.json({ error: "Falta fecha=AAAA-MM-DD (usa listar=1 para ver las disponibles)" }, { status: 400 });
   }
-  const elegido = respaldos.find(r => r.pathname.includes(`respaldo-evoluteca-${fecha}`));
-  if (!elegido) {
-    return NextResponse.json({ error: `No hay respaldo del ${fecha}`, disponibles: respaldos.map(r => r.pathname) }, { status: 404 });
-  }
-
   const aplicar = searchParams.get("aplicar") === "1";
   if (aplicar && searchParams.get("confirmar") !== slug) {
     return NextResponse.json({ error: `Para aplicar, agrega confirmar=${slug}` }, { status: 400 });
   }
 
-  // Descarga → descifra → descomprime, todo en memoria.
-  const res = await fetch(elegido.url, { cache: "no-store" });
-  if (!res.ok) return NextResponse.json({ error: `No se pudo descargar el respaldo (HTTP ${res.status})` }, { status: 502 });
-  const volcado = JSON.parse(gunzipSync(descifrar(Buffer.from(await res.arrayBuffer()))).toString("utf8")) as {
-    fecha: string;
-    datos: Record<string, Record<string, unknown>[]>;
-  };
+  let volcado: { fecha: string; datos: Record<string, Record<string, unknown>[]> };
+  let origenDescrito: string;
+
+  if (desdeCorreo) {
+    if (listar) {
+      const r = await listarRespaldosCorreo(new Date("2026-08-01T00:00:00Z"));
+      return NextResponse.json({ tenant: { slug, nombre: tenant.nombre }, origen: "correo", ...r });
+    }
+    let encontrado: Awaited<ReturnType<typeof descargarRespaldoCorreo>>;
+    try {
+      encontrado = await descargarRespaldoCorreo(fecha);
+    } catch (e) {
+      return NextResponse.json({ error: `No se pudo leer el correo: ${e instanceof Error ? e.message : String(e)}` }, { status: 502 });
+    }
+    if (!encontrado) return NextResponse.json({ error: `No hay correo de respaldo del ${fecha} con adjunto .json.gz` }, { status: 404 });
+    volcado = JSON.parse(gunzipSync(encontrado.gz).toString("utf8"));
+    origenDescrito = `correo ${encontrado.cuenta}: ${encontrado.asunto}`;
+  } else {
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    const { blobs } = await list({ prefix: PREFIJO, token, limit: 1000 });
+    const respaldos = blobs
+      .map(b => ({ url: b.url, pathname: b.pathname, subido: new Date(b.uploadedAt).toISOString(), tamanoMb: Number((b.size / 1048576).toFixed(2)) }))
+      .sort((a, b) => b.subido.localeCompare(a.subido));
+
+    if (listar) {
+      return NextResponse.json({
+        tenant: { slug, nombre: tenant.nombre },
+        respaldos: respaldos.map(({ pathname, subido, tamanoMb }) => ({ pathname, subido, tamanoMb })),
+      });
+    }
+    const elegido = respaldos.find(r => r.pathname.includes(`respaldo-evoluteca-${fecha}`));
+    if (!elegido) {
+      return NextResponse.json({ error: `No hay respaldo del ${fecha}`, disponibles: respaldos.map(r => r.pathname) }, { status: 404 });
+    }
+    // Descarga → descifra → descomprime, todo en memoria.
+    const res = await fetch(elegido.url, { cache: "no-store" });
+    if (!res.ok) return NextResponse.json({ error: `No se pudo descargar el respaldo (HTTP ${res.status})` }, { status: 502 });
+    volcado = JSON.parse(gunzipSync(descifrar(Buffer.from(await res.arrayBuffer()))).toString("utf8"));
+    origenDescrito = elegido.pathname;
+  }
 
   const r = await recuperarTenant(prisma, fuenteVolcado(volcado.datos), tenant.id, { aplicar });
 
@@ -115,7 +139,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     modo: aplicar ? "APLICADO" : "SIMULACION (no se escribió nada)",
     tenant: { slug, nombre: tenant.nombre },
-    respaldo: { pathname: elegido.pathname, fecha: volcado.fecha },
+    respaldo: { origen: origenDescrito, fecha: volcado.fecha },
     modelos,
     ...(aplicar ? { insertadas, fallidas: fallidas.slice(0, 50) } : {}),
   });
