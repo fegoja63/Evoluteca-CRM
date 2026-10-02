@@ -75,7 +75,14 @@ export async function GET(req: Request) {
   if (desdeCorreo) {
     if (listar) {
       const r = await listarRespaldosCorreo(new Date("2026-08-01T00:00:00Z"));
-      return NextResponse.json({ tenant: { slug, nombre: tenant.nombre }, origen: "correo", ...r });
+      // Sin direcciones de correo: la respuesta queda en registros públicos de Actions.
+      return NextResponse.json({
+        tenant: { slug, nombre: tenant.nombre },
+        origen: "correo",
+        cuentasRevisadas: r.cuentas.length,
+        respaldos: r.respaldos.map(({ asunto, recibido }) => ({ asunto, recibido })),
+        errores: r.errores.length,
+      });
     }
     let encontrado: Awaited<ReturnType<typeof descargarRespaldoCorreo>>;
     try {
@@ -85,7 +92,7 @@ export async function GET(req: Request) {
     }
     if (!encontrado) return NextResponse.json({ error: `No hay correo de respaldo del ${fecha} con adjunto .json.gz` }, { status: 404 });
     volcado = JSON.parse(gunzipSync(encontrado.gz).toString("utf8"));
-    origenDescrito = `correo ${encontrado.cuenta}: ${encontrado.asunto}`;
+    origenDescrito = `correo: ${encontrado.asunto}`;
   } else {
     const token = process.env.BLOB_READ_WRITE_TOKEN;
     const { blobs } = await list({ prefix: PREFIJO, token, limit: 1000 });
