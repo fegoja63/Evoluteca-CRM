@@ -28,6 +28,12 @@ on:
         description: "Día del respaldo (AAAA-MM-DD). No aplica para listar."
         required: false
         default: ""
+      origen:
+        description: "blob (respaldos cifrados, desde 2026-09-18) / correo (adjuntos .json.gz, hasta 2026-09-16)"
+        required: true
+        type: choice
+        options: [blob, correo]
+        default: blob
 
 jobs:
   recuperar:
@@ -40,12 +46,13 @@ jobs:
           TENANT: ${{ inputs.tenant }}
           ACCION: ${{ inputs.accion }}
           FECHA: ${{ inputs.fecha }}
+          ORIGEN: ${{ inputs.origen }}
         run: |
           if [ -z "$CRON_SECRET" ]; then
             echo "Falta el secret CRON_SECRET en el repositorio." >&2
             exit 1
           fi
-          args=(--data-urlencode "tenant=$TENANT")
+          args=(--data-urlencode "tenant=$TENANT" --data-urlencode "origen=$ORIGEN")
           case "$ACCION" in
             listar)  args+=(--data-urlencode "listar=1") ;;
             simular) args+=(--data-urlencode "fecha=$FECHA") ;;
