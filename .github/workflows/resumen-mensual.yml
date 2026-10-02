@@ -35,31 +35,49 @@ jobs:
   resumen-mensual:
     runs-on: ubuntu-latest
     steps:
+      # OJO: el repo es PÚBLICO y sus registros de Actions también. Ningún correo
+      # puede aparecer en ellos: el de prueba se lee del evento (no de env, que
+      # se imprime) y se enmascara; la respuesta se resume sin direcciones.
       - name: Llamar al endpoint del resumen mensual
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           CRM_URL: ${{ vars.CRM_URL || 'https://evoluteca-crm-six.vercel.app' }}
-          TEST_EMAIL: ${{ inputs.test_email }}
-          TEST_TENANT: ${{ inputs.test_tenant }}
         run: |
           if [ -z "$CRON_SECRET" ]; then
             echo "Falta el secret CRON_SECRET en el repositorio." >&2
             exit 1
           fi
+          TEST_EMAIL=$(jq -r '.inputs.test_email // ""' "$GITHUB_EVENT_PATH")
+          TEST_TENANT=$(jq -r '.inputs.test_tenant // ""' "$GITHUB_EVENT_PATH")
           if [ -n "$TEST_EMAIL" ]; then
-            echo "Modo PRUEBA → solo a $TEST_EMAIL (tenant: ${TEST_TENANT:-demo-evoluteca})"
-            codigo=$(curl -sS -G -o respuesta.json -w "%{http_code}" \
-              -H "Authorization: Bearer $CRON_SECRET" \
-              --data-urlencode "to=$TEST_EMAIL" \
-              --data-urlencode "tenant=${TEST_TENANT:-demo-evoluteca}" \
-              "$CRM_URL/api/cron/resumen-mensual")
+            echo "::add-mask::$TEST_EMAIL"
+            echo "Modo PRUEBA → solo al correo indicado (tenant: ${TEST_TENANT:-demo-evoluteca})"
+            codigo=$(curl -sS -G -o respuesta.json -w "%{http_code}"               -H "Authorization: Bearer $CRON_SECRET"               --data-urlencode "to=$TEST_EMAIL"               --data-urlencode "tenant=${TEST_TENANT:-demo-evoluteca}"               "$CRM_URL/api/cron/resumen-mensual")
           else
-            codigo=$(curl -sS -o respuesta.json -w "%{http_code}" \
-              -H "Authorization: Bearer $CRON_SECRET" \
-              "$CRM_URL/api/cron/resumen-mensual")
+            codigo=$(curl -sS -o respuesta.json -w "%{http_code}"               -H "Authorization: Bearer $CRON_SECRET"               "$CRM_URL/api/cron/resumen-mensual")
           fi
           echo "HTTP $codigo"
-          cat respuesta.json || true
-          echo ""
+          # Solo conteos: "errores" trae correos de clientes, así que se cuenta, no se imprime.
+          jq -c '{dryRun, tenants, enviados, generados, tenantsOmitidos, errores: ((.errores // []) | length), test, enviado, vacio, error}' respuesta.json 2>/dev/null || echo "(respuesta no JSON)"
           # 2xx = OK; cualquier otro código marca el run como fallido.
+          [ "$codigo" -ge 200 ] && [ "$codigo" -lt 300 ]
+
+      # Copia mensual del resumen del DEMO a quien lo revisa: el admin del demo
+      # (admin@demo-evoluteca.co) no es un buzón que alguien lea. El destino es el
+      # SECRET RESUMEN_DEMO_EMAIL (enmascarado en los registros). Solo en la
+      # corrida programada; si el secret no existe, no hace nada.
+      - name: Copia del resumen del demo
+        if: github.event_name == 'schedule'
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          CRM_URL: ${{ vars.CRM_URL || 'https://evoluteca-crm-six.vercel.app' }}
+          COPIA_EMAIL: ${{ secrets.RESUMEN_DEMO_EMAIL }}
+        run: |
+          if [ -z "$COPIA_EMAIL" ]; then
+            echo "Sin RESUMEN_DEMO_EMAIL: no se envía copia."
+            exit 0
+          fi
+          codigo=$(curl -sS -G -o copia.json -w "%{http_code}"             -H "Authorization: Bearer $CRON_SECRET"             --data-urlencode "to=$COPIA_EMAIL"             --data-urlencode "tenant=demo-evoluteca"             "$CRM_URL/api/cron/resumen-mensual")
+          echo "HTTP $codigo"
+          jq -c '{test, enviado, vacio, error}' copia.json 2>/dev/null || echo "(respuesta no JSON)"
           [ "$codigo" -ge 200 ] && [ "$codigo" -lt 300 ]
