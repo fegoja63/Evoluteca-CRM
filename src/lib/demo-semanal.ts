@@ -162,6 +162,7 @@ export type ResultadoDemoSemanal = {
   proximosPasosCreados?: number;
   propuestasCreadas?: number;
   ganadosCreados?: number;
+  metaMesCreada?: boolean;
   papeleraCreados?: number;
   actividadesBorradas?: number;
   propuestasBorradas?: number;
@@ -332,6 +333,36 @@ export async function refrescarDemoSemanal(
   });
   await prisma.oportunidad.createMany({ data: ganados });
 
+  // 4b) Meta del MES en curso. Sin ella, el aro "Meta del mes" del dashboard
+  //     desaparece cada vez que cambia el mes (el refresco llena la actividad,
+  //     pero la meta es un dato que no se regeneraba). La creamos solo si falta
+  //     —nunca pisamos una puesta a mano— tomando el valor de la meta mensual
+  //     más reciente ya configurada, para que sea coherente con el resto del
+  //     año; si no hubiera ninguna, usamos un objetivo demo por defecto.
+  const anioActual = ahora.getFullYear();
+  const mesActual = ahora.getMonth() + 1;
+  const yaHayMetaMes = await prisma.metaVenta.findFirst({
+    where: { tenantId: T, anio: anioActual, mes: mesActual },
+    select: { id: true },
+  });
+  let metaMesCreada = false;
+  if (!yaHayMetaMes) {
+    const ultimaMensual = await prisma.metaVenta.findFirst({
+      where: { tenantId: T, mes: { not: null } },
+      orderBy: [{ anio: "desc" }, { mes: "desc" }],
+      select: { valorObjetivo: true },
+    });
+    await prisma.metaVenta.create({
+      data: {
+        tenantId: T,
+        anio: anioActual,
+        mes: mesActual,
+        valorObjetivo: ultimaMensual ? ultimaMensual.valorObjetivo : 90_000_000,
+      },
+    });
+    metaMesCreada = true;
+  }
+
   // El demo muestra el módulo Postventa activo (sin tocar los demás módulos).
   const modulosActuales = (tenant.modulos && typeof tenant.modulos === "object" ? tenant.modulos : {}) as Record<string, unknown>;
   if (modulosActuales.postventa !== true) {
@@ -381,6 +412,7 @@ export async function refrescarDemoSemanal(
     proximosPasosCreados: conPaso.length,
     propuestasCreadas,
     ganadosCreados: ganados.length,
+    metaMesCreada,
     papeleraCreados,
     actividadesBorradas: borradoActs.count,
     propuestasBorradas: borradoCots.count,
