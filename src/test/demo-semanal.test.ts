@@ -44,6 +44,10 @@ describe("refresco del demo", () => {
       const k = new Date(Date.UTC(hoy.anio, hoy.mes - i, 1)).toISOString().slice(0, 7);
       expect(porMes.get(k) ?? 0, `ventas de ${k}`).toBeGreaterThanOrEqual(4);
     }
+
+    // Y la meta del mes en curso (aro "Meta del mes" del dashboard), del #120.
+    const meta = await prisma.metaVenta.findFirst({ where: { tenantId: A.tenantId, anio: hoy.anio, mes: hoy.mes + 1 } });
+    expect(meta).not.toBeNull();
   });
 
   it("repetir la corrida conserva la historia, no la duplica y no toca otro tenant", { timeout: 240_000 }, async () => {
