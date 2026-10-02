@@ -1,4 +1,5 @@
-import { fechaEfectiva } from "@/lib/fecha-efectiva";
+import { fechaEfectiva, diaColombia } from "@/lib/fecha-efectiva";
+import { componentesHoyBogota } from "@/lib/fecha-bogota";
 
 // Cálculo determinista de las series de tendencia (últimos 12 meses y pipeline
 // abierto por etapa). Es la ÚNICA fuente de verdad: la usan tanto el análisis
@@ -28,8 +29,10 @@ export type Tendencias = {
 const ABREV_MES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
 export function seriesTendencias(ops: OportunidadSerie[], etapasBase: EtapaDef[], ahora = new Date()): Tendencias {
-  const anioActual = ahora.getFullYear();
-  const mesActual = ahora.getMonth() + 1;
+  // "Este mes" según el calendario de Colombia, no el del servidor (UTC).
+  const hoyCol = componentesHoyBogota(ahora);
+  const anioActual = hoyCol.anio;
+  const mesActual = hoyCol.mes + 1;
 
   const meses: MesTendencia[] = [];
   const idx = new Map<string, MesTendencia>();
@@ -53,7 +56,8 @@ export function seriesTendencias(ops: OportunidadSerie[], etapasBase: EtapaDef[]
       if (o.etapa === "PERDIDA") b.perdidas++;
     }
     // "Pipeline nuevo" = oportunidades creadas ese mes (fecha real de creación).
-    const cb = idx.get(`${o.creadoEn.getFullYear()}-${o.creadoEn.getMonth() + 1}`);
+    const cr = diaColombia(o.creadoEn);
+    const cb = idx.get(`${cr.anio}-${cr.mes + 1}`);
     if (cb) cb.creadas++;
   }
   for (const m of meses) m.tasa = m.ganadas + m.perdidas > 0 ? Math.round((m.ganadas / (m.ganadas + m.perdidas)) * 100) : null;

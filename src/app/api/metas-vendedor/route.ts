@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { crearMetaVendedorSchema } from "@/lib/validations/metas";
 import { parseOrError } from "@/lib/validations/helpers";
+import { componentesHoyBogota } from "@/lib/fecha-bogota";
 
 export async function GET(req: Request) {
   const session = await auth();
@@ -13,8 +14,9 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url);
-  const anio = parseInt(searchParams.get("anio") ?? String(new Date().getFullYear()));
-  const mes  = parseInt(searchParams.get("mes")  ?? String(new Date().getMonth() + 1));
+  const hoyCol = componentesHoyBogota();
+  const anio = parseInt(searchParams.get("anio") ?? String(hoyCol.anio));
+  const mes  = parseInt(searchParams.get("mes")  ?? String(hoyCol.mes + 1));
 
   const metas = await prisma.metaVendedor.findMany({
     where: { tenantId, anio, mes },
