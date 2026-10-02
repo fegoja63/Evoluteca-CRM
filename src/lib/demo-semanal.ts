@@ -9,10 +9,17 @@
 // a crear una banda fresca, así el volumen no crece con el tiempo y la ventana
 // de "últimos 7 días" siempre queda poblada sin importar qué día se mire.
 //
+// Excepción: los negocios GANADOS/PERDIDOS de relleno de meses ya cerrados se
+// conservan — son la historia del demo (Reportes, tendencias, resumen mensual).
+// Cada corrida solo reemplaza los del mes en curso y completa los meses
+// anteriores que tengan menos de GANADOS_MIN ventas.
+//
 // Solo toca datos de relleno del demo; jamás actividades/cotizaciones reales
 // (las que no llevan el TAG) ni ningún otro tenant.
 
 import type { PrismaClient, TipoActividad, EtapaPostventa } from "@prisma/client";
+import { componentesHoyBogota } from "@/lib/fecha-bogota";
+import { fechaEfectiva } from "@/lib/fecha-efectiva";
 
 export const TAG_DEMO = "[demo-auto]";
 const SLUG_DEMO = "demo-evoluteca";
@@ -80,6 +87,16 @@ const GANADOS_MIN = 4;
 const GANADOS_MAX = 7;
 const VALOR_GANADO_MIN = 3_000_000;
 const VALOR_GANADO_MAX = 22_000_000;
+// Historia: los HISTORIA_MESES meses anteriores al actual deben tener al menos
+// GANADOS_MIN ventas (y algunas pérdidas), para que Reportes, las tendencias y
+// el resumen mensual del demo se vean como una empresa que lleva tiempo
+// vendiendo. Los ganados de meses pasados NO se borran en cada corrida: solo se
+// reemplazan los del mes en curso, así la historia se va acumulando mes a mes.
+const HISTORIA_MESES = 11;
+const PERDIDAS_MES_MIN = 1;
+const PERDIDAS_MES_MAX = 3;
+const MOTIVOS_PERDIDA = ["Precio", "Eligió a la competencia", "Sin presupuesto este año", "No hubo respuesta", "Proyecto aplazado"];
+const TITULOS_PERDIDOS = ["Propuesta plan Equipo", "Implementación CRM", "Ampliación de licencias", "Consultoría de procesos"];
 const TITULOS_GANADOS = [
   "Venta cerrada — plan Equipo", "Renovación anual de licencias", "Ampliación de puestos",
   "Nuevo contrato de servicios", "Cierre: implementación CRM", "Upgrade a plan superior",
@@ -137,21 +154,31 @@ function tipoPonderado(): Plantilla {
   return PLANTILLAS[0];
 }
 
-// Fecha en horario laboral (8:00–17:59) del día indicado por offset (en días
-// respecto a hoy), anclada a la hora local del servidor.
+// Instante UTC de una hora "de pared" en Colombia (UTC-5 fijo todo el año).
+// El servidor corre en UTC: armar la fecha con setHours/new Date(año, mes, día)
+// la dejaba 5 h corrida (una reunión "a las 9" aparecía a las 4 a.m.).
+function enHoraBogota(anio: number, mes: number, dia: number, hora: number, minuto: number): Date {
+  return new Date(Date.UTC(anio, mes, dia, hora + 5, minuto, 0, 0));
+}
+
+// Fecha en horario laboral de Colombia (8:00–17:59) del día indicado por
+// offset (en días respecto a hoy en Colombia).
 function fechaLaboral(offsetDias: number): Date {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDias);
-  d.setHours(rndInt(8, 17), rndInt(0, 59), 0, 0);
-  return d;
+  const hoy = componentesHoyBogota();
+  return enHoraBogota(hoy.anio, hoy.mes, hoy.dia + offsetDias, rndInt(8, 17), rndInt(0, 59));
 }
 
 // Fecha aleatoria dentro del mes en curso, entre el día 1 y HOY (nunca futura),
 // para fechar los negocios ganados del mes.
 function fechaEsteMes(): Date {
-  const hoy = new Date();
-  const dia = rndInt(1, hoy.getDate());
-  return new Date(hoy.getFullYear(), hoy.getMonth(), dia, rndInt(8, 17), rndInt(0, 59), 0, 0);
+  const hoy = componentesHoyBogota();
+  return enHoraBogota(hoy.anio, hoy.mes, rndInt(1, hoy.dia), rndInt(8, 17), rndInt(0, 59));
+}
+
+// Fecha laboral aleatoria dentro de un mes completo (para la historia).
+function fechaEnMes(anio: number, mes: number): Date {
+  const diasDelMes = new Date(Date.UTC(anio, mes + 1, 0)).getUTCDate();
+  return enHoraBogota(anio, mes, rndInt(1, diasDelMes), rndInt(8, 17), rndInt(0, 59));
 }
 
 export type ResultadoDemoSemanal = {
@@ -162,6 +189,8 @@ export type ResultadoDemoSemanal = {
   proximosPasosCreados?: number;
   propuestasCreadas?: number;
   ganadosCreados?: number;
+  historiaGanadosCreados?: number;
+  historiaPerdidasCreadas?: number;
   papeleraCreados?: number;
   actividadesBorradas?: number;
   propuestasBorradas?: number;
@@ -215,8 +244,16 @@ export async function refrescarDemoSemanal(
   const borradoCots = await prisma.cotizacion.deleteMany({
     where: { tenantId: T, notas: { startsWith: TAG_DEMO } },
   });
+  // Los ganados y perdidos de relleno de MESES PASADOS se conservan: son la
+  // historia del demo. Solo se reemplazan los del mes en curso (y la papelera).
+  const hoyCol = componentesHoyBogota();
+  const inicioMesActual = new Date(Date.UTC(hoyCol.anio, hoyCol.mes, 1, 5));
   const borradoOps = await prisma.oportunidad.deleteMany({
-    where: { tenantId: T, notas: { startsWith: TAG_DEMO } },
+    where: {
+      tenantId: T,
+      notas: { startsWith: TAG_DEMO },
+      NOT: { etapa: { in: ["GANADA", "PERDIDA"] }, fechaCierre: { lt: inicioMesActual } },
+    },
   });
   // Relleno de la Papelera (clientes y contactos marcados; las oportunidades y
   // cotizaciones marcadas ya se borraron arriba).
@@ -332,6 +369,71 @@ export async function refrescarDemoSemanal(
   });
   await prisma.oportunidad.createMany({ data: ganados });
 
+  // 4b) Historia: completar los meses anteriores que tengan menos de
+  //     GANADOS_MIN ventas (contando también las reales del demo, por
+  //     fechaEfectiva), con algunas pérdidas para que la tasa de cierre sea
+  //     creíble. Solo rellena lo que falta: si el mes ya tiene historia, no toca nada.
+  const ganadasTodas = await prisma.oportunidad.findMany({
+    where: { tenantId: T, eliminadoEn: null, etapa: { in: ["GANADA", "PERDIDA"] } },
+    select: { etapa: true, fechaCierre: true, fechaEvento: true, creadoEn: true, extras: true },
+  });
+  const porMes = new Map<string, { ganadas: number; perdidas: number }>();
+  for (const o of ganadasTodas) {
+    const f = fechaEfectiva(o);
+    const k = `${f.getUTCFullYear()}-${f.getUTCMonth()}`;
+    const c = porMes.get(k) ?? { ganadas: 0, perdidas: 0 };
+    if (o.etapa === "GANADA") c.ganadas++; else c.perdidas++;
+    porMes.set(k, c);
+  }
+  let historiaGanadosCreados = 0;
+  let historiaPerdidasCreadas = 0;
+  for (let i = 1; i <= HISTORIA_MESES; i++) {
+    const ref = new Date(Date.UTC(hoyCol.anio, hoyCol.mes - i, 1));
+    const anio = ref.getUTCFullYear(), mes = ref.getUTCMonth();
+    const actual = porMes.get(`${anio}-${mes}`) ?? { ganadas: 0, perdidas: 0 };
+
+    const faltanGanados = actual.ganadas >= GANADOS_MIN ? 0 : rndInt(GANADOS_MIN, GANADOS_MAX) - actual.ganadas;
+    for (let n = 0; n < faltanGanados; n++) {
+      const emp = rnd(empresas);
+      await prisma.oportunidad.create({
+        data: {
+          titulo: rnd(TITULOS_GANADOS),
+          valor: rndInt(VALOR_GANADO_MIN / 100_000, VALOR_GANADO_MAX / 100_000) * 100_000,
+          etapa: "GANADA", probabilidad: 100, fechaCierre: fechaEnMes(anio, mes),
+          notas: `${TAG_DEMO} negocio ganado de demostración (historia)`,
+          postventaEtapa: "CERRADO",
+          tenantId: T, empresaId: emp.id,
+          contactoId: emp.contactos.length ? rnd(emp.contactos).id : null,
+          creadoBy: rnd(vendedores).id,
+          creadoEn: fechaEnMes(anio, mes - 1),
+        },
+      });
+      historiaGanadosCreados++;
+    }
+
+    const faltanPerdidas = actual.perdidas >= PERDIDAS_MES_MIN ? 0 : rndInt(PERDIDAS_MES_MIN, PERDIDAS_MES_MAX) - actual.perdidas;
+    for (let n = 0; n < faltanPerdidas; n++) {
+      const emp = rnd(empresas);
+      const cierre = fechaEnMes(anio, mes);
+      // Con su cambio de etapa: el resumen mensual cuenta las pérdidas del mes por ahí.
+      await prisma.oportunidad.create({
+        data: {
+          titulo: rnd(TITULOS_PERDIDOS),
+          valor: rndInt(VALOR_GANADO_MIN / 100_000, VALOR_GANADO_MAX / 100_000) * 100_000,
+          etapa: "PERDIDA", probabilidad: 0, fechaCierre: cierre,
+          motivoPerdida: rnd(MOTIVOS_PERDIDA),
+          notas: `${TAG_DEMO} negocio perdido de demostración (historia)`,
+          tenantId: T, empresaId: emp.id,
+          contactoId: emp.contactos.length ? rnd(emp.contactos).id : null,
+          creadoBy: rnd(vendedores).id,
+          creadoEn: fechaEnMes(anio, mes - 1),
+          cambiosEtapa: { create: { etapaAnterior: "PROPUESTA", etapaNueva: "PERDIDA", creadoEn: cierre } },
+        },
+      });
+      historiaPerdidasCreadas++;
+    }
+  }
+
   // El demo muestra el módulo Postventa activo (sin tocar los demás módulos).
   const modulosActuales = (tenant.modulos && typeof tenant.modulos === "object" ? tenant.modulos : {}) as Record<string, unknown>;
   if (modulosActuales.postventa !== true) {
@@ -381,6 +483,8 @@ export async function refrescarDemoSemanal(
     proximosPasosCreados: conPaso.length,
     propuestasCreadas,
     ganadosCreados: ganados.length,
+    historiaGanadosCreados,
+    historiaPerdidasCreadas,
     papeleraCreados,
     actividadesBorradas: borradoActs.count,
     propuestasBorradas: borradoCots.count,
