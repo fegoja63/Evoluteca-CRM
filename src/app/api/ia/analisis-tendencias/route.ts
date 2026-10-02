@@ -6,6 +6,7 @@ import { permitirYRegistrar } from "@/lib/rate-limit";
 import { filtroOwner } from "@/lib/permisos";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { seriesTendencias } from "@/lib/tendencias";
+import { componentesHoyBogota } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -83,8 +84,9 @@ export async function POST() {
   ];
 
   const ahora = new Date();
-  const anioActual = ahora.getFullYear();
-  const mesActual = ahora.getMonth() + 1;
+  const hoyCol = componentesHoyBogota(ahora);
+  const anioActual = hoyCol.anio;
+  const mesActual = hoyCol.mes + 1;
 
   const [ops, actUltima, actPrevia] = await Promise.all([
     prisma.oportunidad.findMany({

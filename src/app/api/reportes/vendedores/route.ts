@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EtapaOportunidad } from "@prisma/client";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
+import { componentesHoyBogota } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 
@@ -15,8 +16,10 @@ export async function GET() {
 
   const tenantId = session.user.tenantId;
 
-  const anioActual = new Date().getFullYear();
-  const mesActual  = new Date().getMonth() + 1;
+  // "Este mes" según el calendario de Colombia, no el del servidor (UTC).
+  const hoyCol = componentesHoyBogota();
+  const anioActual = hoyCol.anio;
+  const mesActual  = hoyCol.mes + 1;
 
   const [usuarios, oportunidades, actividades, metas] = await Promise.all([
     prisma.usuario.findMany({
@@ -39,8 +42,8 @@ export async function GET() {
   ]);
 
   const hoy = new Date();
-  const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-  const finMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1);
+  const inicioMes = new Date(hoyCol.anio, hoyCol.mes, 1);
+  const finMes = new Date(hoyCol.anio, hoyCol.mes + 1, 1);
   const etapasActivas: EtapaOportunidad[] = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];
 
   const vendedores = usuarios.map(u => {

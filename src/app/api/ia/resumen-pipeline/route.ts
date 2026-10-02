@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { permitirYRegistrar } from "@/lib/rate-limit";
 import { filtroOwner } from "@/lib/permisos";
+import { componentesHoyBogota } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -154,9 +155,9 @@ export async function POST() {
   const valorGanadoMes = ganadasMes.reduce((a, c) => a + Number(c.oportunidad.valor ?? 0), 0);
 
   // Meta del mes: MetaVendedor si es comercial, si no MetaVenta del tenant (mensual o anual).
-  const ahora = new Date();
-  const anio = ahora.getFullYear();
-  const mes = ahora.getMonth() + 1;
+  const hoyCol = componentesHoyBogota();
+  const anio = hoyCol.anio;
+  const mes = hoyCol.mes + 1;
   let metaMes: number | null = null;
   if (esComercial) {
     const mv = await prisma.metaVendedor.findUnique({

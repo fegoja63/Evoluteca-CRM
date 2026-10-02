@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { filtroOwner } from "@/lib/permisos";
 import { medianocheBogota } from "@/lib/fecha-bogota";
+import { componentesHoyBogota } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 
@@ -208,7 +209,7 @@ export async function GET(request: Request) {
   const porMes: Record<number, { ganadas: number; perdidas: number; valorGanado: number; total: number }> = {};
   for (let m = 1; m <= 12; m++) porMes[m] = { ganadas: 0, perdidas: 0, valorGanado: 0, total: 0 };
 
-  const anioParaMes = anioFiltro ?? (aniosDisponibles.length > 0 ? Math.max(...aniosDisponibles) : new Date().getFullYear());
+  const anioParaMes = anioFiltro ?? (aniosDisponibles.length > 0 ? Math.max(...aniosDisponibles) : componentesHoyBogota().anio);
   for (const o of todasOps) {
     if (getAnio(o) !== anioParaMes) continue;
     const m = getMes(o);
@@ -228,7 +229,7 @@ export async function GET(request: Request) {
     return total;
   }
   const mesesConDatos = Object.entries(porMes).filter(([, v]) => v.total > 0).map(([k]) => Number(k));
-  const mesComparativo = mesFiltro ?? (mesesConDatos.length > 0 ? Math.max(...mesesConDatos) : new Date().getMonth() + 1);
+  const mesComparativo = mesFiltro ?? (mesesConDatos.length > 0 ? Math.max(...mesesConDatos) : componentesHoyBogota().mes + 1);
   const mesAnteriorNum = mesComparativo === 1 ? 12 : mesComparativo - 1;
   const anioMesAnterior = mesComparativo === 1 ? anioParaMes - 1 : anioParaMes;
   const valorMesActual = valorGanadoDeMes(anioParaMes, mesComparativo);
