@@ -105,9 +105,8 @@ function ventanaMesCerrado() {
   const cerrado = new Date(Date.UTC(anioAhora, mesAhora - 1, 1));
   const anioCerrado = cerrado.getUTCFullYear();
   const mesCerrado1 = cerrado.getUTCMonth() + 1; // 1-indexed (para MetaVenta)
-  const inicioAnio = new Date(Date.UTC(anioCerrado, 0, 1, 5, 0, 0)); // acumulado del año del mes cerrado
   const label = prevStart.toLocaleDateString("es-CO", { month: "long", year: "numeric", timeZone: "America/Bogota" });
-  return { prevStart, curMesStart, inicioAnio, anioCerrado, mesCerrado1, label };
+  return { prevStart, curMesStart, anioCerrado, mesCerrado1, label };
 }
 
 async function construirDatos(tenant: TenantMin) {
@@ -137,14 +136,20 @@ async function construirDatos(tenant: TenantMin) {
       prisma.etapaPipeline.findMany({ where: { tenantId: tenant.id }, orderBy: { orden: "asc" }, select: { key: true, nombre: true } }),
     ]);
 
-  // Ganadas del mes cerrado y acumuladas del año, por fecha efectiva.
-  const enMes = (o: { fechaCierre: Date | null; fechaEvento: Date | null; creadoEn: Date; extras: unknown }) => {
+  // Ganadas del mes cerrado y acumuladas del año, por fecha efectiva. Se compara
+  // por año/mes de calendario (getFullYear/getMonth), igual que Reportes y el
+  // informe mensual — NO contra la ventana anclada a Bogotá: para los negocios
+  // importados, fechaEfectiva devuelve la medianoche LOCAL del servidor (UTC en
+  // Vercel), que cae 5h antes de esa ventana y corría el negocio al mes anterior
+  // (en enero, al año anterior: el acumulado del año salía corto).
+  type ConFechas = { fechaCierre: Date | null; fechaEvento: Date | null; creadoEn: Date; extras: unknown };
+  const enMes = (o: ConFechas) => {
     const f = fechaEfectiva(o);
-    return f >= v.prevStart && f < v.curMesStart;
+    return f.getFullYear() === v.anioCerrado && f.getMonth() + 1 === v.mesCerrado1;
   };
-  const enAnio = (o: { fechaCierre: Date | null; fechaEvento: Date | null; creadoEn: Date; extras: unknown }) => {
+  const enAnio = (o: ConFechas) => {
     const f = fechaEfectiva(o);
-    return f >= v.inicioAnio && f < v.curMesStart;
+    return f.getFullYear() === v.anioCerrado && f.getMonth() + 1 <= v.mesCerrado1;
   };
   const ganadasMes = ganadas.filter(enMes);
   const ganadasAnio = ganadas.filter(enAnio);
