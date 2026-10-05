@@ -25,6 +25,13 @@ function valorSF(lineas: { ahorroEstimadoMensual: number }[], pct: number, meses
 }
 
 async function main() {
+  // Este seed BORRA y recrea el tenant "demo-oltc". Desde 2026-10-05 la antigua
+  // cuenta demo es la cuenta REAL de OLT Consulting (slug olt-consulting), así
+  // que nunca debe correr contra producción.
+  if ((process.env.DATABASE_URL ?? "").includes("ep-holy-leaf")) {
+    console.error("NEGADO: este seed borra y recrea un tenant; no se corre contra producción.");
+    process.exit(1);
+  }
   console.log("🌱 Iniciando seed Demo OLTC...\n");
 
   const previo = await prisma.tenant.findFirst({ where: { slug: "demo-oltc" } });
