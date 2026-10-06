@@ -86,7 +86,7 @@ function PageHeader({ base }: { base: string }) {
 }
 function Footer() {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.2"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.3"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -181,11 +181,11 @@ function Sep() {
 function Credenciales() {
   const filas: [string, string][] = [
     ["URL", "crm.evoluteca.com/login"],
-    ["Administrador — Laura Mendoza", "admin@demo-evoluteca.com"],
+    ["Administrador — Felipe Gomez J", "admin@demo-evoluteca.com"],
     ["Gerente — Carlos Vargas", "gerente@demo-evoluteca.com"],
-    ["Comercial — Sofía Restrepo", "sofia@demo-evoluteca.com"],
-    ["Comercial — Andrés Castillo", "andres@demo-evoluteca.com"],
-    ["Comercial — Miguel Á. Forero", "miguel@demo-evoluteca.com"],
+    ["Comercial — Sofía Ramírez", "sofia@demo-evoluteca.com"],
+    ["Comercial — Andrés Beltrán", "andres@demo-evoluteca.com"],
+    ["Comercial — Miguel Ángel Forero", "miguel@demo-evoluteca.com"],
     ["Contraseña (todos)", "Demo2026!"],
   ];
   return React.createElement(View, { style: s.credBox },
@@ -340,7 +340,7 @@ export async function GET() {
       React.createElement(Footer, null),
       React.createElement(H2, null, "4.4 Configuración — solo el administrador la ve"),
       React.createElement(P, null, "Ve a Configuración y a Equipo (menú lateral). Estas pantallas son la razón para empezar como administrador: aquí se controla cómo funciona todo el CRM."),
-      React.createElement(Paso, { n: 13, titulo: "Equipo y roles", desc: "En Equipo verás los 5 usuarios con su rol. Como administrador puedes crear usuarios, cambiar roles y editar nombres.", esperado: "La lista de Laura, Carlos, Sofía, Andrés y Miguel, con opciones de edición que un comercial no tiene." }),
+      React.createElement(Paso, { n: 13, titulo: "Equipo y roles", desc: "En Equipo verás los usuarios con su rol. Como administrador puedes crear usuarios, cambiar roles y editar nombres.", esperado: "La lista del equipo (Felipe, Carlos, Sofía, Andrés y Miguel, entre otros), con opciones de edición que un comercial no tiene." }),
       React.createElement(Paso, { n: 14, titulo: "Etapas del pipeline configurables", desc: "En Configuración > Etapas del pipeline, renombra una etapa (p. ej. 'Cotización' › 'Propuesta enviada') y arrástrala a otra posición.", esperado: "El cambio se refleja al instante en Pipeline y en Reportes; el vocabulario se adapta a tu negocio." }),
       React.createElement(Paso, { n: 15, titulo: "Captura externa de leads (API)", desc: "En Configuración > Captura externa de leads verás la clave ya generada. Es la que usaría un formulario web o una automatización de WhatsApp/Ads para crear leads solos.", esperado: "Una clave (API key) y la dirección del servicio; cada lead entrante crea automáticamente cliente, contacto y oportunidad en el Pipeline." }),
       React.createElement(Paso, { n: 16, titulo: "Notificaciones automáticas por email", desc: "En Configuración revisa el bloque de notificaciones: recordatorios de actividades y avisos de cotizaciones sin respuesta que el sistema envía solo.", esperado: "Interruptores para activar/desactivar los correos automáticos." }),
@@ -383,7 +383,7 @@ export async function GET() {
       React.createElement(H1, null, "6. Recorrido como Gerente"),
       React.createElement(RolBadge, { pill: "GERENTE", sub: "Cierra sesión y entra con gerente@demo-evoluteca.com · Demo2026!" }),
       React.createElement(P, null, "El gerente ve todo el negocio (como el admin) pero no administra la configuración ni crea usuarios. Es el rol de quien dirige al equipo comercial."),
-      React.createElement(Paso, { n: 1, titulo: "Filtro por vendedor", desc: "Ve a Pipeline o Reportes. En la barra de filtros usa el selector 'Vendedor' y elige 'Sofía Restrepo' o 'Miguel Á. Forero'.", esperado: "El pipeline y los números se recalculan mostrando solo la cartera de esa persona." }),
+      React.createElement(Paso, { n: 1, titulo: "Filtro por vendedor", desc: "Ve a Pipeline o Reportes. En la barra de filtros usa el selector 'Vendedor' y elige 'Sofía Ramírez' o 'Miguel Ángel Forero'.", esperado: "El pipeline y los números se recalculan mostrando solo la cartera de esa persona." }),
       React.createElement(Paso, { n: 2, titulo: "Rendimiento del equipo", desc: "Ve a Equipo > Rendimiento. Compara lo que aporta cada comercial.", esperado: "Un comparativo del equipo con lo ganado y el pipeline de cada uno (visible para gerente y admin, no para comerciales)." }),
       React.createElement(Paso, { n: 3, titulo: "Metas por vendedor", desc: "En Reportes revisa las metas individuales. Sofía y Andrés tienen meta asignada este mes.", esperado: "El avance de cada vendedor contra su meta individual." }),
       React.createElement(Paso, { n: 4, titulo: "Brief del pipeline con IA", desc: "En Pipeline, sobre los filtros, pulsa 'Generar brief' en el panel 'Brief del pipeline con IA'.", esperado: "Un resumen ejecutivo de todo el pipeline: panorama, negocios calientes, en riesgo, avance de la meta y prioridades de la semana." }),
@@ -397,7 +397,7 @@ export async function GET() {
       React.createElement(Footer, null),
       React.createElement(H1, null, "7. Recorrido como Comercial"),
       React.createElement(RolBadge, { pill: "COMERCIAL", sub: "Cierra sesión y entra con sofia@demo-evoluteca.com · Demo2026!" }),
-      React.createElement(P, null, "Ahora entra como Sofía Restrepo. Es el mismo CRM, pero enfocado: un comercial solo ve y gestiona su propia cartera. Compara con lo que veías como administrador."),
+      React.createElement(P, null, "Ahora entra como Sofía Ramírez. Es el mismo CRM, pero enfocado: un comercial solo ve y gestiona su propia cartera. Compara con lo que veías como administrador."),
       React.createElement(Paso, { n: 1, titulo: "Solo tus clientes y tu pipeline", desc: "Ve a Clientes y a Pipeline.", esperado: "Ves menos registros que como administrador: únicamente los clientes y oportunidades que Sofía creó o tiene asignados." }),
       React.createElement(Paso, { n: 2, titulo: "Tu agenda", desc: "Ve a Agenda.", esperado: "Solo tus actividades (las que creaste o donde eres responsable), no las de todo el equipo." }),
       React.createElement(Paso, { n: 3, titulo: "Sin filtro por vendedor ni rendimiento", desc: "Fíjate en el Pipeline y en Reportes.", esperado: "No aparece el selector de vendedor ni el comparativo del equipo: un comercial no ve la cartera de sus compañeros." }),
