@@ -1,7 +1,9 @@
 /**
- * Carga inicial de OLT Consulting (2026-10-05): los 3 clientes de la hoja
- * "1. Comercial" del archivo "Evoluteca-Carga-Inicial OLTC.xlsx". Las demás
- * hojas del archivo son ejemplos de la plantilla y NO se cargan.
+ * Carga de clientes de OLT Consulting desde la hoja "1. Comercial" de la
+ * plantilla "Evoluteca-Carga-Inicial OLTC*.xlsx". Las demás hojas del archivo
+ * son ejemplos de la plantilla y NO se cargan.
+ *  - 2026-10-05: 3 clientes (v1), responsable Juan Manuel.
+ *  - 2026-10-06: 5 clientes de Rafael (v2).
  *
  * Igual que Dashboard → Datos → Importación completa (cliente + contacto +
  * oportunidad por fila), más dos cosas: la oportunidad queda ligada a su
@@ -10,15 +12,15 @@
  * omite la fila.
  *
  * USO
- *   npx tsx --env-file=.env.produccion.ref scripts/cargar-clientes-oltc.ts <archivo.xlsx>            # vista previa
- *   npx tsx --env-file=.env.produccion.ref scripts/cargar-clientes-oltc.ts <archivo.xlsx> --aplicar
+ *   npx tsx --env-file=.env.produccion.ref scripts/cargar-clientes-oltc.ts <archivo.xlsx> [--responsable=<correo>]            # vista previa
+ *   npx tsx --env-file=.env.produccion.ref scripts/cargar-clientes-oltc.ts <archivo.xlsx> [--responsable=<correo>] --aplicar
  */
 import { PrismaClient } from "@prisma/client";
 import ExcelJS from "exceljs";
 
 const SLUG = "olt-consulting";
 const HOJA = "1. Comercial";
-const RESPONSABLE = "juanmanuel@oltc.co";
+const RESPONSABLE_POR_DEFECTO = "juanmanuel@oltc.co";
 
 /** Correcciones de tipeo aprobadas por el usuario, por cliente. */
 const CORRECCIONES: Record<string, Partial<Record<string, string | null>>> = {
@@ -29,7 +31,15 @@ const CORRECCIONES: Record<string, Partial<Record<string, string | null>>> = {
     "Cargo contacto": "Gerente Administrativo y Financiero",
   },
   "CEMENTOS SAN MARCOS": { "Sector": "INDUSTRIAL CONSTRUCCIÓN" },
+  "Automovil Club de Colombia": { "Sector": "Agremiaciones" },
 };
+
+/** "a@b.co <a@b.co>" (copiado de Outlook) → "a@b.co". */
+function limpiarCorreo(v: string | null): string | null {
+  if (!v) return v;
+  const m = v.match(/[^\s<>]+@[^\s<>]+/);
+  return m ? m[0] : v;
+}
 
 const ETAPAS = new Set(["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION", "GANADA", "PERDIDA"]);
 const prisma = new PrismaClient();
@@ -45,6 +55,7 @@ function texto(v: ExcelJS.CellValue): string {
 async function main() {
   const [archivo] = process.argv.slice(2).filter(a => !a.startsWith("--"));
   const aplicar = process.argv.includes("--aplicar");
+  const RESPONSABLE = process.argv.find(a => a.startsWith("--responsable="))?.split("=")[1] ?? RESPONSABLE_POR_DEFECTO;
   if (!archivo) { console.error("Falta la ruta del .xlsx"); process.exit(1); }
 
   const wb = new ExcelJS.Workbook();
@@ -63,7 +74,11 @@ async function main() {
       const v = texto(r.getCell(n).value).trim();
       f[h] = v && v.toUpperCase() !== "NA" ? v : null;
     });
-    if (Object.values(f).some(Boolean)) filas.push({ ...f, ...(CORRECCIONES[f["Cliente / Empresa"] ?? ""] ?? {}) });
+    if (!Object.values(f).some(Boolean)) return;
+    const fila = { ...f, ...(CORRECCIONES[f["Cliente / Empresa"] ?? ""] ?? {}) };
+    fila["Email empresa"] = limpiarCorreo(fila["Email empresa"]);
+    fila["Email contacto"] = limpiarCorreo(fila["Email contacto"]);
+    filas.push(fila);
   });
 
   const tenant = await prisma.tenant.findFirst({ where: { slug: SLUG }, select: { id: true, nombre: true } });
@@ -118,7 +133,7 @@ async function main() {
     await tx.registroAuditoria.create({
       data: {
         tenantId, usuarioNombre: "Evoluteca (soporte)", accion: "CREAR", entidad: "Empresa",
-        descripcion: `Carga inicial: ${aCargar.length} clientes con su contacto y oportunidad (archivo Evoluteca-Carga-Inicial OLTC.xlsx)`,
+        descripcion: `Carga de clientes: ${aCargar.length} con su contacto y oportunidad (archivo ${archivo.split(/[\\/]/).pop()})`,
         despues: { clientes: aCargar.map(f => f["Cliente / Empresa"]), responsable: resp.nombre },
       },
     });
