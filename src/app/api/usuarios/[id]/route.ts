@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { operacionAuditoria, type AccionAuditada } from "@/lib/auditoria";
+import { operacionesTraspaso } from "@/lib/traspaso-registros";
 
 export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -173,17 +174,10 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
     }
   }
 
-  // Solo las 5 tablas que definen la visibilidad por dueño; el where filtra por
-  // los registros que esta persona tenía a su nombre.
-  const dueno = { tenantId: session.user.tenantId, creadoBy: existente.id };
-  const nuevoDueno = { creadoBy: reasignarA ?? null };
-
+  // Solo las tablas que definen la visibilidad por dueño (lista única en
+  // src/lib/traspaso-registros.ts, compartida con los scripts).
   const [, , , , , eliminado] = await prisma.$transaction([
-    prisma.empresa.updateMany({ where: dueno, data: nuevoDueno }),
-    prisma.oportunidad.updateMany({ where: dueno, data: nuevoDueno }),
-    prisma.actividad.updateMany({ where: dueno, data: nuevoDueno }),
-    prisma.expediente.updateMany({ where: dueno, data: nuevoDueno }),
-    prisma.terminoExpediente.updateMany({ where: dueno, data: nuevoDueno }),
+    ...operacionesTraspaso(prisma, session.user.tenantId, [existente.id], reasignarA ?? null),
     prisma.usuario.delete({ where: { id: existente.id } }),
     operacionAuditoria({
       tenantId: session.user.tenantId,
