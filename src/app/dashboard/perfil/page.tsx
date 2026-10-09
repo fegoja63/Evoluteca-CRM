@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { IconCircleCheck, IconCalendar, IconCopy, IconCheck, IconRefresh, IconTrash } from "@tabler/icons-react";
 import DosFactores from "./DosFactores";
 import { CampoPassword } from "@/components/campo-password";
+import { boton, campo, tarjeta } from "@/components/ui/estilos";
 
 const ROL_LABEL: Record<string, string> = {
   ADMINISTRADOR: "Administrador",
@@ -143,24 +144,24 @@ export default function PerfilPage() {
       <form onSubmit={handleGuardar} className="space-y-6">
 
         {/* Datos personales */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className={tarjeta("p-5")}>
           <h2 className="text-sm font-semibold text-slate-800 mb-4">Datos personales</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Nombre completo</label>
               <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} required
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Correo electrónico</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100" />
+                className={campo("md", "w-full")} />
             </div>
           </div>
         </div>
 
         {/* Cambiar contraseña */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className={tarjeta("p-5")}>
           <h2 className="text-sm font-semibold text-slate-800 mb-1">Cambiar contraseña</h2>
           <p className="text-xs text-slate-400 mb-4">Deja en blanco si no quieres cambiarla</p>
           <div className="space-y-4">
@@ -204,7 +205,7 @@ export default function PerfilPage() {
       </div>
 
       {/* Suscripción de calendario */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 mt-6">
+      <div className={tarjeta("p-5 mt-6")}>
         <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-800 mb-1">
           <IconCalendar size={16} stroke={1.75} /> Agenda en tu calendario
         </h2>
@@ -224,7 +225,7 @@ export default function PerfilPage() {
                 <input type="text" readOnly value={urlCal} onFocus={e => e.target.select()}
                   className="flex-1 min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-600 outline-none" />
                 <button type="button" onClick={copiarCal}
-                  className="shrink-0 flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-700 transition-colors">
+                  className={boton("primario", "lg", "shrink-0 flex")}>
                   {copiado ? <><IconCheck size={15} stroke={2} /> Copiado</> : <><IconCopy size={15} stroke={1.75} /> Copiar</>}
                 </button>
               </div>
@@ -248,7 +249,7 @@ export default function PerfilPage() {
 
             <div className="flex gap-2 pt-1">
               <button type="button" onClick={generarCal} disabled={accionCal}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-colors">
+                className={boton("secundario", "md", "flex")}>
                 <IconRefresh size={15} stroke={1.75} /> Generar uno nuevo
               </button>
               <button type="button" onClick={revocarCal} disabled={accionCal}
@@ -259,7 +260,7 @@ export default function PerfilPage() {
           </div>
         ) : (
           <button type="button" onClick={generarCal} disabled={accionCal}
-            className="flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50 transition-colors">
+            className={boton("primario", "lg", "flex")}>
             <IconCalendar size={16} stroke={1.75} /> {accionCal ? "Generando..." : "Activar suscripción de calendario"}
           </button>
         )}

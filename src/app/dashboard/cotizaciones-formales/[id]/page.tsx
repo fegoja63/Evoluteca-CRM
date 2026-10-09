@@ -11,6 +11,7 @@ import { RedactorEmailIA } from "@/components/redactor-email-ia";
 import { EditorSeccionesCotizacion } from "@/components/editor-secciones-cotizacion";
 import { normalizarCuerpo, type SeccionCuerpo } from "@/lib/cuerpo-cotizacion";
 import { useSession } from "next-auth/react";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type LineaAhorro = { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string };
@@ -434,14 +435,14 @@ export default function CotizacionDetailPage() {
                   maxLength={40}
                   autoFocus
                   onKeyDown={e => { if (e.key === "Enter") guardarNumero(); if (e.key === "Escape") { setEditNumero(false); setNumeroManual(cot.numeroManual ?? ""); } }}
-                  className="w-56 rounded-lg border border-slate-300 px-3 py-1.5 text-lg font-bold text-slate-900 outline-none focus:border-brand-500"
+                  className={campo("sm", "w-56 text-lg font-bold")}
                 />
                 <button onClick={guardarNumero} disabled={guardandoNumero}
-                  className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+                  className={boton("marca", "md")}>
                   {guardandoNumero ? "Guardando…" : "Guardar"}
                 </button>
                 <button onClick={() => { setEditNumero(false); setNumeroManual(cot.numeroManual ?? ""); }}
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-50">
+                  className={boton("secundario", "md")}>
                   Cancelar
                 </button>
               </div>
@@ -493,7 +494,7 @@ export default function CotizacionDetailPage() {
             <IconBrandWhatsapp size={14} stroke={1.75} /> WhatsApp
           </button>
           <button onClick={duplicar} disabled={duplicando}
-            className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors">
+            className={boton("secundario", "sm")}>
             {duplicando ? "Duplicando..." : "Duplicar"}
           </button>
           <button onClick={guardarComoPlantilla} disabled={guardandoPlantilla || plantillaGuardada}
@@ -501,7 +502,7 @@ export default function CotizacionDetailPage() {
             {plantillaGuardada ? <><IconCheck size={14} stroke={1.75} /> Plantilla guardada</> : guardandoPlantilla ? "Guardando..." : <><IconStar size={14} stroke={1.75} /> Guardar plantilla</>}
           </button>
           <a href={`/api/cotizaciones/${cot.id}/pdf`} target="_blank" rel="noopener noreferrer"
-            className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5">
+            className={boton("secundario", "sm", "flex")}>
             <IconDownload size={14} stroke={1.75} /> Descargar PDF
           </a>
           <button onClick={eliminar}
@@ -526,7 +527,7 @@ export default function CotizacionDetailPage() {
                   Cambiar correo
                 </button>
                 <button onClick={enviarEmail} disabled={enviando}
-                  className="rounded-lg bg-accent-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                  className={boton("primario", "sm")}>
                   {enviando ? "Enviando..." : "Sí, enviar al actual"}
                 </button>
               </div>
@@ -543,7 +544,7 @@ export default function CotizacionDetailPage() {
                   className="w-full rounded-lg border border-brand-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500 bg-white" />
               </div>
               <button onClick={enviarEmail} disabled={enviando || !emailDestino.trim()}
-                className="shrink-0 rounded-lg bg-accent-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                className={boton("primario", "sm", "shrink-0")}>
                 {enviando ? "Enviando..." : "Enviar"}
               </button>
             </div>
@@ -699,11 +700,11 @@ export default function CotizacionDetailPage() {
               <p className="mt-2 text-xs text-slate-400">Los impuestos y el total se recalculan al guardar.</p>
               <div className="mt-4 flex gap-2">
                 <button onClick={guardarItems} disabled={guardandoItems}
-                  className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                  className={boton("primario", "md")}>
                   {guardandoItems ? "Guardando..." : "Guardar ítems"}
                 </button>
                 <button onClick={() => setEditItems(false)}
-                  className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                  className={boton("secundario", "md")}>
                   Cancelar
                 </button>
               </div>
@@ -769,34 +770,34 @@ export default function CotizacionDetailPage() {
                     <label className="block text-xs font-medium text-slate-600 mb-1">Impuesto</label>
                     <input type="text" value={impuestoNombre} onChange={e => setImpuestoNombre(e.target.value)}
                       placeholder="Ej: IVA"
-                      className="w-28 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
+                      className={campo("sm", "w-28")} />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">%</label>
                     <input type="number" min={0} max={100} step="0.01" value={impuestoPorcentaje}
                       onChange={e => setImpuestoPorcentaje(e.target.value)}
-                      className="w-20 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
+                      className={campo("sm", "w-20")} />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">2º impuesto</label>
                     <input type="text" value={impuesto2Nombre} onChange={e => setImpuesto2Nombre(e.target.value)}
                       placeholder="Ej: Retención"
-                      className="w-28 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
+                      className={campo("sm", "w-28")} />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">%</label>
                     <input type="number" min={0} max={100} step="0.01" value={impuesto2Porcentaje}
                       onChange={e => setImpuesto2Porcentaje(e.target.value)}
-                      className="w-20 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
+                      className={campo("sm", "w-20")} />
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={guardarImpuesto} disabled={guardandoImpuesto}
-                    className="rounded-lg bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                    className={boton("primario", "sm")}>
                     {guardandoImpuesto ? "Guardando..." : "Guardar"}
                   </button>
                   <button onClick={() => setEditImpuesto(false)}
-                    className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50">
+                    className={boton("secundario", "sm")}>
                     Cancelar
                   </button>
                 </div>
@@ -832,11 +833,11 @@ export default function CotizacionDetailPage() {
               <EditorSeccionesCotizacion secciones={cuerpo} onChange={setCuerpo} />
               <div className="flex gap-2 mt-3">
                 <button onClick={guardarCondiciones} disabled={guardandoCondiciones}
-                  className="rounded-xl bg-accent-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-60">
+                  className={boton("primario", "md")}>
                   {guardandoCondiciones ? "Guardando..." : "Guardar para todas las cotizaciones"}
                 </button>
                 <button onClick={() => { setEditCondiciones(false); cargar(); }}
-                  className="rounded-xl border border-slate-200 px-4 py-1.5 text-sm text-slate-600 hover:bg-slate-50">
+                  className={boton("secundario", "md")}>
                   Cancelar
                 </button>
               </div>
@@ -874,15 +875,15 @@ export default function CotizacionDetailPage() {
                 rows={4}
                 value={notas}
                 onChange={e => setNotas(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 resize-none mb-3"
+                className={campo("md", "w-full resize-none mb-3")}
               />
               <div className="flex gap-2">
                 <button onClick={guardarNotas} disabled={guardando}
-                  className="rounded-xl bg-accent-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-60">
+                  className={boton("primario", "md")}>
                   {guardando ? "Guardando..." : "Guardar"}
                 </button>
                 <button onClick={() => { setEditNotas(false); setNotas(cot.notas ?? ""); }}
-                  className="rounded-xl border border-slate-200 px-4 py-1.5 text-sm text-slate-600 hover:bg-slate-50">
+                  className={boton("secundario", "md")}>
                   Cancelar
                 </button>
               </div>
@@ -921,7 +922,7 @@ export default function CotizacionDetailPage() {
                 Confirmar rechazo
               </button>
               <button onClick={() => setMostrarMotivoModal(false)}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                className={boton("secundario", "md")}>
                 Cancelar
               </button>
             </div>

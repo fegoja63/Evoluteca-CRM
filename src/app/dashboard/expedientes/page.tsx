@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { KpiCard } from "@/components/kpi-card";
 import { IconScale, IconGavel, IconCircleCheck, IconX, IconPlus } from "@tabler/icons-react";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Expediente = {
   id: string;
@@ -69,7 +70,7 @@ export default function ExpedientesPage() {
             placeholder="Buscar por radicado, contraparte o cliente..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-80 rounded-xl border border-slate-200 px-3 py-2 pr-8 text-sm outline-none focus:border-brand-500"
+            className={campo("md", "w-80 pr-8")}
           />
           {busqueda && (
             <button onClick={() => setBusqueda("")}
@@ -80,7 +81,7 @@ export default function ExpedientesPage() {
         </div>
         <Link
           href="/dashboard/expedientes/nuevo"
-          className="flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700"
+          className={boton("primario", "md", "flex")}
         >
           <IconPlus size={16} stroke={2} />Nuevo expediente
         </Link>

@@ -8,6 +8,7 @@ import {
   IconUsers, IconRefresh, IconMail, IconStar, IconBuilding, IconMessageCircle,
   IconDownload, IconPlus, IconX,
 } from "@tabler/icons-react";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Espectador = {
   id: string;
@@ -224,7 +225,7 @@ export default function AudienciaPage() {
         <div className="relative">
           <input type="text" placeholder="Buscar espectador..."
             value={busqueda} onChange={e => setBusqueda(e.target.value)}
-            className="w-72 rounded-xl border border-slate-200 px-3 py-2 pr-8 text-sm outline-none focus:border-brand-500" />
+            className={campo("md", "w-72 pr-8")} />
           {busqueda && (
             <button onClick={() => setBusqueda("")}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
@@ -234,7 +235,7 @@ export default function AudienciaPage() {
         </div>
         <div className="flex gap-2">
           <Link href="/dashboard/audiencia/nps-pendientes"
-            className="relative flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+            className={boton("secundario", "md", "relative flex gap-2")}>
             <IconMessageCircle size={16} stroke={1.75} />Cola de NPS
             {npsPendientesCount > 0 && (
               <span className="rounded-full bg-amber-500 text-white text-xs font-bold px-1.5 py-0.5 leading-none">{npsPendientesCount}</span>
@@ -245,7 +246,7 @@ export default function AudienciaPage() {
             <IconDownload size={16} stroke={1.75} />{exportando ? "Generando..." : "Exportar Excel"}
           </button>
           <button onClick={() => setMostrarForm(true)}
-            className="flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
+            className={boton("primario", "md", "flex")}>
             <IconPlus size={16} stroke={2} />Nuevo espectador
           </button>
         </div>
@@ -258,37 +259,37 @@ export default function AudienciaPage() {
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Nombre *</label>
               <input required value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Email</label>
               <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Teléfono</label>
               <input value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Segmento</label>
               <select value={form.segmento} onChange={e => setForm({ ...form, segmento: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                className={campo("md", "w-full")}>
                 {SEGMENTOS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
               </select>
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Notas</label>
               <input value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div className="col-span-2 flex gap-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                className={boton("primario", "md")}>
                 {guardando ? "Guardando..." : "Guardar"}
               </button>
               <button type="button" onClick={() => setMostrarForm(false)}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
+                className={boton("secundario", "md")}>
                 Cancelar
               </button>
             </div>
@@ -354,11 +355,11 @@ export default function AudienciaPage() {
                   <td className="px-2 py-2">
                     <div className="flex gap-1">
                       <button onClick={() => handleGuardarEdicion(e.id)} disabled={guardando}
-                        className="rounded-lg bg-accent-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                        className={boton("primario", "sm")}>
                         Guardar
                       </button>
                       <button onClick={() => setEditandoId(null)}
-                        className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-100">
+                        className={boton("secundario", "sm")}>
                         Cancelar
                       </button>
                     </div>
@@ -396,7 +397,7 @@ export default function AudienciaPage() {
                   <td className="px-4 py-1">
                     <div className="flex gap-1 justify-end">
                       <button onClick={() => iniciarEdicion(e)}
-                        className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-100">
+                        className={boton("secundario", "sm")}>
                         Editar
                       </button>
                       <button onClick={() => handleEliminar(e.id)}

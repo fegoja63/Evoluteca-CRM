@@ -2,6 +2,7 @@
 
 import { useState, useRef, KeyboardEvent } from "react";
 import { toast } from "@/lib/toast";
+import { boton, campo } from "@/components/ui/estilos";
 
 const COLORES = [
   "bg-blue-100 text-blue-700",
@@ -102,11 +103,11 @@ export function Etiquetas({ etiquetas, onGuardar, readonly }: Props) {
           onChange={e => setInput(e.target.value)}
           onKeyDown={onKey}
           placeholder="Escribe y presiona Enter..."
-          className="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs outline-none focus:border-brand-400"
+          className={campo("sm", "flex-1 text-xs")}
         />
         <button onClick={agregar} className="text-xs text-brand-600 hover:underline px-1">+ Agregar</button>
         <button onClick={guardar} disabled={guardando}
-          className="text-xs bg-brand-600 text-white px-3 py-1.5 rounded-lg hover:bg-brand-700 disabled:opacity-50">
+          className={boton("marca", "sm")}>
           {guardando ? "..." : "Guardar"}
         </button>
         <button onClick={cancelar} className="text-xs text-slate-400 hover:text-slate-700">Cancelar</button>

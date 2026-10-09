@@ -8,6 +8,7 @@ import { MoneyInput } from "@/components/money-input";
 import { EditorSeccionesCotizacion } from "@/components/editor-secciones-cotizacion";
 import { SECCIONES_SUGERIDAS, normalizarCuerpo, type SeccionCuerpo } from "@/lib/cuerpo-cotizacion";
 import { useSession } from "next-auth/react";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Empresa  = { id: string; nombre: string; condicionesComerciales?: string | null };
 type Contacto = { id: string; nombre: string; email: string | null; empresa: { id: string } | null };
@@ -499,7 +500,7 @@ export default function NuevaCotizacionPage() {
                   const id = e.target.value;
                   setEmpresaId(id); setContactoId(""); setOportunidadId("");
                 }}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-brand-500">
+                className={campo("md", "w-full")}>
                 <option value="">— Sin empresa —</option>
                 {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
               </select>
@@ -526,7 +527,7 @@ export default function NuevaCotizacionPage() {
               </div>
               {modoContacto === "existente" ? (
                 <select value={contactoId} onChange={e => setContactoId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-brand-500">
+                  className={campo("md", "w-full")}>
                   <option value="">— Sin contacto —</option>
                   {contactosFiltrados.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                 </select>
@@ -535,16 +536,16 @@ export default function NuevaCotizacionPage() {
                   <div className="flex flex-col gap-2">
                     <input type="text" placeholder="Nombre del contacto *" value={nuevoContactoForm.nombre}
                       onChange={e => setNuevoContactoForm(f => ({ ...f, nombre: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
+                      className={campo("sm", "w-full")} />
                     <input type="email" placeholder="Email (opcional)" value={nuevoContactoForm.email}
                       onChange={e => setNuevoContactoForm(f => ({ ...f, email: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
+                      className={campo("sm", "w-full")} />
                     <input type="text" placeholder="Teléfono (opcional)" value={nuevoContactoForm.telefono}
                       onChange={e => setNuevoContactoForm(f => ({ ...f, telefono: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
+                      className={campo("sm", "w-full")} />
                     {creandoContactoError && <p className="text-xs text-red-600">{creandoContactoError}</p>}
                     <button type="button" onClick={crearContactoInline} disabled={creandoContactoLoading || !nuevoContactoForm.nombre.trim()}
-                      className="self-start rounded-lg bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                      className={boton("primario", "sm", "self-start")}>
                       {creandoContactoLoading ? "Creando..." : "Crear contacto"}
                     </button>
                   </div>
@@ -569,7 +570,7 @@ export default function NuevaCotizacionPage() {
               </div>
               {modoOportunidad === "existente" ? (
                 <select value={oportunidadId} onChange={e => setOportunidadId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-brand-500">
+                  className={campo("md", "w-full")}>
                   <option value="">— Sin oportunidad —</option>
                   {oportunidadesFiltradas.map(o => <option key={o.id} value={o.id}>{o.titulo}</option>)}
                 </select>
@@ -578,10 +579,10 @@ export default function NuevaCotizacionPage() {
                   <div className="flex flex-col gap-2">
                     <input type="text" placeholder="Título de la oportunidad *" value={nuevaOportunidadForm.titulo}
                       onChange={e => setNuevaOportunidadForm(f => ({ ...f, titulo: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
+                      className={campo("sm", "w-full")} />
                     {creandoOportunidadError && <p className="text-xs text-red-600">{creandoOportunidadError}</p>}
                     <button type="button" onClick={crearOportunidadInline} disabled={creandoOportunidadLoading || !nuevaOportunidadForm.titulo.trim()}
-                      className="self-start rounded-lg bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                      className={boton("primario", "sm", "self-start")}>
                       {creandoOportunidadLoading ? "Creando..." : "Crear oportunidad"}
                     </button>
                   </div>
@@ -600,7 +601,7 @@ export default function NuevaCotizacionPage() {
               <div className="col-span-2">
                 <label className="block text-xs font-medium text-slate-600 mb-1">Salón</label>
                 <select value={salonId} onChange={e => setSalonId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-brand-500">
+                  className={campo("md", "w-full")}>
                   <option value="">— Sin salón del catálogo (usar texto libre abajo) —</option>
                   {salones.map(s => (
                     <option key={s.id} value={s.id}>{s.nombre}{s.capacidad ? ` (${s.capacidad} pers.)` : ""}</option>
@@ -632,12 +633,12 @@ export default function NuevaCotizacionPage() {
                   <label className="block text-xs font-medium text-slate-600 mb-1">Sede / Lugar</label>
                   <input type="text" value={sede} onChange={e => setSede(e.target.value)}
                     placeholder="Teatro Nacional, Sala A..."
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                    className={campo("md", "w-full")} />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Fecha del evento</label>
                   <input type="date" value={fechaEvento} onChange={e => setFechaEvento(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                    className={campo("md", "w-full")} />
                 </div>
               </>
             )}
@@ -646,10 +647,10 @@ export default function NuevaCotizacionPage() {
                 <label className="block text-xs font-medium text-slate-600 mb-1">Horario</label>
                 <div className="flex items-center gap-2">
                   <input type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                    className={campo("md", "w-full")} />
                   <span className="text-slate-400 text-xs">a</span>
                   <input type="time" value={horaFin} onChange={e => setHoraFin(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                    className={campo("md", "w-full")} />
                 </div>
                 <p className="text-[11px] text-slate-400 mt-1">Opcional — déjalo vacío para reservar el día completo.</p>
               </div>
@@ -657,13 +658,13 @@ export default function NuevaCotizacionPage() {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Fecha de validez</label>
               <input type="date" value={fechaValidez} onChange={e => setFechaValidez(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Número del cliente</label>
               <input type="text" value={numeroManual} onChange={e => setNumeroManual(e.target.value)}
                 placeholder="Automático" maxLength={40}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
               <p className="text-[11px] text-slate-400 mt-1">Opcional — si el cliente lleva su propio consecutivo (ej. COT-2026-045). Vacío usa el automático.</p>
             </div>
           </div>
@@ -710,14 +711,14 @@ export default function NuevaCotizacionPage() {
                   placeholder="Ej: Iluminación escénica"
                   value={linea.descripcion}
                   onChange={e => updateLinea(i, "descripcion", e.target.value)}
-                  className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+                  className={campo("md")}
                 />
                 <input
                   type="number"
                   min={1}
                   value={linea.cantidad}
                   onChange={e => updateLinea(i, "cantidad", e.target.value)}
-                  className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 text-center"
+                  className={campo("md", "text-center")}
                 />
                 <MoneyInput
                   placeholder="0"
@@ -747,7 +748,7 @@ export default function NuevaCotizacionPage() {
                   setLineas(prev => [...prev, { descripcion: p.nombre, cantidad: "1", precioUnit: p.precioBase }]);
                   e.target.value = "";
                 }}
-                  className="rounded-xl border border-slate-200 bg-white px-2 py-1 text-xs outline-none focus:border-brand-500">
+                  className={campo("sm", "text-xs")}>
                   <option value="">Agregar servicio del catálogo...</option>
                   {productos.map(p => (
                     <option key={p.id} value={p.id}>
@@ -767,14 +768,14 @@ export default function NuevaCotizacionPage() {
                   <label className="block text-xs font-medium text-slate-600 mb-1">Impuesto</label>
                   <input type="text" value={impuestoNombre} onChange={e => setImpuestoNombre(e.target.value)}
                     placeholder="Ej: IVA"
-                    className="w-28 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                    className={campo("md", "w-28")} />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">%</label>
                   <input type="number" min={0} max={100} step="0.01" value={impuestoPorcentaje}
                     onChange={e => setImpuestoPorcentaje(e.target.value)}
                     placeholder="0"
-                    className="w-20 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                    className={campo("md", "w-20")} />
                 </div>
               </div>
               <div className="flex gap-2">
@@ -782,14 +783,14 @@ export default function NuevaCotizacionPage() {
                   <label className="block text-xs font-medium text-slate-600 mb-1">2º impuesto (opcional)</label>
                   <input type="text" value={impuesto2Nombre} onChange={e => setImpuesto2Nombre(e.target.value)}
                     placeholder="Ej: Retención"
-                    className="w-28 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                    className={campo("md", "w-28")} />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">%</label>
                   <input type="number" min={0} max={100} step="0.01" value={impuesto2Porcentaje}
                     onChange={e => setImpuesto2Porcentaje(e.target.value)}
                     placeholder="0"
-                    className="w-20 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                    className={campo("md", "w-20")} />
                 </div>
               </div>
             </div>
@@ -821,7 +822,7 @@ export default function NuevaCotizacionPage() {
                 <div key={i} className="grid grid-cols-[1fr_120px_120px_28px] gap-2 items-center">
                   <input type="text" placeholder="Ej: Telecomunicaciones" value={l.area}
                     onChange={e => updateLineaAhorro(i, "area", e.target.value)}
-                    className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                    className={campo("md")} />
                   <MoneyInput placeholder="0" value={l.gastoBaseMensual}
                     onChange={v => updateLineaAhorro(i, "gastoBaseMensual", v)}
                     className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 text-right" />
@@ -841,13 +842,13 @@ export default function NuevaCotizacionPage() {
                   <label className="block text-xs font-medium text-slate-600 mb-1">% honorarios</label>
                   <input type="number" min={0} max={100} step="1" value={porcentajeHonorarios}
                     onChange={e => setPorcentajeHonorarios(e.target.value)}
-                    className="w-24 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                    className={campo("md", "w-24")} />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Horizonte (meses)</label>
                   <input type="number" min={1} step="1" value={horizonteMeses}
                     onChange={e => setHorizonteMeses(e.target.value)}
-                    className="w-28 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                    className={campo("md", "w-28")} />
                 </div>
               </div>
               <div className="text-right">
@@ -875,7 +876,7 @@ export default function NuevaCotizacionPage() {
                   <label className="block text-xs font-medium text-slate-600 mb-1">Horizonte (meses)</label>
                   <input type="number" min={1} step="1" value={horizonteMeses}
                     onChange={e => setHorizonteMeses(e.target.value)}
-                    className="w-28 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                    className={campo("md", "w-28")} />
                 </div>
               </div>
               <div className="text-right">
@@ -900,7 +901,7 @@ export default function NuevaCotizacionPage() {
           {esAdmin && (
             <div className="mt-3 flex items-center gap-3">
               <button type="button" onClick={guardarCuerpoParaTodas} disabled={guardandoCuerpo}
-                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                className={boton("primario", "md")}>
                 {guardandoCuerpo ? "Guardando..." : "Guardar para todas las cotizaciones"}
               </button>
               {cuerpoOk && <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600"><IconCheck size={14} stroke={2} /> Guardado para todas</span>}
@@ -915,7 +916,7 @@ export default function NuevaCotizacionPage() {
             value={notas} onChange={e => setNotas(e.target.value)}
             rows={3}
             placeholder="Condiciones especiales, información adicional..."
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 resize-none"
+            className={campo("md", "w-full resize-none")}
           />
         </div>
 
@@ -923,11 +924,11 @@ export default function NuevaCotizacionPage() {
 
         <div className="flex items-center gap-3 justify-end pb-6">
           <Link href="/dashboard/cotizaciones-formales"
-            className="rounded-xl border border-slate-200 px-5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+            className={boton("secundario", "md")}>
             Cancelar
           </Link>
           <button type="submit" disabled={enviando}
-            className="rounded-xl bg-accent-600 px-5 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-60">
+            className={boton("primario", "md")}>
             {enviando ? "Guardando..." : "Guardar como borrador"}
           </button>
         </div>

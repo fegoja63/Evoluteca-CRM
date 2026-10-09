@@ -23,6 +23,7 @@ import {
   IconAlertTriangle, IconHistory, IconTarget, IconTrophy, IconX, IconArrowRight,
   IconMoodSad, IconBolt,
 } from "@tabler/icons-react";
+import { boton, campo, tarjeta } from "@/components/ui/estilos";
 
 type Oportunidad = {
   id: string;
@@ -334,7 +335,7 @@ export default function OportunidadDetallePage() {
         No existe, fue eliminada, o no tienes acceso a ella.
       </p>
       <Link href="/dashboard/pipeline"
-        className="mt-4 inline-block rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+        className={boton("secundario", "md", "mt-4 inline-block")}>
         ← Volver al Pipeline
       </Link>
     </div>
@@ -376,14 +377,14 @@ export default function OportunidadDetallePage() {
       </div>
 
       {/* Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-5">
+      <div className={tarjeta("p-6 mb-5")}>
         {editando ? (
           <form onSubmit={handleGuardar}>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="col-span-2">
                 <label className="text-xs text-slate-500 mb-1 block">Título *</label>
                 <input required value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  className={campo("md", "w-full")} />
               </div>
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">Valor (COP)</label>
@@ -393,14 +394,14 @@ export default function OportunidadDetallePage() {
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">Etapa</label>
                 <select value={form.etapa} onChange={e => setForm({...form, etapa: e.target.value})}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
+                  className={campo("md", "w-full")}>
                   {ETAPAS.map(e => <option key={e.key} value={e.key}>{e.label}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">Fecha de cierre estimada</label>
                 <input type="date" value={form.fechaCierre} onChange={e => setForm({...form, fechaCierre: e.target.value})}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  className={campo("md", "w-full")} />
               </div>
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">
@@ -414,7 +415,7 @@ export default function OportunidadDetallePage() {
                 <div className="col-span-2">
                   <label className="text-xs text-slate-500 mb-1 block">Salón</label>
                   <select value={form.salonId} onChange={e => setForm({...form, salonId: e.target.value})}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
+                    className={campo("md", "w-full")}>
                     <option value="">— Sin salón del catálogo —</option>
                     {salones.map(s => <option key={s.id} value={s.id}>{s.nombre}{s.capacidad ? ` (${s.capacidad} pers.)` : ""}</option>)}
                   </select>
@@ -437,40 +438,40 @@ export default function OportunidadDetallePage() {
                 <label className="text-xs text-slate-500 mb-1 block">Sede / Lugar</label>
                 <input value={form.sede} onChange={e => setForm({...form, sede: e.target.value})}
                   placeholder="Teatro Nacional, Sala A..."
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  className={campo("md", "w-full")} />
               </div>
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">Fecha del evento</label>
                 <input type="date" value={form.fechaEvento} onChange={e => setForm({...form, fechaEvento: e.target.value})}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  className={campo("md", "w-full")} />
               </div>
               {moduloSalones && form.salonId && (
                 <div>
                   <label className="text-xs text-slate-500 mb-1 block">Horario (opcional)</label>
                   <div className="flex items-center gap-2">
                     <input type="time" value={form.horaInicio} onChange={e => setForm({...form, horaInicio: e.target.value})}
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                      className={campo("md", "w-full")} />
                     <span className="text-slate-400 text-xs">a</span>
                     <input type="time" value={form.horaFin} onChange={e => setForm({...form, horaFin: e.target.value})}
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                      className={campo("md", "w-full")} />
                   </div>
                 </div>
               )}
               <div className="col-span-2">
                 <label className="text-xs text-slate-500 mb-1 block">Notas</label>
                 <textarea value={form.notas} onChange={e => setForm({...form, notas: e.target.value})}
-                  rows={3} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  rows={3} className={campo("md", "w-full")} />
               </div>
               <CamposPersonalizadosForm entidad="OPORTUNIDAD" valores={camposValores}
                 onChange={(clave, valor) => setCamposValores(prev => ({ ...prev, [clave]: valor }))} />
             </div>
             <div className="flex gap-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                className={boton("primario", "md")}>
                 {guardando ? "Guardando..." : "Guardar cambios"}
               </button>
               <button type="button" onClick={() => setEditando(false)}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                className={boton("secundario", "md")}>
                 Cancelar
               </button>
             </div>
@@ -499,7 +500,7 @@ export default function OportunidadDetallePage() {
               </div>
               <div className="flex gap-2 shrink-0">
                 <button onClick={() => setEditando(true)}
-                  className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">
+                  className={boton("secundario", "md")}>
                   Editar
                 </button>
                 <button onClick={eliminar}
@@ -533,7 +534,7 @@ export default function OportunidadDetallePage() {
                     </p>
                   </div>
                   <button type="button" onClick={actuarAhora} disabled={guardandoAccion}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60 shrink-0">
+                    className={boton("marca", "md", "shrink-0")}>
                     <IconBolt size={16} stroke={2} />{guardandoAccion ? "Creando…" : "Actuar ahora"}
                   </button>
                 </div>
@@ -631,7 +632,7 @@ export default function OportunidadDetallePage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
         {/* Cliente */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className={tarjeta("p-5")}>
           <h2 className="text-sm font-bold text-slate-900 mb-3">Cliente</h2>
           {op.empresa ? (
             <div className="space-y-1.5 text-sm">
@@ -644,7 +645,7 @@ export default function OportunidadDetallePage() {
         </div>
 
         {/* Contacto */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className={tarjeta("p-5")}>
           <h2 className="text-sm font-bold text-slate-900 mb-3">Contacto</h2>
           {op.contacto ? (
             <div className="space-y-1.5 text-sm">
@@ -663,7 +664,7 @@ export default function OportunidadDetallePage() {
 
       {/* Datos extras del Excel */}
       {extrasRelevantes.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-5">
+        <div className={tarjeta("p-5 mb-5")}>
           <h2 className="text-sm font-bold text-slate-900 mb-3">Datos adicionales</h2>
           <div className="grid grid-cols-2 gap-x-8 gap-y-2">
             {extrasRelevantes.map(([k, v]) => (
@@ -677,7 +678,7 @@ export default function OportunidadDetallePage() {
       )}
 
       {/* Actividades */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5">
+      <div className={tarjeta("p-5")}>
         <h2 className="text-sm font-bold text-slate-900 mb-3">
           Actividades {op.actividades.length > 0 && `(${op.actividades.length})`}
         </h2>
@@ -716,7 +717,7 @@ export default function OportunidadDetallePage() {
 
       {/* ── HISTORIAL DE ETAPAS ── */}
       {op.cambiosEtapa.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-5">
+        <div className={tarjeta("p-5 mb-5")}>
           <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-1.5"><IconHistory size={15} stroke={1.75} />Historial de etapas</h3>
           <div className="relative">
             <div className="absolute left-3.5 top-0 bottom-0 w-px bg-slate-100" />

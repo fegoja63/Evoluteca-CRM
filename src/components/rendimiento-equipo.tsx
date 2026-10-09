@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MoneyInput } from "@/components/money-input";
+import { boton, tarjeta } from "@/components/ui/estilos";
 
 type Vendedor = {
   id: string;
@@ -101,7 +102,7 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
         <div className="space-y-6">
 
           {/* ── RANKING VISUAL ── */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6">
+          <div className={tarjeta("p-6")}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-slate-900">Ranking — Ganado este mes vs. meta</h3>
               <span className="text-xs text-slate-400">{MESES[mesActual - 1]} {anioActual}</span>
@@ -179,7 +180,7 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
                         <button
                           onClick={() => guardarMeta(v.id)}
                           disabled={guardandoMeta}
-                          className="rounded-lg bg-brand-600 text-white text-xs px-3 py-1 hover:bg-brand-700 disabled:opacity-50"
+                          className={boton("marca", "sm")}
                         >
                           {guardandoMeta ? "..." : "Guardar"}
                         </button>
@@ -305,7 +306,7 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
           )}
 
           {/* ── TABLA COMPARATIVA ── */}
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className={tarjeta("overflow-hidden")}>
             <div className="px-6 py-4 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-900">Tabla comparativa</h3>
             </div>

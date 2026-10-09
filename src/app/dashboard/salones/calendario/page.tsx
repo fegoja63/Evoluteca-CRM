@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { IconBuildingPavilion, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Salon = { id: string; nombre: string };
 type Cotizacion = {
@@ -163,13 +164,13 @@ export default function CalendarioSalonesPage() {
         <>
           <div className="mb-4 flex flex-wrap items-center gap-3">
             <select value={salonId} onChange={e => setSalonId(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500">
+              className={campo("md")}>
               {salones.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
             </select>
             <div className="flex items-center gap-2">
-              <button onClick={() => cambiarMes(-1)} className="rounded-lg border border-slate-200 px-2 py-1 text-sm hover:bg-slate-50 flex items-center"><IconChevronLeft size={14} stroke={1.75} /></button>
+              <button onClick={() => cambiarMes(-1)} className={boton("secundario", "sm", "flex")}><IconChevronLeft size={14} stroke={1.75} /></button>
               <span className="text-sm font-semibold text-slate-700 w-40 text-center">{MESES[mes - 1]} {anio}</span>
-              <button onClick={() => cambiarMes(1)} className="rounded-lg border border-slate-200 px-2 py-1 text-sm hover:bg-slate-50 flex items-center"><IconChevronRight size={14} stroke={1.75} /></button>
+              <button onClick={() => cambiarMes(1)} className={boton("secundario", "sm", "flex")}><IconChevronRight size={14} stroke={1.75} /></button>
             </div>
           </div>
 

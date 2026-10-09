@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { IconDownload, IconPlus, IconX, IconPackage, IconTarget, IconTrash } from "@tabler/icons-react";
 import { MoneyInput } from "@/components/money-input";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Producto = { id: string; nombre: string; descripcion: string | null; precioBase: string; activo: boolean };
 type Fila = { nombre: string; descripcion: string; precioBase: string };
@@ -134,12 +135,12 @@ export default function CatalogoPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <button onClick={exportarExcel} disabled={exportando}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+            className={boton("secundario", "md")}>
             <IconDownload size={16} stroke={1.75} />
             {exportando ? "Exportando..." : "Excel"}
           </button>
           <button onClick={() => { setModo(modo === "nuevo" ? "lista" : "nuevo"); setEditId(null); setForm({ nombre: "", descripcion: "", precioBase: "" }); setFilas([filaVacia()]); }}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
+            className={boton("primario", "md")}>
             {modo === "nuevo" ? <IconX size={16} stroke={1.75} /> : <IconPlus size={16} stroke={1.75} />}
             {modo === "nuevo" ? "Cancelar" : "Nuevo servicio"}
           </button>
@@ -164,7 +165,7 @@ export default function CatalogoPage() {
                 <label className="block text-xs font-medium text-slate-600 mb-1">Nombre del servicio *</label>
                 <input type="text" value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
                   placeholder="Ej: Iluminación escénica, Sonido profesional..."
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  className={campo("md", "w-full")} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Precio base (COP)</label>
@@ -176,7 +177,7 @@ export default function CatalogoPage() {
                 <label className="block text-xs font-medium text-slate-600 mb-1">Descripción (opcional)</label>
                 <input type="text" value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
                   placeholder="Breve descripción del servicio"
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  className={campo("md", "w-full")} />
               </div>
             </div>
           ) : (
@@ -188,7 +189,7 @@ export default function CatalogoPage() {
                     <label className="block text-xs font-medium text-slate-600 mb-1">Nombre del servicio *</label>
                     <input type="text" value={f.nombre} onChange={e => updateFila(i, "nombre", e.target.value)}
                       placeholder="Ej: Iluminación escénica, Sonido profesional..."
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                      className={campo("md", "w-full")} />
                   </div>
                   <div className="sm:col-span-3">
                     <label className="block text-xs font-medium text-slate-600 mb-1">Precio base (COP)</label>
@@ -200,7 +201,7 @@ export default function CatalogoPage() {
                     <label className="block text-xs font-medium text-slate-600 mb-1">Descripción (opcional)</label>
                     <input type="text" value={f.descripcion} onChange={e => updateFila(i, "descripcion", e.target.value)}
                       placeholder="Breve descripción"
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                      className={campo("md", "w-full")} />
                   </div>
                   <div className="sm:col-span-1 flex sm:justify-center">
                     <button type="button" onClick={() => removeFila(i)} disabled={filas.length === 1}
@@ -221,7 +222,7 @@ export default function CatalogoPage() {
 
           <div className="mt-4 flex gap-2">
             <button onClick={guardar} disabled={guardando || (editId ? !form.nombre.trim() : !filas.some(f => f.nombre.trim()))}
-              className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+              className={boton("primario", "md")}>
               {guardando ? "Guardando..." : editId ? "Guardar cambios" : "Agregar al catálogo"}
             </button>
           </div>

@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import { puedeEliminar } from "@/lib/permisos";
 import { toast } from "@/lib/toast";
 import { MoneyInput } from "@/components/money-input";
+import { boton, campo, tarjeta } from "@/components/ui/estilos";
 
 type Oportunidad = {
   id: string;
@@ -295,7 +296,7 @@ export default function CotizacionesPage() {
           <p className="text-slate-500 text-sm mt-1">Negocios en curso — todo lo que está por cerrar o perder</p>
         </div>
         <Link href="/dashboard/cotizaciones-formales/nueva"
-          className="inline-flex items-center gap-1.5 self-start rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 sm:self-auto">
+          className={boton("primario", "md", "self-start sm:self-auto")}>
           <IconFilePlus size={16} stroke={1.75} />
           Nueva cotización
         </Link>
@@ -312,7 +313,7 @@ export default function CotizacionesPage() {
         ] as { label: string; valor: number; sub?: string; icon: Icon; ibg: string; itxt: string }[]).map(k => {
           const Icono = k.icon;
           return (
-            <div key={k.label} className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm">
+            <div key={k.label} className={tarjeta("p-4")}>
               <div className="flex items-start justify-between mb-3">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${k.ibg}`}>
                   <Icono size={18} stroke={1.75} className={k.itxt} />
@@ -442,7 +443,7 @@ export default function CotizacionesPage() {
               placeholder="Buscar por cliente, evento, N° cotización, mes, año..."
               value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 pl-8 pr-8 py-2 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-100"
+              className={campo("md", "w-full pl-8 pr-8")}
             />
             {busqueda && (
               <button onClick={() => setBusqueda("")}
@@ -481,7 +482,7 @@ export default function CotizacionesPage() {
         <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
           <p className="text-sm text-slate-500 mb-3">No hay cotizaciones activas en esta etapa.</p>
           <Link href="/dashboard/cotizaciones-formales/nueva"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
+            className={boton("primario", "md")}>
             <IconFilePlus size={16} stroke={1.75} />
             Nueva cotización
           </Link>
@@ -605,12 +606,12 @@ export default function CotizacionesPage() {
                 <label className="mb-1 block text-xs text-slate-500">Tipo de evento / Negocio *</label>
                 <input required value={formEdit.titulo}
                   onChange={e => setFormEdit({ ...formEdit, titulo: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  className={campo("md", "w-full")} />
               </div>
               <div>
                 <label className="mb-1 block text-xs text-slate-500">Empresa / Cliente</label>
                 <select value={formEdit.empresaId} onChange={e => setFormEdit({ ...formEdit, empresaId: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                  className={campo("md", "w-full")}>
                   <option value="">Sin empresa</option>
                   {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
                 </select>
@@ -618,7 +619,7 @@ export default function CotizacionesPage() {
               <div>
                 <label className="mb-1 block text-xs text-slate-500">Contacto</label>
                 <select value={formEdit.contactoId} onChange={e => setFormEdit({ ...formEdit, contactoId: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                  className={campo("md", "w-full")}>
                   <option value="">Sin contacto</option>
                   {contactos.map(c => <option key={c.id} value={c.id}>{c.nombre}{c.email ? ` — ${c.email}` : ""}</option>)}
                 </select>
@@ -632,17 +633,17 @@ export default function CotizacionesPage() {
               <div>
                 <label className="mb-1 block text-xs text-slate-500">Etapa</label>
                 <select value={formEdit.etapa} onChange={e => setFormEdit({ ...formEdit, etapa: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                  className={campo("md", "w-full")}>
                   {ETAPAS_ACTIVAS.map(e => <option key={e} value={e}>{ETAPA_LABEL[e]}</option>)}
                 </select>
               </div>
               <div className="col-span-2 flex justify-end gap-2 pt-1">
                 <button type="button" onClick={cerrarEdicion}
-                  className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
+                  className={boton("secundario", "md")}>
                   Cancelar
                 </button>
                 <button type="submit" disabled={guardandoEdit}
-                  className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                  className={boton("primario", "md")}>
                   {guardandoEdit ? "Guardando..." : "Guardar cambios"}
                 </button>
               </div>

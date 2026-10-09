@@ -2,6 +2,7 @@
 
 import { IconArrowUp, IconArrowDown, IconX, IconPlus } from "@tabler/icons-react";
 import type { SeccionCuerpo } from "@/lib/cuerpo-cotizacion";
+import { boton, campo } from "@/components/ui/estilos";
 
 // Editor reutilizable de las secciones (título + contenido) del cuerpo de una
 // cotización: agregar, quitar, reordenar y editar. Se usa en Configuración
@@ -42,7 +43,7 @@ export function EditorSeccionesCotizacion({ secciones, onChange, disabled = fals
               onChange={e => update(i, "titulo", e.target.value)}
               disabled={disabled}
               placeholder="Título de la sección (ej: Condiciones comerciales)"
-              className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-800 outline-none focus:border-brand-500 disabled:opacity-60"
+              className={campo("md", "flex-1 font-medium disabled:opacity-60")}
             />
             <div className="flex items-center gap-0.5 shrink-0">
               <button type="button" onClick={() => mover(i, -1)} disabled={disabled || i === 0}
@@ -65,13 +66,13 @@ export function EditorSeccionesCotizacion({ secciones, onChange, disabled = fals
             disabled={disabled}
             rows={4}
             placeholder="Escribe el texto de esta sección. Cada salto de línea se muestra como un punto/párrafo."
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-brand-500 disabled:opacity-60 resize-y"
+            className={campo("md", "w-full disabled:opacity-60 resize-y")}
           />
         </div>
       ))}
       {!disabled && (
         <button type="button" onClick={add}
-          className="self-start inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+          className={boton("secundario", "md", "self-start")}>
           <IconPlus size={16} stroke={1.75} /> Agregar sección
         </button>
       )}

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { IconPaperclip, IconFile, IconFileTypePdf, IconPhoto, IconDownload, IconTrash, IconLoader2 } from "@tabler/icons-react";
+import { tarjeta } from "@/components/ui/estilos";
 
 type Adjunto = { id: string; nombre: string; tipo: string; tamano: number; creadoEn: string };
 
@@ -102,7 +103,7 @@ export function Adjuntos({ empresaId, contactoId, oportunidadId }: AdjuntosProps
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5">
+    <div className={tarjeta("p-5")}>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
           <IconPaperclip size={16} stroke={1.75} />Archivos adjuntos

@@ -10,6 +10,7 @@ import {
   IconTheater, IconArmchair, IconCoin, IconStar, IconDownload, IconPlus,
   IconAlertTriangle,
 } from "@tabler/icons-react";
+import { boton, campo } from "@/components/ui/estilos";
 
 const TAKE = 30;
 
@@ -262,7 +263,7 @@ export default function FuncionesPage() {
             <IconDownload size={16} stroke={1.75} />{exportando ? "Generando..." : "Exportar Excel"}
           </button>
           <button onClick={() => setMostrarForm(true)}
-            className="flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
+            className={boton("primario", "md", "flex")}>
             <IconPlus size={16} stroke={2} />Registrar función
           </button>
         </div>
@@ -288,29 +289,29 @@ export default function FuncionesPage() {
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Título / Obra *</label>
               <input required value={form.titulo} onChange={e => setForm({ ...form, titulo: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Fecha y hora *</label>
               <input required type="datetime-local" value={form.fecha} onChange={e => setForm({ ...form, fecha: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Canal de venta</label>
               <select value={form.canal} onChange={e => setForm({ ...form, canal: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                className={campo("md", "w-full")}>
                 {CANALES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
               </select>
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Sillas totales</label>
               <input type="number" value={form.sillasTotales} onChange={e => setForm({ ...form, sillasTotales: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Sillas vendidas</label>
               <input type="number" value={form.sillasVendidas} onChange={e => setForm({ ...form, sillasVendidas: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Ingreso estimado (COP)</label>
@@ -320,15 +321,15 @@ export default function FuncionesPage() {
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })} rows={2}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div className="col-span-2 flex gap-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                className={boton("primario", "md")}>
                 {guardando ? "Guardando..." : "Guardar"}
               </button>
               <button type="button" onClick={() => setMostrarForm(false)}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
+                className={boton("secundario", "md")}>
                 Cancelar
               </button>
             </div>
@@ -341,17 +342,17 @@ export default function FuncionesPage() {
             <div className="col-span-1 sm:col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Título / Obra *</label>
               <input required value={formTemp.titulo} onChange={e => setFormTemp({ ...formTemp, titulo: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Desde *</label>
               <input required type="date" value={formTemp.desde} onChange={e => setFormTemp({ ...formTemp, desde: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Hasta *</label>
               <input required type="date" value={formTemp.hasta} onChange={e => setFormTemp({ ...formTemp, hasta: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div className="col-span-1 sm:col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Días de la semana *</label>
@@ -373,7 +374,7 @@ export default function FuncionesPage() {
                   <div key={i} className="flex items-center gap-1">
                     <input type="time" value={h}
                       onChange={e => setFormTemp(t => ({ ...t, horarios: t.horarios.map((x, j) => j === i ? e.target.value : x) }))}
-                      className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:border-brand-500" />
+                      className={campo("sm")} />
                     {formTemp.horarios.length > 1 && (
                       <button type="button" title="Quitar horario"
                         onClick={() => setFormTemp(t => ({ ...t, horarios: t.horarios.filter((_, j) => j !== i) }))}
@@ -382,7 +383,7 @@ export default function FuncionesPage() {
                   </div>
                 ))}
                 <button type="button" onClick={() => setFormTemp(t => ({ ...t, horarios: [...t.horarios, ""] }))}
-                  className="rounded-lg border border-dashed border-slate-300 px-2.5 py-1.5 text-xs text-slate-500 hover:bg-slate-100">
+                  className={boton("secundario", "sm", "border-dashed")}>
                   + Agregar horario
                 </button>
               </div>
@@ -390,14 +391,14 @@ export default function FuncionesPage() {
             <div>
               <label className="mb-1 block text-xs text-slate-500">Canal de venta</label>
               <select value={formTemp.canal} onChange={e => setFormTemp({ ...formTemp, canal: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                className={campo("md", "w-full")}>
                 {CANALES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
               </select>
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Sillas totales</label>
               <input type="number" value={formTemp.sillasTotales} onChange={e => setFormTemp({ ...formTemp, sillasTotales: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Ingreso estimado por función (COP)</label>
@@ -407,7 +408,7 @@ export default function FuncionesPage() {
             <div>
               <label className="mb-1 block text-xs text-slate-500">Notas (se copian a todas)</label>
               <input value={formTemp.notas} onChange={e => setFormTemp({ ...formTemp, notas: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             {(() => {
               const fechas = fechasDeTemporada(formTemp);
@@ -425,11 +426,11 @@ export default function FuncionesPage() {
             })()}
             <div className="col-span-1 sm:col-span-2 flex gap-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                className={boton("primario", "md")}>
                 {guardando ? "Generando..." : "Generar temporada"}
               </button>
               <button type="button" onClick={() => setMostrarForm(false)}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
+                className={boton("secundario", "md")}>
                 Cancelar
               </button>
             </div>
@@ -500,11 +501,11 @@ export default function FuncionesPage() {
                   <td className="px-2 py-2">
                     <div className="flex gap-1">
                       <button onClick={() => handleGuardarEdicion(f.id)} disabled={guardando}
-                        className="rounded-lg bg-accent-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                        className={boton("primario", "sm")}>
                         Guardar
                       </button>
                       <button onClick={() => setEditandoId(null)}
-                        className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-100">
+                        className={boton("secundario", "sm")}>
                         Cancelar
                       </button>
                     </div>
@@ -540,7 +541,7 @@ export default function FuncionesPage() {
                   <td className="px-4 py-1">
                     <div className="flex gap-1 justify-end">
                       <button onClick={() => iniciarEdicion(f)}
-                        className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-100">
+                        className={boton("secundario", "sm")}>
                         Editar
                       </button>
                       <button onClick={() => handleEliminar(f.id)}

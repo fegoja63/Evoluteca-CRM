@@ -7,6 +7,7 @@ import {
   IconCalendar, IconReportAnalytics, IconBooks, IconTheater, IconBuildingPavilion,
   IconFlask, IconDownload, IconCircleCheck, IconApi, IconReportMoney, IconHeartHandshake, type Icon,
 } from "@tabler/icons-react";
+import { boton, tarjeta } from "@/components/ui/estilos";
 
 export default function BienvenidaPage() {
   const [nombre, setNombre] = useState("");
@@ -140,7 +141,7 @@ export default function BienvenidaPage() {
       </div>
 
       {/* Módulos disponibles */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-6">
+      <div className={tarjeta("p-5 mb-6")}>
         <h2 className="text-sm font-bold text-slate-900 mb-4">Módulos disponibles en tu CRM</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {modulos.map(m => {
@@ -158,7 +159,7 @@ export default function BienvenidaPage() {
       </div>
 
       {/* Manual de usuario */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-6">
+      <div className={tarjeta("p-5 mb-6")}>
         <div className="flex items-start gap-4">
           <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
             <IconBooks size={22} stroke={1.75} className="text-red-600" />
@@ -192,7 +193,7 @@ export default function BienvenidaPage() {
               </p>
               <div className="flex gap-3">
                 <a href="/api/manual/pdf-teatro" target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 transition-colors">
+                  className={boton("marca", "md", "flex gap-2")}>
                   <IconDownload size={16} stroke={1.75} /> Descargar anexo PDF
                 </a>
               </div>
@@ -215,7 +216,7 @@ export default function BienvenidaPage() {
               </p>
               <div className="flex gap-3">
                 <a href="/api/manual/pdf-salones" target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 transition-colors">
+                  className={boton("marca", "md", "flex gap-2")}>
                   <IconDownload size={16} stroke={1.75} /> Descargar anexo PDF
                 </a>
               </div>
@@ -299,7 +300,7 @@ export default function BienvenidaPage() {
           Puedes volver a esta guía desde el menú en cualquier momento.
         </p>
         <Link href="/dashboard"
-          className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+          className={boton("secundario", "md")}>
           Ir al Dashboard →
         </Link>
       </div>

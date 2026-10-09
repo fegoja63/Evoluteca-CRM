@@ -7,6 +7,7 @@ import Link from "next/link";
 import { IconUpload } from "@tabler/icons-react";
 import { MoneyInput } from "@/components/money-input";
 import { aInputDatetimeLocal } from "@/lib/fecha-bogota";
+import { boton, campo, tarjeta } from "@/components/ui/estilos";
 
 type NpsRespuesta = {
   id: string;
@@ -209,35 +210,35 @@ export default function FichaFuncionPage() {
       </div>
 
       {/* Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-5">
+      <div className={tarjeta("p-6 mb-5")}>
         {editando ? (
           <form onSubmit={handleGuardar} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="text-xs text-slate-500 mb-1 block">Título *</label>
               <input required value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Fecha y hora</label>
               <input type="datetime-local" value={form.fecha} onChange={e => setForm({...form, fecha: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Canal</label>
               <select value={form.canal} onChange={e => setForm({...form, canal: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
+                className={campo("md", "w-full")}>
                 {Object.entries(CANALES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Sillas totales</label>
               <input type="number" value={form.sillasTotales} onChange={e => setForm({...form, sillasTotales: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Sillas vendidas</label>
               <input type="number" value={form.sillasVendidas} onChange={e => setForm({...form, sillasVendidas: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Ingreso estimado (COP)</label>
@@ -247,15 +248,15 @@ export default function FichaFuncionPage() {
             <div className="col-span-2">
               <label className="text-xs text-slate-500 mb-1 block">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({...form, notas: e.target.value})} rows={2}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div className="col-span-2 flex gap-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                className={boton("primario", "md")}>
                 {guardando ? "Guardando..." : "Guardar"}
               </button>
               <button type="button" onClick={() => setEditando(false)}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                className={boton("secundario", "md")}>
                 Cancelar
               </button>
             </div>
@@ -272,7 +273,7 @@ export default function FichaFuncionPage() {
               </div>
               <div className="flex gap-2 shrink-0">
                 <button onClick={() => setEditando(true)}
-                  className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">
+                  className={boton("secundario", "md")}>
                   Editar
                 </button>
                 <button onClick={handleEliminar}
@@ -328,7 +329,7 @@ export default function FichaFuncionPage() {
       </div>
 
       {/* Asistentes */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-5">
+      <div className={tarjeta("p-6 mb-5")}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-bold text-slate-900">Asistentes</h2>
           <Link href={`/dashboard/funciones/${id}/importar-asistentes`}
@@ -344,7 +345,7 @@ export default function FichaFuncionPage() {
               <select
                 value={asistForm.espectadorId}
                 onChange={e => setAsistForm({ ...asistForm, espectadorId: e.target.value, nombre: "", telefono: "" })}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white"
+                className={campo("md", "w-full")}
               >
                 <option value="">— Seleccionar —</option>
                 {espectadores.map(e => (
@@ -360,7 +361,7 @@ export default function FichaFuncionPage() {
                     value={asistForm.nombre}
                     onChange={e => setAsistForm({ ...asistForm, nombre: e.target.value })}
                     placeholder="Nombre del espectador"
-                    className="w-48 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+                    className={campo("md", "w-48")}
                   />
                 </div>
                 <div>
@@ -369,13 +370,13 @@ export default function FichaFuncionPage() {
                     value={asistForm.telefono}
                     onChange={e => setAsistForm({ ...asistForm, telefono: e.target.value })}
                     placeholder="WhatsApp"
-                    className="w-40 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+                    className={campo("md", "w-40")}
                   />
                 </div>
               </>
             )}
             <button type="submit" disabled={guardandoAsist || (!asistForm.espectadorId && !asistForm.nombre.trim())}
-              className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 shrink-0">
+              className={boton("primario", "md", "shrink-0")}>
               {guardandoAsist ? "Guardando..." : "+ Registrar asistencia"}
             </button>
           </div>
@@ -408,7 +409,7 @@ export default function FichaFuncionPage() {
       </div>
 
       {/* NPS */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6">
+      <div className={tarjeta("p-6")}>
         <h2 className="text-sm font-bold text-slate-900 mb-4">Encuesta NPS</h2>
 
         {/* Form nueva respuesta */}
@@ -421,7 +422,7 @@ export default function FichaFuncionPage() {
                 value={npsForm.puntuacion}
                 onChange={e => setNpsForm({...npsForm, puntuacion: e.target.value})}
                 placeholder="Ej: 9"
-                className="w-24 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+                className={campo("md", "w-24")}
               />
             </div>
             <div className="w-48">
@@ -429,7 +430,7 @@ export default function FichaFuncionPage() {
               <select
                 value={npsForm.espectadorId}
                 onChange={e => setNpsForm({...npsForm, espectadorId: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white"
+                className={campo("md", "w-full")}
               >
                 <option value="">— Anónimo —</option>
                 {espectadores.map(e => (
@@ -443,11 +444,11 @@ export default function FichaFuncionPage() {
                 value={npsForm.comentario}
                 onChange={e => setNpsForm({...npsForm, comentario: e.target.value})}
                 placeholder="¿Qué le pareció la función?"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+                className={campo("md", "w-full")}
               />
             </div>
             <button type="submit" disabled={enviandoNps}
-              className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 shrink-0">
+              className={boton("primario", "md", "shrink-0")}>
               {enviandoNps ? "Enviando..." : "+ Registrar"}
             </button>
           </div>

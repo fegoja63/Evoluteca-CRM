@@ -11,6 +11,7 @@ import { NotasRapidas } from "@/components/notas-rapidas";
 import { guardarJson } from "@/lib/guardar";
 import { Adjuntos } from "@/components/adjuntos";
 import { CorreosPanel } from "@/components/correos-panel";
+import { boton } from "@/components/ui/estilos";
 
 type Empresa = { id: string; nombre: string };
 
@@ -221,7 +222,7 @@ export default function FichaContactoPage() {
               <button
                 type="submit"
                 disabled={guardando}
-                className="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
+                className={boton("primario", "md")}
               >
                 {guardando ? "Guardando..." : "Guardar cambios"}
               </button>

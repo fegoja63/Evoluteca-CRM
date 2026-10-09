@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { IconMessageChatbot, IconSparkles, IconCopy, IconCheck } from "@tabler/icons-react";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Uso = { limite: number | null; usados: number; iaConfigurada: boolean };
 type ObjecionGuia = { id: string; objecion: string };
@@ -93,7 +94,7 @@ export function CoachObjecionesIA({ oportunidadId }: { oportunidadId: string }) 
             value=""
             disabled={cargando}
             onChange={e => { if (e.target.value) setObjecion(e.target.value); }}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500"
+            className={campo("md", "w-full")}
           >
             <option value="">— Selecciona una objeción de la guía —</option>
             {guia.map(g => <option key={g.id} value={g.objecion}>{g.objecion}</option>)}
@@ -109,7 +110,7 @@ export function CoachObjecionesIA({ oportunidadId }: { oportunidadId: string }) 
           rows={2}
           disabled={cargando}
           placeholder='Ej: "Es muy caro" o lo que te dijo el cliente…'
-          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 resize-none"
+          className={campo("md", "w-full resize-none")}
         />
       </div>
 
@@ -136,7 +137,7 @@ export function CoachObjecionesIA({ oportunidadId }: { oportunidadId: string }) 
             <button
               onClick={copiar}
               disabled={!texto || cargando}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+              className={boton("secundario", "sm")}
             >
               {copiado ? <><IconCheck size={14} stroke={2} className="text-emerald-600" /> Copiado</> : <><IconCopy size={14} stroke={1.75} /> Copiar</>}
             </button>

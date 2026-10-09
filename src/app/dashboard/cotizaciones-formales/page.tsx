@@ -9,6 +9,7 @@ import {
 import { idsReemplazadas, valorConImpuestos, MODALIDAD_LABEL, numeroCotizacion } from "@/lib/cotizaciones";
 import { guardarJson } from "@/lib/guardar";
 import { toast } from "@/lib/toast";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type LineaAhorro = { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string };
@@ -183,12 +184,12 @@ export default function CotizacionesFormalesPage() {
           </button>
           )}
           <button onClick={exportarExcel} disabled={exportando}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+            className={boton("secundario", "md", "flex")}>
             <IconDownload size={16} stroke={1.75} />
             {exportando ? "Exportando..." : "Excel"}
           </button>
           <Link href="/dashboard/cotizaciones-formales/nueva"
-            className="flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
+            className={boton("primario", "md", "flex")}>
             <IconFilePlus size={16} stroke={1.75} />
             Nueva cotización
           </Link>
@@ -232,7 +233,7 @@ export default function CotizacionesFormalesPage() {
           <IconSearch size={15} stroke={1.75} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input type="text" placeholder="Buscar por cliente, N° cotización, sede..."
             value={busqueda} onChange={e => setBusqueda(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 pl-8 pr-8 py-2 text-sm outline-none focus:border-brand-500" />
+            className={campo("md", "w-full pl-8 pr-8")} />
           {busqueda && (
             <button onClick={() => setBusqueda("")}
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
@@ -257,7 +258,7 @@ export default function CotizacionesFormalesPage() {
           <IconFileText size={28} stroke={1.5} className="text-slate-300 mx-auto mb-3" />
           <p className="text-sm text-slate-500 mb-4">No hay cotizaciones formales aún.</p>
           <Link href="/dashboard/cotizaciones-formales/nueva"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
+            className={boton("primario", "md")}>
             <IconFilePlus size={16} stroke={1.75} />
             Nueva cotización
           </Link>
@@ -384,7 +385,7 @@ export default function CotizacionesFormalesPage() {
           </button>
           <button disabled={procesando}
             onClick={() => accionLote(Array.from(seleccionadas), "eliminar", `¿Eliminar ${seleccionadas.size} cotización(es)? Se moverán a la Papelera y podrás restaurarlas.`)}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+            className={boton("secundario", "md", "flex")}>
             <IconTrash size={15} stroke={1.75} />Eliminar
           </button>
           <button onClick={() => setSeleccionadas(new Set())}

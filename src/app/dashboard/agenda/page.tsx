@@ -12,6 +12,7 @@ import {
   IconAlertTriangle, IconPencil, IconUsers, IconCalendarPlus, IconX,
 } from "@tabler/icons-react";
 import { tiposActividadVisibles, tipoActividadDef, type TipoActividadDef } from "@/lib/tipos-actividad";
+import { boton, tarjeta } from "@/components/ui/estilos";
 
 // Nombre visible de cada filtro de la Agenda (se usa en el botón de exportar
 // para dejar claro qué bloque se va a descargar).
@@ -188,16 +189,16 @@ function CalendarioActividades({
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-slate-200 p-5">
+      <div className={tarjeta("p-5")}>
         {/* Navegación mes */}
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => navMes(-1)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-1">
+            className={boton("secundario", "md", "flex")}>
             <IconChevronLeft size={14} stroke={1.75} />Ant.
           </button>
           <h2 className="text-sm font-bold text-slate-900">{MESES_NOMBRE[mes.mes]} {mes.anio}</h2>
           <button onClick={() => navMes(1)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-1">
+            className={boton("secundario", "md", "flex")}>
             Sig.<IconChevronRight size={14} stroke={1.75} />
           </button>
         </div>
@@ -799,16 +800,16 @@ function AgendaContent() {
             title={vista === "lista"
               ? `Descargar en un archivo .ics las actividades del filtro "${FILTRO_LABEL[filtro]}"`
               : "Descargar en un archivo .ics tus actividades pendientes"}
-            className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 flex items-center gap-1.5">
+            className={boton("secundario", "md", "flex")}>
             <IconFileExport size={15} stroke={1.75} />
             iCal{vista === "lista" && filtro !== "pendientes" ? `: ${FILTRO_LABEL[filtro]}` : ""}
           </a>
           <button onClick={exportarExcel} disabled={exportando}
-            className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 flex items-center gap-1.5">
+            className={boton("secundario", "md", "flex")}>
             {exportando ? "Exportando..." : (<><IconFileSpreadsheet size={15} stroke={1.75} />Excel</>)}
           </button>
           <button onClick={() => { setEditandoId(null); setForm({ tipo: "TAREA", titulo: "", fecha: "", notas: "", empresaId: "", contactoId: "", oportunidadId: "", responsableId: miId ?? "", estado: "PENDIENTE" }); setMostrarForm(true); }}
-            className="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 flex items-center gap-1.5">
+            className={boton("primario", "md", "flex")}>
             <IconPlus size={15} stroke={1.75} />Nueva actividad
           </button>
         </div>
@@ -972,7 +973,7 @@ function AgendaContent() {
                     type="button"
                     onClick={crearContactoRapido}
                     disabled={creandoContacto || !nuevoContactoNombre.trim()}
-                    className="whitespace-nowrap rounded-md bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                    className={boton("marca", "md", "whitespace-nowrap")}
                   >
                     {creandoContacto ? "Guardando…" : "Agregar"}
                   </button>
@@ -1025,7 +1026,7 @@ function AgendaContent() {
               <button
                 type="submit"
                 disabled={guardando}
-                className="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
+                className={boton("primario", "md")}
               >
                 {guardando ? "Guardando..." : editandoId ? "Guardar cambios" : "Guardar"}
               </button>

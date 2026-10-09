@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { IconAlertTriangle, IconLock } from "@tabler/icons-react";
 import { CampoPassword } from "@/components/campo-password";
+import { boton, tarjeta } from "@/components/ui/estilos";
 
 const VERSION = "1.0";
 
@@ -70,7 +71,7 @@ export function ActivarCuenta({
 
         {/* Cambio de contraseña */}
         {necesitaPassword && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+          <div className={tarjeta("p-6 mb-6")}>
             <div className="flex items-center gap-2 mb-1">
               <IconLock size={18} stroke={1.75} className="text-brand-600" />
               <h2 className="text-sm font-semibold text-slate-800">Tu nueva contraseña</h2>
@@ -99,7 +100,7 @@ export function ActivarCuenta({
         {/* Acuerdo de licencia — SOLO el titular */}
         {necesitaTerminos && (
           <>
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+            <div className={tarjeta("overflow-hidden mb-6")}>
               <div className="bg-brand-950/95 px-8 py-4">
                 <h2 className="text-white text-lg font-bold">Acuerdo de Licencia de Uso</h2>
                 <p className="text-brand-300 text-xs mt-0.5">Versión {VERSION} — Lo aceptas en nombre de tu empresa</p>
@@ -213,7 +214,7 @@ export function ActivarCuenta({
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+            <div className={tarjeta("p-6 mb-6")}>
               <label className="flex items-start gap-3 cursor-pointer">
                 <input type="checkbox" checked={acepto} onChange={e => setAcepto(e.target.checked)}
                   className="mt-0.5 w-4 h-4 accent-accent-600 cursor-pointer" />
@@ -230,7 +231,7 @@ export function ActivarCuenta({
         <button
           onClick={handleActivar}
           disabled={!puedeEnviar}
-          className="w-full rounded-2xl bg-accent-600 px-6 py-4 text-base font-semibold text-white hover:bg-accent-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className={boton("primario", "md", "w-full text-base")}
         >
           {enviando ? "Activando cuenta..." : "Activar cuenta e ingresar al CRM"}
         </button>

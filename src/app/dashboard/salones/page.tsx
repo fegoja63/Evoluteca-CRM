@@ -5,6 +5,7 @@ import {
   IconClipboardList, IconCalendar, IconX, IconPlus, IconBuildingPavilion,
   IconEdit, IconTrash,
 } from "@tabler/icons-react";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Salon = { id: string; nombre: string; capacidad: number | null; descripcion: string | null; activo: boolean };
 
@@ -80,15 +81,15 @@ export default function SalonesPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <a href="/dashboard/salones/dia"
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 flex items-center gap-1.5">
+            className={boton("secundario", "md", "flex")}>
             <IconClipboardList size={15} stroke={1.75} />Ver por día
           </a>
           <a href="/dashboard/salones/calendario"
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 flex items-center gap-1.5">
+            className={boton("secundario", "md", "flex")}>
             <IconCalendar size={15} stroke={1.75} />Calendario
           </a>
           <button onClick={() => { setModo(modo === "nuevo" ? "lista" : "nuevo"); setEditId(null); setForm({ nombre: "", capacidad: "", descripcion: "" }); }}
-            className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 flex items-center gap-1.5">
+            className={boton("primario", "md", "flex")}>
             {modo === "nuevo" ? <><IconX size={15} stroke={1.75} />Cancelar</> : <><IconPlus size={15} stroke={1.75} />Nuevo salón</>}
           </button>
         </div>
@@ -109,24 +110,24 @@ export default function SalonesPage() {
               <label className="block text-xs font-medium text-slate-600 mb-1">Nombre del salón *</label>
               <input type="text" value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
                 placeholder="Ej: Salón Principal, Salón A, Terraza..."
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Capacidad (personas)</label>
               <input type="number" min={0} value={form.capacidad} onChange={e => setForm(f => ({ ...f, capacidad: e.target.value }))}
                 placeholder="0"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Descripción (opcional)</label>
               <input type="text" value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
                 placeholder="Piso, características, etc."
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
           </div>
           <div className="mt-4 flex gap-2">
             <button onClick={guardar} disabled={guardando || !form.nombre.trim()}
-              className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+              className={boton("primario", "md")}>
               {guardando ? "Guardando..." : editId ? "Guardar cambios" : "Agregar salón"}
             </button>
           </div>

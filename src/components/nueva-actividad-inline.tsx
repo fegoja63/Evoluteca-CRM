@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
 import { tiposActividadVisibles } from "@/lib/tipos-actividad";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Props = {
   empresaId?: string;
@@ -83,7 +84,7 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
         <select
           value={form.tipo}
           onChange={e => setForm({ ...form, tipo: e.target.value })}
-          className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-brand-500"
+          className={campo("sm", "text-xs")}
         >
           {tipos.map(t => <option key={t.key} value={t.key}>{t.emoji} {t.label}</option>)}
         </select>
@@ -92,7 +93,7 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
           value={form.titulo}
           onChange={e => setForm({ ...form, titulo: e.target.value })}
           placeholder="Título de la actividad *"
-          className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-500"
+          className={campo("sm", "flex-1")}
         />
       </div>
       <div className="flex gap-2">
@@ -101,22 +102,22 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
           type="datetime-local"
           value={form.fecha}
           onChange={e => setForm({ ...form, fecha: e.target.value })}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-500"
+          className={campo("sm")}
         />
         <input
           value={form.notas}
           onChange={e => setForm({ ...form, notas: e.target.value })}
           placeholder="Notas (opcional)"
-          className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-500"
+          className={campo("sm", "flex-1")}
         />
       </div>
       <div className="flex gap-2 justify-end">
         <button type="button" onClick={() => setAbierto(false)}
-          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100">
+          className={boton("secundario", "sm")}>
           Cancelar
         </button>
         <button type="submit" disabled={guardando}
-          className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+          className={boton("marca", "sm")}>
           {guardando ? "Guardando..." : "Guardar actividad"}
         </button>
       </div>

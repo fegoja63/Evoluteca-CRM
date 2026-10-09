@@ -9,6 +9,7 @@ import {
   TIPOS_CAMPO, TIPO_LABEL, ENTIDADES_CAMPO, ENTIDAD_LABEL,
   type TipoCampo, type EntidadCampo,
 } from "@/lib/campos-personalizados";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Def = {
   id: string;
@@ -181,12 +182,12 @@ export function CamposPersonalizadosAdmin({ esAdmin }: { esAdmin: boolean }) {
               <label className="mb-1 block text-xs text-slate-500">Nombre del campo</label>
               <input value={etiqueta} onChange={e => setEtiqueta(e.target.value)}
                 placeholder="Ej: NIT, Competidor, N° de licitación"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Tipo</label>
               <select value={tipo} onChange={e => setTipo(e.target.value as TipoCampo)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
+                className={campo("md", "w-full")}>
                 {TIPOS_CAMPO.map(t => <option key={t} value={t}>{TIPO_LABEL[t]}</option>)}
               </select>
             </div>
@@ -195,7 +196,7 @@ export function CamposPersonalizadosAdmin({ esAdmin }: { esAdmin: boolean }) {
                 <label className="mb-1 block text-xs text-slate-500">Opciones (una por línea)</label>
                 <textarea value={opcionesTexto} onChange={e => setOpcionesTexto(e.target.value)} rows={4}
                   placeholder={"Gobierno\nSector financiero\nEmpresa privada"}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  className={campo("md", "w-full")} />
               </div>
             )}
             <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
@@ -205,7 +206,7 @@ export function CamposPersonalizadosAdmin({ esAdmin }: { esAdmin: boolean }) {
             </label>
           </div>
           <button onClick={crear} disabled={creando}
-            className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+            className={boton("primario", "md", "mt-3")}>
             <IconPlus size={16} stroke={1.75} />{creando ? "Creando..." : "Agregar campo"}
           </button>
         </div>

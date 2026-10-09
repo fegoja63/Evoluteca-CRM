@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Evento = {
   id: string;
@@ -101,7 +102,7 @@ export function BitacoraExpediente({ expedienteId, puedeEliminar }: { expediente
       <form onSubmit={guardarEvento} className="mb-6 rounded-xl border border-slate-100 bg-slate-50 p-4">
         <div className="flex gap-2 mb-2">
           <select value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}
-            className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-brand-500">
+            className={campo("sm", "text-xs")}>
             {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
@@ -110,14 +111,14 @@ export function BitacoraExpediente({ expedienteId, puedeEliminar }: { expediente
           placeholder="Título de la actuación, audiencia o nota..."
           value={form.titulo}
           onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))}
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-500 mb-2"
+          className={campo("sm", "w-full mb-2")}
         />
         <textarea
           placeholder="Descripción o detalle (opcional)"
           value={form.descripcion}
           onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
           rows={2}
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-500 resize-none mb-2"
+          className={campo("sm", "w-full resize-none mb-2")}
         />
         {error && (
           <div className="mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
@@ -125,7 +126,7 @@ export function BitacoraExpediente({ expedienteId, puedeEliminar }: { expediente
           </div>
         )}
         <button type="submit" disabled={guardando || !form.titulo.trim()}
-          className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+          className={boton("marca", "sm")}>
           {guardando ? "Guardando..." : "+ Registrar"}
         </button>
       </form>

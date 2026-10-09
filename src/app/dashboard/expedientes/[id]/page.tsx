@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { BitacoraExpediente } from "@/components/bitacora-expediente";
 import { plazoVencido, plazoProximo } from "@/lib/plazo-legal";
 import { IconAlertTriangle } from "@tabler/icons-react";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Termino = {
   id: string;
@@ -249,7 +250,7 @@ export default function DetalleExpedientePage() {
         </div>
         <div className="flex gap-2">
           <button onClick={() => setEditando(!editando)}
-            className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100">
+            className={boton("secundario", "md")}>
             {editando ? "Cancelar" : "Editar"}
           </button>
           {puedeEliminar && (
@@ -267,34 +268,34 @@ export default function DetalleExpedientePage() {
             <div>
               <label className="mb-1 block text-xs text-slate-500">Número de radicado *</label>
               <input required value={form.numeroRadicado} onChange={e => setForm({ ...form, numeroRadicado: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Estado</label>
               <select value={form.estado} onChange={e => setForm({ ...form, estado: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
+                className={campo("md", "w-full")}>
                 {ESTADOS.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Juzgado</label>
               <input value={form.juzgado} onChange={e => setForm({ ...form, juzgado: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Tipo de proceso</label>
               <input value={form.tipoProceso} onChange={e => setForm({ ...form, tipoProceso: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Contraparte *</label>
               <input required value={form.contraparte} onChange={e => setForm({ ...form, contraparte: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })} rows={3}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             {error && (
               <div className="col-span-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
@@ -303,7 +304,7 @@ export default function DetalleExpedientePage() {
             )}
             <div className="col-span-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                className={boton("primario", "md")}>
                 {guardando ? "Guardando..." : "Guardar cambios"}
               </button>
             </div>
@@ -348,7 +349,7 @@ export default function DetalleExpedientePage() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-bold text-slate-900">Términos y plazos</h2>
           <button onClick={() => setMostrarFormTermino(!mostrarFormTermino)}
-            className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100">
+            className={boton("secundario", "sm")}>
             {mostrarFormTermino ? "Cancelar" : "+ Nuevo plazo"}
           </button>
         </div>
@@ -359,17 +360,17 @@ export default function DetalleExpedientePage() {
               <label className="mb-1 block text-xs text-slate-500">Descripción *</label>
               <input required value={formTermino.descripcion} onChange={e => setFormTermino({ ...formTermino, descripcion: e.target.value })}
                 placeholder="Ej: Contestar demanda, Presentar recurso de apelación..."
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Fecha límite *</label>
               <input required type="date" value={formTermino.fechaLimite} onChange={e => setFormTermino({ ...formTermino, fechaLimite: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Notas</label>
               <input value={formTermino.notas} onChange={e => setFormTermino({ ...formTermino, notas: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             {errorTermino && (
               <div className="col-span-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
@@ -378,7 +379,7 @@ export default function DetalleExpedientePage() {
             )}
             <div className="col-span-2">
               <button type="submit" disabled={guardandoTermino}
-                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                className={boton("primario", "md")}>
                 {guardandoTermino ? "Guardando..." : "Crear plazo"}
               </button>
             </div>
@@ -436,7 +437,7 @@ export default function DetalleExpedientePage() {
             </p>
           </div>
           <button onClick={() => setMostrarFormHoras(!mostrarFormHoras)}
-            className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100">
+            className={boton("secundario", "sm")}>
             {mostrarFormHoras ? "Cancelar" : "+ Registrar horas"}
           </button>
         </div>
@@ -446,17 +447,17 @@ export default function DetalleExpedientePage() {
             <div>
               <label className="mb-1 block text-xs text-slate-500">Fecha *</label>
               <input required type="date" value={formHoras.fecha} onChange={e => setFormHoras({ ...formHoras, fecha: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Horas *</label>
               <input required type="number" step="0.25" min="0.25" value={formHoras.horas} onChange={e => setFormHoras({ ...formHoras, horas: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Descripción</label>
               <input value={formHoras.descripcion} onChange={e => setFormHoras({ ...formHoras, descripcion: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             {errorHoras && (
               <div className="col-span-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
@@ -465,7 +466,7 @@ export default function DetalleExpedientePage() {
             )}
             <div className="col-span-3">
               <button type="submit" disabled={guardandoHoras}
-                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                className={boton("primario", "md")}>
                 {guardandoHoras ? "Guardando..." : "Registrar"}
               </button>
             </div>

@@ -11,6 +11,7 @@ import {
 import { useSession } from "next-auth/react";
 import { puedeEliminar } from "@/lib/permisos";
 import { toast } from "@/lib/toast";
+import { boton, tarjeta } from "@/components/ui/estilos";
 
 const TAKE = 30;
 
@@ -182,7 +183,7 @@ export default function ContactosPage() {
         ] as { label: string; valor: number; sub?: string; icon: Icon; semantic: boolean }[]).map(k => {
           const Icono = k.icon;
           return (
-            <div key={k.label} className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm">
+            <div key={k.label} className={tarjeta("p-4")}>
               <div className="flex items-start justify-between mb-3">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${k.semantic ? "bg-amber-50" : "bg-brand-50"}`}>
                   <Icono size={18} stroke={1.75} className={k.semantic ? "text-amber-600" : "text-brand-600"} />
@@ -214,12 +215,12 @@ export default function ContactosPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <a href="/api/exportar/contactos"
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1.5">
+            className={boton("secundario", "md")}>
             ↓ Exportar Excel
           </a>
           <button
             onClick={() => setMostrarForm(true)}
-            className="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 inline-flex items-center gap-1.5"
+            className={boton("primario", "md")}
           >
             <IconUserCircle size={16} stroke={1.75} />
             Nuevo contacto
@@ -311,7 +312,7 @@ export default function ContactosPage() {
               <button
                 type="submit"
                 disabled={guardando}
-                className="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
+                className={boton("primario", "md")}
               >
                 {guardando ? "Guardando..." : duplicados.length > 0 ? "Guardar de todas formas" : "Guardar"}
               </button>
@@ -429,7 +430,7 @@ export default function ContactosPage() {
               </div>
               <div className="col-span-2 flex gap-2 pt-1">
                 <button type="submit" disabled={guardandoEdit}
-                  className="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                  className={boton("primario", "md")}>
                   {guardandoEdit ? "Guardando..." : "Guardar cambios"}
                 </button>
                 <button type="button" onClick={() => setEditando(null)}

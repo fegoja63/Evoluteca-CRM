@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import {
   IconCircleCheck, IconAlertTriangle, IconUpload, IconUsers,
 } from "@tabler/icons-react";
+import { boton, campo, tarjeta } from "@/components/ui/estilos";
 
 type Preview = {
   columnas: string[];
@@ -157,7 +158,7 @@ export default function ImportarAsistentesPage() {
 
       {/* PASO 1 */}
       {paso === 1 && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <div className={tarjeta("p-6")}>
           <h2 className="text-sm font-semibold text-slate-800 mb-2">Sube el Excel con la lista de asistentes</h2>
           <p className="text-xs text-slate-400 mb-3">
             Sube tu propio formato — en el siguiente paso verás tus columnas y decidirás cuál es el nombre, el email, etc.
@@ -167,7 +168,7 @@ export default function ImportarAsistentesPage() {
             className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 mb-5" />
 
           <button onClick={handlePrevisualizar} disabled={cargando}
-            className="rounded-xl bg-accent-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+            className={boton("primario", "lg")}>
             {cargando ? "Leyendo archivo..." : "Continuar →"}
           </button>
         </div>
@@ -175,7 +176,7 @@ export default function ImportarAsistentesPage() {
 
       {/* PASO 2 */}
       {paso === 2 && preview && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <div className={tarjeta("p-6")}>
           <div className="mb-5 flex items-center justify-between">
             <div>
               <h2 className="text-sm font-semibold text-slate-800">¿Qué es cada columna de tu Excel?</h2>
@@ -203,7 +204,7 @@ export default function ImportarAsistentesPage() {
                   <select
                     value={valor}
                     onChange={(e) => setMapeo({ ...mapeo, [col]: e.target.value })}
-                    className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs outline-none focus:border-brand-500 min-w-[220px]"
+                    className={campo("sm", "text-xs min-w-[220px]")}
                   >
                     <option value="__ignorar__">Ignorar esta columna</option>
                     <optgroup label="─── Campo del CRM ───">
@@ -224,7 +225,7 @@ export default function ImportarAsistentesPage() {
                 : "Falta asignar la columna del nombre"}
             </p>
             <button onClick={handleImportar} disabled={cargando}
-              className="rounded-xl bg-accent-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 flex items-center gap-1.5">
+              className={boton("primario", "lg", "flex")}>
               <IconUpload size={14} stroke={1.75} />{cargando ? "Importando..." : `Registrar ${preview.totalFilas} asistentes`}
             </button>
           </div>
@@ -233,7 +234,7 @@ export default function ImportarAsistentesPage() {
 
       {/* PASO 3 */}
       {paso === 3 && resultado && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
+        <div className={tarjeta("p-8 text-center")}>
           <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 ${
             resultado.errores === 0 ? "bg-emerald-50" : "bg-amber-50"
           }`}>
@@ -252,11 +253,11 @@ export default function ImportarAsistentesPage() {
           </p>
           <div className="flex gap-3 justify-center">
             <Link href={`/dashboard/funciones/${id}`}
-              className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
+              className={boton("primario", "md")}>
               Ver la función →
             </Link>
             <button onClick={() => { setPaso(1); setResultado(null); setPreview(null); setMapeo({}); if (fileRef.current) fileRef.current.value = ""; }}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+              className={boton("secundario", "md")}>
               Importar otro archivo
             </button>
           </div>

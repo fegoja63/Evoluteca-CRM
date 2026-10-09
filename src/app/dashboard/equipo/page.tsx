@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { RendimientoEquipo } from "@/components/rendimiento-equipo";
 import { IconDownload, IconUserPlus, IconEdit, IconCircleCheck, IconTrash, IconAlertTriangle } from "@tabler/icons-react";
 import { CampoPassword } from "@/components/campo-password";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Usuario = {
   id: string;
@@ -252,7 +253,7 @@ export default function EquipoPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <button onClick={exportarExcel} disabled={exportando}
-            className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+            className={boton("secundario", "md", "flex")}>
             <IconDownload size={15} stroke={1.75} /> {exportando ? "Exportando..." : "Excel"}
           </button>
           {esAdmin && (
@@ -260,7 +261,7 @@ export default function EquipoPage() {
               onClick={() => setMostrarForm(true)}
               disabled={enLimite}
               title={enLimite ? `Tu plan permite hasta ${limiteUsuarios} usuarios activos. Contacta a tu asesor Evoluteca para ampliar el límite.` : undefined}
-              className="flex items-center gap-1.5 rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              className={boton("primario", "md", "flex")}
             >
               <IconUserPlus size={15} stroke={1.75} /> Invitar usuario
             </button>
@@ -333,7 +334,7 @@ export default function EquipoPage() {
               <button
                 type="submit"
                 disabled={guardando}
-                className="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
+                className={boton("primario", "md")}
               >
                 {guardando ? "Invitando..." : "Invitar"}
               </button>
@@ -545,7 +546,7 @@ export default function EquipoPage() {
               <select
                 value={eliminarReasignarA}
                 onChange={e => setEliminarReasignarA(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+                className={campo("md", "w-full")}
               >
                 <option value="">Dejarlos sin dueño (recuperables luego)</option>
                 {usuarios.filter(u => u.activo && u.id !== eliminarUser.id).map(u => (
@@ -595,7 +596,7 @@ export default function EquipoPage() {
                   value={resetPass}
                   onChange={e => setResetPass(e.target.value)}
                   placeholder="Mínimo 6 caracteres"
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 mb-4"
+                  className={campo("md", "w-full mb-4")}
                 />
                 <p className="text-xs text-slate-400 mb-4">Comparte esta contraseña con el usuario por un canal seguro (WhatsApp, llamada). El usuario puede cambiarla después.</p>
                 <div className="flex gap-2">

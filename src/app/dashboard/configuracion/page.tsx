@@ -14,6 +14,7 @@ import {
 import { CamposPersonalizadosAdmin } from "@/components/campos-personalizados-admin";
 import { AutomatizacionesAdmin } from "@/components/automatizaciones-admin";
 import { paletaMarca, normalizarColorMarca, PALETA_EVOLUTECA } from "@/lib/color-marca";
+import { boton, campo } from "@/components/ui/estilos";
 
 type EtapaPipeline = { id: string; key: string; nombre: string; orden: number; oculta: boolean };
 
@@ -416,14 +417,14 @@ export default function ConfiguracionPage() {
               accept="image/*"
               onChange={handleLogoFile}
               disabled={!esAdmin}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 disabled:opacity-50 mb-2 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-700 hover:file:bg-slate-200"
+              className={campo("md", "w-full disabled:opacity-50 mb-2 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-700 hover:file:bg-slate-200")}
             />
             {logoError && <p className="text-xs text-red-600 mb-2">{logoError}</p>}
             <div className="flex items-center gap-2">
               <button
                 onClick={guardarLogo}
                 disabled={!esAdmin || guardandoLogo || logoInput === logoUrl}
-                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 transition-colors"
+                className={boton("primario", "md")}
               >
                 {guardandoLogo ? "Guardando..." : "Guardar logo"}
               </button>
@@ -468,12 +469,12 @@ export default function ConfiguracionPage() {
                     className="h-10 w-14 cursor-pointer rounded-lg border border-slate-200 bg-white p-1 disabled:opacity-50" />
                   <input type="text" value={colorInput} onChange={e => setColorInput(e.target.value)} disabled={!esAdmin}
                     placeholder="Azul por defecto" maxLength={7}
-                    className="w-32 rounded-xl border border-slate-200 px-3 py-2 text-sm font-mono uppercase outline-none focus:border-brand-500 disabled:opacity-50" />
+                    className={campo("md", "w-32 font-mono uppercase disabled:opacity-50")} />
                 </div>
                 {valido === null && <p className="text-xs text-red-600">Formato #RRGGBB, por ejemplo #DC2626.</p>}
                 <div className="flex items-center gap-2">
                   <button onClick={() => guardarColor(colorInput)} disabled={!esAdmin || guardandoColor || valido === null || !cambio}
-                    className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 transition-colors">
+                    className={boton("primario", "md")}>
                     {guardandoColor ? "Guardando..." : "Guardar color"}
                   </button>
                   {colorMarca && (
@@ -595,12 +596,12 @@ export default function ConfiguracionPage() {
             disabled={!esAdmin}
             onChange={e => setEmailEmpresa(e.target.value)}
             placeholder="cotizaciones@tuempresa.com"
-            className="w-72 max-w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 disabled:opacity-50"
+            className={campo("md", "w-72 max-w-full disabled:opacity-50")}
           />
           <button
             onClick={guardarEmailEmpresa}
             disabled={!esAdmin || guardandoEmail}
-            className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
+            className={boton("primario", "md")}
           >
             {guardandoEmail ? "Guardando..." : "Guardar"}
           </button>
@@ -663,14 +664,14 @@ export default function ConfiguracionPage() {
               value={diasEstancamiento}
               onChange={e => setDiasEstancamiento(e.target.value)}
               disabled={!esAdmin}
-              className="w-24 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 disabled:opacity-50"
+              className={campo("md", "w-24 disabled:opacity-50")}
             />
             <span className="text-sm text-slate-600">días sin movimiento</span>
           </div>
           <button
             onClick={guardarEstancamiento}
             disabled={!esAdmin || guardandoEstanc}
-            className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 transition-colors"
+            className={boton("primario", "md")}
           >
             {guardandoEstanc ? "Guardando..." : "Guardar umbral"}
           </button>
@@ -773,7 +774,7 @@ export default function ConfiguracionPage() {
           )}
 
           <button onClick={generarApiKey} disabled={generandoKey}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+            className={boton("secundario", "md")}>
             <IconRefresh size={16} stroke={1.75} />
             {generandoKey ? "Generando..." : apiKeyLeads ? "Rotar clave" : "Generar clave"}
           </button>
@@ -818,7 +819,7 @@ export default function ConfiguracionPage() {
                 <button
                   onClick={() => { setMostrarLimpiar(false); setConfirmaLimpiar(""); }}
                   disabled={limpiando}
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className={boton("secundario", "md")}
                 >
                   Cancelar
                 </button>

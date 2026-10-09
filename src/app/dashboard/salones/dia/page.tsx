@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { IconBuildingPavilion, IconCircleCheck } from "@tabler/icons-react";
+import { campo } from "@/components/ui/estilos";
 
 type Salon = { id: string; nombre: string; capacidad: number | null };
 type Cotizacion = {
@@ -77,7 +78,7 @@ export default function TablaDiaSalonesPage() {
         <>
           <div className="mb-4 flex flex-wrap items-center gap-3">
             <input type="date" value={fecha} onChange={e => setFecha(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              className={campo("md")} />
             <span className="text-sm text-slate-500 capitalize">{fechaFormateada}</span>
           </div>
 

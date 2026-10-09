@@ -35,6 +35,14 @@ Uno solo: `github.com/fegoja63/Evoluteca-CRM` (el que despliega Vercel). Sin pus
 Next.js (App Router, TypeScript) + Tailwind · Prisma + PostgreSQL (Neon) · NextAuth (Auth.js v5) ·
 multi-tenant (cada empresa es un `Tenant` aislado) · roles ADMINISTRADOR / GERENTE / COMERCIAL.
 
+## Estilos de la interfaz
+
+- Botones, campos, tarjetas e insignias usan los helpers de [src/components/ui/estilos.ts](src/components/ui/estilos.ts)
+  (`boton()`, `campo()`, `tarjeta()`, `insignia()`) o los componentes de `src/components/ui`. No escribir esas
+  clases a mano en código nuevo.
+- Colores: `brand` (azul navy) para interacción y decoración, `accent` (rojo ladrillo) para la acción principal.
+  Azul/violeta/ámbar/verde genéricos de Tailwind solo para **categorías o estados** (etapas, tipos de actividad, roles).
+
 ## Pruebas (vitest)
 
 - Todas las carpetas y sesiones usan **la misma base de pruebas** (rama Neon `test`, `ep-gentle-tooth`).
