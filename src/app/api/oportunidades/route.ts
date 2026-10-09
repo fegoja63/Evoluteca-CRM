@@ -5,7 +5,7 @@ import { filtroOwner } from "@/lib/permisos";
 import { crearOportunidadSchema } from "@/lib/validations/oportunidades";
 import { parseOrError } from "@/lib/validations/helpers";
 import { dispararAutomatizaciones } from "@/lib/automatizaciones-motor";
-import { inicioProximoPaso } from "@/lib/estado-comercial";
+import { elegirProximoPaso, type ActividadPendiente } from "@/lib/proximo-paso";
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -36,9 +36,6 @@ export async function GET(request: Request) {
     // El último correo (entrante o saliente) también es señal de vida: un cliente
     // que respondió hace poco NO está estancado aunque no haya actividad anotada.
     correos: { orderBy: { fecha: "desc" as const }, take: 1, select: { fecha: true } },
-    // Actividades pendientes agendadas de hoy en adelante: si no hay ninguna, el
-    // negocio queda "sin próximo paso" (ver estadoComercial).
-    _count: { select: { actividades: { where: { completada: false, fecha: { gte: inicioProximoPaso() } } } } },
   };
 
   type ConMovimiento = {
@@ -46,10 +43,29 @@ export async function GET(request: Request) {
     actividades: { fecha: Date }[];
     cambiosEtapa: { creadoEn: Date }[];
     correos: { fecha: Date }[];
-    _count: { actividades: number };
   };
-  function conUltimoMovimiento<T extends ConMovimiento>(o: T) {
-    const { actividades, cambiosEtapa, correos, _count, ...resto } = o;
+
+  // Próximo paso de cada oportunidad (ver src/lib/proximo-paso.ts): una sola
+  // consulta con las actividades pendientes de todas, agrupadas en memoria.
+  // `tieneProximoPaso` sale del mismo dato, así hay un solo criterio.
+  async function pendientesPorOportunidad(ids: string[]) {
+    const porOp = new Map<string, ActividadPendiente[]>();
+    if (ids.length === 0) return porOp;
+    const pendientes = await prisma.actividad.findMany({
+      where: { tenantId: session!.user.tenantId, oportunidadId: { in: ids }, completada: false },
+      select: { oportunidadId: true, fecha: true, tipo: true, titulo: true },
+    });
+    for (const { oportunidadId, ...a } of pendientes) {
+      if (!oportunidadId) continue;
+      const lista = porOp.get(oportunidadId) ?? [];
+      lista.push(a);
+      porOp.set(oportunidadId, lista);
+    }
+    return porOp;
+  }
+
+  function conUltimoMovimiento<T extends ConMovimiento & { id: string }>(o: T, pendientes: Map<string, ActividadPendiente[]>) {
+    const { actividades, cambiosEtapa, correos, ...resto } = o;
     const candidatos = [
       o.creadoEn,
       actividades[0]?.fecha,
@@ -57,7 +73,8 @@ export async function GET(request: Request) {
       correos[0]?.fecha,
     ].filter((d): d is Date => !!d);
     const ultimoMovimiento = candidatos.reduce((a, b) => (b > a ? b : a));
-    return { ...resto, ultimoMovimiento, tieneProximoPaso: _count.actividades > 0 };
+    const proximoPaso = elegirProximoPaso(pendientes.get(o.id) ?? []);
+    return { ...resto, ultimoMovimiento, proximoPaso, tieneProximoPaso: !!proximoPaso && !proximoPaso.vencida };
   }
 
   // Sin "page" se mantiene el comportamiento anterior (lista completa) — el
@@ -69,7 +86,8 @@ export async function GET(request: Request) {
       orderBy: { creadoEn: "desc" },
       include: includeMovimiento,
     });
-    return NextResponse.json(oportunidades.map(conUltimoMovimiento));
+    const pendientes = await pendientesPorOportunidad(oportunidades.map(o => o.id));
+    return NextResponse.json(oportunidades.map(o => conUltimoMovimiento(o, pendientes)));
   }
 
   const pageNum = Math.max(1, Number(page) || 1);
@@ -84,7 +102,8 @@ export async function GET(request: Request) {
     prisma.oportunidad.count({ where }),
   ]);
 
-  return NextResponse.json(oportunidades.map(conUltimoMovimiento), { headers: { "X-Total-Count": String(total) } });
+  const pendientes = await pendientesPorOportunidad(oportunidades.map(o => o.id));
+  return NextResponse.json(oportunidades.map(o => conUltimoMovimiento(o, pendientes)), { headers: { "X-Total-Count": String(total) } });
 }
 
 export async function POST(request: Request) {
