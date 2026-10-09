@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { IconMenu2 } from "@tabler/icons-react";
 import { Sidebar } from "./sidebar";
+import { useEscape } from "@/lib/use-escape";
 
 export function MobileTopBar({ tenantNombre }: { tenantNombre: string }) {
   const [open, setOpen] = useState(false);
+  useEscape(open, () => setOpen(false));
 
   return (
     <div className="md:hidden">

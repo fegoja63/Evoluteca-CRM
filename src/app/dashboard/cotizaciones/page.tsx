@@ -13,6 +13,7 @@ import { toast } from "@/lib/toast";
 import { MoneyInput } from "@/components/money-input";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
+import { useEscape } from "@/lib/use-escape";
 
 type Oportunidad = {
   id: string;
@@ -174,6 +175,7 @@ export default function CotizacionesPage() {
   const [busqueda, setBusqueda] = useState("");
   const [cambiandoEtapa, setCambiandoEtapa] = useState<string | null>(null);
   const [editando, setEditando] = useState<Oportunidad | null>(null);
+  useEscape(!!editando, () => cerrarEdicion());
   const [formEdit, setFormEdit] = useState({ titulo: "", empresaId: "", contactoId: "", valor: "", etapa: "PROPUESTA" });
   const [guardandoEdit, setGuardandoEdit] = useState(false);
   const { data: session } = useSession();

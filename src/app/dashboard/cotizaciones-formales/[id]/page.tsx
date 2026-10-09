@@ -13,6 +13,7 @@ import { normalizarCuerpo, type SeccionCuerpo } from "@/lib/cuerpo-cotizacion";
 import { useSession } from "next-auth/react";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
+import { useEscape } from "@/lib/use-escape";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type LineaAhorro = { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string };
@@ -116,6 +117,7 @@ export default function CotizacionDetailPage() {
   const [copiado, setCopiado]     = useState(false);
   const [motivoRechazo, setMotivoRechazo] = useState("");
   const [mostrarMotivoModal, setMostrarMotivoModal] = useState(false);
+  useEscape(mostrarMotivoModal, () => setMostrarMotivoModal(false));
   const [guardandoPlantilla, setGuardandoPlantilla] = useState(false);
   const [plantillaGuardada, setPlantillaGuardada] = useState(false);
 
