@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { IconBuildingBank, IconGavel, IconScale, IconNote, IconPhone, IconMail, IconUsers, type Icon } from "@tabler/icons-react";
 import { toast } from "@/lib/toast";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonLista } from "@/components/ui/estados";
@@ -15,14 +16,14 @@ type Evento = {
 
 const TIPOS = ["AUDIENCIA", "AUTO", "ACTUACION", "NOTA", "LLAMADA", "EMAIL", "REUNION"];
 
-const TIPO_CONFIG: Record<string, { emoji: string; color: string; dot: string }> = {
-  AUDIENCIA:  { emoji: "🏛️", color: "border-violet-300 bg-violet-50",  dot: "bg-violet-500" },
-  AUTO:       { emoji: "📜", color: "border-blue-300 bg-blue-50",     dot: "bg-blue-500" },
-  ACTUACION:  { emoji: "⚖️", color: "border-slate-300 bg-slate-50",    dot: "bg-slate-500" },
-  NOTA:       { emoji: "📝", color: "border-amber-300 bg-amber-50",   dot: "bg-amber-500" },
-  LLAMADA:    { emoji: "📞", color: "border-emerald-300 bg-emerald-50", dot: "bg-emerald-500" },
-  EMAIL:      { emoji: "✉️", color: "border-sky-300 bg-sky-50",       dot: "bg-sky-500" },
-  REUNION:    { emoji: "🤝", color: "border-rose-300 bg-rose-50",     dot: "bg-rose-500" },
+const TIPO_CONFIG: Record<string, { icon: Icon; color: string; dot: string }> = {
+  AUDIENCIA:  { icon: IconBuildingBank, color: "border-violet-300 bg-violet-50",  dot: "bg-violet-500" },
+  AUTO:       { icon: IconGavel, color: "border-blue-300 bg-blue-50",     dot: "bg-blue-500" },
+  ACTUACION:  { icon: IconScale, color: "border-slate-300 bg-slate-50",    dot: "bg-slate-500" },
+  NOTA:       { icon: IconNote, color: "border-amber-300 bg-amber-50",   dot: "bg-amber-500" },
+  LLAMADA:    { icon: IconPhone, color: "border-emerald-300 bg-emerald-50", dot: "bg-emerald-500" },
+  EMAIL:      { icon: IconMail, color: "border-sky-300 bg-sky-50",       dot: "bg-sky-500" },
+  REUNION:    { icon: IconUsers, color: "border-rose-300 bg-rose-50",     dot: "bg-rose-500" },
 };
 
 function fmtFecha(s: string) {
@@ -149,7 +150,7 @@ export function BitacoraExpediente({ expedienteId, puedeEliminar }: { expediente
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-xs">{cfg.emoji}</span>
+                          <cfg.icon size={14} stroke={1.75} className="text-slate-500 shrink-0" />
                           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{ev.tipo}</span>
                         </div>
                         <p className="text-sm font-medium text-slate-800 truncate">{ev.titulo}</p>

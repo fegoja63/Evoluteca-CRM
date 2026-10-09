@@ -108,7 +108,7 @@ export const FAQS: Faq[] = [
   { categoria: "Cotizaciones", pregunta: "¿Puedo poner el color de mi empresa en las cotizaciones?",
     respuesta: "Sí. En Configuración → \"Color de marca\" (solo Administrador) elige tu color corporativo con el selector o escribe su código (ej. #DC2626). El PDF de la cotización, la página donde tu cliente la ve en línea y el correo con que se la envías salen con ese color en vez del azul de Evoluteca. Si el color es muy claro, el CRM lo oscurece solo donde va texto blanco para que se lea bien. El interior del CRM no cambia. Con \"Volver al azul por defecto\" lo quitas." },
   { categoria: "Cotizaciones", pregunta: "¿Puedo enviar la cotización a un correo distinto al del contacto registrado?",
-    respuesta: "Sí. Al hacer clic en \"✉ Enviar email\" el campo de destinatario viene pre-llenado con el correo del contacto, pero es editable antes de enviar." },
+    respuesta: "Sí. Al hacer clic en \"Enviar email\" el campo de destinatario viene pre-llenado con el correo del contacto, pero es editable antes de enviar." },
   { categoria: "Cotizaciones", pregunta: "¿A nombre de quién le llega el correo de la cotización al cliente, y a dónde responde?",
     respuesta: "El correo llega con el nombre y el logo de tu empresa como remitente (no \"Evoluteca CRM\", que solo aparece como una nota pequeña al pie). Si el cliente responde, la respuesta llega al \"Correo de la empresa\" que configures en Configuración. El correo sale desde el dominio del sistema (@evoluteca.com) pero con tu identidad; enviarlo desde tu propio dominio (ej. @tuempresa.com) es un paso adicional que puedes solicitar." },
   { categoria: "Cotizaciones", pregunta: "¿Cómo cambio las secciones que salen en todas mis cotizaciones (Sobre nosotros, alcance, condiciones…)?",
@@ -116,7 +116,7 @@ export const FAQS: Faq[] = [
   { categoria: "Cotizaciones", pregunta: "El cliente que recibe la cotización, ¿puede verla y descargar el PDF sin tener cuenta?",
     respuesta: "Sí. El correo incluye un botón \"Ver y responder en línea\" (donde el cliente ve la cotización y puede aceptarla o rechazarla) y un botón \"Descargar PDF\". Ambos funcionan sin iniciar sesión, mediante el enlace seguro de la cotización. Si enviaste una cotización antes de esta mejora y el cliente ve \"No autorizado\" al descargar, vuelve a enviársela para que le llegue el enlace nuevo." },
   { categoria: "Cotizaciones", pregunta: "¿Cómo reutilizo un paquete de servicios que uso seguido?",
-    respuesta: "Guárdalo como plantilla en el módulo Plantillas, o desde una cotización existente con el botón \"★ Guardar plantilla\". Editar o eliminar una plantilla después no afecta las cotizaciones ya creadas a partir de ella." },
+    respuesta: "Guárdalo como plantilla en el módulo Plantillas, o desde una cotización existente con el botón \"Guardar plantilla\". Editar o eliminar una plantilla después no afecta las cotizaciones ya creadas a partir de ella." },
   { categoria: "Cotizaciones", pregunta: "¿Qué pasa si una cotización vence sin respuesta del cliente?",
     respuesta: "El sistema muestra badges automáticos: ámbar \"Vence en Xd\" (7 días o menos) y rojo \"Vencida Xd\" o \"Vence hoy\". Estos badges desaparecen cuando la cotización pasa a Aceptada o Rechazada." },
 

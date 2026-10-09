@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { IconTrash } from "@tabler/icons-react";
+import { IconTrash, IconCalendar, IconTarget, IconFileText, IconMessageCircle, type Icon } from "@tabler/icons-react";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonLista } from "@/components/ui/estados";
 
@@ -26,10 +26,10 @@ type Item = {
 };
 
 const CAT_CONFIG = {
-  ACTIVIDAD:   { emoji: "📅", color: "border-blue-300 bg-blue-50",    dot: "bg-blue-500",    label: "Actividad" },
-  OPORTUNIDAD: { emoji: "◈",  color: "border-violet-300 bg-violet-50", dot: "bg-violet-500",  label: "Oportunidad" },
-  COTIZACION:  { emoji: "📄", color: "border-slate-300 bg-slate-50",   dot: "bg-slate-500",   label: "Cotización" },
-  EVENTO:      { emoji: "💬", color: "border-emerald-300 bg-emerald-50",dot: "bg-emerald-500", label: "Evento" },
+  ACTIVIDAD:   { icon: IconCalendar, color: "border-blue-300 bg-blue-50",    dot: "bg-blue-500",    label: "Actividad" },
+  OPORTUNIDAD: { icon: IconTarget,   color: "border-violet-300 bg-violet-50", dot: "bg-violet-500",  label: "Oportunidad" },
+  COTIZACION:  { icon: IconFileText, color: "border-slate-300 bg-slate-50",   dot: "bg-slate-500",   label: "Cotización" },
+  EVENTO:      { icon: IconMessageCircle, color: "border-emerald-300 bg-emerald-50",dot: "bg-emerald-500", label: "Evento" },
 };
 
 const TIPOS_EVENTO = ["NOTA", "LLAMADA", "EMAIL", "REUNION", "WHATSAPP"];
@@ -99,12 +99,12 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
     cargar();
   }
 
-  const FILTROS = [
-    { key: "TODOS", label: "Todo" },
-    { key: "EVENTO", label: "💬 Notas" },
-    { key: "ACTIVIDAD", label: "📅 Actividades" },
-    { key: "OPORTUNIDAD", label: "◈ Oportunidades" },
-    { key: "COTIZACION", label: "📄 Cotizaciones" },
+  const FILTROS: { key: string; label: string; icon: Icon | null }[] = [
+    { key: "TODOS", label: "Todo", icon: null },
+    { key: "EVENTO", label: "Notas", icon: IconMessageCircle },
+    { key: "ACTIVIDAD", label: "Actividades", icon: IconCalendar },
+    { key: "OPORTUNIDAD", label: "Oportunidades", icon: IconTarget },
+    { key: "COTIZACION", label: "Cotizaciones", icon: IconFileText },
   ];
 
   const itemsFiltrados = filtro === "TODOS" ? items : items.filter(i => i.categoria === filtro);
@@ -119,10 +119,10 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
       <div className="flex gap-2 mb-4 flex-wrap">
         {FILTROS.map(f => (
           <button key={f.key} onClick={() => { setFiltro(f.key); setMostrar(15); }}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+            className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               filtro === f.key ? "bg-brand-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}>
-            {f.label}
+            {f.icon && <f.icon size={13} stroke={1.75} />}{f.label}
           </button>
         ))}
       </div>
@@ -180,7 +180,7 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-xs">{cfg.emoji}</span>
+                          <cfg.icon size={14} stroke={1.75} className="text-slate-500 shrink-0" />
                           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{cfg.label}</span>
                           {item.subtitulo && (
                             <span className="text-xs text-slate-400">· {item.subtitulo}</span>

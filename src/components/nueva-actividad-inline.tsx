@@ -86,7 +86,7 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
           onChange={e => setForm({ ...form, tipo: e.target.value })}
           className={campo("sm", "text-xs")}
         >
-          {tipos.map(t => <option key={t.key} value={t.key}>{t.emoji} {t.label}</option>)}
+          {tipos.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
         </select>
         <input
           required

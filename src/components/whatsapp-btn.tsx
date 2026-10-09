@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { IconBrandWhatsapp, IconX } from "@tabler/icons-react";
 
 const PLANTILLAS_DEFAULT = [
   { label: "Saludo inicial",       msg: (nombre: string) => `Hola ${nombre}, espero que estés muy bien. Me comunico desde Evoluteca para hacer seguimiento a tu solicitud. ¿Tienes un momento para hablar?` },
@@ -44,7 +45,7 @@ export function WhatsAppBtn({ telefono, nombre, plantillas, onSend }: Props) {
     return (
       <button onClick={() => setAbierto(true)}
         className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700 hover:bg-emerald-100 flex items-center gap-1">
-        💬 WhatsApp
+        <IconBrandWhatsapp size={16} stroke={1.75} />WhatsApp
       </button>
     );
   }
@@ -53,8 +54,8 @@ export function WhatsAppBtn({ telefono, nombre, plantillas, onSend }: Props) {
     <div ref={ref} className="relative z-30">
       <div className="absolute right-0 top-0 w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 p-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-xs font-bold text-slate-700">💬 Enviar por WhatsApp</p>
-          <button onClick={() => setAbierto(false)} className="text-slate-400 hover:text-slate-700 text-lg leading-none">×</button>
+          <p className="text-xs font-bold text-slate-700 inline-flex items-center gap-1.5"><IconBrandWhatsapp size={15} stroke={1.75} className="text-emerald-600" />Enviar por WhatsApp</p>
+          <button onClick={() => setAbierto(false)} className="text-slate-400 hover:text-slate-700" aria-label="Cerrar"><IconX size={16} stroke={1.75} /></button>
         </div>
         <div className="flex flex-wrap gap-1.5 mb-3">
           {PLANTILLAS.map((p, i) => (
@@ -74,7 +75,7 @@ export function WhatsAppBtn({ telefono, nombre, plantillas, onSend }: Props) {
         <a href={url} target="_blank" rel="noopener noreferrer"
           onClick={() => { setAbierto(false); onSend?.(); }}
           className="mt-2 w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 text-white py-2.5 text-sm font-semibold hover:bg-emerald-700 transition-colors">
-          💬 Abrir WhatsApp
+          <IconBrandWhatsapp size={16} stroke={1.75} />Abrir WhatsApp
         </a>
       </div>
     </div>

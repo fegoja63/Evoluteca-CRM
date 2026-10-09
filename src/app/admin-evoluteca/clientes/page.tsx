@@ -4,6 +4,7 @@ import { Fragment, useEffect, useState } from "react";
 import { CampoPassword } from "@/components/campo-password";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonTabla } from "@/components/ui/estados";
+import { IconCheck } from "@tabler/icons-react";
 
 const CLAVE_KEY = "admin-evoluteca-secret";
 
@@ -299,7 +300,7 @@ export default function ClientesInternoPage() {
                                     onClick={() => toggleModulo(t, m.key)}
                                     className={`rounded-full px-3 py-1 text-xs font-medium disabled:opacity-50 ${activo ? "bg-brand-600 text-white" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
                                   >
-                                    {m.label} {activo ? "✓" : ""}
+                                    <span className="inline-flex items-center gap-1">{m.label}{activo && <IconCheck size={13} stroke={2.25} />}</span>
                                   </button>
                                 );
                               })}

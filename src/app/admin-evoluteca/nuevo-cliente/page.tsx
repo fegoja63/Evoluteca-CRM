@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CampoPassword } from "@/components/campo-password";
+import { IconCircleCheck } from "@tabler/icons-react";
 
 const FORM_VACIO = { claveAdmin: "", nombreEmpresa: "", nombreUsuario: "", email: "", password: "" };
 
@@ -46,7 +47,7 @@ export default function NuevoClienteInternoPage() {
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/10 shadow-2xl">
           {creado && (
             <div className="mb-6 rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-4 py-3">
-              <p className="text-sm text-emerald-400 font-semibold">✓ Cliente creado</p>
+              <p className="text-sm text-emerald-400 font-semibold inline-flex items-center gap-1.5"><IconCircleCheck size={16} stroke={2} />Cliente creado</p>
               <p className="text-xs text-emerald-300/80 mt-1">
                 {creado.nombreEmpresa} — administrador: {creado.email}. Ya puede iniciar sesión en{" "}
                 <a href="/login" className="underline">/login</a> con la contraseña que definiste.

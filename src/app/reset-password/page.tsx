@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { CampoPassword } from "@/components/campo-password";
+import { IconAlertTriangle, IconCircleCheck } from "@tabler/icons-react";
 
 function ResetForm() {
   const searchParams = useSearchParams();
@@ -42,7 +43,7 @@ function ResetForm() {
   if (!token) {
     return (
       <div className="text-center">
-        <div className="text-4xl mb-4">⚠️</div>
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50"><IconAlertTriangle size={28} stroke={1.75} className="text-amber-600" /></div>
         <h2 className="text-xl font-bold text-slate-800 mb-2">Enlace inválido</h2>
         <p className="text-slate-500 text-sm mb-4">Este enlace de recuperación no es válido.</p>
         <Link href="/forgot-password" className="text-sm text-brand-600 hover:text-brand-800 font-medium">
@@ -55,7 +56,7 @@ function ResetForm() {
   if (exito) {
     return (
       <div className="text-center">
-        <div className="text-4xl mb-4">✅</div>
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50"><IconCircleCheck size={28} stroke={1.75} className="text-emerald-600" /></div>
         <h2 className="text-xl font-bold text-slate-800 mb-2">¡Contraseña actualizada!</h2>
         <p className="text-slate-500 text-sm">Redirigiendo al inicio de sesión...</p>
       </div>
