@@ -899,8 +899,8 @@ export default function CotizacionDetailPage() {
 
       {/* Modal motivo rechazo */}
       {mostrarMotivoModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl animate-modal-in">
             <h3 className="font-bold text-slate-900 mb-1">Motivo de rechazo</h3>
             <p className="text-xs text-slate-500 mb-4">Registrar el motivo ayuda a analizar patrones.</p>
             <div className="grid grid-cols-2 gap-2 mb-4">

@@ -35,3 +35,12 @@ body {
 .toast-in {
   animation: toast-in 0.2s ease-out;
 }
+
+/* Quien pide "reducir movimiento" en su sistema ve todo sin animación. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
