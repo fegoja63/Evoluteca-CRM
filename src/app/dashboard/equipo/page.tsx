@@ -528,8 +528,8 @@ export default function EquipoPage() {
 
       {/* Modal eliminar usuario (definitivo) */}
       {eliminarUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-modal-in">
             <div className="flex items-start gap-3 mb-4">
               <div className="rounded-full bg-rose-50 p-2 shrink-0">
                 <IconAlertTriangle size={20} stroke={1.75} className="text-rose-600" />
@@ -581,8 +581,8 @@ export default function EquipoPage() {
 
       {/* Modal resetear contraseña */}
       {resetId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl animate-modal-in">
             {resetOk ? (
               <div className="text-center py-4">
                 <IconCircleCheck size={30} stroke={1.75} className="text-emerald-500 mx-auto mb-2" />

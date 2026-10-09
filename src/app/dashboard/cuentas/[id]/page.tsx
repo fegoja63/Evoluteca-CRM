@@ -481,9 +481,9 @@ export default function FichaClientePage() {
 
       {/* Modal crear / editar contacto */}
       {modalContactoAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-fade-in"
           onClick={cerrarModalContacto}>
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl animate-modal-in"
             onClick={(e) => e.stopPropagation()}>
             <h2 className="mb-4 text-sm font-semibold text-slate-800">{nuevoContacto ? "Nuevo contacto" : "Editar contacto"}</h2>
             <form onSubmit={handleGuardarContacto} className="grid grid-cols-1 sm:grid-cols-2 gap-3">

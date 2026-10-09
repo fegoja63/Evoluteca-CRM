@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { filtroOwner, moduloActivo } from "@/lib/permisos";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { componentesHoyBogota, medianocheBogota } from "@/lib/fecha-bogota";
+import { variacionPct, rangoMesAnteriorAlCorte, ultimosMeses } from "@/lib/tendencia";
+import { Sparkline } from "@/components/ui/sparkline";
 import { plazoVencido } from "@/lib/plazo-legal";
 import { numeroCotizacion } from "@/lib/cotizaciones";
 import { estadoComercial, ultimoMovimientoDe, inicioProximoPaso, type EstadoClave } from "@/lib/estado-comercial";
@@ -13,8 +15,7 @@ import {
   IconPhone, IconCheck, IconMail, IconTarget, IconTrophy, IconAlertTriangle,
   IconCircleCheck, IconScale, IconTheater, IconAlertCircle, IconSnowflake,
   IconMoodSmile, IconPinned, IconFilePlus, IconCalendarPlus, IconReportAnalytics, IconHeartHandshake,
-  type Icon,
-} from "@tabler/icons-react";
+  type Icon, IconTrendingUp, IconTrendingDown } from "@tabler/icons-react";
 import { tarjeta } from "@/components/ui/estilos";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +30,7 @@ export default async function DashboardPage() {
   // del servidor (UTC en producción), para que "hoy"/"este mes" no se adelanten
   // por la noche. Ver src/lib/fecha-bogota.ts.
   const hoy = new Date();
-  const { anio, mes } = componentesHoyBogota(hoy);
+  const { anio, mes, dia } = componentesHoyBogota(hoy);
   const inicioHoy   = medianocheBogota(0, hoy);
   const finHoy      = medianocheBogota(1, hoy);
   // Mes/año se construyen con los componentes de Bogotá manteniendo la misma
@@ -264,6 +265,15 @@ export default async function DashboardPage() {
     .sort((a, b) => fechaEfectiva(b).getTime() - fechaEfectiva(a).getTime())
     .slice(0, 5);
   const valorGanadoMes  = ganadasMes.reduce((a, o) => a + Number(o.valor ?? 0), 0);
+  // Tendencia de "Ganado este mes": contra el mes anterior al mismo corte de
+  // días (ver src/lib/tendencia.ts) y la serie de los últimos 6 meses.
+  const ganadoEntre = (inicio: Date, fin: Date) => oportunidades
+    .filter(o => o.etapa === "GANADA" && fechaEfectiva(o) >= inicio && fechaEfectiva(o) < fin)
+    .reduce((a, o) => a + Number(o.valor ?? 0), 0);
+  const corteAnterior = rangoMesAnteriorAlCorte(anio, mes, dia);
+  const ganadoMesAnteriorAlCorte = ganadoEntre(corteAnterior.inicio, corteAnterior.fin);
+  const variacionGanadoMes = variacionPct(ganadoEntre(inicioMes, new Date(anio, mes, dia + 1)), ganadoMesAnteriorAlCorte);
+  const serieGanado6m = ultimosMeses(anio, mes, 6).map(r => ganadoEntre(r.inicio, r.fin));
   const valorGanadoAnio = ganadasAnio.reduce((a, o) => a + Number(o.valor ?? 0), 0);
   const ganadas         = oportunidades.filter(o => o.etapa === "GANADA").length;
   const perdidas        = oportunidades.filter(o => o.etapa === "PERDIDA").length;
@@ -408,6 +418,18 @@ export default async function DashboardPage() {
             <div className="text-center">
               <p className="text-2xl font-bold">{fmt(valorGanadoMes)}</p>
               <p className="text-brand-300 text-xs mt-0.5">Ganado este mes</p>
+              {(variacionGanadoMes !== null || serieGanado6m.some(v => v > 0)) && (
+                <div className="mt-1.5 flex items-center justify-center gap-2">
+                  <Sparkline valores={serieGanado6m} ancho={64} alto={20} className="text-brand-300"
+                    etiqueta="Ganado en los últimos 6 meses" />
+                  {variacionGanadoMes !== null && (
+                    <span title={`Del 1 al ${dia} de este mes vs. el mismo corte del mes anterior (${fmt(ganadoMesAnteriorAlCorte)})`}
+                      className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-2xs font-semibold ${variacionGanadoMes >= 0 ? "bg-emerald-400/15 text-emerald-300" : "bg-red-400/15 text-red-300"}`}>
+                      {variacionGanadoMes >= 0 ? <IconTrendingUp size={12} stroke={2} /> : <IconTrendingDown size={12} stroke={2} />}{Math.abs(variacionGanadoMes)}%
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
             <div className="w-px bg-white/20 self-stretch" />
             <div className="text-center">

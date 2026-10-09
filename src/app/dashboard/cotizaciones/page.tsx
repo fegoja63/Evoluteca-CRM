@@ -587,9 +587,9 @@ export default function CotizacionesPage() {
       )}
 
       {editando && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-fade-in"
           onClick={cerrarEdicion}>
-          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl animate-modal-in"
             onClick={(e) => e.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-800">Editar cotización</h2>

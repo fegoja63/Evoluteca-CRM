@@ -25,10 +25,10 @@ export function MobileTopBar({ tenantNombre }: { tenantNombre: string }) {
       {open && (
         <>
           <div
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-fade-in"
             onClick={() => setOpen(false)}
           />
-          <div className="fixed inset-y-0 left-0 z-50">
+          <div className="fixed inset-y-0 left-0 z-50 animate-slide-in-left">
             <Sidebar tenantNombre={tenantNombre} onClose={() => setOpen(false)} />
           </div>
         </>

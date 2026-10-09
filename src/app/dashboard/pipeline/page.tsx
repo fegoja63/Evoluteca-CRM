@@ -982,8 +982,8 @@ export default function PipelinePage() {
             const isOver = dragOverEtapa === etapa.key;
             return (
               <div key={etapa.key}
-                className={`rounded-xl border-2 border-t-4 border-slate-200 ${etapa.color} p-3 transition-colors ${
-                  isOver ? "bg-brand-50 border-brand-300" : "bg-slate-50"
+                className={`rounded-xl border-2 border-t-4 border-slate-200 ${etapa.color} p-3 transition-all duration-150 ${
+                  isOver ? "bg-brand-50 border-brand-300 ring-2 ring-brand-200" : "bg-slate-50"
                 }`}
                 onDragOver={e => { e.preventDefault(); setDragOverEtapa(etapa.key); }}
                 onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverEtapa(null); }}
@@ -1018,8 +1018,8 @@ export default function PipelinePage() {
                         setDraggingId(o.id);
                       }}
                       onDragEnd={() => { setDraggingId(null); setDragOverEtapa(null); }}
-                      className={`rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-sm cursor-grab active:cursor-grabbing transition-opacity select-none ${estado ? estado.borde : ""} ${
-                        draggingId === o.id ? "opacity-40" : "hover:shadow-md"
+                      className={`rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-sm cursor-grab active:cursor-grabbing transition-all duration-150 select-none ${estado ? estado.borde : ""} ${
+                        draggingId === o.id ? "opacity-40 ring-2 ring-brand-300 ring-offset-1" : "hover:-translate-y-0.5 hover:shadow-md hover:border-slate-300"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-1 mb-1">
@@ -1126,8 +1126,8 @@ export default function PipelinePage() {
 
       {/* Modal motivo de pérdida */}
       {modalPerdidaId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl mx-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl mx-4 animate-modal-in">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center"><IconMoodSad size={20} stroke={1.75} className="text-red-500" /></div>
               <div>

@@ -587,9 +587,9 @@ export default function ClientesPage() {
       )}
 
       {editando && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-fade-in"
           onClick={() => setEditando(null)}>
-          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl animate-modal-in"
             onClick={(ev) => ev.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-800">Editar cliente</h2>
@@ -653,9 +653,9 @@ export default function ClientesPage() {
       )}
 
       {reasignando && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-fade-in"
           onClick={() => setReasignando(null)}>
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl animate-modal-in"
             onClick={(ev) => ev.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-800">Reasignar vendedor</h2>

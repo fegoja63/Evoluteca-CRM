@@ -18,6 +18,22 @@ const config: Config = {
       fontSize: {
         "2xs": ["0.6875rem", { lineHeight: "1rem" }],
       },
+      // Entradas cortas (≤200ms): el fondo del modal se funde, el panel sube
+      // apenas y crece desde 96%, el menú del celular se desliza desde la izq.
+      // globals.css las apaga si el sistema pide reducir movimiento.
+      keyframes: {
+        "fade-in": { from: { opacity: "0" }, to: { opacity: "1" } },
+        "modal-in": {
+          from: { opacity: "0", transform: "translateY(6px) scale(0.96)" },
+          to: { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        "slide-in-left": { from: { transform: "translateX(-100%)" }, to: { transform: "translateX(0)" } },
+      },
+      animation: {
+        "fade-in": "fade-in 150ms ease-out",
+        "modal-in": "modal-in 180ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "slide-in-left": "slide-in-left 220ms cubic-bezier(0.16, 1, 0.3, 1)",
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
