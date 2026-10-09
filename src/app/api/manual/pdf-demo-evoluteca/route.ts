@@ -86,7 +86,7 @@ function PageHeader({ base }: { base: string }) {
 }
 function Footer() {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.3"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.4"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -419,7 +419,9 @@ export async function GET() {
       React.createElement(LI, null, "Drag & drop entre columnas para cambiar de etapa (lo probaste en el capítulo 5)."),
       React.createElement(LI, null, "Vista tabla: alterna del tablero (kanban) a una vista de tabla ordenable y filtrable."),
       React.createElement(LI, null, "Historial de etapas: dentro de una oportunidad, ve por qué etapas pasó y cuándo."),
-      React.createElement(LI, null, "Motivo de pérdida: abre una oportunidad de la columna Perdida —por ejemplo 'Diagnóstico organizacional Banco Regional' (Sin respuesta del cliente) o 'Rediseño malla curricular San Marcos' (Eligió a la competencia)— y verás el motivo en rojo bajo el título; en la lista de oportunidades del cliente aparece entre paréntesis."),
+      React.createElement(LI, null, "Ganada y Perdida aparecen compactas (conteo y valor total). Pulsa \"Ver negocios\" para ver sus tarjetas y \"Compactar\" para volver. Arrastrar una tarjeta hasta ellas sigue cerrando el negocio."),
+      React.createElement(LI, null, "Próximo paso: cada tarjeta activa muestra su siguiente actividad (azul), una tarea vencida (rojo) o \"Sin próximo paso\" (gris, abre la ficha para agendarlo)."),
+      React.createElement(LI, null, "Motivo de pérdida: pulsa \"Ver negocios\" en la columna Perdida y abre una oportunidad —por ejemplo 'Diagnóstico organizacional Banco Regional' (Sin respuesta del cliente) o 'Rediseño malla curricular San Marcos' (Eligió a la competencia)— y verás el motivo en rojo bajo el título; en la lista de oportunidades del cliente aparece entre paréntesis."),
       React.createElement(LI, null, "Número de cotización al avanzar de etapa y archivos adjuntos por oportunidad."),
 
       React.createElement(LI, null, "Postventa: en la pestaña Postventa, los negocios ganados del mes están repartidos en Entrega, Seguimiento, Renovación y Cerrado. Usa el chip \"por renovar\", abre uno y pulsa \"Crear oportunidad de renovación\": aparece el negocio nuevo en el Pipeline, ligado al original y con su tarea para hoy."),

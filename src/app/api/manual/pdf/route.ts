@@ -105,7 +105,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.23"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.24"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -448,7 +448,7 @@ export async function GET() {
       React.createElement(PageHeader, { base }),
       React.createElement(Footer, { numero: 4 }),
       React.createElement(H1, null, "3. Pipeline de ventas"),
-      React.createElement(P, null, "El pipeline organiza visualmente las oportunidades de venta por etapa comercial. Cada tarjeta representa una oportunidad con cliente, valor y fecha."),
+      React.createElement(P, null, "El pipeline organiza visualmente las oportunidades de venta por etapa comercial. Cada tarjeta representa una oportunidad con cliente, valor, fecha de cierre y su próximo paso. Para administradores y gerentes, la tarjeta muestra además las iniciales del vendedor dueño del negocio (al pasar el cursor se ve el nombre completo)."),
 
       React.createElement(H2, null, "3.1 Etapas del pipeline"),
       React.createElement(View, { style: { paddingHorizontal: 40 } },
@@ -471,6 +471,7 @@ export async function GET() {
         ),
       ),
       React.createElement(Tip, null, "El nombre visible de cada etapa se puede personalizar (y el orden de las columnas, reordenar) desde Configuración > Etapas del pipeline — ver 9.5. El significado de fondo (activa, ganada o perdida) no cambia, solo cómo se ve en pantalla."),
+      React.createElement(P, null, "Las columnas Ganada y Perdida aparecen compactas: muestran cuántos negocios hay y su valor total, para que el tablero se concentre en los negocios abiertos. Siguen funcionando para cerrar: arrastra una tarjeta hasta Ganada o Perdida igual que antes (al soltar en Perdida se pide el motivo). Para ver los negocios cerrados pulsa \"Ver negocios\"; para volver a la vista compacta, \"Compactar\". El CRM recuerda tu preferencia en ese navegador."),
 
       React.createElement(H2, null, "3.2 Crear una oportunidad"),
       React.createElement(P, null, 'Las oportunidades se crean desde la ficha de un cliente (pestaña Oportunidades), al vincular una cotización formal a un negocio, o con el botón "+ Nueva" del campo Oportunidad vinculada en Nueva cotización. El pipeline es la vista de gestión: arrastra las tarjetas entre etapas para actualizar el avance.'),
@@ -487,6 +488,7 @@ export async function GET() {
       React.createElement(LI, null, "Azul — En marcha: con contacto reciente y sin alarmas."),
       React.createElement(P, null, "Cuenta como contacto solo lo que ya ocurrió: una actividad registrada con fecha de hoy o anterior, un cambio de etapa o un correo enviado o recibido. Una tarea agendada a futuro no cuenta, para que agendar algo para dentro de un mes no esconda un negocio que nadie ha tocado. El umbral (por defecto 14 días) lo define el Administrador en Configuración › Alerta de negocios estancados — ver 9.7. Ganadas y Perdidas no muestran estado."),
       React.createElement(P, null, "Regla \"sin próximo paso, no hay oportunidad\": todo negocio activo debe tener al menos una actividad pendiente con fecha de hoy en adelante. Si no la tiene, pasa a 'Requiere atención — Sin próximo paso agendado' aunque esté caliente: un negocio sin siguiente paso es justo el que se enfría sin que nadie lo note. Una tarea vencida de días anteriores no cuenta; hay que agendar un paso nuevo."),
+      React.createElement(P, null, "Cada tarjeta activa muestra su próximo paso: en azul, la siguiente actividad pendiente con su tipo y cuándo es (\"Hoy 3:00 p. m.\", \"Mañana\", \"jue\", \"20 oct\"); en rojo, si lo único pendiente es una tarea de días anteriores (\"Vencida hace 3 d\"); y un chip gris punteado \"Sin próximo paso\" si no hay ninguna, que al hacer clic abre la ficha para agendarlo. Al pasar el cursor por el chip se ve el título de la actividad."),
       React.createElement(P, null, "En la barra de filtros aparecen dos chips de acceso rápido cuando aplican: el rojo \"N estancadas\" (negocios activos que superan el umbral de días sin contacto) y el ámbar \"N sin próximo paso\". Haz clic en cualquiera para ver solo esos negocios."),
       React.createElement(Tip, null, "Empieza el día con los dos chips: primero reactiva lo estancado y luego agenda el siguiente paso de lo que no lo tiene. Así ningún negocio queda en el aire."),
 
@@ -849,7 +851,7 @@ export async function GET() {
           )),
         ),
       ),
-      React.createElement(Nota, null, "El banner superior del Dashboard, aparte, muestra \"Meta del mes\" y \"Meta del año\" (ver 8.1), y las cifras de \"Ganado este mes\", \"Pipeline activo\" y \"Tasa de cierre\"."),
+      React.createElement(Nota, null, "El banner superior del Dashboard, aparte, muestra \"Meta del mes\" y \"Meta del año\" (ver 8.1), y las cifras de \"Ganado este mes\", \"Pipeline activo\" y \"Tasa de cierre\". Bajo \"Ganado este mes\" hay una mini gráfica de lo ganado en los últimos 6 meses y la variación frente al mes anterior al mismo corte de días (por ejemplo, del 1 al 9 de este mes contra del 1 al 9 del mes pasado), para que la comparación sea justa aunque el mes vaya a la mitad."),
 
       React.createElement(H2, null, "8.3 Rendimiento del equipo"),
       React.createElement(P, null, "Muestra el ranking de vendedores del equipo ordenados por valor ganado en el mes. Incluye para cada vendedor: número de oportunidades activas, tasa de cierre, valor ganado en el mes y valor total en pipeline. Debajo del ranking, una barra muestra el total ganado por el equipo contra la meta del mes."),
