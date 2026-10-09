@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { IconBuildingPavilion, IconCircleCheck } from "@tabler/icons-react";
 import { campo } from "@/components/ui/estilos";
+import { SkeletonTabla } from "@/components/ui/estados";
 
 type Salon = { id: string; nombre: string; capacidad: number | null };
 type Cotizacion = {
@@ -56,7 +57,7 @@ export default function TablaDiaSalonesPage() {
     return new Date(Date.UTC(anio, mes - 1, dia)).toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
   }, [fecha]);
 
-  if (cargando) return <p className="text-sm text-slate-400 p-6">Cargando...</p>;
+  if (cargando) return <SkeletonTabla />;
 
   return (
     <div>

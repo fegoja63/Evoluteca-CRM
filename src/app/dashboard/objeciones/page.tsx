@@ -8,6 +8,7 @@ import {
 } from "@tabler/icons-react";
 import { MOTIVOS_PERDIDA } from "@/lib/motivos-perdida";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonTabla } from "@/components/ui/estados";
 
 type Objecion = {
   id: string; categoria: string | null; objecion: string; respuesta: string;
@@ -72,7 +73,7 @@ export default function ObjecionesPage() {
   // Agrupa por categoría, respetando el orden de la lista.
   const categorias = Array.from(new Set(lista.map(o => o.categoria || "Sin categoría")));
 
-  if (cargando) return <p className="text-sm text-slate-400 p-6">Cargando…</p>;
+  if (cargando) return <SkeletonTabla />;
 
   return (
     <div className="max-w-4xl">

@@ -16,6 +16,7 @@ import {
   IconAlertTriangle, IconMoodSad, IconCalendarX, type Icon,
 } from "@tabler/icons-react";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
+import { SkeletonKanban, SkeletonKpis, SkeletonTabla } from "@/components/ui/estados";
 
 const MOTIVOS_PERDIDA = [
   "Precio muy alto",
@@ -573,6 +574,7 @@ export default function PipelinePage() {
         </div>
       </div>
 
+      {cargando && oportunidades.length === 0 ? <div className="mb-6"><SkeletonKpis n={5} /></div> : (
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
         {([
           { label: "Pipeline activo",        valor: fmtN(valorActivas),  sub: `${activas.length} oportunidades`,                         icon: IconChartFunnel, semantic: false },
@@ -596,6 +598,7 @@ export default function PipelinePage() {
           );
         })}
       </div>
+      )}
 
       <ResumenPipelineIA />
 
@@ -875,8 +878,8 @@ export default function PipelinePage() {
       )}
 
       {/* ── VISTAS ── */}
-      {cargando ? (
-        <p className="text-sm text-slate-400">Cargando...</p>
+      {cargando && oportunidades.length === 0 ? (
+        vista === "tabla" ? <SkeletonTabla columnas={6} /> : <SkeletonKanban />
       ) : vista === "tabla" ? (
         <div className={tarjeta("overflow-hidden")}>
           <div className="overflow-x-auto">

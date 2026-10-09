@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { IconHistory, IconChevronDown, IconChevronRight, IconLock } from "@tabler/icons-react";
 import { campo, tarjeta } from "@/components/ui/estilos";
+import { SkeletonLista } from "@/components/ui/estados";
 
 type Registro = {
   id: string;
@@ -163,7 +164,7 @@ export default function AuditoriaPage() {
 
       <div className={tarjeta("overflow-hidden")}>
         {cargando ? (
-          <p className="p-8 text-center text-sm text-slate-400">Cargando…</p>
+          <SkeletonLista filas={6} className="p-5" />
         ) : registros.length === 0 ? (
           <div className="p-8 text-center">
             <p className="text-sm text-slate-500">Todavía no hay registros con estos filtros.</p>

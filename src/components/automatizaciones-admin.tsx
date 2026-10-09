@@ -10,6 +10,7 @@ import {
   type EventoAutomatizacion, type AccionAutomatizacion, type TipoTarea, type Destinatario,
 } from "@/lib/automatizaciones";
 import { boton } from "@/components/ui/estilos";
+import { SkeletonLista } from "@/components/ui/estados";
 
 type Config = Record<string, unknown>;
 type Regla = {
@@ -249,7 +250,7 @@ export function AutomatizacionesAdmin() {
 
       {/* Lista */}
       {cargando ? (
-        <p className="text-sm text-slate-400">Cargando...</p>
+        <SkeletonLista />
       ) : reglas.length === 0 ? (
         <p className="text-xs text-slate-400">Aún no tienes automatizaciones. Crea la primera con &ldquo;Nueva&rdquo;.</p>
       ) : (

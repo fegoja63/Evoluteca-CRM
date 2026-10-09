@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { IconTrash } from "@tabler/icons-react";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonLista } from "@/components/ui/estados";
 
 type ItemMeta = {
   completada?: boolean;
@@ -163,7 +164,7 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
 
       {/* Timeline */}
       {cargando ? (
-        <p className="text-xs text-slate-400">Cargando historial...</p>
+        <SkeletonLista />
       ) : items.length === 0 ? (
         <p className="text-xs text-slate-400">Sin registros aún. Usa el formulario para agregar la primera interacción.</p>
       ) : (

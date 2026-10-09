@@ -5,6 +5,7 @@ import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { IconBuildingPavilion, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonTabla } from "@/components/ui/estados";
 
 type Salon = { id: string; nombre: string };
 type Cotizacion = {
@@ -142,7 +143,7 @@ export default function CalendarioSalonesPage() {
     setMoviendo(false);
   }
 
-  if (cargando) return <p className="text-sm text-slate-400 p-6">Cargando...</p>;
+  if (cargando) return <SkeletonTabla filas={5} columnas={7} />;
 
   return (
     <div>

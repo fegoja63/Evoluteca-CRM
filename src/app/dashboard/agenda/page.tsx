@@ -13,6 +13,7 @@ import {
 } from "@tabler/icons-react";
 import { tiposActividadVisibles, tipoActividadDef, type TipoActividadDef } from "@/lib/tipos-actividad";
 import { boton, tarjeta } from "@/components/ui/estilos";
+import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
 
 // Nombre visible de cada filtro de la Agenda (se usa en el botón de exportar
 // para dejar claro qué bloque se va a descargar).
@@ -1043,7 +1044,7 @@ function AgendaContent() {
       )}
 
       {cargando ? (
-        <p className="text-sm text-neutral-400">Cargando...</p>
+        <SkeletonTabla columnas={4} />
       ) : vista === "calendario" ? (
         <CalendarioActividades
           actividades={actividades}
@@ -1058,15 +1059,14 @@ function AgendaContent() {
           tipos={tiposVisibles}
         />
       ) : visibles.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
-          <p className="text-sm text-neutral-500">
-            {filtro === "asignadas"
-              ? "No tienes tareas asignadas pendientes."
-              : filtro === "pendientes"
-              ? "No tienes actividades pendientes."
-              : "Aún no tienes actividades."}
-          </p>
-        </div>
+        <EstadoVacio
+          icon={filtro === "todas" ? IconCalendarPlus : IconCircleCheck}
+          titulo={filtro === "asignadas" ? "No tienes tareas asignadas pendientes"
+            : filtro === "pendientes" ? "Estás al día: no tienes actividades pendientes"
+            : "Aún no tienes actividades"}
+          descripcion="Programa llamadas, reuniones y tareas para no perder el seguimiento de tus clientes."
+          accion={<button onClick={() => { setEditandoId(null); setForm({ tipo: "TAREA", titulo: "", fecha: "", notas: "", empresaId: "", contactoId: "", oportunidadId: "", responsableId: miId ?? "", estado: "PENDIENTE" }); setMostrarForm(true); }}
+            className={boton("primario", "md")}><IconPlus size={16} stroke={1.75} />Nueva actividad</button>} />
       ) : (
         <div className="flex flex-col gap-2">
           {filasDespues.map(renderFila)}
@@ -1078,7 +1078,7 @@ function AgendaContent() {
 
 export default function AgendaPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-neutral-400 p-6">Cargando...</p>}>
+    <Suspense fallback={<SkeletonTabla columnas={4} />}>
       <AgendaContent />
     </Suspense>
   );

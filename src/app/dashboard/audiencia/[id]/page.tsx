@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
+import { SkeletonDetalle } from "@/components/ui/estados";
 
 type NpsRespuesta = {
   id: string;
@@ -115,11 +116,7 @@ export default function FichaEspectadorPage() {
   }
 
   if (cargando) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="flex gap-1">{[0,1,2].map(i => (
-        <div key={i} className="w-2 h-2 rounded-full bg-brand-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />
-      ))}</div>
-    </div>
+    <SkeletonDetalle />
   );
   if (!esp) return <p className="text-sm text-slate-400">No encontrado.</p>;
 

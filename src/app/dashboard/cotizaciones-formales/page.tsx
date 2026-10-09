@@ -10,6 +10,7 @@ import { idsReemplazadas, valorConImpuestos, MODALIDAD_LABEL, numeroCotizacion }
 import { guardarJson } from "@/lib/guardar";
 import { toast } from "@/lib/toast";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type LineaAhorro = { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string };
@@ -252,17 +253,12 @@ export default function CotizacionesFormalesPage() {
 
       {/* Tabla */}
       {cargando ? (
-        <p className="text-sm text-slate-400">Cargando...</p>
+        <SkeletonTabla columnas={6} />
       ) : listado.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
-          <IconFileText size={28} stroke={1.5} className="text-slate-300 mx-auto mb-3" />
-          <p className="text-sm text-slate-500 mb-4">No hay cotizaciones formales aún.</p>
-          <Link href="/dashboard/cotizaciones-formales/nueva"
-            className={boton("primario", "md")}>
-            <IconFilePlus size={16} stroke={1.75} />
-            Nueva cotización
-          </Link>
-        </div>
+        <EstadoVacio icon={IconFileText} titulo="Aún no tienes cotizaciones formales"
+          descripcion="Arma una propuesta con tus servicios, descárgala en PDF o compártela con un link."
+          accion={<Link href="/dashboard/cotizaciones-formales/nueva" className={boton("primario", "md")}>
+            <IconFilePlus size={16} stroke={1.75} />Nueva cotización</Link>} />
       ) : (
         <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
           <table className="w-full text-sm">

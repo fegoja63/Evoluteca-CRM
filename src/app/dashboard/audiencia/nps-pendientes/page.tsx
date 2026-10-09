@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { WhatsAppBtn } from "@/components/whatsapp-btn";
 import { IconConfetti } from "@tabler/icons-react";
+import { SkeletonTabla } from "@/components/ui/estados";
 
 type Pendiente = {
   id: string;
@@ -53,7 +54,7 @@ export default function NpsPendientesPage() {
       </div>
 
       {cargando ? (
-        <p className="text-sm text-slate-400">Cargando...</p>
+        <SkeletonTabla columnas={4} />
       ) : pendientes.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
           <IconConfetti size={24} stroke={1.5} className="mx-auto mb-2 text-emerald-500" />

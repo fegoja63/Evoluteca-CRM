@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonLista } from "@/components/ui/estados";
 
 type Evento = {
   id: string;
@@ -132,7 +133,7 @@ export function BitacoraExpediente({ expedienteId, puedeEliminar }: { expediente
       </form>
 
       {cargando ? (
-        <p className="text-xs text-slate-400">Cargando bitácora...</p>
+        <SkeletonLista />
       ) : eventos.length === 0 ? (
         <p className="text-xs text-slate-400">Sin registros aún. Usa el formulario para agregar la primera actuación.</p>
       ) : (

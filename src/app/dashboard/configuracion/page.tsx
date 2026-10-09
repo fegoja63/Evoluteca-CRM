@@ -15,6 +15,7 @@ import { CamposPersonalizadosAdmin } from "@/components/campos-personalizados-ad
 import { AutomatizacionesAdmin } from "@/components/automatizaciones-admin";
 import { paletaMarca, normalizarColorMarca, PALETA_EVOLUTECA } from "@/lib/color-marca";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonLista } from "@/components/ui/estados";
 
 type EtapaPipeline = { id: string; key: string; nombre: string; orden: number; oculta: boolean };
 
@@ -536,7 +537,7 @@ export default function ConfiguracionPage() {
         <h2 className="text-sm font-semibold text-slate-700 mb-1">Módulos opcionales</h2>
         <p className="text-xs text-slate-400 mb-4">Actívalos según el tipo de negocio.</p>
         {cargando ? (
-          <p className="text-sm text-slate-400">Cargando...</p>
+          <SkeletonLista />
         ) : (
           <div className="flex flex-col gap-3">
             {MODULOS_DISPONIBLES.map((m) => {

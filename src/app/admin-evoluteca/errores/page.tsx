@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { CampoPassword } from "@/components/campo-password";
 import { boton } from "@/components/ui/estilos";
+import { SkeletonTabla } from "@/components/ui/estados";
 
 const CLAVE_KEY = "admin-evoluteca-secret";
 
@@ -114,7 +115,7 @@ export default function ErroresInternoPage() {
         </div>
 
         {cargando ? (
-          <p className="text-sm text-slate-400">Cargando...</p>
+          <SkeletonTabla columnas={4} />
         ) : errores.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
             <p className="text-sm text-slate-500">No hay errores registrados. 🎉</p>

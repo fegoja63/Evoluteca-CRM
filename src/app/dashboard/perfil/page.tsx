@@ -6,6 +6,7 @@ import { IconCircleCheck, IconCalendar, IconCopy, IconCheck, IconRefresh, IconTr
 import DosFactores from "./DosFactores";
 import { CampoPassword } from "@/components/campo-password";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
+import { SkeletonLista } from "@/components/ui/estados";
 
 const ROL_LABEL: Record<string, string> = {
   ADMINISTRADOR: "Administrador",
@@ -216,7 +217,7 @@ export default function PerfilPage() {
         </p>
 
         {cargandoCal ? (
-          <p className="text-sm text-slate-400">Cargando...</p>
+          <SkeletonLista filas={2} />
         ) : tokenCal ? (
           <div className="space-y-4">
             <div>
