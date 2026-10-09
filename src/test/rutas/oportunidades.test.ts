@@ -229,6 +229,53 @@ describe("último movimiento (base de la alerta de estancamiento)", () => {
   });
 });
 
+describe("próximo paso (chip de la tarjeta del Pipeline)", () => {
+  type ConPaso = { id: string; tieneProximoPaso?: boolean; proximoPaso?: { titulo: string; vencida: boolean } | null };
+  const deLaOportunidad = (cuerpo: unknown) =>
+    (cuerpo as ConPaso[]).find(o => o.id === A.oportunidadDelComercial);
+
+  it("con una actividad pendiente a futuro, la expone como próximo paso", async () => {
+    comoUsuario(A, "GERENTE");
+    await prisma.actividad.create({
+      data: {
+        tenantId: A.tenantId, titulo: "Demo con el cliente", fecha: new Date("2099-01-15T15:00:00.000Z"),
+        tipo: "REUNION", oportunidadId: A.oportunidadDelComercial, creadoBy: A.comercial,
+      },
+    });
+    const op = deLaOportunidad((await llamar(listar)).cuerpo);
+    expect(op?.proximoPaso).toMatchObject({ titulo: "Demo con el cliente", vencida: false });
+    expect(op?.tieneProximoPaso).toBe(true);
+  });
+
+  it("si solo queda una pendiente de días anteriores, se muestra vencida y NO cuenta como próximo paso", async () => {
+    comoUsuario(A, "GERENTE");
+    await prisma.actividad.updateMany({
+      where: { tenantId: A.tenantId, oportunidadId: A.oportunidadDelComercial },
+      data: { completada: true },
+    });
+    await prisma.actividad.create({
+      data: {
+        tenantId: A.tenantId, titulo: "Llamada olvidada", fecha: new Date("2020-01-15T15:00:00.000Z"),
+        tipo: "LLAMADA", oportunidadId: A.oportunidadDelComercial, creadoBy: A.comercial,
+      },
+    });
+    const op = deLaOportunidad((await llamar(listar)).cuerpo);
+    expect(op?.proximoPaso).toMatchObject({ titulo: "Llamada olvidada", vencida: true });
+    expect(op?.tieneProximoPaso).toBe(false);
+  });
+
+  it("las actividades completadas no son próximo paso", async () => {
+    comoUsuario(A, "GERENTE");
+    await prisma.actividad.updateMany({
+      where: { tenantId: A.tenantId, oportunidadId: A.oportunidadDelComercial },
+      data: { completada: true },
+    });
+    const op = deLaOportunidad((await llamar(listar)).cuerpo);
+    expect(op?.proximoPaso).toBeNull();
+    expect(op?.tieneProximoPaso).toBe(false);
+  });
+});
+
 describe("fecha de cierre al PERDER una oportunidad", () => {
   it("al marcar PERDIDA se registra el día en que se pierde, no la fecha estimada de cierre", async () => {
     comoUsuario(A, "GERENTE");

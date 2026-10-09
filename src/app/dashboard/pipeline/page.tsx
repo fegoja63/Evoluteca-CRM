@@ -7,14 +7,15 @@ import { MoneyInput } from "@/components/money-input";
 import { ResumenPipelineIA } from "@/components/resumen-pipeline-ia";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { estadoComercial } from "@/lib/estado-comercial";
+import { etiquetaProximoPaso } from "@/lib/proximo-paso";
+import { tipoActividadDef } from "@/lib/tipos-actividad";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
   IconSearch, IconX, IconPlus, IconLayoutKanban, IconTable, IconSelector,
   IconArrowNarrowUp, IconArrowNarrowDown, IconCalendarEvent, IconTrash,
   IconChartFunnel, IconTrendingUp, IconTrophy, IconTarget, IconBuildingPavilion,
-  IconAlertTriangle, IconMoodSad, IconCalendarX, type Icon,
-} from "@tabler/icons-react";
+  IconAlertTriangle, IconMoodSad, IconCalendarX, type Icon, IconCalendarPlus, IconChevronLeft } from "@tabler/icons-react";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonKanban, SkeletonKpis, SkeletonTabla } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
@@ -48,7 +49,20 @@ type Oportunidad = {
   ultimoMovimiento?: string | null;
   // ¿Tiene una actividad pendiente agendada de hoy en adelante? La calcula la API.
   tieneProximoPaso?: boolean;
+  // Próxima actividad pendiente (o la última vencida si no hay ninguna desde
+  // hoy). La calcula la API; ver src/lib/proximo-paso.ts.
+  proximoPaso?: { fecha: string; tipo: string; titulo: string; vencida: boolean } | null;
 };
+
+function iniciales(nombre: string) {
+  const partes = nombre.trim().split(/\s+/);
+  return ((partes[0]?.[0] ?? "") + (partes[1]?.[0] ?? "")).toUpperCase();
+}
+
+// Ganada y Perdida se muestran compactas por defecto: el tablero es para los
+// negocios abiertos. Siguen aceptando tarjetas (arrastrar ahí es cómo se cierra
+// un negocio). La preferencia se recuerda por navegador.
+const CLAVE_VER_CERRADAS = "pipeline.verCerradas";
 
 function diasDesde(fecha: string): number {
   return Math.floor((Date.now() - new Date(fecha).getTime()) / 86_400_000);
@@ -124,6 +138,7 @@ const MESES_NOMBRE = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","
 export default function PipelinePage() {
   const { data: session } = useSession();
   const esAdministrador = session?.user?.rol === "ADMINISTRADOR";
+  const verDueno = !!session?.user?.rol && session.user.rol !== "COMERCIAL";
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -131,6 +146,7 @@ export default function PipelinePage() {
   const [empresas, setEmpresas]   = useState<Empresa[]>([]);
   const [contactos, setContactos] = useState<Contacto[]>([]);
   const [vendedores, setVendedores] = useState<UsuarioVendedor[]>([]);
+  const nombreVendedor = new Map(vendedores.map(v => [v.id, v.nombre]));
   const [ETAPAS, setETAPAS] = useState(
     ETAPAS_DEFECTO.map(e => ({ ...e, ...ETAPA_ESTILO[e.key] }))
   );
@@ -139,6 +155,14 @@ export default function PipelinePage() {
   const [guardando, setGuardando] = useState(false);
   const [draggingId, setDraggingId]     = useState<string | null>(null);
   const [dragOverEtapa, setDragOverEtapa] = useState<string | null>(null);
+  const [verCerradas, setVerCerradasEstado] = useState(false);
+  useEffect(() => {
+    try { setVerCerradasEstado(localStorage.getItem(CLAVE_VER_CERRADAS) === "1"); } catch { /* sin almacenamiento: compactas */ }
+  }, []);
+  function setVerCerradas(valor: boolean) {
+    setVerCerradasEstado(valor);
+    try { localStorage.setItem(CLAVE_VER_CERRADAS, valor ? "1" : "0"); } catch { /* solo esta sesión */ }
+  }
   // Tarjeta cuyo calendario de "poner fecha de cierre" está abierto (uno a la vez).
   const [fechaCierreEditId, setFechaCierreEditId] = useState<string | null>(null);
   const [modalPerdidaId, setModalPerdidaId] = useState<string | null>(null);
@@ -429,6 +453,10 @@ export default function PipelinePage() {
   }
   function fmtN(v: number) {
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
+  }
+  // Abreviado ("$ 620 M") para la columna compacta de Ganada/Perdida.
+  function fmtCompacto(v: number) {
+    return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", notation: "compact", maximumFractionDigits: 1 }).format(v);
   }
 
   // ── Años y meses disponibles (por fecha EFECTIVA, no solo fechaCierre) ──
@@ -978,13 +1006,15 @@ export default function PipelinePage() {
         </div>
       ) : (
         <>
-        <div className="grid grid-cols-6 gap-3">
+        <div className="flex gap-3 overflow-x-auto pb-2">
           {ETAPAS.map(etapa => {
             const items = filtradas.filter(o => o.etapa === etapa.key);
             const isOver = dragOverEtapa === etapa.key;
+            const cerrada = etapa.key === "GANADA" || etapa.key === "PERDIDA";
+            const compacta = cerrada && !verCerradas;
             return (
               <div key={etapa.key}
-                className={`rounded-xl border-2 border-t-4 border-slate-200 ${etapa.color} p-3 transition-all duration-150 ${
+                className={`${compacta ? "w-32 shrink-0" : "flex-1 min-w-48"} rounded-xl border-2 border-t-4 border-slate-200 ${etapa.color} p-3 transition-all duration-150 ${
                   isOver ? "bg-brand-50 border-brand-300 ring-2 ring-brand-200" : "bg-slate-50"
                 }`}
                 onDragOver={e => { e.preventDefault(); setDragOverEtapa(etapa.key); }}
@@ -997,10 +1027,28 @@ export default function PipelinePage() {
                   setDragOverEtapa(null);
                 }}
               >
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-xs font-semibold text-slate-700">{etapa.label}</h3>
+                <div className="mb-3 flex items-center justify-between gap-1">
+                  <h3 className="text-xs font-semibold text-slate-700 truncate">{etapa.label}</h3>
                   <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${etapa.badge}`}>{items.length}</span>
                 </div>
+                {cerrada && !compacta && (
+                  <button type="button" onClick={() => setVerCerradas(false)}
+                    className="mb-2 inline-flex items-center gap-1 text-xs text-slate-400 hover:text-brand-600">
+                    <IconChevronLeft size={12} stroke={1.75} />Compactar
+                  </button>
+                )}
+                {compacta ? (
+                  <div className={`flex flex-col items-center gap-2 rounded-lg border-2 border-dashed py-6 text-center transition-colors ${
+                    isOver ? "border-brand-300 bg-brand-50 text-brand-500" : "border-slate-200 text-slate-400"
+                  }`}>
+                    <p className="text-sm font-bold text-slate-700">{fmtCompacto(items.reduce((a, o) => a + Number(o.valor ?? 0), 0))}</p>
+                    <p className="text-xs">{isOver ? "Soltar aquí" : "Arrastra aquí para cerrar"}</p>
+                    {items.length > 0 && !isOver && (
+                      <button type="button" onClick={() => setVerCerradas(true)}
+                        className="text-xs font-medium text-brand-600 hover:underline">Ver negocios</button>
+                    )}
+                  </div>
+                ) : (
                 <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-0.5">
                   {items.length === 0 && (
                     <div className={`rounded-lg border-2 border-dashed py-6 text-center text-xs transition-colors ${
@@ -1036,36 +1084,58 @@ export default function PipelinePage() {
                         </button>
                       </div>
                       {o.empresa && <p className="text-slate-500 mb-1">{o.empresa.nombre}</p>}
-                      {(() => {
-                        const cb = cierreBadge(o.fechaCierre, o.etapa);
-                        if (cb) return (
-                          <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-semibold mb-1 ${cb.color}`}><IconCalendarEvent size={11} stroke={1.75} />{cb.label}</span>
-                        );
-                        // Sin fecha de cierre y negocio activo: atajo para ponerla
-                        // aquí mismo, sin abrir el detalle. (Ganada/Perdida no la piden.)
-                        const activa = o.etapa !== "GANADA" && o.etapa !== "PERDIDA";
-                        if (o.fechaCierre || !activa) return null;
-                        if (fechaCierreEditId === o.id) return (
-                          <input
-                            type="date"
-                            autoFocus
-                            onFocus={e => { try { (e.target as HTMLInputElement & { showPicker?: () => void }).showPicker?.(); } catch { /* el usuario abre el calendario con un clic */ } }}
-                            onChange={e => guardarFechaCierreRapida(o.id, e.target.value)}
-                            onBlur={() => setFechaCierreEditId(null)}
-                            onClick={e => e.stopPropagation()}
-                            className="mb-1 block rounded-md border border-brand-300 px-1.5 py-0.5 text-xs outline-none focus:border-brand-500"
-                          />
-                        );
-                        return (
-                          <button
-                            type="button"
-                            onClick={() => setFechaCierreEditId(o.id)}
-                            className="mb-1 inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-1.5 py-0.5 text-xs font-medium text-slate-400 transition-colors hover:border-brand-400 hover:text-brand-600"
-                          >
-                            <IconCalendarEvent size={11} stroke={1.75} />Poner fecha de cierre
-                          </button>
-                        );
-                      })()}
+                      <div className="mb-1 flex flex-wrap items-center gap-1">
+                        {etapa.key !== "GANADA" && etapa.key !== "PERDIDA" && (o.proximoPaso ? (() => {
+                          const paso = o.proximoPaso;
+                          const def = tipoActividadDef(paso.tipo);
+                          const IconoPaso = def?.icon ?? IconCalendarEvent;
+                          return (
+                            <span title={`Próximo paso — ${def?.label ?? "Actividad"}: ${paso.titulo}`}
+                              className={`inline-flex max-w-full items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-semibold ${
+                                paso.vencida ? "bg-red-50 text-red-600" : "bg-brand-50 text-brand-700"
+                              }`}>
+                              <IconoPaso size={11} stroke={1.75} className="shrink-0" />
+                              <span className="truncate">{etiquetaProximoPaso({ fecha: new Date(paso.fecha), vencida: paso.vencida })}</span>
+                            </span>
+                          );
+                        })() : (
+                          <Link href={`/dashboard/pipeline/${o.id}`} title="Este negocio no tiene ninguna actividad agendada"
+                            onClick={e => { if (draggingId) e.preventDefault(); }}
+                            className="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-1.5 py-0.5 text-xs font-medium text-slate-400 transition-colors hover:border-brand-400 hover:text-brand-600">
+                            <IconCalendarPlus size={11} stroke={1.75} />Sin próximo paso
+                          </Link>
+                        ))}
+                        {(() => {
+                          const cb = cierreBadge(o.fechaCierre, o.etapa);
+                          if (cb) return (
+                            <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-semibold ${cb.color}`}><IconCalendarEvent size={11} stroke={1.75} />{cb.label}</span>
+                          );
+                          // Sin fecha de cierre y negocio activo: atajo para ponerla
+                          // aquí mismo, sin abrir el detalle. (Ganada/Perdida no la piden.)
+                          const activa = o.etapa !== "GANADA" && o.etapa !== "PERDIDA";
+                          if (o.fechaCierre || !activa) return null;
+                          if (fechaCierreEditId === o.id) return (
+                            <input
+                              type="date"
+                              autoFocus
+                              onFocus={e => { try { (e.target as HTMLInputElement & { showPicker?: () => void }).showPicker?.(); } catch { /* el usuario abre el calendario con un clic */ } }}
+                              onChange={e => guardarFechaCierreRapida(o.id, e.target.value)}
+                              onBlur={() => setFechaCierreEditId(null)}
+                              onClick={e => e.stopPropagation()}
+                              className="block rounded-md border border-brand-300 px-1.5 py-0.5 text-xs outline-none focus:border-brand-500"
+                            />
+                          );
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => setFechaCierreEditId(o.id)}
+                              className="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-1.5 py-0.5 text-xs font-medium text-slate-400 transition-colors hover:border-brand-400 hover:text-brand-600"
+                            >
+                              <IconCalendarEvent size={11} stroke={1.75} />Poner fecha de cierre
+                            </button>
+                          );
+                        })()}
+                      </div>
                       {o.extras?.["COTIZACION NUMERO"] && (
                         <p className="text-slate-400 mb-1">{o.extras["COTIZACION NUMERO"]}</p>
                       )}
@@ -1074,11 +1144,16 @@ export default function PipelinePage() {
                           {o.extras["AÑO"]}{o.extras["MES ELABORACION"] ? ` · ${o.extras["MES ELABORACION"]}` : ""}
                         </p>
                       )}
-                      <div className="flex items-center justify-between mt-1.5">
-                        {o.valor
-                          ? <p className="font-semibold text-emerald-700">{fmt(o.valor)}</p>
-                          : <span />
-                        }
+                      <div className="flex flex-wrap items-center justify-between gap-1 mt-1.5">
+                        <div className="flex items-center gap-1.5">
+                          {verDueno && o.creadoBy && nombreVendedor.get(o.creadoBy) && (
+                            <span title={`Dueño: ${nombreVendedor.get(o.creadoBy)}`}
+                              className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-200 text-2xs font-bold text-slate-600">
+                              {iniciales(nombreVendedor.get(o.creadoBy)!)}
+                            </span>
+                          )}
+                          {o.valor && <p className="font-semibold text-emerald-700">{fmt(o.valor)}</p>}
+                        </div>
                         <div className="flex items-center gap-1">
                           {(etapa.key !== "GANADA" && etapa.key !== "PERDIDA") && (
                             <span className="rounded-full px-1.5 py-0.5 text-xs font-semibold bg-brand-50 text-brand-600">
@@ -1104,6 +1179,7 @@ export default function PipelinePage() {
                     </div>
                   )}
                 </div>
+                )}
               </div>
             );
           })}
