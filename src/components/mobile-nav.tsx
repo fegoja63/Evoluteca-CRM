@@ -29,7 +29,7 @@ export function MobileNav() {
               activo ? "text-accent-400" : "text-brand-400 hover:text-brand-200"
             )}>
             <Icono size={20} stroke={1.75} />
-            <span className="text-[9px] font-medium leading-none">{item.label}</span>
+            <span className="text-2xs font-medium leading-none">{item.label}</span>
             {activo && <span className="w-1 h-1 rounded-full bg-accent-400 mt-0.5" />}
           </Link>
         );

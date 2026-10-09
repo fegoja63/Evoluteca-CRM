@@ -131,7 +131,7 @@ export default function ObjecionesPage() {
               <input list="motivos-perdida" value={form.motivoPerdida} onChange={e => setForm(f => ({ ...f, motivoPerdida: e.target.value }))}
                 placeholder="Ej: Precio muy alto" className={campo("md", "w-full")} />
               <datalist id="motivos-perdida">{MOTIVOS_PERDIDA.map(m => <option key={m} value={m} />)}</datalist>
-              <p className="text-[11px] text-slate-400 mt-1">Si lo asocias a un motivo, esta respuesta aparecerá en Reportes → Motivos de pérdida.</p>
+              <p className="text-xs text-slate-400 mt-1">Si lo asocias a un motivo, esta respuesta aparecerá en Reportes → Motivos de pérdida.</p>
             </div>
             <div className="flex items-center gap-3">
               <button onClick={guardar} disabled={guardando} className={boton("primario", "md")}>

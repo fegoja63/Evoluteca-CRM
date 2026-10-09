@@ -9,6 +9,15 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+      },
+      // Escala tipográfica: 2xs (11px) solo para etiquetas en mayúsculas,
+      // insignias y contadores; el texto normal empieza en xs (12px).
+      // No usar tamaños arbitrarios (text-[10px]).
+      fontSize: {
+        "2xs": ["0.6875rem", { lineHeight: "1rem" }],
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",

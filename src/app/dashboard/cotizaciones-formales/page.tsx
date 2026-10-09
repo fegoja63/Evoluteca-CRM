@@ -330,12 +330,12 @@ export default function CotizacionesFormalesPage() {
                         {ESTADO_LABEL[c.estado]}
                       </span>
                       {c.modalidad && c.modalidad !== "FEE_FIJO" && (
-                        <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold bg-brand-50 text-brand-700">
+                        <span className="rounded-full px-2 py-0.5 text-2xs font-semibold bg-brand-50 text-brand-700">
                           {MODALIDAD_LABEL[c.modalidad] ?? c.modalidad}
                         </span>
                       )}
                       {reemplazadas.has(c.id) && (
-                        <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold bg-slate-200 text-slate-500">
+                        <span className="rounded-full px-2 py-0.5 text-2xs font-semibold bg-slate-200 text-slate-500">
                           Reemplazada
                         </span>
                       )}

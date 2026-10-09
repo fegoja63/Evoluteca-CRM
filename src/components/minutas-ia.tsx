@@ -190,7 +190,7 @@ export function MinutasIA({ oportunidadId, empresaId, empresaNombre, onGuardada 
             </button>
             <button onClick={() => { setModo("lista"); setNotas(""); }} disabled={generando}
               className="text-sm text-slate-500 hover:underline">Cancelar</button>
-            <span className="text-[11px] text-slate-400 ml-auto">Usa 1 acción de IA de tu plan</span>
+            <span className="text-xs text-slate-400 ml-auto">Usa 1 acción de IA de tu plan</span>
           </div>
         </div>
       )}
@@ -241,7 +241,7 @@ export function MinutasIA({ oportunidadId, empresaId, empresaNombre, onGuardada 
 
           <div>
             <p className="text-xs font-semibold text-slate-600 mb-1">Compromisos</p>
-            <p className="text-[11px] text-slate-400 mb-1.5">Los de nuestro equipo marcados con &quot;Crear tarea&quot; quedan como tareas pendientes a tu nombre (sin fecha: para mañana).</p>
+            <p className="text-xs text-slate-400 mb-1.5">Los de nuestro equipo marcados con &quot;Crear tarea&quot; quedan como tareas pendientes a tu nombre (sin fecha: para mañana).</p>
             <div className="flex flex-col gap-2">
               {borrador.compromisos.map((c, i) => {
                 const upd = (patch: Partial<Compromiso>) => set("compromisos", borrador.compromisos.map((x, j) => (j === i ? { ...x, ...patch } : x)));
@@ -264,7 +264,7 @@ export function MinutasIA({ oportunidadId, empresaId, empresaNombre, onGuardada 
                           <input type="checkbox" checked={c.crearTarea} onChange={e => upd({ crearTarea: e.target.checked })} className="accent-brand-600" />
                           Crear tarea
                         </label>
-                      ) : <span className="text-[11px] text-slate-400">Lo hace el cliente</span>}
+                      ) : <span className="text-xs text-slate-400">Lo hace el cliente</span>}
                     </div>
                   </div>
                 );
@@ -306,7 +306,7 @@ export function MinutasIA({ oportunidadId, empresaId, empresaNombre, onGuardada 
                   <button onClick={() => setAbierta(open ? null : m.id)} className="w-full flex items-center gap-2 px-3 py-2 text-left">
                     <span className="text-xs text-slate-400 shrink-0">{fmtFecha(fechaDeIso(m.fecha))}</span>
                     <span className="text-sm font-semibold text-slate-800 truncate flex-1">{m.titulo}</span>
-                    {!oportunidadId && m.oportunidad && <span className="text-[11px] text-slate-400 truncate max-w-[160px] hidden sm:inline">{m.oportunidad.titulo}</span>}
+                    {!oportunidadId && m.oportunidad && <span className="text-xs text-slate-400 truncate max-w-[160px] hidden sm:inline">{m.oportunidad.titulo}</span>}
                     {open ? <IconChevronUp size={16} className="text-slate-400" /> : <IconChevronDown size={16} className="text-slate-400" />}
                   </button>
                   {open && (

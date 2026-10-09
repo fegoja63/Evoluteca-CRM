@@ -506,7 +506,7 @@ export default function NuevaCotizacionPage() {
                 {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
               </select>
               {/* Los clientes se crean en un solo lugar: la pantalla Clientes. */}
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="mt-1 text-xs text-slate-500">
                 ¿No está el cliente? <Link href="/dashboard/cuentas" className="font-medium text-brand-600 hover:underline">Créalo en Clientes</Link>.
               </p>
             </div>
@@ -653,7 +653,7 @@ export default function NuevaCotizacionPage() {
                   <input type="time" value={horaFin} onChange={e => setHoraFin(e.target.value)}
                     className={campo("md", "w-full")} />
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">Opcional — déjalo vacío para reservar el día completo.</p>
+                <p className="text-xs text-slate-400 mt-1">Opcional — déjalo vacío para reservar el día completo.</p>
               </div>
             )}
             <div>
@@ -666,7 +666,7 @@ export default function NuevaCotizacionPage() {
               <input type="text" value={numeroManual} onChange={e => setNumeroManual(e.target.value)}
                 placeholder="Automático" maxLength={40}
                 className={campo("md", "w-full")} />
-              <p className="text-[11px] text-slate-400 mt-1">Opcional — si el cliente lleva su propio consecutivo (ej. COT-2026-045). Vacío usa el automático.</p>
+              <p className="text-xs text-slate-400 mt-1">Opcional — si el cliente lleva su propio consecutivo (ej. COT-2026-045). Vacío usa el automático.</p>
             </div>
           </div>
         </div>

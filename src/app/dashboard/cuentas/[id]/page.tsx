@@ -294,7 +294,7 @@ export default function FichaClientePage() {
               <textarea value={form.condicionesComerciales} onChange={e => setForm({ ...form, condicionesComerciales: e.target.value })} rows={4}
                 placeholder="Forma de pago, plazos de entrega, cláusulas negociadas con este cliente..."
                 className={campo("md", "w-full")} />
-              <p className="mt-1 text-[11px] text-slate-400">Se precargan al crear una cotización para este cliente (editables por cotización) y salen en el PDF y el enlace público.</p>
+              <p className="mt-1 text-xs text-slate-400">Se precargan al crear una cotización para este cliente (editables por cotización) y salen en el PDF y el enlace público.</p>
             </div>
             <CamposPersonalizadosForm entidad="EMPRESA" valores={camposValores}
               onChange={(clave, valor) => setCamposValores(prev => ({ ...prev, [clave]: valor }))} />

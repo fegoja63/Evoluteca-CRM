@@ -736,7 +736,7 @@ export default function PipelinePage() {
               </select>
               {/* Los clientes se crean en un solo lugar: la pantalla Clientes.
                   Desde ahí se vuelve aquí a crear su oportunidad. */}
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="mt-1 text-xs text-slate-500">
                 ¿Cliente nuevo? <Link href="/dashboard/cuentas" className="font-medium text-brand-600 hover:underline">Créalo en Clientes</Link> y te trae de vuelta a crear su oportunidad.
               </p>
             </div>
@@ -787,7 +787,7 @@ export default function PipelinePage() {
                       className={boton("primario", "sm", "self-start")}>
                       {creandoContactoLoading ? "Creando..." : "Crear contacto"}
                     </button>
-                    <p className="text-[11px] text-slate-500">Opcional: si lo dejas aquí, se crea al guardar la oportunidad (hereda el correo y teléfono del cliente si no le pones otros).</p>
+                    <p className="text-xs text-slate-500">Opcional: si lo dejas aquí, se crea al guardar la oportunidad (hereda el correo y teléfono del cliente si no le pones otros).</p>
                   </div>
                 </div>
               )}

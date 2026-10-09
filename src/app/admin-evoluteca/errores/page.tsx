@@ -129,7 +129,7 @@ export default function ErroresInternoPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${TIPO_COLOR[e.tipo] ?? "bg-slate-100 text-slate-600"}`}>{e.tipo}</span>
+                        <span className={`rounded-full px-2 py-0.5 text-2xs font-semibold ${TIPO_COLOR[e.tipo] ?? "bg-slate-100 text-slate-600"}`}>{e.tipo}</span>
                         <span className="text-xs text-slate-400">{fmtFecha(e.creadoEn)}</span>
                       </div>
                       <p className="text-sm text-slate-800 font-medium truncate">{e.mensaje}</p>
@@ -142,8 +142,8 @@ export default function ErroresInternoPage() {
                 </button>
                 {expandido === e.id && (
                   <div className="px-4 py-3 border-t border-slate-100 bg-slate-50">
-                    {e.stack && <pre className="text-[11px] text-slate-600 whitespace-pre-wrap break-words overflow-x-auto max-h-72 overflow-y-auto">{e.stack}</pre>}
-                    {e.userAgent && <p className="text-[11px] text-slate-400 mt-2 break-words">{e.userAgent}</p>}
+                    {e.stack && <pre className="text-xs text-slate-600 whitespace-pre-wrap break-words overflow-x-auto max-h-72 overflow-y-auto">{e.stack}</pre>}
+                    {e.userAgent && <p className="text-xs text-slate-400 mt-2 break-words">{e.userAgent}</p>}
                   </div>
                 )}
               </div>

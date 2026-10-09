@@ -134,7 +134,7 @@ export default function CotizacionPublicaPage() {
         <div className="rounded-2xl rounded-b-none px-8 pt-6 pb-5" style={{ backgroundColor: marca.oscuro }}>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: marca.sobreOscuroSuave }}>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: marca.sobreOscuroSuave }}>
                 Propuesta comercial
               </p>
               <h1 className="text-white text-2xl font-bold mt-1">

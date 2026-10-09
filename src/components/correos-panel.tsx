@@ -108,7 +108,7 @@ export function CorreosPanel({ contactoId, empresaId, oportunidadId, emailDestin
                 className={boton("primario", "md")}>
                 <IconSend size={15} stroke={1.75} />{enviando ? "Enviando..." : "Enviar"}
               </button>
-              <span className="text-[11px] text-slate-400">Se envía desde tu CRM; las respuestas quedan registradas aquí y te llegan a tu correo.</span>
+              <span className="text-xs text-slate-400">Se envía desde tu CRM; las respuestas quedan registradas aquí y te llegan a tu correo.</span>
             </div>
           </div>
         </div>
@@ -125,7 +125,7 @@ export function CorreosPanel({ contactoId, empresaId, oportunidadId, emailDestin
             return (
               <div key={c.id} className="py-2.5">
                 <button onClick={() => setExpandido(abierto ? null : c.id)} className="w-full text-left flex items-start gap-2">
-                  <span className={`mt-0.5 shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${c.direccion === "ENVIADO" ? "bg-blue-50 text-blue-600" : "bg-emerald-50 text-emerald-700"}`}>
+                  <span className={`mt-0.5 shrink-0 rounded-full px-1.5 py-0.5 text-2xs font-semibold ${c.direccion === "ENVIADO" ? "bg-blue-50 text-blue-600" : "bg-emerald-50 text-emerald-700"}`}>
                     {c.direccion === "ENVIADO" ? "Enviado" : "Recibido"}
                   </span>
                   <div className="flex-1 min-w-0">

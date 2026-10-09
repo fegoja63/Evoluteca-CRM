@@ -284,7 +284,7 @@ export default function ClientesInternoPage() {
                                   title="Escribe un número y sal del campo para guardar (ej: usuarios adicionales pagados sobre el plan de 5)"
                                 />
                               </div>
-                              <p className="mt-1 text-[10px] text-slate-400">{t._count.usuarios} usuario{t._count.usuarios !== 1 ? "s" : ""} hoy</p>
+                              <p className="mt-1 text-2xs text-slate-400">{t._count.usuarios} usuario{t._count.usuarios !== 1 ? "s" : ""} hoy</p>
                             </div>
                           </div>
                           <div className="mt-4">

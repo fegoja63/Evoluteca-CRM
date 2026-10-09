@@ -170,7 +170,7 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
           href="https://www.felipegomezjaramillo.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[11px] text-brand-400 hover:text-accent-400 transition-colors text-center block mt-0.5"
+          className="text-xs text-brand-400 hover:text-accent-400 transition-colors text-center block mt-0.5"
         >
           felipegomezjaramillo.com
         </a>
@@ -222,13 +222,13 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
 
       {/* Encabezado del menú + botón de reordenar */}
       <div className="px-3 pt-3 flex items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-brand-400 px-1">Menú</span>
+        <span className="text-2xs font-semibold uppercase tracking-wide text-brand-400 px-1">Menú</span>
         <div className="flex items-center gap-2">
           {reordenando && ordenGuardado && (
             <button
               onClick={() => guardarOrden(null)}
               title="Restablecer al orden original"
-              className="flex items-center gap-1 text-[11px] text-brand-300 hover:text-white transition-colors"
+              className="flex items-center gap-1 text-xs text-brand-300 hover:text-white transition-colors"
             >
               <IconArrowBackUp size={13} stroke={1.75} /> Restablecer
             </button>
@@ -237,7 +237,7 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
             onClick={() => setReordenando(v => !v)}
             title={reordenando ? "Listo" : "Ordenar menú a tu gusto"}
             className={cn(
-              "flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium transition-colors",
+              "flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium transition-colors",
               reordenando ? "bg-accent-600 text-white" : "text-brand-300 hover:bg-white/5 hover:text-white"
             )}
           >

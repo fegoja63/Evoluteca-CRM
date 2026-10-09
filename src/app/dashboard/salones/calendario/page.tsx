@@ -206,7 +206,7 @@ export default function CalendarioSalonesPage() {
                             className={`cursor-grab active:cursor-grabbing ${draggingId === r.id ? "opacity-40" : ""}`}>
                             <Link href={`/dashboard/cotizaciones-formales/${r.id}`}
                               onClick={e => { if (draggingId) e.preventDefault(); }}
-                              className="block truncate text-[11px] font-medium text-red-700 hover:underline">
+                              className="block truncate text-xs font-medium text-red-700 hover:underline">
                               {r.horaInicio ? `${r.horaInicio} ` : ""}{r.empresa?.nombre ?? "Sin empresa"}
                             </Link>
                           </div>
@@ -236,7 +236,7 @@ export default function CalendarioSalonesPage() {
                         <span className="font-medium">{c.empresa?.nombre ?? "Sin empresa"}</span>
                         <span className="text-slate-400"> · {fechaLabel}{c.horaInicio ? ` · ${c.horaInicio}` : ""}</span>
                       </span>
-                      <span className="shrink-0 rounded-full border border-amber-300 bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
+                      <span className="shrink-0 rounded-full border border-amber-300 bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
                         {ESTADO_LABEL[c.estado]}
                       </span>
                     </Link>

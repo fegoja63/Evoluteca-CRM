@@ -432,7 +432,7 @@ export default function ClientesPage() {
               <input value={form.nombreContacto} onChange={e => setForm({ ...form, nombreContacto: e.target.value })}
                 placeholder="Persona de contacto principal"
                 className={campo("md", "w-full")} />
-              <p className="mt-1 text-[11px] text-slate-400">Se guarda como contacto de este cliente, con el email y teléfono de abajo.</p>
+              <p className="mt-1 text-xs text-slate-400">Se guarda como contacto de este cliente, con el email y teléfono de abajo.</p>
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Email</label>
@@ -479,7 +479,7 @@ export default function ClientesPage() {
                   onChange={e => { setContactoTocado(t => ({ ...t, telefono: true })); setNuevoContactoForm(f => ({ ...f, telefono: e.target.value })); }}
                   className={campo("sm", "w-full")} />
               </div>
-              <p className="mt-2 text-[11px] text-slate-500">Si escribes un nombre, se creará automáticamente vinculado a este cliente al guardar. El email y teléfono vienen del cliente; cámbialos si esta persona usa otros. Puedes dejarlo en blanco.</p>
+              <p className="mt-2 text-xs text-slate-500">Si escribes un nombre, se creará automáticamente vinculado a este cliente al guardar. El email y teléfono vienen del cliente; cámbialos si esta persona usa otros. Puedes dejarlo en blanco.</p>
             </div>
 
             {duplicados.length > 0 && (
@@ -497,7 +497,7 @@ export default function ClientesPage() {
                 </ul>
               </div>
             )}
-            <p className="col-span-2 -mb-1 text-[11px] text-slate-500">
+            <p className="col-span-2 -mb-1 text-xs text-slate-500">
               Al guardar te llevaremos al Pipeline a crear la primera oportunidad (prospecto) de este cliente, con él y su contacto ya seleccionados. Si solo querías registrarlo, puedes cerrar esa oportunidad sin guardarla.
             </p>
             <div className="col-span-2 flex gap-2">

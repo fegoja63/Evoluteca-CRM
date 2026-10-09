@@ -265,7 +265,7 @@ export function AutomatizacionesAdmin() {
                   <p className="text-xs text-slate-500 mt-0.5 flex items-start gap-1">
                     <IconArrowRight size={12} stroke={2} className="mt-0.5 shrink-0 text-slate-300" />{resumen(r)}
                   </p>
-                  <p className="text-[11px] text-slate-400 mt-1">
+                  <p className="text-xs text-slate-400 mt-1">
                     Ejecutada {r.vecesEjecutada} vez(es)
                     {r.ultimaEjecucion && ` · última: ${new Date(r.ultimaEjecucion).toLocaleDateString("es-CO")}`}
                   </p>

@@ -256,7 +256,7 @@ export default function ReportesPage() {
           <line x1={pad} y1={H - 28} x2={W} y2={H - 28} stroke="#e2e8f0" strokeWidth={1} />
         </svg>
         {aniosOrden.some(a => Number(a) === anioActual) && (
-          <p className="text-[10px] text-slate-400 mt-1">* {anioActual} en curso — año incompleto, no comparable 1:1 con años cerrados</p>
+          <p className="text-2xs text-slate-400 mt-1">* {anioActual} en curso — año incompleto, no comparable 1:1 con años cerrados</p>
         )}
       </div>
     );
@@ -509,7 +509,7 @@ export default function ReportesPage() {
                   <span className="text-sm text-slate-700 flex-1 min-w-0 truncate">{m.motivo}</span>
                   {respuesta && (
                     <button onClick={() => setMotivoAbierto(abierto ? null : m.motivo)}
-                      className="shrink-0 inline-flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-700 hover:bg-brand-100"
+                      className="shrink-0 inline-flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 hover:bg-brand-100"
                       title="Ver la respuesta recomendada de tu guía">
                       <IconMessageChatbot size={12} stroke={1.75} /> {abierto ? "Ocultar" : "Cómo responder"}
                     </button>
@@ -851,7 +851,7 @@ export default function ReportesPage() {
                   <div className="h-2 bg-white rounded-full overflow-hidden">
                     <div className="h-2 rounded-full bg-brand-500" style={{ width: `${Math.min(r.conversion.tasaContactoOportunidad, 100)}%` }} />
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1">{r.conversion.contactosConvertidos} de {r.conversion.totalContactos} contactos · acumulado</p>
+                  <p className="text-xs text-slate-400 mt-1">{r.conversion.contactosConvertidos} de {r.conversion.totalContactos} contactos · acumulado</p>
                 </div>
                 {/* Paso 2: oportunidad → venta */}
                 <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
@@ -862,7 +862,7 @@ export default function ReportesPage() {
                   <div className="h-2 bg-white rounded-full overflow-hidden">
                     <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${Math.min(r.conversion.tasaOportunidadVenta, 100)}%` }} />
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1">{r.ganadas} ganadas de {r.ganadas + r.perdidas} cerradas · {periodoLabel.toLowerCase()}</p>
+                  <p className="text-xs text-slate-400 mt-1">{r.ganadas} ganadas de {r.ganadas + r.perdidas} cerradas · {periodoLabel.toLowerCase()}</p>
                 </div>
               </div>
             </div>
@@ -1012,7 +1012,7 @@ export default function ReportesPage() {
                     )}
                   </div>
                 )}
-                <p className="text-[11px] text-slate-400 mt-2">Mira las oportunidades abiertas desde hoy hacia adelante — no depende del filtro de año/mes.</p>
+                <p className="text-xs text-slate-400 mt-2">Mira las oportunidades abiertas desde hoy hacia adelante — no depende del filtro de año/mes.</p>
               </div>
             );
           })()}
@@ -1107,7 +1107,7 @@ export default function ReportesPage() {
                     <div className="w-40 shrink-0">
                       <p className="text-xs font-medium text-slate-700">{m.mes ? `${MESES[m.mes - 1]} ${m.anio}` : `Año ${m.anio}`}</p>
                       {m.calculada && (
-                        <p className="text-[10px] text-slate-400">calculada · {m.mesesConfigurados}/12 meses</p>
+                        <p className="text-2xs text-slate-400">calculada · {m.mesesConfigurados}/12 meses</p>
                       )}
                     </div>
                     <div className="flex-1 relative h-5 bg-slate-100 rounded-full overflow-hidden">

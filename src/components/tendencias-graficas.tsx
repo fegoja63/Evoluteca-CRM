@@ -38,7 +38,7 @@ export function TendenciasGraficas() {
     <div className="mb-6">
       <div className="flex items-center gap-2 mb-3">
         <span className="text-xs font-bold uppercase tracking-wide text-slate-400">Tendencias · últimos 12 meses</span>
-        <span className="text-[11px] text-slate-400">datos reales</span>
+        <span className="text-xs text-slate-400">datos reales</span>
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
         <Card
@@ -87,7 +87,7 @@ function Card({ titulo, kpi, delta, deltaLabel, subtitulo, children }: {
             {delta >= 0 ? "▲" : "▼"} {delta >= 0 ? "+" : ""}{delta}% <span className="font-normal text-slate-400">{deltaLabel}</span>
           </span>
         )}
-        {subtitulo && <span className="text-[11px] text-slate-400">{subtitulo}</span>}
+        {subtitulo && <span className="text-xs text-slate-400">{subtitulo}</span>}
       </div>
       {children}
     </div>
@@ -174,7 +174,7 @@ function Apiladas({ meses }: { meses: Mes[] }) {
         })}
         {sinDatos && <text x={W / 2} y={base / 2} textAnchor="middle" fontSize="10" fill="#94a3b8">Sin cierres registrados</text>}
       </svg>
-      <div className="flex items-center gap-4 mt-1 text-[11px] text-slate-500">
+      <div className="flex items-center gap-4 mt-1 text-xs text-slate-500">
         <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500" />Ganados</span>
         <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-red-400" />Perdidos</span>
       </div>
