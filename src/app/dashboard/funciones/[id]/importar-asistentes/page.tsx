@@ -5,8 +5,7 @@ import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
-  IconCircleCheck, IconAlertTriangle, IconUpload, IconUsers,
-} from "@tabler/icons-react";
+  IconCircleCheck, IconAlertTriangle, IconUpload, IconUsers, IconCheck } from "@tabler/icons-react";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 
 type Preview = {
@@ -221,7 +220,7 @@ export default function ImportarAsistentesPage() {
           <div className="flex items-center justify-between">
             <p className="text-xs text-slate-400">
               {Object.values(mapeo).includes("nombre")
-                ? "Columna de nombre asignada ✓"
+                ? <span className="inline-flex items-center gap-1 text-emerald-600"><IconCheck size={13} stroke={2} />Columna de nombre asignada</span>
                 : "Falta asignar la columna del nombre"}
             </p>
             <button onClick={handleImportar} disabled={cargando}

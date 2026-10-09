@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { MoneyInput } from "@/components/money-input";
 import { boton, tarjeta } from "@/components/ui/estilos";
 import { SkeletonLista } from "@/components/ui/estados";
+import { IconChartBar, IconPencil } from "@tabler/icons-react";
 
 type Vendedor = {
   id: string;
@@ -87,7 +88,7 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
   return (
     <div>
       <div className="flex items-center gap-2 mb-4">
-        <h2 className="text-base font-bold text-slate-900">📊 Rendimiento del equipo</h2>
+        <h2 className="text-base font-bold text-slate-900 inline-flex items-center gap-1.5"><IconChartBar size={18} stroke={1.75} className="text-brand-600" />Rendimiento del equipo</h2>
         <span className="text-xs text-slate-400">{MESES[mesActual - 1]} {anioActual}</span>
       </div>
 
@@ -135,7 +136,7 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
                         }
                       </div>
                       {esAdmin && v.metaMes > 0 && !editando && (
-                        <button onClick={() => { setEditandoMeta(v.id); setValorMeta(String(v.metaMes)); }} className="text-slate-300 hover:text-brand-500 text-sm ml-1" title="Editar meta">✏️</button>
+                        <button onClick={() => { setEditandoMeta(v.id); setValorMeta(String(v.metaMes)); }} className="text-slate-300 hover:text-brand-500 ml-1" title="Editar meta" aria-label="Editar meta"><IconPencil size={14} stroke={1.75} /></button>
                       )}
                     </div>
 

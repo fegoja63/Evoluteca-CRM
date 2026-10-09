@@ -9,8 +9,7 @@ import {
   IconPinned,
   IconChevronLeft, IconChevronRight, IconTrash, IconLayoutList, IconCalendar,
   IconFileExport, IconFileSpreadsheet, IconPlus, IconBell, IconCircleCheck,
-  IconAlertTriangle, IconPencil, IconUsers, IconCalendarPlus, IconX,
-} from "@tabler/icons-react";
+  IconAlertTriangle, IconPencil, IconUsers, IconCalendarPlus, IconX, IconUser } from "@tabler/icons-react";
 import { tiposActividadVisibles, tipoActividadDef, type TipoActividadDef } from "@/lib/tipos-actividad";
 import { boton, tarjeta } from "@/components/ui/estilos";
 import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
@@ -661,7 +660,7 @@ function AgendaContent() {
           </p>
           <p className={`text-xs ${esHoy ? "text-red-500" : "text-neutral-500"}`}>
             {formatoFecha(a.fecha)}
-            {a.responsable && ` · 👤 ${a.responsable.id === miId ? "Yo" : a.responsable.nombre}`}
+            {a.responsable && <> · <IconUser size={12} stroke={1.75} className="inline -mt-0.5" /> {a.responsable.id === miId ? "Yo" : a.responsable.nombre}</>}
             {a.empresa && ` · ${a.empresa.nombre}`}
             {a.contacto && ` · ${a.contacto.nombre}`}
             {a.oportunidad && ` · ${a.oportunidad.titulo}`}

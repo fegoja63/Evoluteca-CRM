@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { CampoPassword } from "@/components/campo-password";
 import { boton } from "@/components/ui/estilos";
 import { SkeletonTabla } from "@/components/ui/estados";
+import { IconCircleCheck } from "@tabler/icons-react";
 
 const CLAVE_KEY = "admin-evoluteca-secret";
 
@@ -118,7 +119,8 @@ export default function ErroresInternoPage() {
           <SkeletonTabla columnas={4} />
         ) : errores.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-            <p className="text-sm text-slate-500">No hay errores registrados. 🎉</p>
+            <IconCircleCheck size={28} stroke={1.5} className="mx-auto mb-2 text-emerald-500" />
+            <p className="text-sm text-slate-500">No hay errores registrados.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-2">

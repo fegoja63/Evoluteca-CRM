@@ -11,7 +11,6 @@ export type TipoActividadDef = {
   label: string;
   icon: Icon;
   dot: string;    // color del punto en el calendario
-  emoji: string;  // usado en el selector compacto inline
   // Solo se ofrece en el vertical de teatros/alquileres (módulo funciones o
   // salones activo). Sigue existiendo en el enum para todos, pero no se muestra
   // en el selector de otros tenants.
@@ -19,12 +18,12 @@ export type TipoActividadDef = {
 };
 
 export const TIPOS_ACTIVIDAD: TipoActividadDef[] = [
-  { key: "TAREA",            label: "Tarea",            icon: IconCheck,     dot: "bg-slate-400",  emoji: "✅" },
-  { key: "LLAMADA",          label: "Llamada",          icon: IconPhone,     dot: "bg-blue-500",   emoji: "📞" },
-  { key: "REUNION",          label: "Reunión",          icon: IconUsers,     dot: "bg-violet-500", emoji: "🤝" },
-  { key: "EMAIL",            label: "Email",            icon: IconMail,      dot: "bg-emerald-500", emoji: "✉️" },
-  { key: "VISITA_COMERCIAL", label: "Visita comercial", icon: IconBriefcase, dot: "bg-amber-500",  emoji: "🏢", soloEspacios: true },
-  { key: "VISITA_TECNICA",   label: "Visita técnica",   icon: IconTool,      dot: "bg-cyan-500",   emoji: "🔧", soloEspacios: true },
+  { key: "TAREA",            label: "Tarea",            icon: IconCheck,     dot: "bg-slate-400" },
+  { key: "LLAMADA",          label: "Llamada",          icon: IconPhone,     dot: "bg-blue-500" },
+  { key: "REUNION",          label: "Reunión",          icon: IconUsers,     dot: "bg-violet-500" },
+  { key: "EMAIL",            label: "Email",            icon: IconMail,      dot: "bg-emerald-500" },
+  { key: "VISITA_COMERCIAL", label: "Visita comercial", icon: IconBriefcase, dot: "bg-amber-500", soloEspacios: true },
+  { key: "VISITA_TECNICA",   label: "Visita técnica",   icon: IconTool,      dot: "bg-cyan-500", soloEspacios: true },
 ];
 
 /** El tenant vende teatros/alquileres si tiene el módulo funciones o salones activo. */

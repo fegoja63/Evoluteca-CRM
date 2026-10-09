@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { campo } from "@/components/ui/estilos";
+import { IconMailCheck } from "@tabler/icons-react";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -37,7 +38,7 @@ export default function ForgotPasswordPage() {
 
           {enviado ? (
             <div className="text-center">
-              <div className="text-4xl mb-4">📬</div>
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50"><IconMailCheck size={28} stroke={1.75} className="text-brand-600" /></div>
               <h2 className="text-xl font-bold text-slate-800 mb-2">Revisa tu correo</h2>
               <p className="text-slate-500 text-sm mb-6">
                 Si existe una cuenta con ese correo, recibirás un enlace para restablecer tu contraseña. El enlace expira en 1 hora.

@@ -14,8 +14,7 @@ import {
   IconX,
   IconMessageChatbot,
   IconCheck,
-  type Icon,
-} from "@tabler/icons-react";
+  type Icon, IconAlertTriangle } from "@tabler/icons-react";
 import { MoneyInput } from "@/components/money-input";
 import { AnalisisTendenciasIA } from "@/components/analisis-tendencias-ia";
 import { TendenciasGraficas } from "@/components/tendencias-graficas";
@@ -1002,7 +1001,7 @@ export default function ReportesPage() {
                 {(v.vencidas.cantidad > 0 || v.sinFecha.cantidad > 0 || v.masDe90.cantidad > 0) && (
                   <div className="flex flex-wrap gap-x-5 gap-y-1 mt-3 text-xs text-slate-400">
                     {v.vencidas.cantidad > 0 && (
-                      <span className="text-red-500">⚠ {v.vencidas.cantidad} con fecha vencida · {fmtK(v.vencidas.valorBruto)}</span>
+                      <span className="text-red-500 inline-flex items-center gap-1"><IconAlertTriangle size={13} stroke={1.75} />{v.vencidas.cantidad} con fecha vencida · {fmtK(v.vencidas.valorBruto)}</span>
                     )}
                     {v.sinFecha.cantidad > 0 && (
                       <span>◷ {v.sinFecha.cantidad} sin fecha de cierre · {fmtK(v.sinFecha.valorBruto)}</span>

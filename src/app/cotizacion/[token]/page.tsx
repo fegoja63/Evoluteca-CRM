@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { numeroCotizacion } from "@/lib/cotizaciones";
 import { paletaMarca } from "@/lib/color-marca";
 import { boton } from "@/components/ui/estilos";
+import { IconFileSearch, IconCircleCheck, IconCircleX, IconCheck, IconX } from "@tabler/icons-react";
 
 type Item = { descripcion: string; cantidad: number; precioUnit: string };
 type Cotizacion = {
@@ -99,7 +100,7 @@ export default function CotizacionPublicaPage() {
   if (error) return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
       <div className="text-center">
-        <p className="text-4xl mb-4">🔍</p>
+        <IconFileSearch size={44} stroke={1.25} className="mx-auto mb-4 text-slate-300" />
         <p className="text-lg font-semibold text-slate-700">{error}</p>
       </div>
     </div>
@@ -318,7 +319,9 @@ export default function CotizacionPublicaPage() {
           {/* Estado */}
           {confirmado || yaRespondida ? (
             <div className={`rounded-xl p-5 text-center ${cot.estado === "ACEPTADA" ? "bg-emerald-50 border border-emerald-200" : "bg-red-50 border border-red-200"}`}>
-              <p className="text-2xl mb-2">{cot.estado === "ACEPTADA" ? "✅" : "❌"}</p>
+              <div className="mb-2 flex justify-center">{cot.estado === "ACEPTADA"
+                ? <IconCircleCheck size={32} stroke={1.75} className="text-emerald-600" />
+                : <IconCircleX size={32} stroke={1.75} className="text-red-600" />}</div>
               <p className={`font-bold text-lg ${cot.estado === "ACEPTADA" ? "text-emerald-700" : "text-red-700"}`}>
                 {cot.estado === "ACEPTADA" ? "¡Cotización aceptada!" : "Cotización rechazada"}
               </p>
@@ -334,11 +337,11 @@ export default function CotizacionPublicaPage() {
               <div className="flex gap-3 mb-4">
                 <button onClick={() => setAccion("ACEPTADA")}
                   className={`flex-1 rounded-xl py-2.5 text-sm font-semibold border-2 transition-all ${accion === "ACEPTADA" ? "bg-emerald-600 text-white border-emerald-600" : "border-emerald-300 text-emerald-700 hover:bg-emerald-50"}`}>
-                  ✓ Aceptar
+                  <span className="inline-flex items-center gap-1.5"><IconCheck size={16} stroke={2.25} />Aceptar</span>
                 </button>
                 <button onClick={() => { setAccion("RECHAZADA"); setMotivo(""); }}
                   className={`flex-1 rounded-xl py-2.5 text-sm font-semibold border-2 transition-all ${accion === "RECHAZADA" ? "bg-red-600 text-white border-red-600" : "border-red-300 text-red-600 hover:bg-red-50"}`}>
-                  ✗ Rechazar
+                  <span className="inline-flex items-center gap-1.5"><IconX size={16} stroke={2.25} />Rechazar</span>
                 </button>
               </div>
 

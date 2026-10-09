@@ -705,7 +705,7 @@ export default function ConfiguracionPage() {
             <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
               <IconChartFunnel size={16} stroke={1.75} />Etapas del pipeline
             </h2>
-            {etapasOk && <span className="text-xs text-emerald-600 font-medium">✓ Guardado</span>}
+            {etapasOk && <span className="text-xs text-emerald-600 font-medium inline-flex items-center gap-1"><IconCheck size={14} stroke={2} />Guardado</span>}
           </div>
           <p className="text-xs text-slate-400 mb-4">
             Cambia el nombre visible de cada etapa y arrástralas para reordenarlas. El orden y los nombres se reflejan en el Pipeline y en Reportes. "Ganada" y "Perdida" no se pueden ocultar; las demás solo si no tienen oportunidades asignadas.

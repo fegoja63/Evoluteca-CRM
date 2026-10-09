@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { reportarError } from "@/lib/error-report";
+import { IconAlertTriangle } from "@tabler/icons-react";
 
 // Error boundary raíz de Next.js: atrapa cualquier crash de render que no tenga
 // un boundary más cercano, lo reporta al monitoreo propio y muestra una
@@ -16,7 +17,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
       <body style={{ margin: 0, fontFamily: "system-ui, sans-serif", background: "#f8fafc", color: "#1e293b" }}>
         <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div style={{ maxWidth: 420, textAlign: "center", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 32 }}>
-            <div style={{ fontSize: 40, marginBottom: 8 }}>⚠️</div>
+            <IconAlertTriangle size={40} stroke={1.5} color="#d97706" style={{ marginBottom: 8 }} />
             <h1 style={{ fontSize: 18, margin: "0 0 8px", color: "#0f172a" }}>Algo salió mal</h1>
             <p style={{ fontSize: 14, color: "#64748b", margin: "0 0 20px", lineHeight: 1.5 }}>
               Ocurrió un error inesperado. Ya quedó registrado para que lo revisemos. Puedes intentar de nuevo.

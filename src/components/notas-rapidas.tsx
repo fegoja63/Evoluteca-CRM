@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/toast";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
+import { IconNote, IconCheck } from "@tabler/icons-react";
 
 interface NotasRapidasProps {
   valor: string | null;
@@ -32,7 +33,7 @@ export function NotasRapidas({ valor, onGuardar }: NotasRapidasProps) {
       await onGuardar(texto);
     } catch (e) {
       // Si el guardado falló, se mantiene el editor abierto con lo escrito y
-      // se avisa — nunca se muestra "✓ Guardado" en falso.
+      // se avisa — nunca se muestra "Guardado" en falso.
       setGuardando(false);
       toast.error(e instanceof Error ? e.message : "No se pudieron guardar las notas. Inténtalo de nuevo.");
       return;
@@ -52,10 +53,10 @@ export function NotasRapidas({ valor, onGuardar }: NotasRapidasProps) {
     <div className={tarjeta("p-5")}>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
-          📝 Notas
+          <IconNote size={16} stroke={1.75} className="text-slate-500" />Notas
         </h3>
         <div className="flex items-center gap-2">
-          {guardado && <span className="text-xs text-emerald-600 font-medium">✓ Guardado</span>}
+          {guardado && <span className="text-xs text-emerald-600 font-medium inline-flex items-center gap-1"><IconCheck size={14} stroke={2} />Guardado</span>}
           {!editando
             ? <button onClick={() => setEditando(true)}
                 className="text-xs text-brand-600 hover:text-brand-800 font-medium">
