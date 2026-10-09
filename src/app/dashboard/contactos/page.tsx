@@ -14,6 +14,7 @@ import { puedeEliminar } from "@/lib/permisos";
 import { toast } from "@/lib/toast";
 import { boton, tarjeta } from "@/components/ui/estilos";
 import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
+import { useEscape } from "@/lib/use-escape";
 
 const TAKE = 30;
 
@@ -42,6 +43,7 @@ export default function ContactosPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [stats, setStats] = useState({ total: 0, conEmpresa: 0, sinEmpresa: 0, conEmail: 0 });
   const [editando, setEditando] = useState<Contacto | null>(null);
+  useEscape(!!editando, () => setEditando(null));
   const [formEdit, setFormEdit] = useState({ nombre: "", email: "", telefono: "", cargo: "", empresaId: "" });
   const [guardandoEdit, setGuardandoEdit] = useState(false);
   const { data: session } = useSession();

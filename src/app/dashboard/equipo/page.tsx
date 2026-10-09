@@ -8,6 +8,7 @@ import { IconDownload, IconUserPlus, IconEdit, IconCircleCheck, IconTrash, IconA
 import { CampoPassword } from "@/components/campo-password";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonTabla } from "@/components/ui/estados";
+import { useEscape } from "@/lib/use-escape";
 
 type Usuario = {
   id: string;
@@ -55,6 +56,9 @@ export default function EquipoPage() {
   const [eliminando, setEliminando] = useState(false);
 
   const [reasignando, setReasignando] = useState(false);
+  // Mientras se elimina no se puede cerrar (igual que el botón Cancelar, que queda deshabilitado).
+  useEscape(!!eliminarUser && !eliminando, () => { setEliminarUser(null); setEliminarReasignarA(""); });
+  useEscape(!!resetId, () => { setResetId(null); setResetPass(""); });
   const [reasignarId, setReasignarId] = useState("");
   const [reasignarResultado, setReasignarResultado] = useState<{ empresas: number; oportunidades: number; actividades: number; expedientes: number; terminos: number } | null>(null);
   const [limiteUsuarios, setLimiteUsuarios] = useState<number | null>(null);

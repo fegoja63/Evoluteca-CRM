@@ -28,6 +28,7 @@ import { MinutasIA } from "@/components/minutas-ia";
 import { IconPhone, IconMail, IconUsers, IconPencil, IconTrash, IconPlus, type Icon } from "@tabler/icons-react";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
+import { useEscape } from "@/lib/use-escape";
 
 type Detalle = {
   id: string;
@@ -78,6 +79,7 @@ export default function FichaClientePage() {
   const [formContacto, setFormContacto] = useState({ nombre: "", cargo: "", email: "", telefono: "" });
   const [guardandoContacto, setGuardandoContacto] = useState(false);
   const modalContactoAbierto = nuevoContacto || !!editContacto;
+  useEscape(modalContactoAbierto, () => cerrarModalContacto());
 
   function abrirNuevoContacto() {
     setEditContacto(null);

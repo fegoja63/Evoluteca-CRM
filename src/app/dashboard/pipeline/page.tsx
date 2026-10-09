@@ -17,6 +17,7 @@ import {
 } from "@tabler/icons-react";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonKanban, SkeletonKpis, SkeletonTabla } from "@/components/ui/estados";
+import { useEscape } from "@/lib/use-escape";
 
 const MOTIVOS_PERDIDA = [
   "Precio muy alto",
@@ -141,6 +142,7 @@ export default function PipelinePage() {
   // Tarjeta cuyo calendario de "poner fecha de cierre" está abierto (uno a la vez).
   const [fechaCierreEditId, setFechaCierreEditId] = useState<string | null>(null);
   const [modalPerdidaId, setModalPerdidaId] = useState<string | null>(null);
+  useEscape(!!modalPerdidaId, () => setModalPerdidaId(null));
   const [motivoPerdidaSel, setMotivoPerdidaSel] = useState("");
   const [otroMotivoPerdida, setOtroMotivoPerdida] = useState("");
   const [busqueda, setBusqueda]   = useState("");

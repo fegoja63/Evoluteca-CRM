@@ -25,6 +25,7 @@ import {
 } from "@tabler/icons-react";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
+import { useEscape } from "@/lib/use-escape";
 
 type Oportunidad = {
   id: string;
@@ -96,6 +97,7 @@ export default function OportunidadDetallePage() {
   const [modalPerdida, setModalPerdida] = useState(false);
   const [motivoPerdida, setMotivoPerdida] = useState("");
   const [otroMotivo, setOtroMotivo] = useState("");
+  useEscape(modalPerdida, () => { setModalPerdida(false); setMotivoPerdida(""); setOtroMotivo(""); });
   const [salones, setSalones] = useState<Salon[]>([]);
   const [moduloSalones, setModuloSalones] = useState(false);
   const [moduloObjeciones, setModuloObjeciones] = useState(false);

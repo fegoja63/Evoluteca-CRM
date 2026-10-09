@@ -14,6 +14,7 @@ import { puedeEliminar } from "@/lib/permisos";
 import { toast } from "@/lib/toast";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonTabla, EstadoVacio, SkeletonKpis } from "@/components/ui/estados";
+import { useEscape } from "@/lib/use-escape";
 
 const TAKE = 30;
 
@@ -82,6 +83,8 @@ export default function ClientesPage() {
   // Reasignación individual de cliente a un vendedor (solo admin).
   const [vendedores, setVendedores] = useState<Vendedor[]>([]);
   const [reasignando, setReasignando] = useState<Empresa | null>(null);
+  useEscape(!!editando, () => setEditando(null));
+  useEscape(!!reasignando, () => setReasignando(null));
   const [reasignarVendedorId, setReasignarVendedorId] = useState("");
   const [guardandoReasignar, setGuardandoReasignar] = useState(false);
 
