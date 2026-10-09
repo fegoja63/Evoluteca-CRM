@@ -20,6 +20,7 @@
  */
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { operacionesTraspaso } from "../src/lib/traspaso-registros";
 
 const prisma = new PrismaClient();
 const MARCA = "[demo]";
@@ -55,6 +56,11 @@ async function revertir(tenantId: string) {
   const cp = await prisma.campoPersonalizado.deleteMany({ where: { tenantId, clave: { startsWith: "cp_demo_" } } });
   const au = await prisma.automatizacion.deleteMany({ where: { tenantId, nombre: { startsWith: MARCA } } });
   const ob = await prisma.objecion.deleteMany({ where: { tenantId, categoria: { startsWith: "[demo]" } } });
+  // Igual que "Eliminar usuario" en la app: lo que estos vendedores crearon y no
+  // era [demo] (p. ej. actividad semanal, negocios de otras cargas) queda sin
+  // dueño, en vez de apuntar a un usuario borrado (dueño fantasma).
+  const vendedores = await prisma.usuario.findMany({ where: { tenantId, email: { in: EMAILS_VENDEDORES } }, select: { id: true } });
+  await prisma.$transaction([...operacionesTraspaso(prisma, tenantId, vendedores.map(v => v.id), null)]);
   const us = await prisma.usuario.deleteMany({ where: { tenantId, email: { in: EMAILS_VENDEDORES } } });
   console.log(`   actividades ${a.count} · cotizaciones ${c.count} · oportunidades ${o.count} · contactos ${co.count} · empresas ${e.count} · campos ${cp.count} · automatizaciones ${au.count} · objeciones ${ob.count} · vendedores ${us.count}`);
 }
