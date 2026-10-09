@@ -69,7 +69,7 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
     return (
       <button
         onClick={() => setAbierto(true)}
-        className="flex items-center gap-1.5 rounded-xl border border-dashed border-slate-300 px-3 py-2 text-xs text-slate-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors w-full"
+        className="flex items-center gap-1.5 rounded-xl border border-dashed border-slate-300 px-3 py-2 text-xs text-slate-500 hover:border-brand-400 hover:text-brand-600 hover:bg-brand-50 transition-colors w-full"
       >
         <span className="text-base leading-none">+</span>
         Nueva actividad
@@ -78,12 +78,12 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
   }
 
   return (
-    <form onSubmit={handleGuardar} className="rounded-xl border border-blue-200 bg-blue-50/40 p-4 space-y-3">
+    <form onSubmit={handleGuardar} className="rounded-xl border border-brand-200 bg-brand-50/40 p-4 space-y-3">
       <div className="flex gap-2">
         <select
           value={form.tipo}
           onChange={e => setForm({ ...form, tipo: e.target.value })}
-          className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-blue-500"
+          className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-brand-500"
         >
           {tipos.map(t => <option key={t.key} value={t.key}>{t.emoji} {t.label}</option>)}
         </select>
@@ -92,7 +92,7 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
           value={form.titulo}
           onChange={e => setForm({ ...form, titulo: e.target.value })}
           placeholder="Título de la actividad *"
-          className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-blue-500"
+          className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-500"
         />
       </div>
       <div className="flex gap-2">
@@ -101,13 +101,13 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
           type="datetime-local"
           value={form.fecha}
           onChange={e => setForm({ ...form, fecha: e.target.value })}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-blue-500"
+          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-500"
         />
         <input
           value={form.notas}
           onChange={e => setForm({ ...form, notas: e.target.value })}
           placeholder="Notas (opcional)"
-          className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-blue-500"
+          className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-500"
         />
       </div>
       <div className="flex gap-2 justify-end">
@@ -116,7 +116,7 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
           Cancelar
         </button>
         <button type="submit" disabled={guardando}
-          className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+          className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50">
           {guardando ? "Guardando..." : "Guardar actividad"}
         </button>
       </div>

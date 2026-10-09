@@ -63,7 +63,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-950 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2.5">
@@ -81,7 +81,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 placeholder="nombre@empresa.com"
-                className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors"
+                className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition-colors"
                 {...register("email")}
               />
               {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email.message}</p>}
@@ -92,12 +92,12 @@ export default function LoginPage() {
               <CampoPassword
                 placeholder="••••••••"
                 colorOjo="text-slate-400 hover:text-slate-200"
-                className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors"
+                className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition-colors"
                 {...register("password")}
               />
               {errors.password && <p className="mt-1 text-xs text-red-400">{errors.password.message}</p>}
               <div className="mt-1.5 text-right">
-                <a href="/forgot-password" className="text-xs text-slate-400 hover:text-blue-400 transition-colors">
+                <a href="/forgot-password" className="text-xs text-slate-400 hover:text-brand-400 transition-colors">
                   ¿Olvidaste tu contraseña?
                 </a>
               </div>
@@ -115,7 +115,7 @@ export default function LoginPage() {
                   placeholder="000000"
                   value={codigo}
                   onChange={(e) => setCodigo(e.target.value)}
-                  className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 font-mono tracking-widest outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors"
+                  className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 font-mono tracking-widest outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition-colors"
                 />
                 <p className="mt-1.5 text-xs text-slate-400">
                   Los 6 dígitos de tu aplicación, o uno de tus códigos de respaldo.
@@ -143,7 +143,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={cargando}
-              className="w-full rounded-xl bg-blue-500 hover:bg-blue-600 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-60 mt-2"
+              className="w-full rounded-xl bg-brand-500 hover:bg-brand-600 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-60 mt-2"
             >
               {cargando ? "Ingresando..." : "Ingresar"}
             </button>
@@ -151,7 +151,7 @@ export default function LoginPage() {
 
           <p className="mt-6 text-center text-sm text-slate-400">
             ¿No tienes cuenta?{" "}
-            <a href="/registro" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+            <a href="/registro" className="text-brand-400 hover:text-brand-300 font-medium transition-colors">
               Crea una gratis
             </a>
           </p>

@@ -12,7 +12,7 @@ type KpiCardProps = {
   icon?: Icon;
 };
 
-export function KpiCard({ label, valor, sub, color = "bg-blue-500", iconBg, iconColor, emoji, icon: Icono }: KpiCardProps) {
+export function KpiCard({ label, valor, sub, color = "bg-brand-500", iconBg, iconColor, emoji, icon: Icono }: KpiCardProps) {
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between min-h-[110px] relative overflow-hidden">
       <div className="flex items-start justify-between">

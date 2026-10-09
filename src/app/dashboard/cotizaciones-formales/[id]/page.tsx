@@ -477,7 +477,7 @@ export default function CotizacionDetailPage() {
             </button>
           ))}
           <button onClick={generarLink}
-            className="rounded-xl border border-violet-200 px-3 py-2 text-xs font-medium text-violet-600 hover:bg-violet-50 transition-colors inline-flex items-center gap-1.5">
+            className="rounded-xl border border-brand-200 px-3 py-2 text-xs font-medium text-brand-600 hover:bg-brand-50 transition-colors inline-flex items-center gap-1.5">
             <IconLink size={14} stroke={1.75} /> Link cliente
           </button>
           <button onClick={() => setMostrarEmailPanel(v => {
@@ -587,14 +587,14 @@ export default function CotizacionDetailPage() {
 
       {/* Panel link público */}
       {linkPublico && (
-        <div className="mb-5 rounded-2xl border border-violet-200 bg-violet-50 p-4 flex items-center gap-3">
-          <IconLink size={18} stroke={1.75} className="text-violet-500 shrink-0" />
+        <div className="mb-5 rounded-2xl border border-brand-200 bg-brand-50 p-4 flex items-center gap-3">
+          <IconLink size={18} stroke={1.75} className="text-brand-500 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-violet-700 mb-1">Link para el cliente</p>
-            <p className="text-xs text-violet-600 truncate font-mono">{linkPublico}</p>
+            <p className="text-xs font-semibold text-brand-700 mb-1">Link para el cliente</p>
+            <p className="text-xs text-brand-600 truncate font-mono">{linkPublico}</p>
           </div>
           <button onClick={copiarLink}
-            className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all inline-flex items-center gap-1.5 ${copiado ? "bg-emerald-100 text-emerald-700" : "bg-violet-200 text-violet-700 hover:bg-violet-300"}`}>
+            className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all inline-flex items-center gap-1.5 ${copiado ? "bg-emerald-100 text-emerald-700" : "bg-brand-200 text-brand-700 hover:bg-brand-300"}`}>
             {copiado ? <><IconCheck size={13} stroke={1.75} /> Copiado</> : <><IconCopy size={13} stroke={1.75} /> Copiar</>}
           </button>
         </div>

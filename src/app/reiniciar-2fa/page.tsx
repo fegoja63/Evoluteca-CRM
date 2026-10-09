@@ -52,10 +52,10 @@ function Contenido() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-950 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-500 text-white text-xl font-bold mb-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-500 text-white text-xl font-bold mb-4">
             E
           </div>
           <h1 className="text-2xl font-bold text-white">Evoluteca CRM</h1>
@@ -101,7 +101,7 @@ function Contenido() {
               <button
                 onClick={confirmar}
                 disabled={enviando}
-                className="w-full rounded-xl bg-blue-500 hover:bg-blue-600 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                className="w-full rounded-xl bg-brand-500 hover:bg-brand-600 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
               >
                 {enviando ? "Desactivando…" : "Sí, desactivar"}
               </button>
@@ -120,7 +120,7 @@ function Contenido() {
               </p>
               <button
                 onClick={() => router.push("/login")}
-                className="w-full rounded-xl bg-blue-500 hover:bg-blue-600 py-2.5 text-sm font-semibold text-white"
+                className="w-full rounded-xl bg-brand-500 hover:bg-brand-600 py-2.5 text-sm font-semibold text-white"
               >
                 Iniciar sesión
               </button>

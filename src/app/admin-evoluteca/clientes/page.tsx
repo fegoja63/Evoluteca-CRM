@@ -116,10 +116,10 @@ export default function ClientesInternoPage() {
 
   if (!clave) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-950 flex items-center justify-center px-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-500 text-white text-xl font-bold mb-4">E</div>
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-500 text-white text-xl font-bold mb-4">E</div>
             <h1 className="text-2xl font-bold text-white">Clientes</h1>
             <p className="text-slate-400 text-sm mt-1">Página interna — solo Evoluteca</p>
           </div>
@@ -131,13 +131,13 @@ export default function ClientesInternoPage() {
                   value={claveInput}
                   onChange={e => setClaveInput(e.target.value)}
                   colorOjo="text-slate-400 hover:text-slate-200"
-                  className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
+                  className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
                   required
                   autoFocus
                 />
               </div>
               {claveError && <p className="text-sm text-red-400">{claveError}</p>}
-              <button type="submit" disabled={cargando} className="w-full rounded-xl bg-blue-500 hover:bg-blue-600 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
+              <button type="submit" disabled={cargando} className="w-full rounded-xl bg-brand-500 hover:bg-brand-600 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
                 {cargando ? "Entrando..." : "Entrar"}
               </button>
             </form>
@@ -159,7 +159,7 @@ export default function ClientesInternoPage() {
             <a href="/admin-evoluteca/errores" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
               Errores
             </a>
-            <a href="/admin-evoluteca/nuevo-cliente" className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            <a href="/admin-evoluteca/nuevo-cliente" className="rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
               + Nuevo cliente
             </a>
           </div>
@@ -170,7 +170,7 @@ export default function ClientesInternoPage() {
           placeholder="Buscar por nombre o slug..."
           value={busqueda}
           onChange={e => setBusqueda(e.target.value)}
-          className="w-full max-w-sm mb-4 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+          className="w-full max-w-sm mb-4 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
         />
 
         {cargando ? (
@@ -260,7 +260,7 @@ export default function ClientesInternoPage() {
                                     key={l.label}
                                     disabled={guardando}
                                     onClick={() => actualizar(t.id, { limiteUsuarios: l.valor })}
-                                    className={`rounded-lg px-2.5 py-1.5 text-xs font-medium disabled:opacity-50 ${t.limiteUsuarios === l.valor ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200"}`}
+                                    className={`rounded-lg px-2.5 py-1.5 text-xs font-medium disabled:opacity-50 ${t.limiteUsuarios === l.valor ? "bg-brand-600 text-white" : "bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200"}`}
                                   >
                                     {l.label}
                                   </button>
@@ -278,7 +278,7 @@ export default function ClientesInternoPage() {
                                     const n = Number(v);
                                     if (n >= 1 && n !== t.limiteUsuarios) actualizar(t.id, { limiteUsuarios: n });
                                   }}
-                                  className="w-16 rounded-lg border border-slate-200 px-2 py-1.5 text-xs outline-none focus:border-blue-400"
+                                  className="w-16 rounded-lg border border-slate-200 px-2 py-1.5 text-xs outline-none focus:border-brand-400"
                                   title="Escribe un número y sal del campo para guardar (ej: usuarios adicionales pagados sobre el plan de 5)"
                                 />
                               </div>
@@ -295,7 +295,7 @@ export default function ClientesInternoPage() {
                                     key={m.key}
                                     disabled={guardando}
                                     onClick={() => toggleModulo(t, m.key)}
-                                    className={`rounded-full px-3 py-1 text-xs font-medium disabled:opacity-50 ${activo ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
+                                    className={`rounded-full px-3 py-1 text-xs font-medium disabled:opacity-50 ${activo ? "bg-brand-600 text-white" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
                                   >
                                     {m.label} {activo ? "✓" : ""}
                                   </button>

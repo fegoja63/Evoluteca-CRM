@@ -49,8 +49,8 @@ export default function BienvenidaPage() {
       desc: "¿Prefieres empezar desde cero? Crea un cliente, agrégale contactos y registra tus oportunidades de venta.",
       accion: "Nuevo cliente",
       href: "/dashboard/cuentas",
-      color: "border-violet-200 bg-violet-50",
-      btnColor: "bg-violet-600 hover:bg-violet-700",
+      color: "border-brand-200 bg-brand-50",
+      btnColor: "bg-brand-600 hover:bg-brand-700",
     },
     {
       num: 3,
@@ -59,8 +59,8 @@ export default function BienvenidaPage() {
       desc: "Mueve oportunidades entre etapas con drag & drop, registra actividades y lleva el control de cada negocio.",
       accion: "Ver pipeline",
       href: "/dashboard/pipeline",
-      color: "border-emerald-200 bg-emerald-50",
-      btnColor: "bg-emerald-600 hover:bg-emerald-700",
+      color: "border-brand-200 bg-brand-50",
+      btnColor: "bg-brand-600 hover:bg-brand-700",
     },
     {
       num: 4,
@@ -69,8 +69,8 @@ export default function BienvenidaPage() {
       desc: "¿Recibes leads desde un formulario web, WhatsApp Business o campañas de anuncios (Meta/Google Ads)? Genera una clave desde Configuración para que cada lead cree automáticamente un cliente, contacto y oportunidad en tu Pipeline, sin que nadie tenga que digitarlo a mano. Es la función más técnica del CRM: necesitas compartir la clave y la dirección del servicio con quien configure tu formulario o automatización — el manual de usuario explica el paso a paso completo.",
       accion: "Ir a Configuración",
       href: "/dashboard/configuracion",
-      color: "border-amber-200 bg-amber-50",
-      btnColor: "bg-amber-600 hover:bg-amber-700",
+      color: "border-brand-200 bg-brand-50",
+      btnColor: "bg-brand-600 hover:bg-brand-700",
     },
     // Postventa es un módulo opcional: aquí se da a conocer. Si ya está activo
     // (p. ej. en el demo), el paso lleva directo al tablero.
@@ -83,8 +83,8 @@ export default function BienvenidaPage() {
         : "Si vendes contratos, licencias, suscripciones o servicios que se renuevan, activa el módulo Postventa en Configuración → Módulos. Cada negocio ganado entra a un tablero de entrega y seguimiento, y el CRM te avisa 30 días antes de cada renovación para que no se te escape ninguna.",
       accion: postventaActivo ? "Ir al tablero de Postventa" : "Activar en Configuración",
       href: postventaActivo ? "/dashboard/postventa" : "/dashboard/configuracion",
-      color: "border-violet-200 bg-violet-50",
-      btnColor: "bg-violet-600 hover:bg-violet-700",
+      color: "border-brand-200 bg-brand-50",
+      btnColor: "bg-brand-600 hover:bg-brand-700",
     },
   ];
 
@@ -180,10 +180,10 @@ export default function BienvenidaPage() {
 
       {/* Anexo Teatros — solo visible si el tenant tiene Funciones o Audiencia activo */}
       {esTeatro && (
-        <div className="bg-white rounded-2xl border border-violet-200 p-5 mb-6">
+        <div className="bg-white rounded-2xl border border-brand-200 p-5 mb-6">
           <div className="flex items-start gap-4">
-            <div className="w-11 h-11 rounded-xl bg-violet-50 flex items-center justify-center shrink-0">
-              <IconTheater size={22} stroke={1.75} className="text-violet-600" />
+            <div className="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center shrink-0">
+              <IconTheater size={22} stroke={1.75} className="text-brand-600" />
             </div>
             <div className="flex-1">
               <h2 className="text-sm font-bold text-slate-900 mb-1">Anexo — Teatros y espacios de espectáculos</h2>
@@ -192,7 +192,7 @@ export default function BienvenidaPage() {
               </p>
               <div className="flex gap-3">
                 <a href="/api/manual/pdf-teatro" target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-colors">
+                  className="flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 transition-colors">
                   <IconDownload size={16} stroke={1.75} /> Descargar anexo PDF
                 </a>
               </div>
@@ -203,10 +203,10 @@ export default function BienvenidaPage() {
 
       {/* Anexo Salones — solo visible si el tenant tiene el módulo Salones activo */}
       {esSalones && (
-        <div className="bg-white rounded-2xl border border-teal-200 p-5 mb-6">
+        <div className="bg-white rounded-2xl border border-brand-200 p-5 mb-6">
           <div className="flex items-start gap-4">
-            <div className="w-11 h-11 rounded-xl bg-teal-50 flex items-center justify-center shrink-0">
-              <IconBuildingPavilion size={22} stroke={1.75} className="text-teal-600" />
+            <div className="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center shrink-0">
+              <IconBuildingPavilion size={22} stroke={1.75} className="text-brand-600" />
             </div>
             <div className="flex-1">
               <h2 className="text-sm font-bold text-slate-900 mb-1">Anexo — Alquiler de Salones</h2>
@@ -215,7 +215,7 @@ export default function BienvenidaPage() {
               </p>
               <div className="flex gap-3">
                 <a href="/api/manual/pdf-salones" target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 transition-colors">
+                  className="flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 transition-colors">
                   <IconDownload size={16} stroke={1.75} /> Descargar anexo PDF
                 </a>
               </div>

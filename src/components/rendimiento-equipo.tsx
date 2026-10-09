@@ -92,7 +92,7 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
       {cargando ? (
         <div className="flex items-center justify-center h-32">
           <div className="flex gap-1">{[0,1,2].map(i => (
-            <div key={i} className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />
+            <div key={i} className="w-2 h-2 rounded-full bg-brand-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />
           ))}</div>
         </div>
       ) : vendedores.length === 0 ? (
@@ -115,7 +115,7 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
                 const editando   = editandoMeta === v.id;
 
                 return (
-                  <div key={v.id} className={`rounded-xl border p-3 transition-all ${isSelected ? "border-blue-300 bg-blue-50" : "border-slate-100 bg-white"}`}>
+                  <div key={v.id} className={`rounded-xl border p-3 transition-all ${isSelected ? "border-brand-300 bg-brand-50" : "border-slate-100 bg-white"}`}>
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-xs font-bold text-slate-400 w-5 shrink-0">#{i+1}</span>
                       <button className="flex-1 min-w-0 text-left" onClick={() => setSeleccionado(isSelected ? null : v.id)}>
@@ -132,12 +132,12 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
                         {v.metaMes > 0
                           ? <p className="text-xs text-slate-400">Meta: {fmt(v.metaMes)} · <span className={pctMeta !== null && pctMeta >= 100 ? "text-emerald-600 font-bold" : "text-amber-600 font-bold"}>{pctMeta}%</span></p>
                           : esAdmin
-                            ? <button onClick={() => { setEditandoMeta(v.id); setValorMeta(""); }} className="text-xs text-blue-500 hover:text-blue-700">+ fijar meta</button>
+                            ? <button onClick={() => { setEditandoMeta(v.id); setValorMeta(""); }} className="text-xs text-brand-500 hover:text-brand-700">+ fijar meta</button>
                             : <p className="text-xs text-slate-300">Sin meta</p>
                         }
                       </div>
                       {esAdmin && v.metaMes > 0 && !editando && (
-                        <button onClick={() => { setEditandoMeta(v.id); setValorMeta(String(v.metaMes)); }} className="text-slate-300 hover:text-blue-500 text-sm ml-1" title="Editar meta">✏️</button>
+                        <button onClick={() => { setEditandoMeta(v.id); setValorMeta(String(v.metaMes)); }} className="text-slate-300 hover:text-brand-500 text-sm ml-1" title="Editar meta">✏️</button>
                       )}
                     </div>
 
@@ -172,14 +172,14 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
                           value={valorMeta}
                           onChange={val => setValorMeta(val)}
                           placeholder="ej: 5000000"
-                          className="w-36 rounded-lg border border-slate-300 px-2 py-1 text-xs focus:outline-none focus:border-blue-400"
+                          className="w-36 rounded-lg border border-slate-300 px-2 py-1 text-xs focus:outline-none focus:border-brand-400"
                           onKeyDown={e => e.key === "Enter" && guardarMeta(v.id)}
                           autoFocus
                         />
                         <button
                           onClick={() => guardarMeta(v.id)}
                           disabled={guardandoMeta}
-                          className="rounded-lg bg-blue-600 text-white text-xs px-3 py-1 hover:bg-blue-700 disabled:opacity-50"
+                          className="rounded-lg bg-brand-600 text-white text-xs px-3 py-1 hover:bg-brand-700 disabled:opacity-50"
                         >
                           {guardandoMeta ? "..." : "Guardar"}
                         </button>
@@ -194,7 +194,7 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
 
           {/* ── DETALLE DEL VENDEDOR SELECCIONADO ── */}
           {detalle && (
-            <div className="bg-white rounded-2xl border border-blue-200 p-6">
+            <div className="bg-white rounded-2xl border border-brand-200 p-6">
               <div className="flex items-center justify-between mb-5">
                 <div>
                   <h3 className="text-base font-bold text-slate-900">{detalle.nombre}</h3>
@@ -206,7 +206,7 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
                 {[
                   { label: "Valor ganado total", valor: fmt(detalle.valorGanado), color: "text-emerald-700", sub: `${detalle.ganadas} negocios` },
-                  { label: "Ganado este mes",    valor: fmt(detalle.valorMes),    color: "text-blue-700",    sub: detalle.metaMes > 0 ? `Meta: ${fmt(detalle.metaMes)}` : `${detalle.ganadasMes} cierres` },
+                  { label: "Ganado este mes",    valor: fmt(detalle.valorMes),    color: "text-brand-700",    sub: detalle.metaMes > 0 ? `Meta: ${fmt(detalle.metaMes)}` : `${detalle.ganadasMes} cierres` },
                   { label: "Pipeline activo",    valor: fmt(detalle.valorPipeline), color: "text-slate-800", sub: `${detalle.activas} oportunidades` },
                   { label: "Pronóstico",         valor: fmt(detalle.valorPonderado), color: "text-violet-700", sub: "valor ponderado" },
                 ].map(k => (
@@ -248,7 +248,7 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Pipeline</p>
                   {[
                     { label: "Total oportunidades", valor: detalle.totalOps,  color: "text-slate-700" },
-                    { label: "En negociación",       valor: detalle.activas,   color: "text-blue-700" },
+                    { label: "En negociación",       valor: detalle.activas,   color: "text-brand-700" },
                     { label: "Ganadas",              valor: detalle.ganadas,   color: "text-emerald-700" },
                     { label: "Perdidas",             valor: detalle.perdidas,  color: "text-red-500" },
                     { label: "Tasa de cierre",       valor: `${detalle.tasaCierre}%`, color: detalle.tasaCierre >= 30 ? "text-emerald-700" : "text-amber-600" },
@@ -263,7 +263,7 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
                 <div className="rounded-xl border border-slate-100 p-4">
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Actividades</p>
                   {[
-                    { label: "Pendientes",   valor: detalle.actsPendientes,  color: "text-blue-700" },
+                    { label: "Pendientes",   valor: detalle.actsPendientes,  color: "text-brand-700" },
                     { label: "Vencidas",     valor: detalle.actsVencidas,    color: detalle.actsVencidas > 0 ? "text-red-600" : "text-slate-700" },
                     { label: "Completadas",  valor: detalle.actsCompletadas, color: "text-emerald-700" },
                   ].map(r => (
@@ -328,12 +328,12 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
                     return (
                       <tr key={v.id}
                         onClick={() => setSeleccionado(seleccionado === v.id ? null : v.id)}
-                        className={`cursor-pointer transition-colors ${seleccionado === v.id ? "bg-blue-50" : "hover:bg-slate-50"}`}>
+                        className={`cursor-pointer transition-colors ${seleccionado === v.id ? "bg-brand-50" : "hover:bg-slate-50"}`}>
                         <td className="px-4 py-3">
                           <span className="font-medium text-slate-800">{v.nombre}</span>
                           <span className={`ml-2 text-xs rounded-full px-1.5 py-0.5 ${ROL_COLOR[v.rol]}`}>{ROL_LABEL[v.rol]}</span>
                         </td>
-                        <td className="px-4 py-3 text-right font-medium text-blue-700">{fmt(v.valorMes)}</td>
+                        <td className="px-4 py-3 text-right font-medium text-brand-700">{fmt(v.valorMes)}</td>
                         <td className="px-4 py-3 text-right text-slate-500">{v.metaMes > 0 ? fmt(v.metaMes) : <span className="text-slate-300">—</span>}</td>
                         <td className="px-4 py-3 text-right">
                           {pctMeta !== null
