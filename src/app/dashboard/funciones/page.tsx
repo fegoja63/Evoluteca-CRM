@@ -516,7 +516,7 @@ export default function FuncionesPage() {
                   <td className="px-4 py-1 font-medium text-slate-900">
                     <a href={`/dashboard/funciones/${f.id}`} className="hover:text-brand-600 hover:underline">{f.titulo}</a>
                     {necesitaUrgencia(f) && (
-                      <span title="Ocupación baja a menos de 5 días" className="ml-1.5 inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                      <span title="Ocupación baja a menos de 5 días" className="ml-1.5 inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-2xs font-semibold text-amber-700">
                         <IconAlertTriangle size={10} stroke={2} />urgente
                       </span>
                     )}

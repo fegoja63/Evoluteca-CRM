@@ -73,11 +73,11 @@ export function PanelLunes() {
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <IconCalendarStats size={18} stroke={1.75} className="text-brand-600" />
         <span className="text-sm font-bold text-slate-800">El Lunes</span>
-        <span className="text-[11px] text-slate-400">tu semana de un vistazo · foto de hoy</span>
+        <span className="text-xs text-slate-400">tu semana de un vistazo · foto de hoy</span>
         {/* Este panel es una foto del AHORA (7 días / 12 meses / este mes) y no
             reacciona a los filtros de Año/Mes/Vendedor de arriba. Se avisa para
             que cambiar el año no genere la falsa expectativa de que debería cambiar. */}
-        <span className="text-[10px] font-medium rounded-full bg-slate-100 text-slate-500 px-2 py-0.5">
+        <span className="text-2xs font-medium rounded-full bg-slate-100 text-slate-500 px-2 py-0.5">
           independiente de los filtros de arriba
         </span>
       </div>
@@ -197,7 +197,7 @@ export function PanelLunes() {
                     <span className={`text-2xl font-extrabold ${c.txt}`}>{c.valor}</span>
                   </div>
                   <p className={`text-xs font-semibold mt-1 ${c.txt}`}>{c.label}</p>
-                  <p className="text-[11px] font-medium text-slate-500">{c.sub}</p>
+                  <p className="text-xs font-medium text-slate-500">{c.sub}</p>
                 </div>
               );
             })}
@@ -222,7 +222,7 @@ export function PanelLunes() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
                   <th className="pb-2 pr-3 font-semibold">Vendedor</th>
                   <th className="pb-2 pr-3 font-semibold min-w-[160px]">Cumplidas 7 días</th>
                   <th className="pb-2 pr-3 font-semibold text-right">Vencidas</th>
@@ -242,7 +242,7 @@ export function PanelLunes() {
                               <div className={`h-2 rounded-full ${c.barra}`} style={{ width: `${Math.max(f.pct7d, 4)}%` }} />
                             </div>
                             <span className={`text-xs font-bold w-9 text-right ${c.txt}`}>{f.pct7d}%</span>
-                            <span className="text-[11px] text-slate-400 w-10 shrink-0">{f.hechas7d}/{f.agendadas7d}</span>
+                            <span className="text-xs text-slate-400 w-10 shrink-0">{f.hechas7d}/{f.agendadas7d}</span>
                           </div>
                         ) : (
                           <span className="text-xs text-slate-400">nada agendado</span>

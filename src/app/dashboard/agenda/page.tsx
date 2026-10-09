@@ -284,7 +284,7 @@ function CalendarioActividades({
                     title="Marca la tarea como completada. No la borra.">
                     <input type="checkbox" checked={a.completada}
                       onChange={e => onToggle(a.id, e.target.checked)} className="h-4 w-4" />
-                    <span className="text-[10px] leading-none text-slate-400">Hecha</span>
+                    <span className="text-2xs leading-none text-slate-400">Hecha</span>
                   </label>
                   <span className={`w-2 h-2 rounded-full shrink-0 ${tipoActividadDef(a.tipo)?.dot ?? "bg-slate-400"}`} />
                   <div className="flex-1 min-w-0">
@@ -301,7 +301,7 @@ function CalendarioActividades({
                     <IconPencil size={14} stroke={1.75} />
                   </button>
                   <button onClick={() => onEliminar(a.id)} title="Borrar tarea"
-                    className="flex items-center gap-1 rounded-md border border-red-300 bg-white px-1.5 py-1 text-[11px] font-medium text-red-600 hover:bg-red-50 shrink-0">
+                    className="flex items-center gap-1 rounded-md border border-red-300 bg-white px-1.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50 shrink-0">
                     <IconTrash size={12} stroke={1.75} />
                     Borrar
                   </button>
@@ -644,7 +644,7 @@ function AgendaContent() {
           title="Marca la tarea como completada. No la borra.">
           <input type="checkbox" checked={a.completada}
             onChange={(e) => toggleCompletada(a.id, e.target.checked)} className="h-4 w-4" />
-          <span className="text-[10px] leading-none text-neutral-400">Hecha</span>
+          <span className="text-2xs leading-none text-neutral-400">Hecha</span>
         </label>
         <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600 flex items-center gap-1">
           <IconoTipo size={12} stroke={1.75} />
@@ -681,7 +681,7 @@ function AgendaContent() {
               {/* Capa invisible para cerrar el menú al hacer clic fuera */}
               <div className="fixed inset-0 z-10" onClick={() => setReasignandoId(null)} />
               <div className="absolute right-0 z-20 mt-1 w-52 rounded-lg border border-neutral-200 bg-white p-1 shadow-lg">
-                <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">Asignar a</p>
+                <p className="px-2 py-1 text-2xs font-semibold uppercase tracking-wide text-neutral-400">Asignar a</p>
                 {usuarios.map((u) => (
                   <button
                     key={u.id}
@@ -726,7 +726,7 @@ function AgendaContent() {
               {/* Capa invisible para cerrar el menú al hacer clic fuera */}
               <div className="fixed inset-0 z-10" onClick={() => setCalendarioId(null)} />
               <div className="absolute right-0 z-20 mt-1 w-60 rounded-lg border border-neutral-200 bg-white p-1 shadow-lg">
-                <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">Añadir esta actividad a</p>
+                <p className="px-2 py-1 text-2xs font-semibold uppercase tracking-wide text-neutral-400">Añadir esta actividad a</p>
                 <a href={urlGoogleCalendar(a)} target="_blank" rel="noopener noreferrer"
                   onClick={() => setCalendarioId(null)}
                   className="block rounded px-2 py-1.5 text-left text-xs text-neutral-700 hover:bg-brand-50">
@@ -742,7 +742,7 @@ function AgendaContent() {
                   className="block w-full rounded px-2 py-1.5 text-left text-xs text-neutral-700 hover:bg-brand-50">
                   Descargar .ics
                 </button>
-                <p className="px-2 pt-1 pb-0.5 text-[10px] leading-snug text-neutral-400">
+                <p className="px-2 pt-1 pb-0.5 text-2xs leading-snug text-neutral-400">
                   Google y Outlook te dejan elegir en qué calendario guardarla.
                 </p>
               </div>
@@ -826,7 +826,7 @@ function AgendaContent() {
             className={`rounded-md px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 ${filtro === "asignadas" ? "bg-brand-50 text-brand-700" : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"}`}>
             Asignadas a mí
             {asignadasAmi > 0 && (
-              <span className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-brand-600 text-white text-[10px] font-bold leading-none">
+              <span className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-brand-600 text-white text-2xs font-bold leading-none">
                 {asignadasAmi}
               </span>
             )}

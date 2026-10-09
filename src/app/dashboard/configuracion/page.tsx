@@ -487,7 +487,8 @@ export default function ConfiguracionPage() {
                 </div>
               </div>
 
-              {/* Vista previa: encabezado y total de una cotización */}
+              {/* Vista previa: encabezado y total de una cotización. Es una miniatura a
+                  escala del documento: por eso usa tamaños de 9-10px a propósito. */}
               <div className="flex-1 min-w-0 rounded-xl border border-slate-200 overflow-hidden" aria-label="Vista previa">
                 <div className="px-4 py-3" style={{ backgroundColor: p.oscuro }}>
                   <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: p.sobreOscuroSuave }}>Propuesta comercial</p>

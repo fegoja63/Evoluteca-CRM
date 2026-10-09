@@ -209,13 +209,13 @@ export default function AuditoriaPage() {
                     <div className="px-11 pb-4 grid gap-3 sm:grid-cols-2">
                       <div>
                         <p className="text-xs font-medium text-slate-500 mb-1">Antes</p>
-                        <pre className="text-[11px] bg-slate-50 rounded-xl p-3 overflow-x-auto text-slate-700">
+                        <pre className="text-xs bg-slate-50 rounded-xl p-3 overflow-x-auto text-slate-700">
                           {r.antes ? JSON.stringify(r.antes, null, 2) : "—"}
                         </pre>
                       </div>
                       <div>
                         <p className="text-xs font-medium text-slate-500 mb-1">Después</p>
-                        <pre className="text-[11px] bg-slate-50 rounded-xl p-3 overflow-x-auto text-slate-700">
+                        <pre className="text-xs bg-slate-50 rounded-xl p-3 overflow-x-auto text-slate-700">
                           {r.despues ? JSON.stringify(r.despues, null, 2) : "—"}
                         </pre>
                       </div>

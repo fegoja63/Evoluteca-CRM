@@ -391,7 +391,7 @@ export default function FichaFuncionPage() {
                   <Link href={`/dashboard/audiencia/${a.espectador.id}`} className="text-sm text-slate-700 hover:text-brand-600 hover:underline">
                     {a.espectador.nombre}
                   </Link>
-                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${esRecurrente ? "bg-emerald-100 text-emerald-700" : "bg-brand-100 text-brand-700"}`}>
+                  <span className={`rounded-full px-1.5 py-0.5 text-2xs font-semibold ${esRecurrente ? "bg-emerald-100 text-emerald-700" : "bg-brand-100 text-brand-700"}`}>
                     {esRecurrente ? "recurrente" : "nuevo"}
                   </span>
                   <button onClick={() => handleEliminarAsistente(a.id)}

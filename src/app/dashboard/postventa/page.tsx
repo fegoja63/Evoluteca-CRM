@@ -336,7 +336,7 @@ export default function PostventaPage() {
                     <h3 className="text-xs font-semibold text-slate-700">{etapa.label}</h3>
                     <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${etapa.badge}`}>{items.length}</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">{etapa.descripcion}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{etapa.descripcion}</p>
                   {valor > 0 && <p className="text-xs font-semibold text-emerald-700 mt-1">{fmtCOP(valor)}</p>}
                 </div>
 
@@ -375,11 +375,11 @@ export default function PostventaPage() {
                           )}
                         </div>
                         {!esComercial && !filtroVendedor && n.creadoBy && (
-                          <p className="mt-1.5 text-[11px] text-slate-400">{nombreVendedor(n.creadoBy)}</p>
+                          <p className="mt-1.5 text-xs text-slate-400">{nombreVendedor(n.creadoBy)}</p>
                         )}
                         {pendiente && (
                           <button onClick={() => crearRenovacion(n)} disabled={renovando === n.id}
-                            className="mt-2 inline-flex items-center gap-1 rounded-lg bg-amber-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-amber-700 disabled:opacity-60">
+                            className="mt-2 inline-flex items-center gap-1 rounded-lg bg-amber-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-60">
                             <IconRefresh size={12} stroke={2} />{renovando === n.id ? "Creando…" : "Crear renovación"}
                           </button>
                         )}

@@ -141,7 +141,7 @@ function UsoMeter({ uso }: { uso: Uso | null }) {
 
   return (
     <div className="w-full sm:w-56 rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50 via-white to-brand-100/60 p-4 shadow-sm">
-      <p className="text-[11px] font-bold uppercase tracking-wide text-brand-700">Acciones de IA · este mes</p>
+      <p className="text-xs font-bold uppercase tracking-wide text-brand-700">Acciones de IA · este mes</p>
       {desactivado ? (
         <p className="text-sm font-semibold text-slate-500 mt-1">No incluido en tu plan</p>
       ) : (
@@ -188,13 +188,13 @@ function Tarjeta({ f }: { f: Funcion }) {
       <h3 className="text-sm font-bold text-slate-800">{f.titulo}</h3>
       <p className="text-xs text-slate-500 leading-relaxed flex-1">{f.desc}</p>
       <div className="flex items-center justify-between mt-1">
-        <span className="text-[11px] text-slate-400">{f.contexto ?? ""}</span>
+        <span className="text-xs text-slate-400">{f.contexto ?? ""}</span>
         {disponible ? (
           <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-accent-100 group-hover:bg-accent-200 px-3 py-1.5 text-xs font-semibold text-accent-700 transition-colors">
             <IconSparkles size={13} stroke={2} /> {f.cta}
           </span>
         ) : (
-          <span className="rounded-full bg-accent-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-accent-700">
+          <span className="rounded-full bg-accent-100 px-2.5 py-1 text-2xs font-bold uppercase tracking-wide text-accent-700">
             Próximamente
           </span>
         )}

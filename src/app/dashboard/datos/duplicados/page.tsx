@@ -223,7 +223,7 @@ export default function DuplicadosPage() {
                             <Icono size={15} stroke={1.75} className="text-slate-400 shrink-0" />
                             <span className="text-sm font-semibold text-slate-800 truncate">{r.nombre}</span>
                             {esSobrev && (
-                              <span className="text-[10px] font-semibold uppercase tracking-wide rounded-full bg-accent-100 text-accent-700 px-2 py-0.5">
+                              <span className="text-2xs font-semibold uppercase tracking-wide rounded-full bg-accent-100 text-accent-700 px-2 py-0.5">
                                 Se conserva
                               </span>
                             )}
@@ -237,7 +237,7 @@ export default function DuplicadosPage() {
                           {conteos.length > 0 && (
                             <div className="flex flex-wrap gap-1.5 mt-2">
                               {conteos.map(([k, v]) => (
-                                <span key={k} className="text-[11px] rounded-md bg-slate-100 text-slate-600 px-1.5 py-0.5">
+                                <span key={k} className="text-xs rounded-md bg-slate-100 text-slate-600 px-1.5 py-0.5">
                                   {v} {ETIQUETA_CONTEO[k] ?? k}
                                 </span>
                               ))}

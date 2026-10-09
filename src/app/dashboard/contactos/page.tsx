@@ -281,7 +281,7 @@ export default function ContactosPage() {
                 ))}
               </select>
               {/* Los clientes se crean en un solo lugar: la pantalla Clientes. */}
-              <p className="mt-1 text-[11px] text-neutral-400">
+              <p className="mt-1 text-xs text-neutral-400">
                 ¿No está el cliente? <Link href="/dashboard/cuentas" className="font-medium text-brand-600 hover:underline">Créalo en Clientes</Link>.
               </p>
             </div>
