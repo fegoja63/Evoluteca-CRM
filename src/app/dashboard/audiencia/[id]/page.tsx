@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { boton, campo, tarjeta } from "@/components/ui/estilos";
 
 type NpsRespuesta = {
   id: string;
@@ -135,7 +136,7 @@ export default function FichaEspectadorPage() {
       </div>
 
       {/* Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-5">
+      <div className={tarjeta("p-6 mb-5")}>
         <div className="flex items-start justify-between mb-5">
           <div>
             <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold mb-2 ${SEG_COLOR[esp.segmento] ?? "bg-slate-100 text-slate-600"}`}>
@@ -150,7 +151,7 @@ export default function FichaEspectadorPage() {
           </div>
           <div className="flex gap-2 shrink-0">
             <button onClick={() => setEditando(!editando)}
-              className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">
+              className={boton("secundario", "md")}>
               {editando ? "Cancelar" : "Editar"}
             </button>
             <button onClick={handleEliminar}
@@ -165,40 +166,40 @@ export default function FichaEspectadorPage() {
             <div className="col-span-2">
               <label className="text-xs text-slate-500 mb-1 block">Nombre *</label>
               <input required value={form.nombre} onChange={e => setForm({...form, nombre: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Email</label>
               <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Teléfono</label>
               <input value={form.telefono} onChange={e => setForm({...form, telefono: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Segmento</label>
               <select value={form.segmento} onChange={e => setForm({...form, segmento: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
+                className={campo("md", "w-full")}>
                 {Object.entries(SEGMENTOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Club Belarte</label>
               <select value={form.nivelMembresia} onChange={e => setForm({...form, nivelMembresia: e.target.value})}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
+                className={campo("md", "w-full")}>
                 {MEMBRESIAS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
               </select>
             </div>
             <div className="col-span-2">
               <label className="text-xs text-slate-500 mb-1 block">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({...form, notas: e.target.value})} rows={2}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div className="col-span-2 flex gap-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                className={boton("primario", "md")}>
                 {guardando ? "Guardando..." : "Guardar"}
               </button>
             </div>
@@ -217,17 +218,17 @@ export default function FichaEspectadorPage() {
 
       {/* KPIs NPS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className={tarjeta("p-5")}>
           <p className="text-xs text-slate-400 mb-1">Funciones asistidas</p>
           <p className="text-2xl font-bold text-slate-900">{esp.asistencias.length}</p>
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className={tarjeta("p-5")}>
           <p className="text-xs text-slate-400 mb-1">Puntaje promedio</p>
           <p className={`text-2xl font-bold ${avgNps ? (Number(avgNps) >= 9 ? "text-emerald-700" : Number(avgNps) >= 7 ? "text-amber-600" : "text-red-600") : "text-slate-400"}`}>
             {avgNps ?? "—"}
           </p>
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className={tarjeta("p-5")}>
           <p className="text-xs text-slate-400 mb-1">Categoría</p>
           {avgNps ? (
             (() => { const cat = npsCategoria(Number(avgNps)); return (
@@ -238,7 +239,7 @@ export default function FichaEspectadorPage() {
       </div>
 
       {/* Historial de asistencias */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-5">
+      <div className={tarjeta("p-6 mb-5")}>
         <h2 className="text-sm font-bold text-slate-900 mb-4">Historial de asistencias</h2>
         {esp.asistencias.length === 0 ? (
           <p className="text-sm text-slate-400">Sin asistencias registradas aún.</p>
@@ -261,7 +262,7 @@ export default function FichaEspectadorPage() {
       </div>
 
       {/* Historial NPS */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6">
+      <div className={tarjeta("p-6")}>
         <h2 className="text-sm font-bold text-slate-900 mb-4">Historial de funciones</h2>
         {esp.npsList.length === 0 ? (
           <p className="text-sm text-slate-400">Sin respuestas NPS aún.</p>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { IconShieldCheck, IconShieldOff, IconCopy, IconCheck, IconAlertTriangle } from "@tabler/icons-react";
+import { boton, campo, tarjeta } from "@/components/ui/estilos";
 
 type Estado = { activa: boolean; activadaEn: string | null; codigosRespaldoRestantes: number };
 
@@ -99,14 +100,14 @@ export default function DosFactores() {
 
   if (cargando) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-5">
+      <div className={tarjeta("p-5")}>
         <p className="text-sm text-slate-400">Cargando…</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5">
+    <div className={tarjeta("p-5")}>
       <div className="flex items-start justify-between gap-4 mb-1">
         <h2 className="text-sm font-semibold text-slate-800">Verificación en dos pasos</h2>
         {estado?.activa ? (
@@ -192,13 +193,13 @@ export default function DosFactores() {
               onChange={(e) => setCodigo(e.target.value)}
               placeholder="000000"
               maxLength={7}
-              className="w-32 rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-mono tracking-widest outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+              className={campo("md", "w-32 font-mono tracking-widest")}
             />
             <button
               type="button"
               onClick={confirmar}
               disabled={ocupado || codigo.length < 6}
-              className="rounded-xl bg-brand-600 text-white text-sm font-medium px-4 py-2.5 disabled:opacity-50"
+              className={boton("marca", "lg")}
             >
               {ocupado ? "Comprobando…" : "Activar"}
             </button>
@@ -228,7 +229,7 @@ export default function DosFactores() {
               type="button"
               onClick={empezar}
               disabled={ocupado}
-              className="rounded-xl bg-brand-600 text-white text-sm font-medium px-4 py-2.5 disabled:opacity-50"
+              className={boton("marca", "lg")}
             >
               {ocupado ? "Preparando…" : "Activar verificación en dos pasos"}
             </button>

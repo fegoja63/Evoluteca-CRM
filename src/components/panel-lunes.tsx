@@ -7,6 +7,7 @@ import {
   IconTag, IconUserPlus, IconActivity, IconSnowflake, IconUserMinus, IconChecklist,
   IconChevronRight, IconListCheck, type Icon,
 } from "@tabler/icons-react";
+import { tarjeta } from "@/components/ui/estilos";
 
 type Datos = {
   actividad: {
@@ -84,7 +85,7 @@ export function PanelLunes() {
       <div className="grid gap-4 lg:grid-cols-3">
 
         {/* ── 3. Actividad comercial (últimos 7 días) ── */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className={tarjeta("p-5")}>
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-sm font-bold text-slate-900">Actividad comercial</p>
@@ -153,7 +154,7 @@ export function PanelLunes() {
         </div>
 
         {/* ── 5. Ticket promedio ── */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col">
+        <div className={tarjeta("p-5 flex flex-col")}>
           <div className="flex items-center justify-between mb-2">
             <div>
               <p className="text-sm font-bold text-slate-900">Ticket promedio</p>
@@ -174,7 +175,7 @@ export function PanelLunes() {
         </div>
 
         {/* ── 7. Movimiento de clientes ── */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className={tarjeta("p-5")}>
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-sm font-bold text-slate-900">Movimiento de clientes</p>

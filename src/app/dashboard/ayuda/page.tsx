@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { IconBug, IconBulb, IconQuestionMark, IconPinned, IconCircleCheck, IconSearch, IconChevronDown, type Icon } from "@tabler/icons-react";
 import { FAQS } from "@/lib/faq-data";
+import { boton, campo } from "@/components/ui/estilos";
 
 const TIPOS: { value: string; label: string; icon: Icon; desc: string }[] = [
   { value: "error",   label: "Error / Bug",            icon: IconBug,          desc: "Algo no funciona como debería" },
@@ -61,7 +62,7 @@ function BaseDeAyuda() {
           value={busqueda}
           onChange={e => setBusqueda(e.target.value)}
           placeholder="Ej: cómo cambio el nombre de una etapa del pipeline..."
-          className="w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-brand-500"
+          className={campo("md", "w-full pl-11 pr-4")}
         />
       </div>
 
@@ -194,7 +195,7 @@ export default function AyudaPage() {
               onChange={e => setDescripcion(e.target.value)}
               rows={6}
               placeholder="Cuéntanos qué pasó, en qué página ocurrió, qué pasos seguiste y qué esperabas que sucediera..."
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-brand-500 resize-none"
+              className={campo("md", "w-full resize-none")}
               required
             />
             <p className="text-xs text-slate-400 mt-1">{descripcion.length} caracteres</p>
@@ -207,7 +208,7 @@ export default function AyudaPage() {
           <button
             type="submit"
             disabled={!tipo || !descripcion.trim() || enviando}
-            className="w-full rounded-xl bg-accent-600 px-6 py-3 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className={boton("primario", "lg", "w-full")}
           >
             {enviando ? "Enviando..." : "Enviar reporte"}
           </button>

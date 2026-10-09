@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { IconHistory, IconChevronDown, IconChevronRight, IconLock } from "@tabler/icons-react";
+import { campo, tarjeta } from "@/components/ui/estilos";
 
 type Registro = {
   id: string;
@@ -96,7 +97,7 @@ export default function AuditoriaPage() {
   if (sinPermiso || (session?.user && session.user.rol !== "ADMINISTRADOR")) {
     return (
       <div className="max-w-lg">
-        <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
+        <div className={tarjeta("p-8 text-center")}>
           <IconLock size={32} className="mx-auto text-slate-300" />
           <h1 className="mt-3 text-lg font-semibold text-slate-900">Solo para administradores</h1>
           <p className="mt-1 text-sm text-slate-500">
@@ -129,7 +130,7 @@ export default function AuditoriaPage() {
             setPagina(1);
             setAccion(e.target.value);
           }}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500"
+          className={campo("md")}
         >
           <option value="">Todas las acciones</option>
           {ACCIONES.map((a) => (
@@ -145,7 +146,7 @@ export default function AuditoriaPage() {
             setPagina(1);
             setEntidad(e.target.value);
           }}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500"
+          className={campo("md")}
         >
           <option value="">Todo</option>
           {["Usuario", "Empresa", "Contacto", "Oportunidad", "Cotizacion"].map((e) => (
@@ -160,7 +161,7 @@ export default function AuditoriaPage() {
         </span>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className={tarjeta("overflow-hidden")}>
         {cargando ? (
           <p className="p-8 text-center text-sm text-slate-400">Cargando…</p>
         ) : registros.length === 0 ? (

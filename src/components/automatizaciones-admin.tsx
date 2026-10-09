@@ -9,6 +9,7 @@ import {
   RESPONSABLE_DUENO,
   type EventoAutomatizacion, type AccionAutomatizacion, type TipoTarea, type Destinatario,
 } from "@/lib/automatizaciones";
+import { boton } from "@/components/ui/estilos";
 
 type Config = Record<string, unknown>;
 type Regla = {
@@ -147,7 +148,7 @@ export function AutomatizacionesAdmin() {
           <IconBolt size={16} stroke={1.75} />Automatizaciones
         </h2>
         <button onClick={() => setMostrarForm(v => !v)}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700">
+          className={boton("primario", "sm")}>
           {mostrarForm ? "Cancelar" : <><IconPlus size={14} stroke={2} />Nueva</>}
         </button>
       </div>
@@ -240,7 +241,7 @@ export function AutomatizacionesAdmin() {
             )}
           </div>
           <button onClick={crear} disabled={creando}
-            className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+            className={boton("primario", "md", "mt-3")}>
             <IconPlus size={16} stroke={1.75} />{creando ? "Creando..." : "Crear automatización"}
           </button>
         </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { IconTrash } from "@tabler/icons-react";
+import { boton, campo } from "@/components/ui/estilos";
 
 type ItemMeta = {
   completada?: boolean;
@@ -129,12 +130,12 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
       <form onSubmit={guardarEvento} className="mb-6 rounded-xl border border-slate-100 bg-slate-50 p-4">
         <div className="flex gap-2 mb-2">
           <select value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}
-            className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-brand-500">
+            className={campo("sm", "text-xs")}>
             {TIPOS_EVENTO.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
           {contactos.length > 0 && (
             <select value={form.contactoId} onChange={e => setForm(f => ({ ...f, contactoId: e.target.value }))}
-              className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-brand-500">
+              className={campo("sm", "text-xs")}>
               <option value="">— Contacto (opcional) —</option>
               {contactos.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
             </select>
@@ -145,17 +146,17 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
           placeholder="Título del evento, nota o interacción..."
           value={form.titulo}
           onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))}
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-500 mb-2"
+          className={campo("sm", "w-full mb-2")}
         />
         <textarea
           placeholder="Descripción o detalle (opcional)"
           value={form.descripcion}
           onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
           rows={2}
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-500 resize-none mb-2"
+          className={campo("sm", "w-full resize-none mb-2")}
         />
         <button type="submit" disabled={guardando || !form.titulo.trim()}
-          className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+          className={boton("marca", "sm")}>
           {guardando ? "Guardando..." : "+ Registrar"}
         </button>
       </form>

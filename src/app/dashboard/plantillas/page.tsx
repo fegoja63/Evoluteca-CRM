@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { IconPlus, IconX, IconClipboardText, IconStar, IconInfoCircle, IconPencil, IconTrash } from "@tabler/icons-react";
 import { LineasEditor, LINEA_VACIA, type Linea } from "@/components/lineas-editor";
+import { boton, campo } from "@/components/ui/estilos";
 
 type ItemPlantilla = { id: string; descripcion: string; cantidad: string | number; precioUnit: string | number };
 type Plantilla = { id: string; nombre: string; notas: string | null; creadoEn: string; items: ItemPlantilla[] };
@@ -125,7 +126,7 @@ export default function PlantillasPage() {
         </div>
         <button
           onClick={() => { setModo(modo === "nuevo" ? "lista" : "nuevo"); setNombre(""); setNotas(""); setLineas([{ ...LINEA_VACIA }]); setError(""); setEditandoId(null); }}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 self-start sm:self-auto"
+          className={boton("primario", "md", "self-start sm:self-auto")}
         >
           {modo === "nuevo" ? <IconX size={16} stroke={1.75} /> : <IconPlus size={16} stroke={1.75} />}
           {modo === "nuevo" ? "Cancelar" : "Nueva plantilla"}
@@ -153,7 +154,7 @@ export default function PlantillasPage() {
             <label className="block text-xs font-medium text-slate-600 mb-1">Nombre de la plantilla *</label>
             <input type="text" value={nombre} onChange={e => setNombre(e.target.value)}
               placeholder="Ej: Evento corporativo estándar"
-              className="w-full max-w-md rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+              className={campo("md", "w-full max-w-md")} />
           </div>
 
           <LineasEditor lineas={lineas} onChange={setLineas} />
@@ -162,13 +163,13 @@ export default function PlantillasPage() {
             <label className="block text-xs font-medium text-slate-600 mb-1">Notas / observaciones (opcional)</label>
             <textarea value={notas} onChange={e => setNotas(e.target.value)} rows={2}
               placeholder="Ej: Los precios no incluyen transporte fuera de la ciudad."
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 resize-y" />
+              className={campo("md", "w-full resize-y")} />
             <p className="mt-1 text-xs text-slate-400">Se copian a las observaciones de la cotización al cargar la plantilla.</p>
           </div>
 
           <div className="mt-5 flex gap-2">
             <button onClick={crear} disabled={guardando || !nombre.trim()}
-              className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+              className={boton("primario", "md")}>
               {guardando ? "Guardando..." : "Guardar plantilla"}
             </button>
           </div>
@@ -201,15 +202,15 @@ export default function PlantillasPage() {
                     <label className="block text-xs font-medium text-slate-600 mb-1">Notas / observaciones (opcional)</label>
                     <textarea value={notasEdit} onChange={e => setNotasEdit(e.target.value)} rows={2}
                       placeholder="Ej: Los precios no incluyen transporte fuera de la ciudad."
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 resize-y" />
+                      className={campo("md", "w-full resize-y")} />
                   </div>
                   <div className="mt-5 flex gap-2">
                     <button onClick={() => guardarEdicion(p.id)} disabled={guardando || !nombreEdit.trim()}
-                      className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                      className={boton("primario", "md")}>
                       {guardando ? "Guardando..." : "Guardar cambios"}
                     </button>
                     <button onClick={() => setEditandoId(null)}
-                      className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
+                      className={boton("secundario", "md")}>
                       Cancelar
                     </button>
                   </div>

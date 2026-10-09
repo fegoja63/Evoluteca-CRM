@@ -12,6 +12,7 @@ import { toast } from "@/lib/toast";
 import { IconHeartHandshake, IconRefresh, IconCalendarEvent } from "@tabler/icons-react";
 import type { EtapaPostventa } from "@prisma/client";
 import { ETAPAS_POSTVENTA, DIAS_AVISO_RENOVACION, estadoRenovacion, renovacionPendiente } from "@/lib/postventa";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Props = {
   op: {
@@ -72,7 +73,7 @@ export function PanelPostventa({ op, onCambio }: Props) {
           Este negocio ganado no está en el tablero de Postventa.
         </div>
         <button onClick={() => patch({ postventaEtapa: "ENTREGA" }, "Negocio pasado a postventa")} disabled={guardando}
-          className="rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60">
+          className={boton("marca", "md")}>
           Pasar a postventa
         </button>
       </div>
@@ -113,11 +114,11 @@ export function PanelPostventa({ op, onCambio }: Props) {
           <p className="text-xs font-semibold text-slate-500 mb-1.5">Fecha de renovación</p>
           <div className="flex items-center gap-2">
             <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} disabled={guardando}
-              className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:border-brand-500" />
+              className={campo("sm")} />
             {fechaCambio && (
               <button onClick={() => patch({ fechaRenovacion: fecha || null }, fecha ? "Fecha de renovación guardada" : "Fecha de renovación quitada")}
                 disabled={guardando}
-                className="rounded-lg bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-60">
+                className={boton("primario", "sm")}>
                 Guardar
               </button>
             )}

@@ -7,6 +7,7 @@ import {
   IconCircleX, IconSparkles, IconDownload, IconTargetArrow,
 } from "@tabler/icons-react";
 import { MOTIVOS_PERDIDA } from "@/lib/motivos-perdida";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Objecion = {
   id: string; categoria: string | null; objecion: string; respuesta: string;
@@ -106,12 +107,12 @@ export default function ObjecionesPage() {
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Categoría (opcional)</label>
                 <input type="text" value={form.categoria} onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))}
-                  placeholder="Precio, Competencia…" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  placeholder="Precio, Competencia…" className={campo("md", "w-full")} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Objeción del cliente *</label>
                 <input type="text" value={form.objecion} onChange={e => setForm(f => ({ ...f, objecion: e.target.value }))}
-                  placeholder='Ej: "Es muy caro"' className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  placeholder='Ej: "Es muy caro"' className={campo("md", "w-full")} />
               </div>
             </div>
             <div>
@@ -127,12 +128,12 @@ export default function ObjecionesPage() {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1 flex items-center gap-1"><IconTargetArrow size={14} stroke={1.75} /> Motivo de pérdida asociado (opcional)</label>
               <input list="motivos-perdida" value={form.motivoPerdida} onChange={e => setForm(f => ({ ...f, motivoPerdida: e.target.value }))}
-                placeholder="Ej: Precio muy alto" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                placeholder="Ej: Precio muy alto" className={campo("md", "w-full")} />
               <datalist id="motivos-perdida">{MOTIVOS_PERDIDA.map(m => <option key={m} value={m} />)}</datalist>
               <p className="text-[11px] text-slate-400 mt-1">Si lo asocias a un motivo, esta respuesta aparecerá en Reportes → Motivos de pérdida.</p>
             </div>
             <div className="flex items-center gap-3">
-              <button onClick={guardar} disabled={guardando} className="rounded-xl bg-accent-600 hover:bg-accent-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+              <button onClick={guardar} disabled={guardando} className={boton("primario", "md")}>
                 {guardando ? "Guardando…" : editId ? "Guardar cambios" : "Agregar a la guía"}
               </button>
               <button onClick={() => { setModo("lista"); setEditId(null); setForm(FORM_VACIO); }} className="text-sm text-slate-500 hover:text-slate-800">Cancelar</button>
@@ -149,7 +150,7 @@ export default function ObjecionesPage() {
           <p className="text-xs text-slate-400 mt-1 mb-4">Empieza con un set probado de 15 y adáptalo, o crea las tuyas.</p>
           {esEditor && (
             <button onClick={cargarSugeridas} disabled={cargandoSugeridas}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+              className={boton("marca", "md")}>
               <IconSparkles size={16} stroke={1.75} /> {cargandoSugeridas ? "Cargando…" : "Cargar las 15 recomendadas"}
             </button>
           )}
@@ -159,7 +160,7 @@ export default function ObjecionesPage() {
           {esEditor && (
             <div className="mb-4 flex justify-end">
               <button onClick={cargarSugeridas} disabled={cargandoSugeridas}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+                className={boton("secundario", "sm")}>
                 <IconDownload size={14} stroke={1.75} /> {cargandoSugeridas ? "Cargando…" : "Añadir las 15 recomendadas"}
               </button>
             </div>

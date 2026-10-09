@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
 import { IconMail, IconSend, IconX, IconChevronDown, IconChevronUp } from "@tabler/icons-react";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Correo = {
   id: string;
@@ -77,7 +78,7 @@ export function CorreosPanel({ contactoId, empresaId, oportunidadId, emailDestin
           <IconMail size={16} stroke={1.75} />Correos {correos.length > 0 && <span className="text-slate-400 font-normal">({correos.length})</span>}
         </h2>
         <button onClick={() => setRedactando(v => !v)}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700">
+          className={boton("primario", "sm")}>
           {redactando ? <><IconX size={14} stroke={2} />Cerrar</> : <><IconSend size={14} stroke={1.75} />Redactar</>}
         </button>
       </div>
@@ -89,21 +90,21 @@ export function CorreosPanel({ contactoId, empresaId, oportunidadId, emailDestin
               <label className="mb-1 block text-xs text-slate-500">Para</label>
               <input type="email" value={para} onChange={e => setPara(e.target.value)}
                 placeholder="cliente@empresa.com"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Asunto</label>
               <input value={asunto} onChange={e => setAsunto(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Mensaje</label>
               <textarea value={cuerpo} onChange={e => setCuerpo(e.target.value)} rows={6}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div className="flex items-center gap-2">
               <button onClick={enviar} disabled={enviando}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                className={boton("primario", "md")}>
                 <IconSend size={15} stroke={1.75} />{enviando ? "Enviando..." : "Enviar"}
               </button>
               <span className="text-[11px] text-slate-400">Se envía desde tu CRM; las respuestas quedan registradas aquí y te llegan a tu correo.</span>

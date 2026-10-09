@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { IconSparkles, IconArrowLeft, IconCopy, IconCheck } from "@tabler/icons-react";
+import { boton } from "@/components/ui/estilos";
 
 type Uso = { limite: number | null; usados: number; iaConfigurada: boolean };
 
@@ -104,7 +105,7 @@ export default function InformeMensualPage() {
           </div>
           {texto && !cargando && (
             <div className="mt-4 flex justify-end">
-              <button onClick={copiar} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+              <button onClick={copiar} className={boton("secundario", "sm")}>
                 {copiado ? <><IconCheck size={14} stroke={2} className="text-emerald-600" /> Copiado</> : <><IconCopy size={14} stroke={1.75} /> Copiar</>}
               </button>
             </div>

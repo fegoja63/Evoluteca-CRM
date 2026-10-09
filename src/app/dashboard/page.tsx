@@ -15,6 +15,7 @@ import {
   IconMoodSmile, IconPinned, IconFilePlus, IconCalendarPlus, IconReportAnalytics, IconHeartHandshake,
   type Icon,
 } from "@tabler/icons-react";
+import { tarjeta } from "@/components/ui/estilos";
 
 export const dynamic = "force-dynamic";
 
@@ -435,7 +436,7 @@ export default async function DashboardPage() {
           const Icono = k.icon;
           return (
           <Link key={k.href} href={k.href} className="group">
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 duration-200">
+            <div className={tarjeta("p-4 hover:shadow-md transition-all hover:-translate-y-0.5 duration-200")}>
               <div className="flex items-start justify-between mb-3">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${k.semantic ? k.ibg : "bg-brand-50"}`}>
                   <Icono size={18} stroke={1.75} className={k.semantic ? k.itxt : "text-brand-600"} />
@@ -455,7 +456,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
         {/* Pipeline funnel */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+        <div className={tarjeta("p-5")}>
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Estado del pipeline</h2>
@@ -497,7 +498,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Actividades de hoy */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+        <div className={tarjeta("p-5")}>
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Actividades de hoy</h2>
@@ -557,7 +558,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Oportunidades calientes */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+        <div className={tarjeta("p-5")}>
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Oportunidades calientes</h2>
@@ -605,7 +606,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ══ OPORTUNIDADES POR ESTADO (qué está pasando y qué requiere acción) ══ */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+      <div className={tarjeta("p-5")}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-sm font-bold text-slate-900">Oportunidades por estado</h2>
@@ -774,7 +775,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Ranking vendedores */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+        <div className={tarjeta("p-5")}>
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Rendimiento del equipo</h2>
@@ -820,7 +821,7 @@ export default async function DashboardPage() {
 
         {/* Esta semana + resumen financiero */}
         <div className="flex flex-col gap-4">
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 flex-1">
+          <div className={tarjeta("p-5 flex-1")}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-bold text-slate-900">Próximos 7 días</h2>
               <Link href="/dashboard/agenda" className="text-xs text-brand-600 hover:underline">Ver agenda →</Link>
@@ -883,7 +884,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ══ SALUD COMERCIAL ═════════════════════════════════════════════════ */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+      <div className={tarjeta("p-5")}>
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="flex items-center gap-4 flex-1">
             <div className="text-center shrink-0">

@@ -6,6 +6,7 @@ import {
   IconBuilding, IconUser, IconUsers, IconChartFunnel, IconCalendarEvent,
   IconFileText, IconTheater, IconPackage, IconRocket, IconDownload, IconCopyOff, type Icon,
 } from "@tabler/icons-react";
+import { boton } from "@/components/ui/estilos";
 
 // `key` es el segmento que consume /api/exportar/<key>. `req`, si está, es el
 // módulo del tenant que debe estar activo para mostrar la tarjeta (los demás
@@ -69,7 +70,7 @@ export default function DatosPage() {
           <p className="text-xs text-brand-600 mt-1">Sube tu archivo, mapea cada columna a los campos del CRM y decide qué hacer con el resto.</p>
         </div>
         <Link href="/dashboard/datos/importar"
-          className="rounded-xl bg-accent-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-700 shrink-0 ml-4">
+          className={boton("primario", "lg", "shrink-0 ml-4")}>
           Importar un módulo →
         </Link>
       </div>

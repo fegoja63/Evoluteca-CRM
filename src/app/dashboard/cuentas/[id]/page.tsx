@@ -26,6 +26,7 @@ import { WhatsAppBtn } from "@/components/whatsapp-btn";
 import { ResumenIA } from "@/components/resumen-ia";
 import { MinutasIA } from "@/components/minutas-ia";
 import { IconPhone, IconMail, IconUsers, IconPencil, IconTrash, IconPlus, type Icon } from "@tabler/icons-react";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Detalle = {
   id: string;
@@ -241,7 +242,7 @@ export default function FichaClientePage() {
         </div>
         <div className="flex gap-2">
           <button onClick={() => setEditando(!editando)}
-            className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100">
+            className={boton("secundario", "md")}>
             {editando ? "Cancelar" : "Editar"}
           </button>
           <button onClick={handleEliminar}
@@ -257,22 +258,22 @@ export default function FichaClientePage() {
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Nombre *</label>
               <input required value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Email</label>
               <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Teléfono</label>
               <input value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Sector</label>
               <select value={form.sector} onChange={e => setForm({ ...form, sector: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 bg-white">
+                className={campo("md", "w-full")}>
                 <option value="">Sin sector</option>
                 {SECTORES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -280,25 +281,25 @@ export default function FichaClientePage() {
             <div>
               <label className="mb-1 block text-xs text-slate-500">Sitio web</label>
               <input value={form.sitioWeb} onChange={e => setForm({ ...form, sitioWeb: e.target.value })}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })} rows={3}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Condiciones comerciales</label>
               <textarea value={form.condicionesComerciales} onChange={e => setForm({ ...form, condicionesComerciales: e.target.value })} rows={4}
                 placeholder="Forma de pago, plazos de entrega, cláusulas negociadas con este cliente..."
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
               <p className="mt-1 text-[11px] text-slate-400">Se precargan al crear una cotización para este cliente (editables por cotización) y salen en el PDF y el enlace público.</p>
             </div>
             <CamposPersonalizadosForm entidad="EMPRESA" valores={camposValores}
               onChange={(clave, valor) => setCamposValores(prev => ({ ...prev, [clave]: valor }))} />
             <div className="col-span-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                className={boton("primario", "md")}>
                 {guardando ? "Guardando..." : "Guardar cambios"}
               </button>
             </div>
@@ -489,25 +490,25 @@ export default function FichaClientePage() {
                 <label className="mb-1 block text-xs text-slate-500">Nombre *</label>
                 <input required value={formContacto.nombre}
                   onChange={e => setFormContacto(f => ({ ...f, nombre: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  className={campo("md", "w-full")} />
               </div>
               <div>
                 <label className="mb-1 block text-xs text-slate-500">Cargo</label>
                 <input value={formContacto.cargo}
                   onChange={e => setFormContacto(f => ({ ...f, cargo: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  className={campo("md", "w-full")} />
               </div>
               <div>
                 <label className="mb-1 block text-xs text-slate-500">Teléfono</label>
                 <input value={formContacto.telefono}
                   onChange={e => setFormContacto(f => ({ ...f, telefono: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  className={campo("md", "w-full")} />
               </div>
               <div className="col-span-2">
                 <label className="mb-1 block text-xs text-slate-500">Email</label>
                 <input type="email" value={formContacto.email}
                   onChange={e => setFormContacto(f => ({ ...f, email: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                  className={campo("md", "w-full")} />
               </div>
               <div className="col-span-2 flex items-center justify-between pt-1">
                 {!nuevoContacto ? (
@@ -518,11 +519,11 @@ export default function FichaClientePage() {
                 ) : <span />}
                 <div className="flex gap-2">
                   <button type="button" onClick={cerrarModalContacto}
-                    className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
+                    className={boton("secundario", "md")}>
                     Cancelar
                   </button>
                   <button type="submit" disabled={guardandoContacto}
-                    className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                    className={boton("primario", "md")}>
                     {guardandoContacto ? "Guardando..." : nuevoContacto ? "Crear contacto" : "Guardar"}
                   </button>
                 </div>

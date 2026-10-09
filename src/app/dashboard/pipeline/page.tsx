@@ -15,6 +15,7 @@ import {
   IconChartFunnel, IconTrendingUp, IconTrophy, IconTarget, IconBuildingPavilion,
   IconAlertTriangle, IconMoodSad, IconCalendarX, type Icon,
 } from "@tabler/icons-react";
+import { boton, campo, tarjeta } from "@/components/ui/estilos";
 
 const MOTIVOS_PERDIDA = [
   "Precio muy alto",
@@ -582,7 +583,7 @@ export default function PipelinePage() {
         ] as { label: string; valor: string; sub: string; icon: Icon; semantic: boolean; ibg?: string; itxt?: string }[]).map(k => {
           const Icono = k.icon;
           return (
-            <div key={k.label} className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm">
+            <div key={k.label} className={tarjeta("p-4")}>
               <div className="flex items-start justify-between mb-3">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${k.semantic ? k.ibg : "bg-brand-50"}`}>
                   <Icono size={18} stroke={1.75} className={k.semantic ? k.itxt : "text-brand-600"} />
@@ -608,7 +609,7 @@ export default function PipelinePage() {
             placeholder="Buscar cliente, evento o N° cotización..."
             value={busqueda}
             onChange={e => setBusqueda(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 pl-8 pr-8 py-2 text-sm outline-none focus:border-brand-500"
+            className={campo("md", "w-full pl-8 pr-8")}
           />
           {busqueda && (
             <button onClick={() => setBusqueda("")}
@@ -679,7 +680,7 @@ export default function PipelinePage() {
         )}
 
         <button onClick={() => setMostrarForm(v => !v)}
-          className="rounded-xl bg-accent-600 px-3 py-2 text-xs font-medium text-white hover:bg-accent-700 flex items-center gap-1">
+          className={boton("primario", "sm", "flex")}>
           {mostrarForm ? <><IconX size={13} stroke={2} />Cancelar</> : <><IconPlus size={13} stroke={2} />Nueva oportunidad</>}
         </button>
 
@@ -708,7 +709,7 @@ export default function PipelinePage() {
               <label className="mb-1 block text-xs text-slate-500">Título *</label>
               <input required value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})}
                 placeholder="Cliente – Servicio (Mes Año). Ej: Teatro Nacional – Renta de salón (Ago 2026)"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 placeholder:text-slate-400" />
+                className={campo("md", "w-full")} />
               <p className="mt-1 text-xs text-slate-400">Usa el formato <span className="font-medium">Cliente – Servicio (Mes Año)</span> para que todas las oportunidades se vean igual.</p>
             </div>
             <div>
@@ -719,14 +720,14 @@ export default function PipelinePage() {
             <div>
               <label className="mb-1 block text-xs text-slate-500">Etapa</label>
               <select value={form.etapa} onChange={e => setForm({...form, etapa: e.target.value})}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                className={campo("md", "w-full")}>
                 {ETAPAS.map(et => <option key={et.key} value={et.key}>{et.label}</option>)}
               </select>
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Empresa</label>
               <select value={form.empresaId} onChange={e => setForm({...form, empresaId: e.target.value, contactoId: ""})}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                className={campo("md", "w-full")}>
                 <option value="">Sin empresa</option>
                 {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
               </select>
@@ -757,7 +758,7 @@ export default function PipelinePage() {
                 return (
                   <>
                     <select value={form.contactoId} onChange={e => setForm({...form, contactoId: e.target.value})}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                      className={campo("md", "w-full")}>
                       <option value="">Sin contacto</option>
                       {contactosDeEmpresa.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                     </select>
@@ -771,16 +772,16 @@ export default function PipelinePage() {
                   <div className="flex flex-col gap-2">
                     <input type="text" placeholder="Nombre del contacto *" value={nuevoContactoForm.nombre}
                       onChange={e => setNuevoContactoForm(f => ({ ...f, nombre: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
+                      className={campo("sm", "w-full")} />
                     <input type="email" placeholder="Email (opcional)" value={nuevoContactoForm.email}
                       onChange={e => setNuevoContactoForm(f => ({ ...f, email: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
+                      className={campo("sm", "w-full")} />
                     <input type="text" placeholder="Teléfono (opcional)" value={nuevoContactoForm.telefono}
                       onChange={e => setNuevoContactoForm(f => ({ ...f, telefono: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-brand-500" />
+                      className={campo("sm", "w-full")} />
                     {creandoContactoError && <p className="text-xs text-red-600">{creandoContactoError}</p>}
                     <button type="button" onClick={crearContactoInline} disabled={creandoContactoLoading || !nuevoContactoForm.nombre.trim()}
-                      className="self-start rounded-lg bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                      className={boton("primario", "sm", "self-start")}>
                       {creandoContactoLoading ? "Creando..." : "Crear contacto"}
                     </button>
                     <p className="text-[11px] text-slate-500">Opcional: si lo dejas aquí, se crea al guardar la oportunidad (hereda el correo y teléfono del cliente si no le pones otros).</p>
@@ -793,7 +794,7 @@ export default function PipelinePage() {
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1"><IconBuildingPavilion size={13} stroke={1.75} />Salón (módulo Salones)</p>
                 <label className="mb-1 block text-xs text-slate-500">Salón</label>
                 <select value={form.salonId} onChange={e => setForm({...form, salonId: e.target.value})}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500">
+                  className={campo("md", "w-full")}>
                   <option value="">— Sin salón del catálogo —</option>
                   {salones.map(s => <option key={s.id} value={s.id}>{s.nombre}{s.capacidad ? ` (${s.capacidad} pers.)` : ""}</option>)}
                 </select>
@@ -820,12 +821,12 @@ export default function PipelinePage() {
                   <label className="mb-1 block text-xs text-slate-500">Sede / Lugar</label>
                   <input value={form.sede} onChange={e => setForm({...form, sede: e.target.value})}
                     placeholder="Teatro Nacional, Sala A..."
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                    className={campo("md", "w-full")} />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs text-slate-500">Fecha del evento</label>
                   <input type="date" value={form.fechaEvento} onChange={e => setForm({...form, fechaEvento: e.target.value})}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                    className={campo("md", "w-full")} />
                 </div>
               </>
             )}
@@ -834,10 +835,10 @@ export default function PipelinePage() {
                 <label className="mb-1 block text-xs text-slate-500">Horario (opcional)</label>
                 <div className="flex items-center gap-2">
                   <input type="time" value={form.horaInicio} onChange={e => setForm({...form, horaInicio: e.target.value})}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                    className={campo("md", "w-full")} />
                   <span className="text-slate-400 text-xs">a</span>
                   <input type="time" value={form.horaFin} onChange={e => setForm({...form, horaFin: e.target.value})}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                    className={campo("md", "w-full")} />
                 </div>
               </div>
             )}
@@ -852,20 +853,20 @@ export default function PipelinePage() {
             <div>
               <label className="mb-1 block text-xs text-slate-500">Fecha de cierre estimada</label>
               <input type="date" value={form.fechaCierre} onChange={e => setForm({...form, fechaCierre: e.target.value})}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                className={campo("md", "w-full")} />
             </div>
             <div className="col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({...form, notas: e.target.value})}
-                rows={2} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" />
+                rows={2} className={campo("md", "w-full")} />
             </div>
             <div className="col-span-2 flex gap-2">
               <button type="submit" disabled={guardando}
-                className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+                className={boton("primario", "md")}>
                 {guardando ? "Guardando..." : "Guardar"}
               </button>
               <button type="button" onClick={() => setMostrarForm(false)}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
+                className={boton("secundario", "md")}>
                 Cancelar
               </button>
             </div>
@@ -877,7 +878,7 @@ export default function PipelinePage() {
       {cargando ? (
         <p className="text-sm text-slate-400">Cargando...</p>
       ) : vista === "tabla" ? (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className={tarjeta("overflow-hidden")}>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-xs text-slate-500 border-b border-slate-100">

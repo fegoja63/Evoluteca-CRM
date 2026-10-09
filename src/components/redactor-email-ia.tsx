@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { IconSparkles, IconCopy, IconCheck } from "@tabler/icons-react";
+import { boton, campo } from "@/components/ui/estilos";
 
 type Uso = { limite: number | null; usados: number; iaConfigurada: boolean };
 type Tipo = "ENVIO" | "SEGUIMIENTO" | "CIERRE";
@@ -133,14 +134,14 @@ export function RedactorEmailIA({ cotizacionId }: { cotizacionId: string }) {
             value={texto}
             onChange={e => setTexto(e.target.value)}
             rows={Math.max(8, texto.split("\n").length + 1)}
-            className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700 leading-relaxed outline-none focus:border-brand-400 whitespace-pre-wrap"
+            className={campo("md", "w-full p-3 leading-relaxed whitespace-pre-wrap")}
             placeholder="El correo aparecerá aquí…"
           />
           <div className="mt-2 flex justify-end">
             <button
               onClick={copiar}
               disabled={!texto || cargando}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+              className={boton("secundario", "sm")}
             >
               {copiado ? <><IconCheck size={14} stroke={2} className="text-emerald-600" /> Copiado</> : <><IconCopy size={14} stroke={1.75} /> Copiar</>}
             </button>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/toast";
+import { boton, campo, tarjeta } from "@/components/ui/estilos";
 
 interface NotasRapidasProps {
   valor: string | null;
@@ -48,7 +49,7 @@ export function NotasRapidas({ valor, onGuardar }: NotasRapidasProps) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5">
+    <div className={tarjeta("p-5")}>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
           📝 Notas
@@ -64,7 +65,7 @@ export function NotasRapidas({ valor, onGuardar }: NotasRapidasProps) {
                 <button onClick={() => { setTexto(valor ?? ""); setEditando(false); }}
                   className="text-xs text-slate-400 hover:text-slate-600">Cancelar</button>
                 <button onClick={guardar} disabled={guardando}
-                  className="text-xs bg-brand-600 text-white px-3 py-1 rounded-lg hover:bg-brand-700 disabled:opacity-50 font-medium">
+                  className={boton("marca", "sm")}>
                   {guardando ? "..." : "Guardar"}
                 </button>
               </div>
@@ -80,7 +81,7 @@ export function NotasRapidas({ valor, onGuardar }: NotasRapidasProps) {
           onKeyDown={handleKeyDown}
           placeholder="Escribe aquí tus notas... (Ctrl+Enter para guardar, Esc para cancelar)"
           rows={5}
-          className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-brand-400 resize-none leading-relaxed"
+          className={campo("md", "w-full resize-none leading-relaxed")}
         />
       ) : texto ? (
         <div onClick={() => setEditando(true)}

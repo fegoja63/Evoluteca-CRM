@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { IconSparkles, IconSend, IconArrowLeft } from "@tabler/icons-react";
 import Link from "next/link";
+import { campo } from "@/components/ui/estilos";
 
 type Punto = { label: string; value: number };
 type Resultado = { titulo: string; chart: string; formato: "moneda" | "entero"; datos: Punto[]; resumen: string };
@@ -97,7 +98,7 @@ export default function PreguntarPage() {
           onChange={e => setPregunta(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter") preguntar(); }}
           placeholder="Ej: valor ganado por mes en 2026"
-          className="flex-1 rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+          className={campo("md", "flex-1")}
         />
         <button
           onClick={() => preguntar()}

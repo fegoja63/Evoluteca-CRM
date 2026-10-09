@@ -20,6 +20,7 @@ import { MoneyInput } from "@/components/money-input";
 import { AnalisisTendenciasIA } from "@/components/analisis-tendencias-ia";
 import { TendenciasGraficas } from "@/components/tendencias-graficas";
 import { PanelLunes } from "@/components/panel-lunes";
+import { tarjeta } from "@/components/ui/estilos";
 
 type ResAnio = { ganadas: number; perdidas: number; activas: number; valorGanado: number; valorPerdido: number; valorActivo: number; total: number };
 type ResMes  = { ganadas: number; perdidas: number; valorGanado: number; total: number };
@@ -282,7 +283,7 @@ export default function ReportesPage() {
     const groupW = barW * 2 + gap;
 
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mt-6">
+      <div className={tarjeta("p-6 mt-6")}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-sm font-bold text-slate-900">Cumplimiento de meta anual</p>
@@ -361,7 +362,7 @@ export default function ReportesPage() {
     const hayDatos = vals.some(v => v > 0);
 
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mt-6">
+      <div className={tarjeta("p-6 mt-6")}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-sm font-bold text-slate-900">Actividad mensual — {r!.anioParaMes}</p>
@@ -810,7 +811,7 @@ export default function ReportesPage() {
         {/* ── COLUMNA DERECHA ── */}
         <div className="flex flex-col gap-5">
           {/* Cierre */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5">
+          <div className={tarjeta("p-5")}>
             <h2 className="text-sm font-bold text-slate-900 mb-3">Negocios cerrados</h2>
             <div className="flex gap-4 mb-3">
               <div className="flex-1 rounded-xl bg-emerald-50 p-3 text-center">
@@ -838,7 +839,7 @@ export default function ReportesPage() {
 
           {/* Conversión (contacto→oportunidad y oportunidad→venta) */}
           {r.conversion && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-5">
+            <div className={tarjeta("p-5")}>
               <div className="mb-3">
                 <h2 className="text-sm font-bold text-slate-900">Conversión</h2>
                 <p className="text-xs text-slate-400 mt-0.5">Avance de contacto a venta</p>
@@ -871,7 +872,7 @@ export default function ReportesPage() {
           )}
 
           {/* Funnel */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5">
+          <div className={tarjeta("p-5")}>
             <Funnel />
           </div>
 

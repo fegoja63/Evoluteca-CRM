@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CampoPassword } from "@/components/campo-password";
+import { boton } from "@/components/ui/estilos";
 
 const CLAVE_KEY = "admin-evoluteca-secret";
 
@@ -107,7 +108,7 @@ export default function ErroresInternoPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => cargar(clave)} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">Actualizar</button>
+            <button onClick={() => cargar(clave)} className={boton("secundario", "md")}>Actualizar</button>
             {errores.length > 0 && <button onClick={limpiar} className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600 hover:bg-red-100">Limpiar historial</button>}
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState } from "react";
 import { CampoPassword } from "@/components/campo-password";
+import { boton, campo } from "@/components/ui/estilos";
 
 const CLAVE_KEY = "admin-evoluteca-secret";
 
@@ -156,10 +157,10 @@ export default function ClientesInternoPage() {
             <p className="text-slate-500 text-sm mt-1">{tenants.length} tenants — página interna, no indexada</p>
           </div>
           <div className="flex gap-2">
-            <a href="/admin-evoluteca/errores" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+            <a href="/admin-evoluteca/errores" className={boton("secundario", "md")}>
               Errores
             </a>
-            <a href="/admin-evoluteca/nuevo-cliente" className="rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
+            <a href="/admin-evoluteca/nuevo-cliente" className={boton("marca", "md")}>
               + Nuevo cliente
             </a>
           </div>
@@ -170,7 +171,7 @@ export default function ClientesInternoPage() {
           placeholder="Buscar por nombre o slug..."
           value={busqueda}
           onChange={e => setBusqueda(e.target.value)}
-          className="w-full max-w-sm mb-4 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+          className={campo("md", "w-full max-w-sm mb-4")}
         />
 
         {cargando ? (
@@ -211,7 +212,7 @@ export default function ClientesInternoPage() {
                       <td className="px-4 py-2 text-right">
                         <button
                           onClick={() => setEditandoId(editandoId === t.id ? null : t.id)}
-                          className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-100"
+                          className={boton("secundario", "sm")}
                         >
                           {editandoId === t.id ? "Cerrar" : "Gestionar"}
                         </button>

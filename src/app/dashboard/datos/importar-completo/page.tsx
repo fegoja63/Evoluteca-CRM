@@ -9,6 +9,7 @@ import {
   IconAlertTriangle, IconCheck, IconUpload, IconWorld, IconFileText, IconNotes,
   type Icon,
 } from "@tabler/icons-react";
+import { boton, campo as estiloCampo, tarjeta } from "@/components/ui/estilos";
 
 type Preview = {
   columnas: string[];
@@ -199,13 +200,13 @@ export default function ImportarCompletoPage() {
 
       {/* ── PASO 1 ── */}
       {paso === 1 && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <div className={tarjeta("p-6")}>
           <h2 className="text-sm font-semibold text-slate-800 mb-1">Sube tu archivo Excel</h2>
           <p className="text-xs text-slate-400 mb-4">Puede tener cualquier formato de columnas. En el siguiente paso verás los datos y asignarás cada columna al campo del CRM.</p>
           <input ref={fileRef} type="file" accept=".xlsx,.xls"
             className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 mb-5" />
           <button onClick={handlePrevisualizar} disabled={cargando}
-            className="rounded-xl bg-accent-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+            className={boton("primario", "lg")}>
             {cargando ? "Leyendo archivo..." : "Continuar →"}
           </button>
         </div>
@@ -216,7 +217,7 @@ export default function ImportarCompletoPage() {
         <div className="flex gap-6">
           {/* Panel izquierdo: columnas del Excel */}
           <div className="w-72 shrink-0">
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 sticky top-4">
+            <div className={tarjeta("p-4 sticky top-4")}>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Columnas de tu Excel</p>
                 <button onClick={() => setPaso(1)} className="text-xs text-slate-400 hover:underline">Cambiar archivo</button>
@@ -272,7 +273,7 @@ export default function ImportarCompletoPage() {
 
           {/* Panel derecho: campos del CRM */}
           <div className="flex-1">
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-4">
+            <div className={tarjeta("p-5 mb-4")}>
               <h2 className="text-sm font-semibold text-slate-800 mb-1">¿Qué columna de tu Excel corresponde a cada campo del CRM?</h2>
               <p className="text-xs text-slate-400 mb-4">Los campos marcados con <span className="text-red-500">*</span> son obligatorios. Haz clic en una columna de la izquierda para ver sus valores.</p>
 
@@ -353,7 +354,7 @@ export default function ImportarCompletoPage() {
                             else delete nueva[campo.key];
                             setMapeo(nueva);
                           }}
-                          className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs outline-none focus:border-brand-500 bg-white"
+                          className={estiloCampo("sm", "w-full text-xs")}
                         >
                           <option value="">— No mapear —</option>
                           {preview.columnas.map(c => (
@@ -372,7 +373,7 @@ export default function ImportarCompletoPage() {
 
             {/* Fecha de creación del lote — evita que la base histórica cuente
                 como "clientes nuevos" del año en curso */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4">
+            <div className={tarjeta("p-4 mb-4")}>
               <label className="text-sm font-semibold text-slate-800 flex items-center gap-1.5 mb-1">
                 <IconCalendarDue size={15} stroke={1.75} className="text-slate-500" />
                 Fecha de creación de estos clientes <span className="text-xs font-normal text-slate-400">(opcional)</span>
@@ -387,7 +388,7 @@ export default function ImportarCompletoPage() {
                   value={fechaCreacion}
                   max={new Date().toISOString().slice(0, 10)}
                   onChange={e => setFechaCreacion(e.target.value)}
-                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+                  className={estiloCampo("md")}
                 />
                 {fechaCreacion && (
                   <button type="button" onClick={() => setFechaCreacion("")}
@@ -399,7 +400,7 @@ export default function ImportarCompletoPage() {
             </div>
 
             {/* Botón importar */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-4">
+            <div className={tarjeta("p-4")}>
               {faltanRequeridos.length > 0 ? (
                 <div className="rounded-xl bg-red-50 border border-red-200 p-3 mb-3">
                   <p className="text-sm font-semibold text-red-700 mb-1">Faltan campos obligatorios:</p>
@@ -430,7 +431,7 @@ export default function ImportarCompletoPage() {
 
       {/* ── PASO 3 ── */}
       {paso === 3 && resultado && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
+        <div className={tarjeta("p-8 text-center")}>
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-emerald-50">
             <IconCircleCheck size={28} stroke={1.5} className="text-emerald-600" />
           </div>
@@ -464,9 +465,9 @@ export default function ImportarCompletoPage() {
             </p>
           )}
           <div className="flex gap-3 justify-center">
-            <Link href="/dashboard/cuentas" className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">Ver Cuentas →</Link>
+            <Link href="/dashboard/cuentas" className={boton("primario", "md")}>Ver Cuentas →</Link>
             <button onClick={() => { setPaso(1); setResultado(null); setPreview(null); setMapeo({}); setFechaCreacion(""); }}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+              className={boton("secundario", "md")}>
               Importar otro archivo
             </button>
           </div>

@@ -8,6 +8,7 @@ import {
 } from "@tabler/icons-react";
 import { puedeEliminar } from "@/lib/permisos";
 import { toast } from "@/lib/toast";
+import { boton } from "@/components/ui/estilos";
 
 type Registro = {
   id: string;
@@ -267,7 +268,7 @@ export default function DuplicadosPage() {
                   <button
                     onClick={() => fusionar(idx, racimo)}
                     disabled={perdedores.length === 0 || fusionando === idx}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 shrink-0"
+                    className={boton("primario", "md", "shrink-0")}
                   >
                     {fusionando === idx ? <IconLoader2 size={15} className="animate-spin" /> : <IconCheck size={15} stroke={2} />}
                     Fusionar

@@ -8,6 +8,7 @@ import {
   IconTheater, IconCalendarEvent, IconScale, IconClock,
   IconCircleCheck, IconAlertTriangle, IconUpload, type Icon,
 } from "@tabler/icons-react";
+import { boton, campo, tarjeta } from "@/components/ui/estilos";
 
 type Preview = {
   hojas: string[];
@@ -241,7 +242,7 @@ export default function ImportarAvanzadoPage() {
 
       {/* PASO 1 */}
       {paso === 1 && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <div className={tarjeta("p-6")}>
           <h2 className="text-sm font-semibold text-slate-800 mb-4">¿A qué módulo quieres importar?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
             {modulosDisponibles.map((m) => {
@@ -264,7 +265,7 @@ export default function ImportarAvanzadoPage() {
             className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 mb-5" />
 
           <button onClick={handlePrevisualizar} disabled={!modulo || cargando}
-            className="rounded-xl bg-accent-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+            className={boton("primario", "lg")}>
             {cargando ? "Leyendo archivo..." : "Continuar →"}
           </button>
         </div>
@@ -272,7 +273,7 @@ export default function ImportarAvanzadoPage() {
 
       {/* PASO 2 */}
       {paso === 2 && preview && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <div className={tarjeta("p-6")}>
           <div className="mb-5 flex items-center justify-between">
             <div>
               <h2 className="text-sm font-semibold text-slate-800">¿Qué hago con cada columna de tu Excel?</h2>
@@ -309,7 +310,7 @@ export default function ImportarAvanzadoPage() {
                   <select
                     value={valor}
                     onChange={(e) => setMapeo({ ...mapeo, [col]: e.target.value })}
-                    className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs outline-none focus:border-brand-500 min-w-[200px]"
+                    className={campo("sm", "text-xs min-w-[200px]")}
                   >
                     <option value="__extra__">Guardar como dato extra</option>
                     <option value="__ignorar__">Ignorar esta columna</option>
@@ -331,7 +332,7 @@ export default function ImportarAvanzadoPage() {
               {Object.values(mapeo).filter(v => v === "__ignorar__").length} ignoradas
             </p>
             <button onClick={handleImportar} disabled={cargando}
-              className="rounded-xl bg-accent-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 flex items-center gap-1.5">
+              className={boton("primario", "lg", "flex")}>
               <IconUpload size={14} stroke={1.75} />{cargando ? "Importando..." : `Importar ${preview.totalFilas} registros`}
             </button>
           </div>
@@ -340,7 +341,7 @@ export default function ImportarAvanzadoPage() {
 
       {/* PASO 3 */}
       {paso === 3 && resultado && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
+        <div className={tarjeta("p-8 text-center")}>
           <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 ${
             resultado.errores === 0 ? "bg-emerald-50" : "bg-amber-50"
           }`}>
@@ -359,11 +360,11 @@ export default function ImportarAvanzadoPage() {
           </p>
           <div className="flex gap-3 justify-center">
             <Link href="/dashboard/datos"
-              className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+              className={boton("secundario", "md")}>
               ← Volver a Datos
             </Link>
             <button onClick={() => { setPaso(1); setResultado(null); setPreview(null); setMapeo({}); }}
-              className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
+              className={boton("primario", "md")}>
               Importar otro archivo
             </button>
           </div>

@@ -18,6 +18,7 @@ import {
 } from "@tabler/icons-react";
 import type { EtapaPostventa } from "@prisma/client";
 import { ETAPAS_POSTVENTA, DIAS_AVISO_RENOVACION, estadoRenovacion, renovacionPendiente } from "@/lib/postventa";
+import { campo, tarjeta } from "@/components/ui/estilos";
 
 type Negocio = {
   id: string;
@@ -190,7 +191,7 @@ export default function PostventaPage() {
         {kpis.map(k => {
           const Icono = k.icon;
           return (
-            <div key={k.label} className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm">
+            <div key={k.label} className={tarjeta("p-4")}>
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${k.ibg}`}>
                 <Icono size={18} stroke={1.75} className={k.itxt} />
               </div>
@@ -207,7 +208,7 @@ export default function PostventaPage() {
         <div className="relative flex-1 min-w-[200px]">
           <IconSearch size={14} stroke={1.75} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input type="text" placeholder="Buscar negocio o cliente..." value={busqueda} onChange={e => setBusqueda(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 pl-8 pr-8 py-2 text-sm outline-none focus:border-brand-500" />
+            className={campo("md", "w-full pl-8 pr-8")} />
           {busqueda && (
             <button onClick={() => setBusqueda("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
               <IconX size={14} stroke={2} />
@@ -256,7 +257,7 @@ export default function PostventaPage() {
         </div>
       ) : vista === "tabla" ? (
         /* ── VISTA TABLA ── */
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className={tarjeta("overflow-hidden")}>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-xs text-slate-500 border-b border-slate-100">

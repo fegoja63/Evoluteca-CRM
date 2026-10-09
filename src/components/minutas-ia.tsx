@@ -14,6 +14,7 @@ import {
   IconNotes, IconSparkles, IconPlus, IconTrash, IconCopy, IconChevronDown, IconChevronUp, IconX, IconCheck,
 } from "@tabler/icons-react";
 import { minutaATexto, MAX_TEXTO_MINUTA, MIN_TEXTO_MINUTA, type MinutaIA } from "@/lib/minutas";
+import { boton } from "@/components/ui/estilos";
 
 type Asistente = MinutaIA["asistentes"][number];
 type Compromiso = MinutaIA["compromisos"][number] & { crearTarea: boolean };
@@ -163,7 +164,7 @@ export function MinutasIA({ oportunidadId, empresaId, empresaNombre, onGuardada 
         </h2>
         {modo === "lista" && (
           <button onClick={() => setModo("escribir")}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-700">
+            className={boton("marca", "sm")}>
             <IconSparkles size={14} stroke={2} />Minuta con IA
           </button>
         )}
@@ -184,7 +185,7 @@ export function MinutasIA({ oportunidadId, empresaId, empresaNombre, onGuardada 
             className={`${input} resize-y`} />
           <div className="flex flex-wrap items-center gap-2">
             <button onClick={generar} disabled={generando || notas.trim().length < MIN_TEXTO_MINUTA || !fecha}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+              className={boton("marca", "md")}>
               <IconSparkles size={16} stroke={2} />{generando ? "Preparando la minuta…" : "Generar minuta"}
             </button>
             <button onClick={() => { setModo("lista"); setNotas(""); }} disabled={generando}
@@ -280,7 +281,7 @@ export function MinutasIA({ oportunidadId, empresaId, empresaNombre, onGuardada 
 
           <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
             <button onClick={guardar} disabled={guardando || !borrador.titulo.trim() || !borrador.resumen.trim()}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50">
+              className={boton("primario", "md")}>
               <IconCheck size={16} stroke={2} />{guardando ? "Guardando…" : "Guardar minuta"}
             </button>
             <button onClick={() => setModo("escribir")} disabled={guardando} className="text-sm text-slate-500 hover:underline">Volver a las notas</button>

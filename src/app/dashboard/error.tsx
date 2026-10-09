@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { reportarError } from "@/lib/error-report";
 import { IconAlertTriangle } from "@tabler/icons-react";
+import { boton } from "@/components/ui/estilos";
 
 // Boundary de errores del dashboard: atrapa un crash de render de cualquier
 // página interna (sin tumbar el menú), lo reporta al monitoreo propio y deja
@@ -24,11 +25,11 @@ export default function DashboardError({ error, reset }: { error: Error & { dige
         </p>
         <div className="flex justify-center gap-2">
           <button onClick={() => reset()}
-            className="rounded-xl bg-brand-600 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-700 transition-colors">
+            className={boton("marca", "md")}>
             Reintentar
           </button>
           <button onClick={() => window.location.reload()}
-            className="rounded-xl border border-slate-200 px-5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+            className={boton("secundario", "md")}>
             Recargar página
           </button>
         </div>
