@@ -32,7 +32,7 @@ type Spec = {
 };
 
 const NOMBRE_ETAPA: Record<string, string> = {
-  PROSPECTO: "Prospecto", CALIFICADO: "Calificado", PROPUESTA: "Propuesta",
+  PROSPECTO: "Prospecto", CALIFICADO: "Calificado", PROPUESTA: "Cotización",
   NEGOCIACION: "Negociación", GANADA: "Ganada", PERDIDA: "Perdida",
 };
 
@@ -102,7 +102,7 @@ Hoy es ${hoy.toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: 
 Guía:
 - metrica: "conteo" (número de oportunidades), "valor_total" (suma de su valor), "valor_ganado" (valor de las que están GANADA), "valor_ponderado" (valor × probabilidad).
 - dimension: cómo agrupar el resultado. "ninguna" para un solo número total.
-- filtros.etapa: una de ${ETAPAS.join(", ")} (solo si la pregunta menciona una etapa).
+- filtros.etapa: una de ${ETAPAS.join(", ")} (solo si la pregunta menciona una etapa). En pantalla PROPUESTA se llama «Cotización»: si preguntan por cotización/propuesta, usa PROPUESTA.
 - filtros.soloAbiertas: true si pregunta por el pipeline abierto/activo (excluye ganadas y perdidas).
 - filtros.segmento: uno de: ${segmentos.length ? segmentos.join(", ") : "(ninguno disponible)"}.
 - filtros.sede: una de: ${sedes.length ? sedes.join(", ") : "(ninguna disponible)"}.
