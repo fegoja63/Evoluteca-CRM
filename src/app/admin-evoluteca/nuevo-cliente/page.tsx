@@ -35,10 +35,10 @@ export default function NuevoClienteInternoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-950 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-500 text-white text-xl font-bold mb-4">E</div>
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-500 text-white text-xl font-bold mb-4">E</div>
           <h1 className="text-2xl font-bold text-white">Nuevo cliente</h1>
           <p className="text-slate-400 text-sm mt-1">Página interna — solo Evoluteca</p>
         </div>
@@ -64,7 +64,7 @@ export default function NuevoClienteInternoPage() {
                 onChange={e => set("claveAdmin", e.target.value)}
                 placeholder="ADMIN_REGISTRO_SECRET"
                 colorOjo="text-slate-400 hover:text-slate-200"
-                className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors"
+                className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition-colors"
                 required
               />
             </div>
@@ -76,7 +76,7 @@ export default function NuevoClienteInternoPage() {
                 value={form.nombreEmpresa}
                 onChange={e => set("nombreEmpresa", e.target.value)}
                 placeholder="Ej: Teatro Belarte"
-                className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors"
+                className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition-colors"
                 required
               />
             </div>
@@ -88,7 +88,7 @@ export default function NuevoClienteInternoPage() {
                 value={form.nombreUsuario}
                 onChange={e => set("nombreUsuario", e.target.value)}
                 placeholder="Nombre de quien administrará la cuenta"
-                className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors"
+                className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition-colors"
                 required
               />
             </div>
@@ -100,7 +100,7 @@ export default function NuevoClienteInternoPage() {
                 value={form.email}
                 onChange={e => set("email", e.target.value)}
                 placeholder="nombre@empresa.com"
-                className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors"
+                className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition-colors"
                 required
               />
             </div>
@@ -113,7 +113,7 @@ export default function NuevoClienteInternoPage() {
                 placeholder="Mínimo 8 caracteres"
                 minLength={8}
                 colorOjo="text-slate-400 hover:text-slate-200"
-                className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors"
+                className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition-colors"
                 required
               />
               <p className="mt-1.5 text-xs text-slate-500">Compártela con el cliente por un canal seguro; puede cambiarla luego desde Mi perfil.</p>
@@ -128,7 +128,7 @@ export default function NuevoClienteInternoPage() {
             <button
               type="submit"
               disabled={enviando}
-              className="w-full rounded-xl bg-blue-500 hover:bg-blue-600 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-60 mt-2"
+              className="w-full rounded-xl bg-brand-500 hover:bg-brand-600 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-60 mt-2"
             >
               {enviando ? "Creando..." : "Crear cliente"}
             </button>
@@ -139,7 +139,7 @@ export default function NuevoClienteInternoPage() {
           Esta página no está enlazada en el menú ni indexada — guarda la URL en un lugar seguro.
         </p>
         <p className="text-center text-xs mt-2">
-          <a href="/admin-evoluteca/clientes" className="text-blue-400 hover:underline">Ver clientes existentes →</a>
+          <a href="/admin-evoluteca/clientes" className="text-brand-400 hover:underline">Ver clientes existentes →</a>
         </p>
       </div>
     </div>

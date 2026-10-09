@@ -57,14 +57,14 @@ export function NotasRapidas({ valor, onGuardar }: NotasRapidasProps) {
           {guardado && <span className="text-xs text-emerald-600 font-medium">✓ Guardado</span>}
           {!editando
             ? <button onClick={() => setEditando(true)}
-                className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                className="text-xs text-brand-600 hover:text-brand-800 font-medium">
                 {texto ? "Editar" : "+ Agregar nota"}
               </button>
             : <div className="flex gap-2">
                 <button onClick={() => { setTexto(valor ?? ""); setEditando(false); }}
                   className="text-xs text-slate-400 hover:text-slate-600">Cancelar</button>
                 <button onClick={guardar} disabled={guardando}
-                  className="text-xs bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium">
+                  className="text-xs bg-brand-600 text-white px-3 py-1 rounded-lg hover:bg-brand-700 disabled:opacity-50 font-medium">
                   {guardando ? "..." : "Guardar"}
                 </button>
               </div>
@@ -80,7 +80,7 @@ export function NotasRapidas({ valor, onGuardar }: NotasRapidasProps) {
           onKeyDown={handleKeyDown}
           placeholder="Escribe aquí tus notas... (Ctrl+Enter para guardar, Esc para cancelar)"
           rows={5}
-          className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-400 resize-none leading-relaxed"
+          className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-brand-400 resize-none leading-relaxed"
         />
       ) : texto ? (
         <div onClick={() => setEditando(true)}

@@ -446,20 +446,20 @@ export default function NuevaCotizacionPage() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         {/* Cargar plantilla — destacado para que no pase desapercibido */}
         {plantillas.length > 0 && (
-          <div className="rounded-2xl border-2 border-violet-300 bg-violet-50 p-5">
+          <div className="rounded-2xl border-2 border-brand-300 bg-brand-50 p-5">
             <div className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white">
+              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white">
                 <IconTemplate size={20} stroke={1.75} />
               </span>
               <div className="flex-1">
-                <h2 className="text-sm font-bold text-violet-900">¿Empezar desde una plantilla?</h2>
-                <p className="text-xs text-violet-700 mt-0.5 mb-3">
+                <h2 className="text-sm font-bold text-brand-900">¿Empezar desde una plantilla?</h2>
+                <p className="text-xs text-brand-700 mt-0.5 mb-3">
                   Carga los ítems y notas de una plantilla guardada y ahorra tiempo. Luego ajusta lo que sea específico de este cliente.
                 </p>
-                <label className="block text-xs font-medium text-violet-800 mb-1">Elegir plantilla</label>
+                <label className="block text-xs font-medium text-brand-800 mb-1">Elegir plantilla</label>
                 <select
                   value={plantillaCargadaId}
-                  className="w-full rounded-xl border border-violet-300 bg-white px-3 py-2.5 text-sm text-violet-900 font-medium outline-none focus:border-violet-500"
+                  className="w-full rounded-xl border border-brand-300 bg-white px-3 py-2.5 text-sm text-brand-900 font-medium outline-none focus:border-brand-500"
                   onChange={e => {
                     const p = plantillas.find(x => x.id === e.target.value);
                     if (!p) { setPlantillaCargada(""); setPlantillaCargadaId(""); return; }

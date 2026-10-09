@@ -132,7 +132,7 @@ export default function PlantillasPage() {
         </button>
       </div>
 
-      <div className="mb-6 flex items-start gap-2 rounded-xl border border-violet-100 bg-violet-50 px-4 py-3 text-xs text-violet-700">
+      <div className="mb-6 flex items-start gap-2 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3 text-xs text-brand-700">
         <IconInfoCircle size={16} stroke={1.75} className="mt-0.5 shrink-0" />
         <p>
           Esta función sirve únicamente para <strong>agregar ítems y precios estándar</strong> a una cotización más rápido.

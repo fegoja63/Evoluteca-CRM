@@ -118,7 +118,7 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
         {FILTROS.map(f => (
           <button key={f.key} onClick={() => { setFiltro(f.key); setMostrar(15); }}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              filtro === f.key ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              filtro === f.key ? "bg-brand-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}>
             {f.label}
           </button>
@@ -129,12 +129,12 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
       <form onSubmit={guardarEvento} className="mb-6 rounded-xl border border-slate-100 bg-slate-50 p-4">
         <div className="flex gap-2 mb-2">
           <select value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}
-            className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-blue-500">
+            className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-brand-500">
             {TIPOS_EVENTO.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
           {contactos.length > 0 && (
             <select value={form.contactoId} onChange={e => setForm(f => ({ ...f, contactoId: e.target.value }))}
-              className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-blue-500">
+              className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-brand-500">
               <option value="">— Contacto (opcional) —</option>
               {contactos.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
             </select>
@@ -145,17 +145,17 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
           placeholder="Título del evento, nota o interacción..."
           value={form.titulo}
           onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))}
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-blue-500 mb-2"
+          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-500 mb-2"
         />
         <textarea
           placeholder="Descripción o detalle (opcional)"
           value={form.descripcion}
           onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
           rows={2}
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-blue-500 resize-none mb-2"
+          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-500 resize-none mb-2"
         />
         <button type="submit" disabled={guardando || !form.titulo.trim()}
-          className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+          className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50">
           {guardando ? "Guardando..." : "+ Registrar"}
         </button>
       </form>
@@ -198,13 +198,13 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
                         ) : null}
                         {item.meta?.cotizacionId && (
                           <Link href={`/dashboard/cotizaciones-formales/${item.meta.cotizacionId}`}
-                            className="text-xs text-blue-600 hover:underline mt-0.5 block">
+                            className="text-xs text-brand-600 hover:underline mt-0.5 block">
                             Ver cotización →
                           </Link>
                         )}
                         {item.meta?.oportunidadId && (
                           <Link href={`/dashboard/pipeline/${item.meta.oportunidadId}`}
-                            className="text-xs text-blue-600 hover:underline mt-0.5 block">
+                            className="text-xs text-brand-600 hover:underline mt-0.5 block">
                             Ver oportunidad →
                           </Link>
                         )}
@@ -242,7 +242,7 @@ export function TimelineCliente({ empresaId, contactos }: { empresaId: string; c
 
           {itemsFiltrados.length > mostrar && (
             <button onClick={() => setMostrar(n => n + 15)}
-              className="mt-4 ml-10 text-xs text-blue-600 hover:underline">
+              className="mt-4 ml-10 text-xs text-brand-600 hover:underline">
               Ver {Math.min(15, itemsFiltrados.length - mostrar)} más ({itemsFiltrados.length - mostrar} restantes)
             </button>
           )}

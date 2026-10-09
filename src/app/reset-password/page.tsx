@@ -45,7 +45,7 @@ function ResetForm() {
         <div className="text-4xl mb-4">⚠️</div>
         <h2 className="text-xl font-bold text-slate-800 mb-2">Enlace inválido</h2>
         <p className="text-slate-500 text-sm mb-4">Este enlace de recuperación no es válido.</p>
-        <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+        <Link href="/forgot-password" className="text-sm text-brand-600 hover:text-brand-800 font-medium">
           Solicitar nuevo enlace
         </Link>
       </div>
@@ -76,7 +76,7 @@ function ResetForm() {
             required
             minLength={8}
             placeholder="Mínimo 8 caracteres"
-            className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
           />
         </div>
 
@@ -87,7 +87,7 @@ function ResetForm() {
             onChange={e => setConfirmar(e.target.value)}
             required
             placeholder="Repite la contraseña"
-            className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
           />
         </div>
 
@@ -98,7 +98,7 @@ function ResetForm() {
         <button
           type="submit"
           disabled={cargando || !password || !confirmar}
-          className="w-full rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="w-full rounded-xl bg-brand-600 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50 transition-colors"
         >
           {cargando ? "Guardando..." : "Restablecer contraseña"}
         </button>
@@ -109,11 +109,11 @@ function ResetForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-950 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="flex justify-center mb-6">
-            <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white text-xl font-bold shadow-lg">E</div>
+            <div className="w-12 h-12 rounded-xl bg-brand-600 flex items-center justify-center text-white text-xl font-bold shadow-lg">E</div>
           </div>
           <Suspense fallback={<p className="text-center text-slate-400 text-sm">Cargando...</p>}>
             <ResetForm />

@@ -27,11 +27,11 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-950 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="flex justify-center mb-6">
-            <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white text-xl font-bold shadow-lg">E</div>
+            <div className="w-12 h-12 rounded-xl bg-brand-600 flex items-center justify-center text-white text-xl font-bold shadow-lg">E</div>
           </div>
 
           {enviado ? (
@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
               <p className="text-slate-500 text-sm mb-6">
                 Si existe una cuenta con ese correo, recibirás un enlace para restablecer tu contraseña. El enlace expira en 1 hora.
               </p>
-              <Link href="/login" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+              <Link href="/login" className="text-sm text-brand-600 hover:text-brand-800 font-medium">
                 ← Volver al inicio de sesión
               </Link>
             </div>
@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
                     onChange={e => setEmail(e.target.value)}
                     required
                     placeholder="tu@correo.com"
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
                   />
                 </div>
 
@@ -72,14 +72,14 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={cargando || !email}
-                  className="w-full rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  className="w-full rounded-xl bg-brand-600 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50 transition-colors"
                 >
                   {cargando ? "Enviando..." : "Enviar enlace de recuperación"}
                 </button>
               </form>
 
               <p className="mt-5 text-center text-sm text-slate-500">
-                <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
+                <Link href="/login" className="text-brand-600 hover:text-brand-800 font-medium">
                   ← Volver al inicio de sesión
                 </Link>
               </p>

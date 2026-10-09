@@ -294,7 +294,7 @@ export default function FichaFuncionPage() {
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-xs text-slate-400 mb-1">Asistentes registrados</p>
-                <p className="text-2xl font-bold text-violet-700">{fn.asistencias.length}</p>
+                <p className="text-2xl font-bold text-brand-700">{fn.asistencias.length}</p>
                 <p className="text-xs text-slate-400 mt-0.5">{fn.asistencias.filter(a => a.espectador._count.asistencias > 1).length} recurrentes</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
