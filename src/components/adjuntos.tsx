@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { IconPaperclip, IconFile, IconFileTypePdf, IconPhoto, IconDownload, IconTrash, IconLoader2 } from "@tabler/icons-react";
 import { tarjeta } from "@/components/ui/estilos";
+import { SkeletonLista } from "@/components/ui/estados";
 
 type Adjunto = { id: string; nombre: string; tipo: string; tamano: number; creadoEn: string };
 
@@ -118,7 +119,7 @@ export function Adjuntos({ empresaId, contactoId, oportunidadId }: AdjuntosProps
       {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
 
       {cargando ? (
-        <p className="text-xs text-slate-400">Cargando...</p>
+        <SkeletonLista filas={2} />
       ) : adjuntos.length === 0 ? (
         <p className="text-sm text-slate-400 italic">Sin archivos adjuntos.</p>
       ) : (

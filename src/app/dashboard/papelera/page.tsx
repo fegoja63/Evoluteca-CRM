@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { IconRestore, IconTrash, IconInboxOff } from "@tabler/icons-react";
 import { numeroCotizacion } from "@/lib/cotizaciones";
+import { SkeletonTabla } from "@/components/ui/estados";
 
 type Item = { id: string; nombre: string; email: string | null; eliminadoEn: string };
 type ItemEmpresa = Item & { sector: string | null };
@@ -78,7 +79,7 @@ export default function PapeleraPage() {
       </div>
 
       {cargando ? (
-        <p className="text-sm text-slate-400">Cargando...</p>
+        <SkeletonTabla filas={4} columnas={4} />
       ) : (
         <div className="flex flex-col gap-8">
           <div>

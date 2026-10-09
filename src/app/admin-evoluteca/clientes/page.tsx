@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { CampoPassword } from "@/components/campo-password";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonTabla } from "@/components/ui/estados";
 
 const CLAVE_KEY = "admin-evoluteca-secret";
 
@@ -175,7 +176,7 @@ export default function ClientesInternoPage() {
         />
 
         {cargando ? (
-          <p className="text-sm text-slate-400">Cargando...</p>
+          <SkeletonTabla columnas={6} />
         ) : (
           <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
             <table className="w-full text-sm">

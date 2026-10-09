@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { KpiCard } from "@/components/kpi-card";
-import { IconScale, IconGavel, IconCircleCheck, IconX, IconPlus } from "@tabler/icons-react";
+import { IconScale, IconGavel, IconCircleCheck, IconX, IconPlus, IconSearch } from "@tabler/icons-react";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
 
 type Expediente = {
   id: string;
@@ -88,13 +89,12 @@ export default function ExpedientesPage() {
       </div>
 
       {cargando ? (
-        <p className="text-sm text-slate-400">Cargando...</p>
+        <SkeletonTabla />
       ) : filtrados.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-          <p className="text-sm text-slate-500">
-            {busqueda ? "No se encontraron resultados." : "Aún no tienes expedientes. Crea el primero."}
-          </p>
-        </div>
+        busqueda ? <EstadoVacio icon={IconSearch} titulo="Sin resultados" descripcion={`Ningún expediente coincide con “${busqueda}”.`} /> : (
+          <EstadoVacio icon={IconScale} titulo="Aún no tienes expedientes"
+            accion={<Link href="/dashboard/expedientes/nuevo" className={boton("primario", "md")}><IconPlus size={16} stroke={1.75} />Nuevo expediente</Link>} />
+        )
       ) : (
         <div className="overflow-hidden rounded-2xl border border-slate-200">
           <table className="w-full text-sm">

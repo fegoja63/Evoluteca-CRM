@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { MoneyInput } from "@/components/money-input";
 import { boton, tarjeta } from "@/components/ui/estilos";
+import { SkeletonLista } from "@/components/ui/estados";
 
 type Vendedor = {
   id: string;
@@ -91,11 +92,7 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
       </div>
 
       {cargando ? (
-        <div className="flex items-center justify-center h-32">
-          <div className="flex gap-1">{[0,1,2].map(i => (
-            <div key={i} className="w-2 h-2 rounded-full bg-brand-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />
-          ))}</div>
-        </div>
+        <SkeletonLista filas={4} />
       ) : vendedores.length === 0 ? (
         <p className="text-sm text-slate-400">No hay vendedores con registros.</p>
       ) : (

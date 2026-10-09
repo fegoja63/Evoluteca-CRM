@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { IconPlus, IconX, IconClipboardText, IconStar, IconInfoCircle, IconPencil, IconTrash } from "@tabler/icons-react";
 import { LineasEditor, LINEA_VACIA, type Linea } from "@/components/lineas-editor";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonTarjetas, EstadoVacio } from "@/components/ui/estados";
 
 type ItemPlantilla = { id: string; descripcion: string; cantidad: string | number; precioUnit: string | number };
 type Plantilla = { id: string; nombre: string; notas: string | null; creadoEn: string; items: ItemPlantilla[] };
@@ -177,15 +178,14 @@ export default function PlantillasPage() {
       )}
 
       {cargando ? (
-        <p className="text-sm text-slate-400">Cargando...</p>
+        <SkeletonTarjetas />
       ) : lista.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-12 text-center">
-          <IconClipboardText size={32} stroke={1.5} className="mx-auto mb-3 text-slate-300" />
-          <p className="text-sm text-slate-500 mb-1">Aún no tienes plantillas guardadas.</p>
-          <p className="text-xs text-slate-400 inline-flex items-center gap-1 flex-wrap justify-center">
+        <EstadoVacio icon={IconClipboardText} titulo="Aún no tienes plantillas guardadas"
+          accion={<button onClick={() => { setModo("nuevo"); setNombre(""); setNotas(""); setLineas([{ ...LINEA_VACIA }]); setError(""); setEditandoId(null); }}
+            className={boton("primario", "md")}><IconPlus size={16} stroke={1.75} />Nueva plantilla</button>}
+          descripcion={<span className="inline-flex items-center gap-1 flex-wrap justify-center">
             También puedes crear una desde el botón <span className="inline-flex items-center gap-0.5 font-medium text-slate-500"><IconStar size={12} stroke={1.75} />Guardar plantilla</span> al ver una cotización.
-          </p>
-        </div>
+          </span>} />
       ) : (
         <div className="flex flex-col gap-3">
           {lista.map(p => (

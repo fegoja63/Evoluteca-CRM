@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
 import { IconMail, IconSend, IconX, IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonLista } from "@/components/ui/estados";
 
 type Correo = {
   id: string;
@@ -114,7 +115,7 @@ export function CorreosPanel({ contactoId, empresaId, oportunidadId, emailDestin
       )}
 
       {cargando ? (
-        <p className="text-sm text-slate-400">Cargando...</p>
+        <SkeletonLista />
       ) : correos.length === 0 ? (
         <p className="text-xs text-slate-400">Sin correos registrados. Usa &ldquo;Redactar&rdquo; para enviar el primero.</p>
       ) : (

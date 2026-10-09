@@ -12,6 +12,7 @@ import { EditorSeccionesCotizacion } from "@/components/editor-secciones-cotizac
 import { normalizarCuerpo, type SeccionCuerpo } from "@/lib/cuerpo-cotizacion";
 import { useSession } from "next-auth/react";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonDetalle } from "@/components/ui/estados";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type LineaAhorro = { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string };
@@ -381,7 +382,7 @@ export default function CotizacionDetailPage() {
     cargar();
   }
 
-  if (cargando || !cot) return <p className="text-sm text-slate-400 p-6">Cargando...</p>;
+  if (cargando || !cot) return <SkeletonDetalle />;
 
   const subtotal = cot.items.reduce((acc, i) => acc + i.cantidad * Number(i.precioUnit), 0);
   const pctImpuesto = Number(cot.impuestoPorcentaje ?? 0);

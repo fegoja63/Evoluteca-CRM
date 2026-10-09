@@ -42,3 +42,5 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
 export function Badge({ tono = "neutro", className, ...props }: HTMLAttributes<HTMLSpanElement> & { tono?: TonoInsignia }) {
   return <span className={insignia(tono, className)} {...props} />;
 }
+
+export { Bloque, SkeletonLista, SkeletonTabla, SkeletonTarjetas, SkeletonKpis, SkeletonKanban, SkeletonDetalle, EstadoVacio } from "./estados";

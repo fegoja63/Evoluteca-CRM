@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { IconShieldCheck, IconShieldOff, IconCopy, IconCheck, IconAlertTriangle } from "@tabler/icons-react";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
+import { SkeletonLista } from "@/components/ui/estados";
 
 type Estado = { activa: boolean; activadaEn: string | null; codigosRespaldoRestantes: number };
 
@@ -101,7 +102,7 @@ export default function DosFactores() {
   if (cargando) {
     return (
       <div className={tarjeta("p-5")}>
-        <p className="text-sm text-slate-400">Cargando…</p>
+        <SkeletonLista filas={2} />
       </div>
     );
   }

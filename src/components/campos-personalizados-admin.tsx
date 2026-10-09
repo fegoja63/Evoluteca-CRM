@@ -10,6 +10,7 @@ import {
   type TipoCampo, type EntidadCampo,
 } from "@/lib/campos-personalizados";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonLista } from "@/components/ui/estados";
 
 type Def = {
   id: string;
@@ -135,7 +136,7 @@ export function CamposPersonalizadosAdmin({ esAdmin }: { esAdmin: boolean }) {
 
       {/* Lista de campos de la entidad activa */}
       {cargando ? (
-        <p className="text-sm text-slate-400">Cargando...</p>
+        <SkeletonLista />
       ) : delEntidad.length === 0 ? (
         <p className="text-xs text-slate-400 mb-4">Aún no hay campos para {ENTIDAD_LABEL[entidad]}.</p>
       ) : (

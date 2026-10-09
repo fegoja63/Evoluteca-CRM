@@ -7,11 +7,13 @@ import { Pager } from "@/components/pager";
 import {
   IconBuilding, IconUsers, IconAlertTriangle, IconLink, IconBuildingPlus, IconX, IconTrash, IconPencil, IconUserShare,
   type Icon,
+  IconSearch,
 } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
 import { puedeEliminar } from "@/lib/permisos";
 import { toast } from "@/lib/toast";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
+import { SkeletonTabla, EstadoVacio, SkeletonKpis } from "@/components/ui/estados";
 
 const TAKE = 30;
 
@@ -67,6 +69,9 @@ export default function ClientesPage() {
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [stats, setStats] = useState({ total: 0, conContactos: 0, sinContactos: 0, contactosVinculados: 0 });
+  // Los KPIs solo muestran skeleton en la primera carga; al buscar o filtrar
+  // se quedan con el valor anterior hasta que llega el nuevo (sin parpadeo).
+  const [statsListos, setStatsListos] = useState(false);
   const [editando, setEditando] = useState<Empresa | null>(null);
   const [formEdit, setFormEdit] = useState({ nombre: "", email: "", telefono: "", sector: "", sitioWeb: "", notas: "" });
   const [guardandoEdit, setGuardandoEdit] = useState(false);
@@ -163,6 +168,7 @@ export default function ClientesPage() {
   async function cargarStats(q = "", anio = "", mes = "") {
     const res = await fetch(`/api/empresas/stats?q=${encodeURIComponent(q)}&anio=${anio}&mes=${mes}`);
     setStats(await res.json());
+    setStatsListos(true);
   }
 
   // Lista completa (sin paginar) solo para detección de duplicados al crear —
@@ -305,6 +311,7 @@ export default function ClientesPage() {
         <p className="text-slate-500 text-sm mt-1">Empresas, organizaciones y personas naturales</p>
       </div>
 
+      {!statsListos ? <div className="mb-8"><SkeletonKpis /></div> : (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         {([
           { label: "Total clientes", valor: stats.total, sub: filtroAnio ? `Creados en ${filtroMes ? `${nombreMes(filtroMes)} ${filtroAnio}` : filtroAnio}` : undefined, icon: IconBuilding, semantic: false },
@@ -327,6 +334,7 @@ export default function ClientesPage() {
           );
         })}
       </div>
+      )}
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -507,13 +515,13 @@ export default function ClientesPage() {
       )}
 
       {cargando ? (
-        <p className="text-sm text-slate-400">Cargando...</p>
+        <SkeletonTabla columnas={6} />
       ) : empresas.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-          <p className="text-sm text-slate-500">
-            {busqueda ? "No se encontraron resultados." : "Aún no tienes clientes. Crea el primero."}
-          </p>
-        </div>
+        busqueda ? <EstadoVacio icon={IconSearch} titulo="Sin resultados" descripcion={`Ningún cliente coincide con “${busqueda}”.`} /> : (
+          <EstadoVacio icon={IconBuilding} titulo="Aún no tienes clientes"
+            descripcion="Crea tu primer cliente para empezar a registrar contactos, oportunidades y cotizaciones."
+            accion={<button onClick={() => setMostrarForm(true)} className={boton("primario", "md")}><IconBuildingPlus size={16} stroke={1.75} />Nuevo cliente</button>} />
+        )
       ) : (
         <div className="overflow-hidden rounded-2xl border border-slate-200">
           <table className="w-full text-sm">

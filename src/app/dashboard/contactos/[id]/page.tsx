@@ -12,6 +12,7 @@ import { guardarJson } from "@/lib/guardar";
 import { Adjuntos } from "@/components/adjuntos";
 import { CorreosPanel } from "@/components/correos-panel";
 import { boton } from "@/components/ui/estilos";
+import { SkeletonDetalle } from "@/components/ui/estados";
 
 type Empresa = { id: string; nombre: string };
 
@@ -124,7 +125,7 @@ export default function FichaContactoPage() {
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(Number(valor));
   }
 
-  if (cargando) return <p className="text-sm text-neutral-400">Cargando...</p>;
+  if (cargando) return <SkeletonDetalle />;
   if (!contacto) return <p className="text-sm text-neutral-400">No encontrado.</p>;
 
   return (

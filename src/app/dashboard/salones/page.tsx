@@ -6,6 +6,7 @@ import {
   IconEdit, IconTrash,
 } from "@tabler/icons-react";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonTarjetas, EstadoVacio } from "@/components/ui/estados";
 
 type Salon = { id: string; nombre: string; capacidad: number | null; descripcion: string | null; activo: boolean };
 
@@ -136,13 +137,12 @@ export default function SalonesPage() {
 
       {/* Lista */}
       {cargando ? (
-        <p className="text-sm text-slate-400">Cargando...</p>
+        <SkeletonTarjetas />
       ) : lista.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-12 text-center">
-          <IconBuildingPavilion size={32} stroke={1.5} className="text-slate-300 mx-auto mb-3" />
-          <p className="text-sm text-slate-500 mb-4">Aún no tienes salones registrados.</p>
-          <p className="text-xs text-slate-400">Agrega tus espacios para poder asignarlos en cada cotización y evitar choques de fecha.</p>
-        </div>
+        <EstadoVacio icon={IconBuildingPavilion} titulo="Aún no tienes salones registrados"
+          descripcion="Agrega tus espacios para poder asignarlos en cada cotización y evitar choques de fecha."
+          accion={<button onClick={() => { setModo("nuevo"); setEditId(null); setForm({ nombre: "", capacidad: "", descripcion: "" }); }}
+            className={boton("primario", "md")}><IconPlus size={16} stroke={1.75} />Nuevo salón</button>} />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {lista.map(s => (

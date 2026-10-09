@@ -12,6 +12,7 @@ import { puedeEliminar } from "@/lib/permisos";
 import { toast } from "@/lib/toast";
 import { MoneyInput } from "@/components/money-input";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
+import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
 
 type Oportunidad = {
   id: string;
@@ -477,16 +478,11 @@ export default function CotizacionesPage() {
 
       {/* Tabla */}
       {cargando ? (
-        <p className="text-sm text-slate-400">Cargando...</p>
+        <SkeletonTabla columnas={6} />
       ) : listado.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
-          <p className="text-sm text-slate-500 mb-3">No hay cotizaciones activas en esta etapa.</p>
-          <Link href="/dashboard/cotizaciones-formales/nueva"
-            className={boton("primario", "md")}>
-            <IconFilePlus size={16} stroke={1.75} />
-            Nueva cotización
-          </Link>
-        </div>
+        <EstadoVacio icon={IconFileText} titulo="No hay cotizaciones activas en esta etapa"
+          accion={<Link href="/dashboard/cotizaciones-formales/nueva" className={boton("primario", "md")}>
+            <IconFilePlus size={16} stroke={1.75} />Nueva cotización</Link>} />
       ) : (
         <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
           <table className="w-full text-sm">

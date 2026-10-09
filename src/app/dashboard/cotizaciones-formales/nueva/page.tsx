@@ -9,6 +9,7 @@ import { EditorSeccionesCotizacion } from "@/components/editor-secciones-cotizac
 import { SECCIONES_SUGERIDAS, normalizarCuerpo, type SeccionCuerpo } from "@/lib/cuerpo-cotizacion";
 import { useSession } from "next-auth/react";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonDetalle } from "@/components/ui/estados";
 
 type Empresa  = { id: string; nombre: string; condicionesComerciales?: string | null };
 type Contacto = { id: string; nombre: string; email: string | null; empresa: { id: string } | null };
@@ -418,7 +419,7 @@ export default function NuevaCotizacionPage() {
     router.push(`/dashboard/cotizaciones-formales/${cot.id}`);
   }
 
-  if (cargando) return <p className="text-sm text-slate-400 p-6">Cargando...</p>;
+  if (cargando) return <SkeletonDetalle />;
 
   return (
     <div className="max-w-3xl">

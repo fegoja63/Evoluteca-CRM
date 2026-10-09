@@ -27,6 +27,7 @@ import { ResumenIA } from "@/components/resumen-ia";
 import { MinutasIA } from "@/components/minutas-ia";
 import { IconPhone, IconMail, IconUsers, IconPencil, IconTrash, IconPlus, type Icon } from "@tabler/icons-react";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonDetalle } from "@/components/ui/estados";
 
 type Detalle = {
   id: string;
@@ -226,7 +227,7 @@ export default function FichaClientePage() {
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(Number(valor));
   }
 
-  if (cargando) return <p className="text-sm text-slate-400">Cargando...</p>;
+  if (cargando) return <SkeletonDetalle />;
   if (!empresa) return <p className="text-sm text-slate-400">No encontrado.</p>;
 
   return (

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { IconDownload, IconPlus, IconX, IconPackage, IconTarget, IconTrash } from "@tabler/icons-react";
 import { MoneyInput } from "@/components/money-input";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonTarjetas, EstadoVacio } from "@/components/ui/estados";
 
 type Producto = { id: string; nombre: string; descripcion: string | null; precioBase: string; activo: boolean };
 type Fila = { nombre: string; descripcion: string; precioBase: string };
@@ -231,13 +232,12 @@ export default function CatalogoPage() {
 
       {/* Lista */}
       {cargando ? (
-        <p className="text-sm text-slate-400">Cargando...</p>
+        <SkeletonTarjetas />
       ) : lista.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-12 text-center">
-          <IconPackage size={32} stroke={1.5} className="mx-auto mb-3 text-slate-300" />
-          <p className="text-sm text-slate-500 mb-4">Aún no tienes servicios en el catálogo.</p>
-          <p className="text-xs text-slate-400">Agrega tus servicios habituales para usarlos rápidamente al crear cotizaciones.</p>
-        </div>
+        <EstadoVacio icon={IconPackage} titulo="Aún no tienes servicios en el catálogo"
+          descripcion="Agrega tus servicios habituales para usarlos rápidamente al crear cotizaciones."
+          accion={<button onClick={() => { setModo("nuevo"); setEditId(null); setForm({ nombre: "", descripcion: "", precioBase: "" }); setFilas([filaVacia()]); }}
+            className={boton("primario", "md")}><IconPlus size={16} stroke={1.75} />Nuevo servicio</button>} />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {lista.map(p => (

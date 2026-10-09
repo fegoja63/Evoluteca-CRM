@@ -7,6 +7,7 @@ import { RendimientoEquipo } from "@/components/rendimiento-equipo";
 import { IconDownload, IconUserPlus, IconEdit, IconCircleCheck, IconTrash, IconAlertTriangle } from "@tabler/icons-react";
 import { CampoPassword } from "@/components/campo-password";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonTabla } from "@/components/ui/estados";
 
 type Usuario = {
   id: string;
@@ -351,7 +352,7 @@ export default function EquipoPage() {
       )}
 
       {cargando ? (
-        <p className="text-sm text-neutral-400">Cargando...</p>
+        <SkeletonTabla filas={4} columnas={4} />
       ) : (
         <div className="overflow-hidden rounded-xl border border-neutral-200">
           <table className="w-full text-sm">

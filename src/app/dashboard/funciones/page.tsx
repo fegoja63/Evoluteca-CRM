@@ -11,6 +11,7 @@ import {
   IconAlertTriangle,
 } from "@tabler/icons-react";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonTarjetas, EstadoVacio } from "@/components/ui/estados";
 
 const TAKE = 30;
 
@@ -440,11 +441,10 @@ export default function FuncionesPage() {
       )}
 
       {cargando ? (
-        <p className="text-sm text-slate-400">Cargando...</p>
+        <SkeletonTarjetas />
       ) : funciones.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-          <p className="text-sm text-slate-500">Aún no hay funciones registradas.</p>
-        </div>
+        <EstadoVacio icon={IconTheater} titulo="Aún no hay funciones registradas"
+          accion={<button onClick={() => setMostrarForm(true)} className={boton("primario", "md")}><IconPlus size={16} stroke={1.75} />Nueva función</button>} />
       ) : (
         <div className="overflow-hidden rounded-2xl border border-slate-200">
           <table className="w-full text-sm">

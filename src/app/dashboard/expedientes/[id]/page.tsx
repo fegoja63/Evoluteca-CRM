@@ -9,6 +9,7 @@ import { BitacoraExpediente } from "@/components/bitacora-expediente";
 import { plazoVencido, plazoProximo } from "@/lib/plazo-legal";
 import { IconAlertTriangle } from "@tabler/icons-react";
 import { boton, campo } from "@/components/ui/estilos";
+import { SkeletonDetalle } from "@/components/ui/estados";
 
 type Termino = {
   id: string;
@@ -234,7 +235,7 @@ export default function DetalleExpedientePage() {
     cargar();
   }
 
-  if (cargando) return <p className="text-sm text-slate-400">Cargando...</p>;
+  if (cargando) return <SkeletonDetalle />;
   if (!expediente) return <p className="text-sm text-slate-400">No encontrado.</p>;
 
   return (

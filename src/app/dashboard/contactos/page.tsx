@@ -7,11 +7,13 @@ import {
   IconUsers, IconBuilding, IconAlertTriangle, IconMail, IconUserCircle, IconX,
   IconPencil, IconTrash,
   type Icon,
+  IconSearch, IconPlus,
 } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
 import { puedeEliminar } from "@/lib/permisos";
 import { toast } from "@/lib/toast";
 import { boton, tarjeta } from "@/components/ui/estilos";
+import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
 
 const TAKE = 30;
 
@@ -329,13 +331,13 @@ export default function ContactosPage() {
       )}
 
       {cargando ? (
-        <p className="text-sm text-neutral-400">Cargando...</p>
+        <SkeletonTabla />
       ) : contactos.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
-          <p className="text-sm text-neutral-500">
-            {busqueda ? "No se encontraron resultados." : "Aún no tienes contactos. Crea el primero."}
-          </p>
-        </div>
+        busqueda ? <EstadoVacio icon={IconSearch} titulo="Sin resultados" descripcion={`Ningún contacto coincide con “${busqueda}”.`} /> : (
+          <EstadoVacio icon={IconUsers} titulo="Aún no tienes contactos"
+            descripcion="Agrega a las personas con las que hablas en cada cliente."
+            accion={<button onClick={() => setMostrarForm(true)} className={boton("primario", "md")}><IconPlus size={16} stroke={1.75} />Nuevo contacto</button>} />
+        )
       ) : (
         <div className="overflow-hidden rounded-xl border border-neutral-200">
           <table className="w-full text-sm">
