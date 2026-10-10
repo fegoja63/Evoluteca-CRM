@@ -12,7 +12,7 @@ import {
   IconUsersGroup, IconTheater, IconTicket, IconScale, IconBuildingPavilion, IconMessageChatbot,
   IconDatabaseImport, IconTrash, IconRocket, IconLifebuoy, IconSettings, IconHistory,
   IconUserCircle, IconLogout, IconSearch, IconX, IconArrowsSort, IconCheck,
-  IconGripVertical, IconArrowBackUp, IconSparkles, IconHeartHandshake, IconChevronDown, IconChevronRight, type Icon,
+  IconGripVertical, IconArrowBackUp, IconSparkles, IconHeartHandshake, IconChevronDown, IconChevronRight, IconInbox, type Icon,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/cn";
 
@@ -20,6 +20,7 @@ type NavItem = { href: string; label: string; icon: Icon };
 
 const navBase: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: IconLayoutDashboard },
+  { href: "/dashboard/hoy", label: "Bandeja Hoy", icon: IconInbox },
   { href: "/dashboard/cuentas", label: "Clientes", icon: IconBuilding },
   { href: "/dashboard/contactos", label: "Contactos", icon: IconUsers },
   { href: "/dashboard/pipeline", label: "Pipeline", icon: IconChartFunnel },
@@ -59,6 +60,7 @@ const GRUPOS: { id: GrupoId; label: string }[] = [
 
 const GRUPO_DE_HREF: Record<string, GrupoId> = {
   "/dashboard": "hoy",
+  "/dashboard/hoy": "hoy",
   "/dashboard/agenda": "hoy",
   "/dashboard/pipeline": "ventas",
   "/dashboard/cotizaciones-formales": "ventas",
