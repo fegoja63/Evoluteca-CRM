@@ -16,7 +16,7 @@ import {
   IconCircleCheck, IconScale, IconTheater, IconAlertCircle, IconSnowflake,
   IconMoodSmile, IconPinned, IconFilePlus, IconCalendarPlus, IconReportAnalytics, IconHeartHandshake,
   type Icon, IconTrendingUp, IconTrendingDown } from "@tabler/icons-react";
-import { tarjeta } from "@/components/ui/estilos";
+import { boton, tarjeta } from "@/components/ui/estilos";
 import { mapaEtapas } from "@/lib/etapas-color";
 
 export const dynamic = "force-dynamic";
@@ -347,6 +347,9 @@ export default async function DashboardPage() {
 
   // Nombres visibles: los personalizados del tenant sobreescriben los de por
   // defecto (para que "Oportunidades calientes" y las alertas también los usen).
+  // Negocios en las dos últimas etapas abiertas: lo que se ofrece mirar cuando
+  // el mes aún no tiene ventas.
+  const opsPorCerrar = opActivas.filter(o => o.etapa === "PROPUESTA" || o.etapa === "NEGOCIACION").length;
   const ETAPA_LABEL: Record<string,string> = { ...ETAPA_LABEL_DEFAULT, ...Object.fromEntries(etapasPipeline.map(e => [e.key, e.nombre])) };
   // El embudo respeta el orden del tenant y omite las etapas ocultas; si no hay
   // configuración, cae al orden por defecto.
@@ -417,6 +420,19 @@ export default async function DashboardPage() {
               </>
             )}
             <div className="text-center">
+              {valorGanadoMes === 0 ? (
+                // Sin ventas aún: en vez de un "$0" mudo, se dice qué hay cerca de
+                // cerrarse y se lleva al pipeline.
+                <>
+                  <p className="text-sm font-semibold">Aún no hay ventas este mes</p>
+                  <Link href="/dashboard/pipeline" className="mt-1 inline-block text-xs font-medium text-brand-200 underline-offset-2 hover:text-white hover:underline">
+                    {opsPorCerrar > 0
+                      ? `Ver ${opsPorCerrar === 1 ? "el negocio" : `los ${opsPorCerrar} negocios`} en ${ETAPA_LABEL.PROPUESTA} o ${ETAPA_LABEL.NEGOCIACION} →`
+                      : "Ir al pipeline →"}
+                  </Link>
+                </>
+              ) : (
+                <>
               <p className="text-2xl font-bold">{fmt(valorGanadoMes)}</p>
               <p className="text-brand-300 text-xs mt-0.5">Ganado este mes</p>
               {(variacionGanadoMes !== null || serieGanado6m.some(v => v > 0)) && (
@@ -430,6 +446,8 @@ export default async function DashboardPage() {
                     </span>
                   )}
                 </div>
+              )}
+                </>
               )}
             </div>
             <div className="w-px bg-white/20 self-stretch" />
@@ -537,7 +555,11 @@ export default async function DashboardPage() {
           {actividadesHoy.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-6 text-center">
               <IconMoodSmile size={28} stroke={1.5} className="text-slate-300 mb-2" />
-              <p className="text-xs font-semibold text-slate-700">¡Sin pendientes hoy!</p>
+              <p className="text-xs font-semibold text-slate-700">Nada agendado para hoy</p>
+              <p className="text-xs text-slate-400 mt-0.5">Buen momento para darle el próximo paso a un negocio.</p>
+              <Link href="/dashboard/agenda?nueva=1" className={boton("secundario", "sm", "mt-3")}>
+                <IconCalendarPlus size={14} stroke={1.75} />Agendar actividad
+              </Link>
             </div>
           ) : (
             <div className="flex flex-col gap-1.5">
@@ -850,7 +872,10 @@ export default async function DashboardPage() {
               <Link href="/dashboard/agenda" className="text-xs text-brand-600 hover:underline">Ver agenda →</Link>
             </div>
             {actividadesSemana.length === 0 ? (
-              <p className="text-xs text-slate-400 py-4 text-center">Sin actividades programadas</p>
+              <div className="py-4 text-center">
+                <p className="text-xs text-slate-400">Nada agendado en los próximos 7 días.</p>
+                <Link href="/dashboard/agenda?nueva=1" className="mt-1 inline-block text-xs font-medium text-brand-600 hover:underline">+ Agendar actividad</Link>
+              </div>
             ) : (
               <div className="flex flex-col gap-1.5">
                 {actividadesSemana.map(a => {

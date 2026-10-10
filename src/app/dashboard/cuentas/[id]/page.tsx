@@ -428,7 +428,11 @@ export default function FichaClientePage() {
           </div>
           <div className="flex flex-col gap-1 text-sm mb-3">
             {empresa.actividades.length === 0 ? (
-              <p className="text-xs text-slate-400">Sin actividades.</p>
+              <p className="text-xs text-slate-400">
+                Aún no hay actividades con este cliente.{" "}
+                <button onClick={() => { setQuickTipo("LLAMADA"); setQuickKey(k => k + 1); }}
+                  className="font-medium text-brand-600 hover:underline">Registrar la primera llamada</button>
+              </p>
             ) : (
               empresa.actividades.map((a) => (
                 <div key={a.id} className={`flex items-center gap-2 ${a.completada ? "text-slate-400 line-through" : "text-slate-700"}`}>
