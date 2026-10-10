@@ -9,7 +9,7 @@ import {
   IconPinned,
   IconChevronLeft, IconChevronRight, IconTrash, IconLayoutList, IconCalendar,
   IconFileExport, IconFileSpreadsheet, IconPlus, IconBell, IconCircleCheck,
-  IconAlertTriangle, IconPencil, IconUsers, IconCalendarPlus, IconX, IconUser } from "@tabler/icons-react";
+  IconAlertTriangle, IconPencil, IconUsers, IconCalendarPlus, IconX, IconUser, IconCheck, IconDots } from "@tabler/icons-react";
 import { tiposActividadVisibles, tipoActividadDef, type TipoActividadDef } from "@/lib/tipos-actividad";
 import { boton, tarjeta } from "@/components/ui/estilos";
 import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
@@ -356,10 +356,8 @@ function AgendaContent() {
   const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null);
   const [notificando, setNotificando] = useState<string | null>(null);
   const [notifOk, setNotifOk] = useState<string | null>(null);
-  // Id de la tarea cuyo menú de "Reasignar" está abierto (null = ninguno).
-  const [reasignandoId, setReasignandoId] = useState<string | null>(null);
-  // Fila cuyo menú "Añadir a mi calendario" está abierto.
-  const [calendarioId, setCalendarioId] = useState<string | null>(null);
+  // Fila cuyo menú "⋯" (Editar, Calendario, Reasignar, Borrar) está abierto.
+  const [menuId, setMenuId] = useState<string | null>(null);
 
   async function exportarExcel() {
     setExportando(true);
@@ -533,7 +531,7 @@ function AgendaContent() {
   }
 
   async function reasignar(id: string, nuevoResponsableId: string) {
-    setReasignandoId(null);
+    setMenuId(null);
     const nuevo = usuarios.find((u) => u.id === nuevoResponsableId);
     if (!nuevo) return;
     const previas = actividades;
@@ -652,12 +650,19 @@ function AgendaContent() {
         className={`flex items-center gap-3 rounded-xl border p-3 text-sm hover:bg-neutral-50 ${esHoy ? "border-red-200 bg-red-50" : "border-neutral-200"}`}>
         {/* Casilla para marcar COMPLETADA (no borra ni selecciona). El
             rótulo debajo y el tooltip evitan que se confunda con borrar. */}
-        <label className="flex flex-col items-center gap-0.5 shrink-0 cursor-pointer"
-          title="Marca la tarea como completada. No la borra.">
-          <input type="checkbox" checked={a.completada}
-            onChange={(e) => toggleCompletada(a.id, e.target.checked)} className="h-4 w-4" />
+        <button type="button" role="checkbox" aria-checked={a.completada}
+          onClick={() => toggleCompletada(a.id, !a.completada)}
+          title="Marca la tarea como completada. No la borra."
+          className="flex flex-col items-center gap-0.5 shrink-0 group">
+          <span className={`flex h-7 w-7 items-center justify-center rounded-full border-2 transition-colors ${
+            a.completada
+              ? "border-emerald-500 bg-emerald-500 text-white"
+              : "border-slate-300 bg-white text-transparent group-hover:border-emerald-500 group-hover:text-emerald-500"
+          }`}>
+            <IconCheck size={16} stroke={2.5} />
+          </span>
           <span className="text-2xs leading-none text-neutral-400">Hecha</span>
-        </label>
+        </button>
         <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600 flex items-center gap-1">
           <IconoTipo size={12} stroke={1.75} />
           {tipoActividadDef(a.tipo)?.label}
@@ -679,35 +684,6 @@ function AgendaContent() {
             {a.oportunidad && ` · ${a.oportunidad.titulo}`}
           </p>
         </div>
-        <div className="relative shrink-0">
-          <button
-            onClick={() => setReasignandoId(reasignandoId === a.id ? null : a.id)}
-            title="Reasignar a otra persona"
-            className="flex items-center gap-1 rounded-md border border-brand-300 bg-white px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50"
-          >
-            <IconUsers size={13} stroke={1.75} />
-            Reasignar
-          </button>
-          {reasignandoId === a.id && (
-            <>
-              {/* Capa invisible para cerrar el menú al hacer clic fuera */}
-              <div className="fixed inset-0 z-10" onClick={() => setReasignandoId(null)} />
-              <div className="absolute right-0 z-20 mt-1 w-52 rounded-lg border border-neutral-200 bg-white p-1 shadow-lg">
-                <p className="px-2 py-1 text-2xs font-semibold uppercase tracking-wide text-neutral-400">Asignar a</p>
-                {usuarios.map((u) => (
-                  <button
-                    key={u.id}
-                    onClick={() => reasignar(a.id, u.id)}
-                    className={`flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-xs hover:bg-brand-50 ${a.responsable?.id === u.id ? "font-semibold text-brand-700" : "text-neutral-700"}`}
-                  >
-                    <span>{u.id === miId ? `${u.nombre} (yo)` : u.nombre}</span>
-                    {a.responsable?.id === u.id && <IconCircleCheck size={13} stroke={1.75} className="text-brand-600" />}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
         <select
           value={a.estado}
           onChange={(e) => cambiarEstado(a.id, e.target.value)}
@@ -725,52 +701,66 @@ function AgendaContent() {
           </button>
         )}
         <div className="relative shrink-0">
-          <button
-            onClick={() => setCalendarioId(calendarioId === a.id ? null : a.id)}
-            title="Añadir solo esta actividad a mi calendario"
-            className="flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-600 hover:border-brand-400 hover:text-brand-600"
-          >
-            <IconCalendarPlus size={13} stroke={1.75} />
-            Calendario
+          <button type="button" onClick={() => setMenuId(menuId === a.id ? null : a.id)}
+            title="Más acciones" aria-label="Más acciones" aria-expanded={menuId === a.id}
+            className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-colors ${
+              menuId === a.id || editandoId === a.id ? "border-brand-400 bg-brand-50 text-brand-700" : "border-transparent text-slate-500 hover:border-slate-200 hover:bg-white"
+            }`}>
+            <IconDots size={18} stroke={1.75} />
           </button>
-          {calendarioId === a.id && (
+          {menuId === a.id && (
             <>
               {/* Capa invisible para cerrar el menú al hacer clic fuera */}
-              <div className="fixed inset-0 z-10" onClick={() => setCalendarioId(null)} />
+              <div className="fixed inset-0 z-10" onClick={() => setMenuId(null)} />
               <div className="absolute right-0 z-20 mt-1 w-60 rounded-lg border border-neutral-200 bg-white p-1 shadow-lg">
-                <p className="px-2 py-1 text-2xs font-semibold uppercase tracking-wide text-neutral-400">Añadir esta actividad a</p>
+                <button type="button" onClick={() => { iniciarEdicion(a); setMenuId(null); }}
+                  className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-neutral-700 hover:bg-brand-50">
+                  <IconPencil size={14} stroke={1.75} />Editar
+                </button>
+
+                <p className="mt-1 border-t border-neutral-100 px-2 pt-2 pb-1 text-2xs font-semibold uppercase tracking-wide text-neutral-400">
+                  <IconCalendarPlus size={12} stroke={1.75} className="inline -mt-0.5 mr-1" />Añadir a mi calendario
+                </p>
                 <a href={urlGoogleCalendar(a)} target="_blank" rel="noopener noreferrer"
-                  onClick={() => setCalendarioId(null)}
-                  className="block rounded px-2 py-1.5 text-left text-xs text-neutral-700 hover:bg-brand-50">
+                  onClick={() => setMenuId(null)}
+                  className="block rounded px-2 py-1.5 pl-7 text-left text-xs text-neutral-700 hover:bg-brand-50">
                   Google Calendar
                 </a>
                 <a href={urlOutlookCalendar(a)} target="_blank" rel="noopener noreferrer"
-                  onClick={() => setCalendarioId(null)}
-                  className="block rounded px-2 py-1.5 text-left text-xs text-neutral-700 hover:bg-brand-50">
+                  onClick={() => setMenuId(null)}
+                  className="block rounded px-2 py-1.5 pl-7 text-left text-xs text-neutral-700 hover:bg-brand-50">
                   Outlook
                 </a>
                 <button type="button"
-                  onClick={() => { descargarIcsActividad(a); setCalendarioId(null); }}
-                  className="block w-full rounded px-2 py-1.5 text-left text-xs text-neutral-700 hover:bg-brand-50">
+                  onClick={() => { descargarIcsActividad(a); setMenuId(null); }}
+                  className="block w-full rounded px-2 py-1.5 pl-7 text-left text-xs text-neutral-700 hover:bg-brand-50">
                   Descargar .ics
                 </button>
-                <p className="px-2 pt-1 pb-0.5 text-2xs leading-snug text-neutral-400">
-                  Google y Outlook te dejan elegir en qué calendario guardarla.
+
+                <p className="mt-1 border-t border-neutral-100 px-2 pt-2 pb-1 text-2xs font-semibold uppercase tracking-wide text-neutral-400">
+                  <IconUsers size={12} stroke={1.75} className="inline -mt-0.5 mr-1" />Reasignar a
                 </p>
+                <div className="max-h-48 overflow-y-auto">
+                  {usuarios.map((u) => (
+                    <button
+                      key={u.id}
+                      onClick={() => reasignar(a.id, u.id)}
+                      className={`flex w-full items-center justify-between rounded px-2 py-1.5 pl-7 text-left text-xs hover:bg-brand-50 ${a.responsable?.id === u.id ? "font-semibold text-brand-700" : "text-neutral-700"}`}
+                    >
+                      <span>{u.id === miId ? `${u.nombre} (yo)` : u.nombre}</span>
+                      {a.responsable?.id === u.id && <IconCircleCheck size={13} stroke={1.75} className="text-brand-600" />}
+                    </button>
+                  ))}
+                </div>
+
+                <button type="button" onClick={() => { setMenuId(null); eliminarActividad(a.id); }}
+                  className="mt-1 flex w-full items-center gap-2 rounded border-t border-neutral-100 px-2 py-1.5 text-left text-xs text-red-600 hover:bg-red-50">
+                  <IconTrash size={14} stroke={1.75} />Borrar
+                </button>
               </div>
             </>
           )}
         </div>
-        <button onClick={() => iniciarEdicion(a)}
-          className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium shrink-0 ${editandoId === a.id ? "border-brand-500 bg-brand-50 text-brand-700" : "border-slate-300 bg-white text-slate-600 hover:border-brand-400 hover:text-brand-600"}`} title="Editar tarea">
-          <IconPencil size={13} stroke={1.75} />
-          Editar
-        </button>
-        <button onClick={() => eliminarActividad(a.id)}
-          className="flex items-center gap-1 rounded-md border border-red-300 bg-white px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 shrink-0" title="Borrar tarea">
-          <IconTrash size={13} stroke={1.75} />
-          Borrar
-        </button>
       </div>
     );
   }
