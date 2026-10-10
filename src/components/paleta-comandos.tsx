@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   IconSearch, IconBuilding, IconUsers, IconChartFunnel, IconFileText, IconCalendar,
   IconBuildingPlus, IconUserPlus, IconCalendarPlus, IconFilePlus, IconPlus, IconSparkles,
-  IconLayoutDashboard, IconReportAnalytics, IconSettings, IconUserCircle, IconCornerDownLeft,
+  IconLayoutDashboard, IconReportAnalytics, IconSettings, IconUserCircle, IconInbox, IconCornerDownLeft,
   type Icon,
 } from "@tabler/icons-react";
 
@@ -37,6 +37,7 @@ const CREAR: Omit<Item, "grupo">[] = [
 
 const IR: Omit<Item, "grupo">[] = [
   { id: "i-inicio",    titulo: "Inicio",         icon: IconLayoutDashboard, href: "/dashboard" },
+  { id: "i-hoy",       titulo: "Bandeja Hoy",    icon: IconInbox,           href: "/dashboard/hoy" },
   { id: "i-agenda",    titulo: "Agenda",         icon: IconCalendar,        href: "/dashboard/agenda" },
   { id: "i-pipeline",  titulo: "Pipeline",       icon: IconChartFunnel,     href: "/dashboard/pipeline" },
   { id: "i-clientes",  titulo: "Clientes",       icon: IconBuilding,        href: "/dashboard/cuentas" },
