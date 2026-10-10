@@ -545,6 +545,14 @@ export default function PipelinePage() {
   const valorPerdidas = perdidas.reduce((acc,o) => acc + Number(o.valor ?? 0), 0);
   const valorActivas  = activas.reduce((acc,o)  => acc + Number(o.valor ?? 0), 0);
   const valorPonderado = activas.reduce((acc,o) => acc + Number(o.valor ?? 0) * ((o.probabilidad ?? 50) / 100), 0);
+  // Negocios "En riesgo" (estado comercial) del filtro actual, el más valioso
+  // primero: es lo que conviene rescatar antes.
+  const enRiesgo = activas
+    .map(o => ({ o, est: estadoComercial(o, diasEstancamiento) }))
+    .filter(x => x.est?.clave === "riesgo")
+    .map(x => ({ o: x.o, razon: x.est!.razon }))
+    .sort((a, b) => Number(b.o.valor ?? 0) - Number(a.o.valor ?? 0));
+  const valorEnRiesgo = enRiesgo.reduce((acc, x) => acc + Number(x.o.valor ?? 0), 0);
   const tasa = (ganadas.length + perdidas.length) > 0
     ? Math.round((ganadas.length / (ganadas.length + perdidas.length)) * 100) : 0;
 
@@ -1002,6 +1010,35 @@ export default function PipelinePage() {
         </div>
       ) : (
         <>
+        {enRiesgo.length > 0 && (
+          <details className="mb-4 rounded-xl border border-red-200 bg-red-50/60 px-4 py-3" open={enRiesgo.length <= 5}>
+            <summary className="flex cursor-pointer list-none items-center gap-2 text-sm">
+              <IconAlertTriangle size={16} stroke={2} className="shrink-0 text-red-500" />
+              <span className="font-semibold text-red-700">
+                {enRiesgo.length} negocio{enRiesgo.length !== 1 ? "s" : ""} en riesgo · {fmtCompacto(valorEnRiesgo)}
+              </span>
+              <span className="text-xs text-red-500/80">ordenados por valor</span>
+            </summary>
+            <ul className="mt-2 divide-y divide-red-100">
+              {enRiesgo.slice(0, 5).map(({ o, razon }) => (
+                <li key={o.id}>
+                  <Link href={`/dashboard/pipeline/${o.id}`}
+                    className="flex items-center gap-3 py-1.5 text-xs hover:text-brand-700">
+                    <span className="min-w-0 flex-1 truncate">
+                      <span className="font-semibold text-slate-800">{o.titulo}</span>
+                      {o.empresa && <span className="text-slate-500"> · {o.empresa.nombre}</span>}
+                    </span>
+                    <span className="shrink-0 text-red-600">{razon}</span>
+                    <span className="w-24 shrink-0 text-right font-semibold text-slate-700">{o.valor ? fmt(o.valor) : "—"}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            {enRiesgo.length > 5 && (
+              <p className="mt-1 text-xs text-red-500/80">Y {enRiesgo.length - 5} más en el tablero (borde rojo).</p>
+            )}
+          </details>
+        )}
         <div className="flex gap-3 overflow-x-auto pb-2">
           {ETAPAS.map(etapa => {
             const items = filtradas.filter(o => o.etapa === etapa.key);
@@ -1101,6 +1138,20 @@ export default function PipelinePage() {
                             <IconCalendarPlus size={11} stroke={1.75} />Sin próximo paso
                           </Link>
                         ))}
+                        {(() => {
+                          // "Quieto N d": días sin movimiento a partir del umbral de
+                          // estancamiento (ámbar; rojo desde el doble, como el borde).
+                          const dias = diasSinMovimiento(o);
+                          if (etapa.key === "GANADA" || etapa.key === "PERDIDA" || dias < diasEstancamiento) return null;
+                          return (
+                            <span title={`${dias} días sin movimiento`}
+                              className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-semibold ${
+                                dias >= diasEstancamiento * 2 ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-700"
+                              }`}>
+                              Quieto {dias} d
+                            </span>
+                          );
+                        })()}
                         {(() => {
                           const cb = cierreBadge(o.fechaCierre, o.etapa);
                           if (cb) return (
