@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Pager } from "@/components/pager";
 import {
-  IconBuilding, IconUsers, IconAlertTriangle, IconLink, IconBuildingPlus, IconX, IconTrash, IconPencil, IconUserShare,
+  IconBuilding, IconUsers, IconAlertTriangle, IconLink, IconBuildingPlus, IconX, IconTrash, IconPencil,
   type Icon,
-  IconSearch,
+  IconSearch, IconPlus,
 } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
 import { puedeEliminar } from "@/lib/permisos";
@@ -50,6 +50,18 @@ const nombreMes = (mm: string) => {
   return n >= 1 && n <= 12 ? MESES[n - 1] : "";
 };
 
+// Qué tan completa está la ficha del cliente: correo, teléfono, sector, sitio
+// web y al menos un contacto. Reemplaza la lectura de "—" sueltos en la tabla.
+function datosCompletos(e: Empresa) {
+  const campos: [string, boolean][] = [
+    ["correo", !!e.email], ["teléfono", !!e.telefono], ["sector", !!e.sector],
+    ["sitio web", !!e.sitioWeb], ["contactos", e._count.contactos > 0],
+  ];
+  return { llenos: campos.filter(([, ok]) => ok).length, total: campos.length, faltan: campos.filter(([, ok]) => !ok).map(([n]) => n) };
+}
+
+type Vista = "" | "mios" | "sinVendedor";
+
 export default function ClientesPage() {
   const router = useRouter();
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
@@ -69,7 +81,11 @@ export default function ClientesPage() {
   const [contactoTocado, setContactoTocado] = useState({ email: false, telefono: false });
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [stats, setStats] = useState({ total: 0, conContactos: 0, sinContactos: 0, contactosVinculados: 0 });
+  const [stats, setStats] = useState({ total: 0, conContactos: 0, sinContactos: 0, contactosVinculados: 0, mios: 0, sinVendedor: 0 });
+  // Vista guardada (pestañas sobre la tabla). Se lee desde el ref en cargar()
+  // para no cambiar la firma de todas sus llamadas.
+  const [vista, setVista] = useState<Vista>("");
+  const vistaRef = useRef<Vista>("");
   // Los KPIs solo muestran skeleton en la primera carga; al buscar o filtrar
   // se quedan con el valor anterior hasta que llega el nuevo (sin parpadeo).
   const [statsListos, setStatsListos] = useState(false);
@@ -79,6 +95,7 @@ export default function ClientesPage() {
   const { data: session } = useSession();
   const puedeBorrar = puedeEliminar(session?.user?.rol);
   const esAdmin = session?.user?.rol === "ADMINISTRADOR";
+  const esComercialUsr = session?.user?.rol === "COMERCIAL";
 
   // Reasignación individual de cliente a un vendedor (solo admin).
   const [vendedores, setVendedores] = useState<Vendedor[]>([]);
@@ -157,10 +174,10 @@ export default function ClientesPage() {
 
   const busquedaRef = useRef("");
   async function cargar(q = "", p = 1, anio = "", mes = "") {
-    const clave = `${q}|${anio}|${mes}`;
+    const clave = `${q}|${anio}|${mes}|${vistaRef.current}`;
     busquedaRef.current = clave;
     setCargando(true);
-    const res = await fetch(`/api/empresas?q=${encodeURIComponent(q)}&anio=${anio}&mes=${mes}&page=${p}&take=${TAKE}`);
+    const res = await fetch(`/api/empresas?q=${encodeURIComponent(q)}&anio=${anio}&mes=${mes}&vista=${vistaRef.current}&page=${p}&take=${TAKE}`);
     const data = await res.json();
     if (busquedaRef.current !== clave) return; // respuesta obsoleta — ya se lanzó una búsqueda/filtro más reciente
     setEmpresas(data);
@@ -185,6 +202,13 @@ export default function ClientesPage() {
     const t = setTimeout(() => { setPage(1); cargar(busqueda, 1, filtroAnio, filtroMes); cargarStats(busqueda, filtroAnio, filtroMes); }, 300);
     return () => clearTimeout(t);
   }, [busqueda, filtroAnio, filtroMes]);
+
+  function cambiarVista(v: Vista) {
+    vistaRef.current = v;
+    setVista(v);
+    setPage(1);
+    cargar(busqueda, 1, filtroAnio, filtroMes);
+  }
 
   function cambiarPagina(p: number) {
     setPage(p);
@@ -517,10 +541,33 @@ export default function ClientesPage() {
         </div>
       )}
 
+      {/* Vistas guardadas. Un COMERCIAL solo ve sus clientes, así que no las necesita. */}
+      {!esComercialUsr && statsListos && (
+        <div className="mb-3 flex flex-wrap gap-1 border-b border-slate-200" role="tablist">
+          {([
+            { key: "" as Vista,            label: "Todos",        n: stats.total },
+            { key: "mios" as Vista,        label: "Mis clientes", n: stats.mios },
+            { key: "sinVendedor" as Vista, label: "Sin vendedor", n: stats.sinVendedor },
+          ]).filter(v => v.key !== "sinVendedor" || v.n > 0 || vista === "sinVendedor").map(v => (
+            <button key={v.key || "todos"} type="button" role="tab" aria-selected={vista === v.key}
+              onClick={() => cambiarVista(v.key)}
+              className={`-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+                vista === v.key ? "border-brand-600 text-brand-700" : "border-transparent text-slate-500 hover:text-slate-800"
+              }`}>
+              {v.label}
+              <span className={`rounded-full px-1.5 text-xs ${
+                v.key === "sinVendedor" ? "bg-amber-100 text-amber-700" : vista === v.key ? "bg-brand-50 text-brand-700" : "bg-slate-100 text-slate-500"
+              }`}>{v.n}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {cargando ? (
         <SkeletonTabla columnas={6} />
       ) : empresas.length === 0 ? (
-        busqueda ? <EstadoVacio icon={IconSearch} titulo="Sin resultados" descripcion={`Ningún cliente coincide con “${busqueda}”.`} /> : (
+        busqueda || vista ? <EstadoVacio icon={IconSearch} titulo="Sin resultados"
+          descripcion={busqueda ? `Ningún cliente coincide con “${busqueda}”.` : vista === "mios" ? "Aún no tienes clientes a tu nombre." : "Todos los clientes tienen vendedor."} /> : (
           <EstadoVacio icon={IconBuilding} titulo="Aún no tienes clientes"
             descripcion="Crea tu primer cliente para empezar a registrar contactos, oportunidades y cotizaciones."
             accion={<button onClick={() => setMostrarForm(true)} className={boton("primario", "md")}><IconBuildingPlus size={16} stroke={1.75} />Nuevo cliente</button>} />
@@ -535,6 +582,7 @@ export default function ClientesPage() {
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Teléfono</th>
                 <th className="px-4 py-1 font-semibold uppercase tracking-wide">Sector</th>
                 {esAdmin && <th className="px-4 py-1 font-semibold uppercase tracking-wide">Vendedor</th>}
+                <th className="px-4 py-1 font-semibold uppercase tracking-wide">Datos</th>
                 {/* Centrada: es una columna de conteo, y un numero suelto
                     alineado a la izquierda bajo un titulo largo se ve
                     desalineado con las filas de al lado. */}
@@ -550,25 +598,39 @@ export default function ClientesPage() {
                       {e.nombre}
                     </Link>
                   </td>
-                  <td className="px-4 py-1 text-slate-500">{e.email ?? "—"}</td>
-                  <td className="px-4 py-1 text-slate-500 whitespace-nowrap">{e.telefono ?? "—"}</td>
-                  <td className="px-4 py-1 text-slate-500">{e.sector ?? "—"}</td>
+                  <td className="px-4 py-1 text-slate-500">{e.email ?? <span className="text-slate-300">—</span>}</td>
+                  <td className="px-4 py-1 text-slate-500 whitespace-nowrap">{e.telefono ?? <span className="text-slate-300">—</span>}</td>
+                  <td className="px-4 py-1 text-slate-500">{e.sector ?? <span className="text-slate-300">—</span>}</td>
                   {esAdmin && (
                     <td className="px-4 py-1">
+                      {/* El vendedor se cambia desde la misma celda (abre la confirmación,
+                          porque también pasa sus oportunidades y actividades). */}
                       {e.creadoBy
-                        ? <span className="text-slate-600">{nombreVendedor(e.creadoBy)}</span>
-                        : <span className="text-amber-600 font-medium">Sin asignar</span>}
+                        ? <button type="button" onClick={() => abrirReasignar(e)} title="Cambiar vendedor"
+                            className="rounded px-1 -mx-1 text-slate-600 hover:bg-brand-50 hover:text-brand-700">{nombreVendedor(e.creadoBy)}</button>
+                        : <button type="button" onClick={() => abrirReasignar(e)}
+                            className="inline-flex items-center gap-1 rounded-full border border-dashed border-amber-400 px-2 py-0.5 text-xs font-medium text-amber-700 hover:bg-amber-50">
+                            <IconPlus size={12} stroke={2} />Asignar
+                          </button>}
                     </td>
                   )}
+                  <td className="px-4 py-1">
+                    {(() => {
+                      const d = datosCompletos(e);
+                      const pct = (d.llenos / d.total) * 100;
+                      return (
+                        <span className="flex items-center gap-2" title={d.faltan.length ? `Falta: ${d.faltan.join(", ")}` : "Ficha completa"}>
+                          <span className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100">
+                            <span className={`block h-full rounded-full ${pct === 100 ? "bg-emerald-500" : pct >= 60 ? "bg-brand-400" : "bg-amber-400"}`} style={{ width: `${pct}%` }} />
+                          </span>
+                          <span className="text-xs tabular-nums text-slate-400">{d.llenos}/{d.total}</span>
+                        </span>
+                      );
+                    })()}
+                  </td>
                   <td className="px-4 py-1 text-slate-500 text-center">{e._count.contactos}</td>
                   <td className="px-4 py-1 text-right">
                     <div className="inline-flex items-center gap-3">
-                      {esAdmin && (
-                        <button onClick={() => abrirReasignar(e)} title="Reasignar vendedor"
-                          className="text-slate-300 hover:text-brand-600 inline-flex">
-                          <IconUserShare size={15} stroke={1.75} />
-                        </button>
-                      )}
                       <button onClick={() => abrirEdicion(e)} title="Editar"
                         className="text-slate-300 hover:text-brand-600 inline-flex">
                         <IconPencil size={15} stroke={1.75} />

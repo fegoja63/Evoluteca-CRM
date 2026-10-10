@@ -24,11 +24,15 @@ export async function GET(request: Request) {
     ...filtroPeriodoCreacion(anio, mes),
   };
 
-  const [total, conContactos, contactosVinculados] = await Promise.all([
+  // Conteos para las pestañas de vistas (Mis clientes / Sin vendedor). En AND
+  // para no pisar el creadoBy de filtroOwner (un COMERCIAL da 0 en "sin vendedor").
+  const [total, conContactos, contactosVinculados, mios, sinVendedor] = await Promise.all([
     prisma.empresa.count({ where }),
     prisma.empresa.count({ where: { ...where, contactos: { some: { eliminadoEn: null } } } }),
     prisma.contacto.count({ where: { empresa: where, eliminadoEn: null } }),
+    prisma.empresa.count({ where: { ...where, AND: [{ creadoBy: session.user.id }] } }),
+    prisma.empresa.count({ where: { ...where, AND: [{ creadoBy: null }] } }),
   ]);
 
-  return NextResponse.json({ total, conContactos, sinContactos: total - conContactos, contactosVinculados });
+  return NextResponse.json({ total, conContactos, sinContactos: total - conContactos, contactosVinculados, mios, sinVendedor });
 }

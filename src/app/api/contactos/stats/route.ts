@@ -23,5 +23,5 @@ export async function GET(request: Request) {
     prisma.contacto.count({ where: { ...where, email: { not: null } } }),
   ]);
 
-  return NextResponse.json({ total, conEmpresa, sinEmpresa: total - conEmpresa, conEmail });
+  return NextResponse.json({ total, conEmpresa, sinEmpresa: total - conEmpresa, conEmail, sinEmail: total - conEmail });
 }
