@@ -60,9 +60,9 @@ function validezBadge(fechaValidez: string | null, estado: string) {
   const ahora = Date.now();
   const fecha = new Date(fechaValidez).getTime();
   const dias = Math.ceil((fecha - ahora) / 86_400_000);
-  if (dias < 0)  return { label: `Vencida ${Math.abs(dias)}d`, color: "bg-red-100 text-red-700" };
-  if (dias === 0) return { label: "Vence hoy", color: "bg-red-100 text-red-700" };
-  if (dias <= 7)  return { label: `Vence en ${dias}d`, color: "bg-amber-100 text-amber-700" };
+  if (dias < 0)  return { label: `Vencida ${Math.abs(dias)}d`, color: "bg-red-100 text-red-700", grupo: "vencidas" as const };
+  if (dias === 0) return { label: "Vence hoy", color: "bg-red-100 text-red-700", grupo: "vencidas" as const };
+  if (dias <= 7)  return { label: `Vence en ${dias}d`, color: "bg-amber-100 text-amber-700", grupo: "porVencer" as const };
   return null;
 }
 
@@ -70,7 +70,8 @@ export default function CotizacionesFormalesPage() {
   const [lista, setLista] = useState<Cotizacion[]>([]);
   const [cargando, setCargando] = useState(true);
   const [filtroEstado, setFiltroEstado] = useState("TODAS");
-  const [soloVencidas, setSoloVencidas] = useState(false);
+  // Filtro por validez: vencidas (o que vencen hoy) / vencen en los próximos 7 días.
+  const [filtroValidez, setFiltroValidez] = useState<"" | "vencidas" | "porVencer">("");
   const [busqueda, setBusqueda] = useState("");
   const [exportando, setExportando] = useState(false);
   const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set());
@@ -153,7 +154,7 @@ export default function CotizacionesFormalesPage() {
 
   const listado = lista.filter(c => {
     if (filtroEstado !== "TODAS" && c.estado !== filtroEstado) return false;
-    if (soloVencidas && validezBadge(c.fechaValidez, c.estado) === null) return false;
+    if (filtroValidez && validezBadge(c.fechaValidez, c.estado)?.grupo !== filtroValidez) return false;
     if (busqueda) {
       const q = busqueda.toLowerCase();
       const campos = [c.empresa?.nombre, c.contacto?.nombre, c.sede, String(c.numero), c.numeroManual, numeroCotizacion(c)].filter(Boolean).map(v => v!.toLowerCase());
@@ -165,7 +166,9 @@ export default function CotizacionesFormalesPage() {
   const valorTotal = listado.reduce((acc, c) => acc + (reemplazadas.has(c.id) ? 0 : valorConImpuestos(c)), 0);
   const conteos = { BORRADOR: 0, ENVIADA: 0, ACEPTADA: 0, RECHAZADA: 0 };
   lista.forEach(c => { if (!reemplazadas.has(c.id) && c.estado in conteos) conteos[c.estado as keyof typeof conteos]++; });
-  const vencidas = lista.filter(c => !reemplazadas.has(c.id) && validezBadge(c.fechaValidez, c.estado) !== null);
+  const vigentes = lista.filter(c => !reemplazadas.has(c.id));
+  const nVencidas  = vigentes.filter(c => validezBadge(c.fechaValidez, c.estado)?.grupo === "vencidas").length;
+  const nPorVencer = vigentes.filter(c => validezBadge(c.fechaValidez, c.estado)?.grupo === "porVencer").length;
 
   return (
     <div>
@@ -205,7 +208,7 @@ export default function CotizacionesFormalesPage() {
           { label: "Aceptadas",   key: "ACEPTADA",  color: "bg-emerald-500" },
           { label: "Rechazadas",  key: "RECHAZADA", color: "bg-red-500" },
         ].map(k => (
-          <button key={k.key} onClick={() => { setSoloVencidas(false); setFiltroEstado(filtroEstado === k.key ? "TODAS" : k.key); }}
+          <button key={k.key} onClick={() => { setFiltroValidez(""); setFiltroEstado(filtroEstado === k.key ? "TODAS" : k.key); }}
             className={`rounded-2xl border p-4 text-left transition-all ${filtroEstado === k.key ? "border-brand-400 ring-2 ring-brand-200" : "border-slate-200 bg-white hover:border-slate-300"}`}>
             <div className={`w-2 h-2 rounded-full ${k.color} mb-2`} />
             <p className="text-2xl font-bold text-slate-900">{conteos[k.key as keyof typeof conteos]}</p>
@@ -213,20 +216,6 @@ export default function CotizacionesFormalesPage() {
           </button>
         ))}
       </div>
-
-      {/* Alerta vencidas */}
-      {vencidas.length > 0 && (
-        <div className="mb-5 rounded-2xl bg-red-50 border border-red-200 px-5 py-3 flex items-center gap-3">
-          <IconAlertTriangle size={18} stroke={1.75} className="text-red-500 shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-red-800">
-              {vencidas.length} {vencidas.length !== 1 ? "cotizaciones" : "cotización"} {vencidas.length !== 1 ? "vencidas o próximas" : "vencida o próxima"} a vencer
-            </p>
-            <p className="text-xs text-red-600 mt-0.5">Revisa y actualiza la fecha de validez o cambia el estado.</p>
-          </div>
-          <button onClick={() => { setSoloVencidas(true); setFiltroEstado("TODAS"); setBusqueda(""); }} className="text-xs text-red-700 font-medium underline shrink-0">Ver vencidas</button>
-        </div>
-      )}
 
       {/* Filtros */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
@@ -242,8 +231,21 @@ export default function CotizacionesFormalesPage() {
             </button>
           )}
         </div>
-        {(busqueda || filtroEstado !== "TODAS" || soloVencidas) && (
-          <button onClick={() => { setBusqueda(""); setFiltroEstado("TODAS"); setSoloVencidas(false); }}
+        {([
+          { key: "vencidas",  label: "Vencidas",          n: nVencidas,  on: "bg-red-600 text-white",   off: "bg-red-50 text-red-700 hover:bg-red-100" },
+          { key: "porVencer", label: "Vencen en 7 días",  n: nPorVencer, on: "bg-amber-500 text-white", off: "bg-amber-50 text-amber-700 hover:bg-amber-100" },
+        ] as const).filter(f => f.n > 0 || filtroValidez === f.key).map(f => (
+          <button key={f.key} type="button" aria-pressed={filtroValidez === f.key}
+            onClick={() => { setFiltroEstado("TODAS"); setFiltroValidez(filtroValidez === f.key ? "" : f.key); }}
+            title={f.key === "vencidas" ? "Vencidas o que vencen hoy. Actualiza la fecha de validez o cambia el estado." : "Su validez termina en los próximos 7 días"}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${filtroValidez === f.key ? f.on : f.off}`}>
+            {f.key === "vencidas" && <IconAlertTriangle size={13} stroke={2} />}
+            {f.label}
+            <span className={`rounded-full px-1.5 text-2xs ${filtroValidez === f.key ? "bg-white/25" : "bg-white"}`}>{f.n}</span>
+          </button>
+        ))}
+        {(busqueda || filtroEstado !== "TODAS" || filtroValidez) && (
+          <button onClick={() => { setBusqueda(""); setFiltroEstado("TODAS"); setFiltroValidez(""); }}
             className="flex items-center gap-1 text-xs text-brand-600 hover:underline">
             <IconX size={12} stroke={2.5} />
             Limpiar
