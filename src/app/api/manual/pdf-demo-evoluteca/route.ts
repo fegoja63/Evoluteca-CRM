@@ -322,7 +322,7 @@ export async function GET() {
       React.createElement(PageHeader, { base }),
       React.createElement(Footer, null),
       React.createElement(H2, null, "4.2 Buscar o crear con Ctrl+K y menú a tu medida"),
-      React.createElement(Paso, { n: 6, titulo: "Busca, crea o pregunta con Ctrl+K", desc: "Presiona Ctrl+K (⌘K en Mac) o pulsa 'Buscar o crear…' arriba en el menú lateral. Escribe 'Tech' para buscar; luego prueba 'nuevo cli' + Enter para crear un cliente, o escribe una pregunta y elige 'Preguntar a la IA'.", esperado: "Resultados instantáneos de clientes, contactos, oportunidades, cotizaciones y actividades; 'nuevo cli' abre el formulario de Nuevo cliente; la pregunta abre Pregúntale a tus datos ya respondida." }),
+      React.createElement(Paso, { n: 6, titulo: "Busca, crea o pregunta con Ctrl+K", desc: "Presiona Ctrl+K (Cmd+K en Mac) o pulsa 'Buscar o crear…' arriba en el menú lateral. Escribe 'Tech' para buscar; luego prueba 'nuevo cli' + Enter para crear un cliente, o escribe una pregunta y elige 'Preguntar a la IA'.", esperado: "Resultados instantáneos de clientes, contactos, oportunidades, cotizaciones y actividades; 'nuevo cli' abre el formulario de Nuevo cliente; la pregunta abre Pregúntale a tus datos ya respondida." }),
       React.createElement(Paso, { n: 7, titulo: "Menú agrupado, orden y tema", desc: "El menú está agrupado (Hoy, Ventas, Relaciones, Análisis, Módulos, Más); pliega o despliega un grupo con un clic en su título. Pulsa 'Ordenar' para mover ítems dentro de cada grupo y 'Listo' para terminar. Abajo, junto a 'Cerrar sesión', pulsa 'Tema' para pasar a Noche o Automático.", esperado: "Los grupos plegados y el orden se mantienen al recargar; con Tema: Noche todo el CRM pasa a fondo oscuro." }),
 
       React.createElement(H2, null, "4.3 Ficha 360° del cliente"),
@@ -459,9 +459,9 @@ export async function GET() {
       React.createElement(LI, null, "Tipos de actividad: llamada, reunión, email y tarea."),
       React.createElement(LI, null, "Vista Lista o Calendario (alterna entre ambas)."),
       React.createElement(LI, null, "Las actividades de hoy se resaltan en rojo; las vencidas alimentan las alertas."),
-      React.createElement(LI, null, "Cada fila tiene a la izquierda el círculo 'Hecha' (se pone verde al completarla) y al final el menú '⋯' con Editar, Añadir a mi calendario, Reasignar y Borrar."),
+      React.createElement(LI, null, "Cada fila tiene a la izquierda el círculo 'Hecha' (se pone verde al completarla) y al final el menú '...' con Editar, Añadir a mi calendario, Reasignar y Borrar."),
       React.createElement(LI, null, "Bandeja Hoy (menú Hoy): las pendientes de hoy y las vencidas una por una, con su detalle, una sugerencia y los botones Hacer (llamar, escribir o abrir el negocio), Reprogramar y Hecha."),
-      React.createElement(LI, null, "Llévala a tu calendario de tres formas: una actividad suelta ('Añadir a mi calendario' en el menú '⋯' de cada fila, que te deja elegir el calendario en Google u Outlook), un bloque completo según el filtro activo (botón iCal), o un enlace de suscripción en vivo desde Mi perfil que se mantiene actualizado solo. Además, notificaciones por email."),
+      React.createElement(LI, null, "Llévala a tu calendario de tres formas: una actividad suelta ('Añadir a mi calendario' en el menú '...' de cada fila, que te deja elegir el calendario en Google u Outlook), un bloque completo según el filtro activo (botón iCal), o un enlace de suscripción en vivo desde Mi perfil que se mantiene actualizado solo. Además, notificaciones por email."),
 
       React.createElement(H2, null, "8.5 Otros módulos"),
       React.createElement(LI, null, "Catálogo: los 6 servicios base con su precio; edítalos o agrega los tuyos."),

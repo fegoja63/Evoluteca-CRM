@@ -314,12 +314,12 @@ export async function GET() {
       ),
 
       React.createElement(H2, null, "1.6 Buscar o crear desde cualquier pantalla (Ctrl+K)"),
-      React.createElement(P, null, "Presiona Ctrl+K (⌘K en Mac) en cualquier pantalla, o haz clic en \"Buscar o crear…\" arriba en el menú lateral. Se abre una ventana con un solo campo desde el que puedes hacer cuatro cosas:"),
+      React.createElement(P, null, "Presiona Ctrl+K (Cmd+K en Mac) en cualquier pantalla, o haz clic en \"Buscar o crear…\" arriba en el menú lateral. Se abre una ventana con un solo campo desde el que puedes hacer cuatro cosas:"),
       React.createElement(LI, null, "Crear: escribe \"nuevo\" o \"nueva\" y elige Nuevo cliente, Nueva oportunidad, Nueva actividad, Nueva cotización o Nuevo contacto. Se abre el formulario de siempre en su pantalla."),
       React.createElement(LI, null, "Buscar: con al menos 2 letras busca a la vez en clientes, contactos, oportunidades, cotizaciones y actividades. Un clic (o Enter) abre la ficha."),
       React.createElement(LI, null, "Preguntar a la IA: con 3 letras o más aparece al final \"Preguntar a la IA: «lo que escribiste»\", que abre Pregúntale a tus datos (ver 10.5) y hace la pregunta de una vez."),
       React.createElement(LI, null, "Ir a: las pantallas principales (Inicio, Bandeja Hoy, Agenda, Pipeline, Clientes, Reportes, Configuración…)."),
-      React.createElement(P, null, "Se maneja con el teclado: flechas ↑↓ para moverte, Enter para abrir y Esc para cerrar. Encuentra con o sin tildes."),
+      React.createElement(P, null, "Se maneja con el teclado: flechas arriba y abajo para moverte, Enter para abrir y Esc para cerrar. Encuentra con o sin tildes."),
       React.createElement(Tip, null, "La opción de IA siempre va al final: si lo que escribes coincide con un comando (por ejemplo \"nuevo cli\"), Enter crea el cliente y no gasta una consulta de IA. La búsqueda respeta tus permisos: solo encuentra registros que tu rol puede ver."),
 
       React.createElement(H2, null, "1.7 Personalizar el orden del menú"),
@@ -596,7 +596,7 @@ export async function GET() {
 
       React.createElement(H2, null, "4.3 Marcar como completada"),
       React.createElement(P, null, 'Haz clic en el círculo "Hecha" a la izquierda de la actividad: se pone verde con un check y la actividad queda completada (se muestra tachada). Marcarla como hecha no la borra. Usa el filtro "Pendientes" para enfocarte en lo que falta.'),
-      React.createElement(P, null, 'Las demás acciones de cada actividad están en el menú "⋯" al final de la fila: Editar, Añadir a mi calendario (Google, Outlook o .ics — ver 4.6), Reasignar a otra persona del equipo y Borrar. En la fila quedan siempre a la vista el estado y, si está vencida, la campana para enviarte el recordatorio.'),
+      React.createElement(P, null, 'Las demás acciones de cada actividad están en el menú "..." al final de la fila: Editar, Añadir a mi calendario (Google, Outlook o .ics — ver 4.6), Reasignar a otra persona del equipo y Borrar. En la fila quedan siempre a la vista el estado y, si está vencida, la campana para enviarte el recordatorio.'),
 
       React.createElement(H2, null, "4.4 Notificaciones por email"),
       React.createElement(P, null, "Cada mañana a las 8am el CRM envía automáticamente hasta 3 tipos de alertas por email:"),
@@ -617,7 +617,7 @@ export async function GET() {
       React.createElement(H2, null, "4.6 Llevar la agenda a tu calendario (Google, Outlook, Apple)"),
       React.createElement(P, null, "Tienes tres formas de llevar tus actividades a tu calendario personal, según lo que necesites:"),
 
-      React.createElement(P, null, "Opción 1 — Una sola actividad: en el menú \"⋯\" de cada actividad, \"Añadir a mi calendario\" ofrece tres destinos:"),
+      React.createElement(P, null, "Opción 1 — Una sola actividad: en el menú \"...\" de cada actividad, \"Añadir a mi calendario\" ofrece tres destinos:"),
       React.createElement(LI, null, "Google Calendar — abre la pantalla de evento nuevo ya rellenada; ahí eliges en qué calendario guardarla"),
       React.createElement(LI, null, "Outlook — igual que el anterior, en Outlook web"),
       React.createElement(LI, null, "Descargar .ics — un archivo con esa única actividad"),
@@ -626,7 +626,7 @@ export async function GET() {
 
       React.createElement(P, null, "Opción 3 — Suscripción en vivo (recomendada): desde Mi perfil, en la sección \"Agenda en tu calendario\", genera tu enlace privado y pégalo en Google, Outlook o Apple. A diferencia de las anteriores, el enlace se mantiene actualizado solo: cuando agregas o cambias actividades, tu calendario las refresca cada pocas horas sin volver a importar nada."),
 
-      React.createElement(Tip, null, "Si abres directamente un .ics con muchas actividades, Windows lo importa al calendario por defecto sin preguntarte cuál. Para escoger el calendario de destino usa \"Añadir a mi calendario\" en el menú \"⋯\" de cada actividad (opción 1) o la suscripción (opción 3); si prefieres el archivo, en Google Calendar impórtalo desde Configuración > Importar y exportar, donde sí aparece el selector \"Añadir al calendario\"."),
+      React.createElement(Tip, null, "Si abres directamente un .ics con muchas actividades, Windows lo importa al calendario por defecto sin preguntarte cuál. Para escoger el calendario de destino usa \"Añadir a mi calendario\" en el menú \"...\" de cada actividad (opción 1) o la suscripción (opción 3); si prefieres el archivo, en Google Calendar impórtalo desde Configuración > Importar y exportar, donde sí aparece el selector \"Añadir al calendario\"."),
       React.createElement(Nota, null, "El enlace de suscripción es privado: cualquiera que lo tenga puede ver tu agenda, así que no lo compartas. Si crees que se filtró, genera uno nuevo desde Mi perfil y el anterior deja de funcionar al instante."),
 
       React.createElement(H2, null, "4.7 Actividades de hoy resaltadas en rojo"),
@@ -641,7 +641,7 @@ export async function GET() {
       React.createElement(Tip, null, "El estado \"En progreso\" es útil para tareas que toman varios días (preparar una propuesta grande, coordinar un evento): ves de un vistazo qué está arrancado y qué sigue sin tocar, sin tener que marcarlo como completado antes de tiempo."),
 
       React.createElement(H2, null, "4.9 Bandeja Hoy"),
-      React.createElement(P, null, "La Bandeja Hoy (menú Hoy → Bandeja Hoy, o Ctrl+K → Bandeja Hoy) reúne lo que tienes que despachar: las actividades pendientes de hoy y las vencidas (en rojo). El Comercial ve las que creó o tiene asignadas; Administrador y Gerente, las de todo el equipo."),
+      React.createElement(P, null, "La Bandeja Hoy (menú Hoy › Bandeja Hoy, o Ctrl+K › Bandeja Hoy) reúne lo que tienes que despachar: las actividades pendientes de hoy y las vencidas (en rojo). El Comercial ve las que creó o tiene asignadas; Administrador y Gerente, las de todo el equipo."),
       React.createElement(P, null, "A la izquierda está la lista; al elegir una, a la derecha aparece su detalle: tipo, fecha, notas, el negocio, cliente y contacto (con enlace) y una sugerencia de qué hacer. Abajo, tres botones:"),
       React.createElement(LI, null, "Hacer — si es una llamada y hay teléfono, \"Llamar\" marca el número; si es un correo y hay email, \"Escribir\" abre tu correo; en los demás casos abre el negocio o la ficha."),
       React.createElement(LI, null, "Reprogramar — elige nueva fecha y hora (propone mañana a la misma hora). Si la dejas para más tarde hoy, se queda en la bandeja; si es otro día, sale de ella."),
