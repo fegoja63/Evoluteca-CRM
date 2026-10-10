@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { permitirYRegistrar } from "@/lib/rate-limit";
+import { METODOLOGIAS, metodologiaDe } from "@/lib/metodologias-venta";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
 
   // Cupo mensual de IA compartido.
   const periodo = new Date().toISOString().slice(0, 7);
-  const tenant = await prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { limiteResumenesIA: true } });
+  const tenant = await prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { limiteResumenesIA: true, metodologiaVentas: true } });
   const limite = tenant?.limiteResumenesIA ?? null;
   if (limite === 0) return NextResponse.json({ error: "El coach de objeciones con IA no está incluido en tu plan." }, { status: 403 });
   if (limite != null) {
@@ -57,13 +58,16 @@ export async function POST(req: Request) {
   });
   if (!op) return NextResponse.json({ error: "Oportunidad no encontrada" }, { status: 404 });
 
-  // Respuesta recomendada de la guía del tenant, si la objeción coincide con una
-  // (por texto) — para que la IA parta del criterio del propio equipo.
+  // Guía de objeciones del equipo: se le pasa completa (acotada) para que la IA
+  // reconozca la entrada que corresponde aunque el cliente lo diga con otras
+  // palabras — antes solo se usaba si el texto coincidía exacto.
   const guia = await prisma.objecion.findMany({
     where: { tenantId: session.user.tenantId, activa: true },
     select: { objecion: true, respuesta: true },
+    orderBy: { orden: "asc" },
+    take: 40,
   });
-  const guiaMatch = guia.find(g => g.objecion.trim().toLowerCase() === objecion.toLowerCase());
+  const metodologia = METODOLOGIAS[metodologiaDe(tenant?.metodologiaVentas)];
 
   const partes: string[] = [];
   partes.push(`OBJECIÓN DEL CLIENTE: "${objecion}"`);
@@ -77,11 +81,20 @@ export async function POST(req: Request) {
   partes.push(`- Antigüedad: creado hace ${dias(op.creadoEn)} días`);
   if (op.actividades.length) partes.push(`- Últimas gestiones: ${op.actividades.map(a => `${a.titulo} (${fecha(a.fecha)})`).join("; ")}`);
   if (op.notas) partes.push(`- Notas del vendedor: ${op.notas.slice(0, 400)}`);
-  if (guiaMatch) partes.push(`\nRESPUESTA BASE DE LA GUÍA DEL EQUIPO (adáptala a este cliente, no la copies literal): "${guiaMatch.respuesta}"`);
+  if (guia.length) {
+    partes.push(`\nGUÍA DE OBJECIONES DEL EQUIPO (objeción → respuesta recomendada):`);
+    for (const g of guia) partes.push(`- "${g.objecion.slice(0, 200)}" → "${g.respuesta.slice(0, 400)}"`);
+  }
 
   const SYSTEM = `Eres un coach de ventas experto en manejo de objeciones. Ayudas al vendedor a responder la objeción de un cliente en una venta consultiva B2B.
 
 Principio rector: no se trata de "ganar" la objeción, sino de entender la PRIORIDAD, el CONTEXTO y el VALOR PERCIBIDO del cliente. Nunca discutas, no seas agresivo, no ofrezcas descuentos por reflejo, no inventes datos ni cifras que no estén en el contexto.
+
+Metodología del equipo: ${metodologia.enfoque}
+
+Casi toda objeción revela algo que falta calificar del negocio. Identifica cuál es: Presupuesto, Quién decide, Prioridad o momento, Necesidad o dolor, o Competencia o alternativa actual. Si de verdad no falta nada, di "Ninguno".
+
+Si te dan una GUÍA DE OBJECIONES DEL EQUIPO y una de sus entradas corresponde a esta objeción, aunque el cliente lo diga con otras palabras, parte de esa respuesta y adáptala a este cliente (no la copies literal). Si ninguna corresponde, ignora la guía.
 
 Responde en español, breve y accionable, con este formato exacto:
 
@@ -89,9 +102,15 @@ RESPUESTA SUGERIDA:
 <1 a 3 frases que el vendedor puede decir tal cual, en tono natural y cálido, tratando de "usted", terminando idealmente con una pregunta que abra conversación>
 
 POR QUÉ FUNCIONA:
-<1 frase explicando la intención detrás>
+<1 frase explicando la intención detrás, según la metodología del equipo>
 
-Nada más: no agregues saludos, títulos extra ni comentarios sobre tu proceso.`;
+QUÉ FALTA CALIFICAR:
+<Presupuesto | Quién decide | Prioridad o momento | Necesidad o dolor | Competencia o alternativa actual | Ninguno> — <1 frase de por qué>
+
+PREGUNTA PARA DESTRABAR:
+<1 pregunta abierta, distinta de la que cierra la respuesta, para resolver lo que falta calificar>
+
+Si partiste de una entrada de la guía, termina con la línea: Basado en la guía del equipo: «<objeción de la guía>». Si no, no agregues nada más: ni saludos, ni títulos extra, ni comentarios sobre tu proceso.`;
 
   const client = new Anthropic();
   const encoder = new TextEncoder();
@@ -101,7 +120,7 @@ Nada más: no agregues saludos, títulos extra ni comentarios sobre tu proceso.`
       try {
         const ms = client.messages.stream({
           model: "claude-opus-4-8",
-          max_tokens: 600,
+          max_tokens: 1000,
           output_config: { effort: "low" },
           system: SYSTEM,
           messages: [{ role: "user", content: partes.join("\n") }],

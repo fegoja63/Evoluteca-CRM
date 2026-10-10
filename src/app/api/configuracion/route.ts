@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { normalizarCuerpo } from "@/lib/cuerpo-cotizacion";
 import { normalizarColorMarca } from "@/lib/color-marca";
+import { esMetodologia, metodologiaDe } from "@/lib/metodologias-venta";
 
 export async function GET() {
   const session = await auth();
@@ -10,7 +11,7 @@ export async function GET() {
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: session.user.tenantId },
-    select: { modulos: true, nombre: true, logoUrl: true, colorMarca: true, email: true, emailsActivos: true, limiteUsuarios: true, cuerpoCotizacion: true, diasEstancamiento: true },
+    select: { modulos: true, nombre: true, logoUrl: true, colorMarca: true, email: true, emailsActivos: true, limiteUsuarios: true, cuerpoCotizacion: true, diasEstancamiento: true, metodologiaVentas: true },
   });
 
   return NextResponse.json({
@@ -22,6 +23,7 @@ export async function GET() {
     emailsActivos: tenant?.emailsActivos ?? true,
     cuerpoCotizacion: normalizarCuerpo(tenant?.cuerpoCotizacion),
     diasEstancamiento: tenant?.diasEstancamiento ?? 14,
+    metodologiaVentas: metodologiaDe(tenant?.metodologiaVentas),
     // Solo Evoluteca puede cambiar este valor desde el panel interno — no se
     // acepta en el PATCH de esta ruta, es de solo lectura para el tenant.
     limiteUsuarios: tenant?.limiteUsuarios ?? null,
@@ -75,6 +77,13 @@ export async function PATCH(request: Request) {
     }
     data.diasEstancamiento = n;
   }
+  if (body.metodologiaVentas !== undefined) {
+    // Solo una de las metodologías conocidas (la usa el Coach de objeciones).
+    if (!esMetodologia(body.metodologiaVentas)) {
+      return NextResponse.json({ error: "Metodología de ventas no válida" }, { status: 400 });
+    }
+    data.metodologiaVentas = body.metodologiaVentas;
+  }
   if (body.cuerpoCotizacion !== undefined) {
     // Se normaliza en el servidor (recorta títulos/contenido y limita la
     // cantidad de secciones) para que una llamada directa no pueda inflar la
@@ -95,5 +104,6 @@ export async function PATCH(request: Request) {
     emailsActivos: tenant.emailsActivos,
     cuerpoCotizacion: normalizarCuerpo(tenant.cuerpoCotizacion),
     diasEstancamiento: tenant.diasEstancamiento,
+    metodologiaVentas: metodologiaDe(tenant.metodologiaVentas),
   });
 }

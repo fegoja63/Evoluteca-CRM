@@ -10,12 +10,14 @@ import {
   IconKey, IconCopy, IconRefresh, IconGripVertical, IconEye, IconEyeOff,
   IconAlertTriangle,
   type Icon,
+  IconBulb,
 } from "@tabler/icons-react";
 import { CamposPersonalizadosAdmin } from "@/components/campos-personalizados-admin";
 import { AutomatizacionesAdmin } from "@/components/automatizaciones-admin";
 import { paletaMarca, normalizarColorMarca, PALETA_EVOLUTECA } from "@/lib/color-marca";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonLista } from "@/components/ui/estados";
+import { METODOLOGIAS, METODOLOGIA_POR_DEFECTO, metodologiaDe, type MetodologiaVentas } from "@/lib/metodologias-venta";
 
 type EtapaPipeline = { id: string; key: string; nombre: string; orden: number; oculta: boolean };
 
@@ -97,6 +99,9 @@ export default function ConfiguracionPage() {
   const [guardandoEmail, setGuardandoEmail] = useState(false);
   const [emailOk, setEmailOk] = useState(false);
   const [diasEstancamiento, setDiasEstancamiento] = useState("14");
+  // Metodología de ventas: la usa el Coach de objeciones con IA.
+  const [metodologia, setMetodologia] = useState<MetodologiaVentas>(METODOLOGIA_POR_DEFECTO);
+  const [guardandoMetodo, setGuardandoMetodo] = useState(false);
   const [guardandoEstanc, setGuardandoEstanc] = useState(false);
   const [estancOk, setEstancOk] = useState(false);
   const [cargando, setCargando] = useState(true);
@@ -250,6 +255,7 @@ export default function ConfiguracionPage() {
         setEmailsActivos(data.emailsActivos ?? true);
         setEmailEmpresa(data.email ?? "");
         setDiasEstancamiento(String(data.diasEstancamiento ?? 14));
+        setMetodologia(metodologiaDe(data.metodologiaVentas));
         setCargando(false);
       });
   }, []);
@@ -324,6 +330,25 @@ export default function ConfiguracionPage() {
     }
     setEmailOk(true);
     setTimeout(() => setEmailOk(false), 2500);
+  }
+
+  async function guardarMetodologia(nueva: MetodologiaVentas) {
+    if (!esAdmin || nueva === metodologia) return;
+    const anterior = metodologia;
+    setMetodologia(nueva);
+    setGuardandoMetodo(true);
+    const res = await fetch("/api/configuracion", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ metodologiaVentas: nueva }),
+    });
+    setGuardandoMetodo(false);
+    if (!res.ok) {
+      setMetodologia(anterior);
+      toast.error("No se pudo guardar la metodología. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
+    toast.success(`Metodología: ${METODOLOGIAS[nueva].label}`);
   }
 
   async function guardarEstancamiento() {
@@ -683,6 +708,35 @@ export default function ConfiguracionPage() {
             </span>
           )}
         </div>
+      </div>
+
+      {/* Metodología de ventas */}
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+        <h2 className="text-sm font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+          <IconBulb size={16} stroke={1.75} />Metodología de ventas
+        </h2>
+        <p className="text-xs text-slate-400 mb-4">
+          El Coach de objeciones con IA responde con este enfoque: además de la respuesta, te dice qué falta calificar
+          del negocio y te propone una pregunta para destrabarlo.
+        </p>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Metodología de ventas">
+          {(Object.keys(METODOLOGIAS) as MetodologiaVentas[]).map(k => {
+            const activa = metodologia === k;
+            return (
+              <button key={k} type="button" role="radio" aria-checked={activa}
+                onClick={() => guardarMetodologia(k)} disabled={!esAdmin || guardandoMetodo}
+                className={`rounded-xl border p-3 text-left transition-colors disabled:cursor-not-allowed ${
+                  activa ? "border-brand-500 bg-brand-50 ring-1 ring-brand-300" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                } ${!esAdmin ? "opacity-70" : ""}`}>
+                <span className="flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                  {activa && <IconCheck size={14} stroke={2.5} className="text-brand-600" />}{METODOLOGIAS[k].label}
+                </span>
+                <span className="mt-0.5 block text-xs text-slate-500">{METODOLOGIAS[k].descripcion}</span>
+              </button>
+            );
+          })}
+        </div>
+        {!esAdmin && <p className="mt-2 text-xs text-slate-400">Solo el Administrador puede cambiarla.</p>}
       </div>
 
       {/* Exportar datos */}
