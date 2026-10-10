@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Pager } from "@/components/pager";
 import {
   IconUsers, IconBuilding, IconAlertTriangle, IconMail, IconUserCircle, IconX,
@@ -41,6 +42,7 @@ function datosCompletos(c: Contacto) {
 type Vista = "" | "sinEmpresa" | "sinEmail";
 
 export default function ContactosPage() {
+  const router = useRouter();
   const [contactos, setContactos] = useState<Contacto[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [busqueda, setBusqueda] = useState("");
@@ -107,6 +109,14 @@ export default function ContactosPage() {
   }
 
   useEffect(() => { cargar("", 1); cargarEmpresas(); cargarStats(""); }, []);
+
+  // ?nuevo=1 (desde la paleta Ctrl+K) abre el formulario de creación. Se lee
+  // de location para no envolver la página en Suspense por useSearchParams.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("nuevo") !== "1") return;
+    setMostrarForm(true);
+    router.replace("/dashboard/contactos");
+  }, [router]);
 
   // Lista completa (sin paginar) solo para detección de duplicados al crear —
   // independiente de la tabla paginada.

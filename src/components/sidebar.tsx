@@ -1,10 +1,11 @@
 "use client";
 
 import { SelectorTema } from "@/components/selector-tema";
+import { abrirPaleta } from "@/components/paleta-comandos";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   IconLayoutDashboard, IconBuilding, IconUsers, IconChartFunnel, IconCalendar,
   IconFileText, IconPackage, IconTemplate, IconReportAnalytics,
@@ -15,10 +16,7 @@ import {
 } from "@tabler/icons-react";
 import { cn } from "@/lib/cn";
 
-type Resultado = { tipo: "cliente" | "contacto" | "oportunidad" | "cotizacion" | "actividad"; id: string; titulo: string; sub: string; href: string };
 type NavItem = { href: string; label: string; icon: Icon };
-
-const TIPO_ICON: Record<string, Icon> = { cliente: IconBuilding, contacto: IconUsers, oportunidad: IconChartFunnel, cotizacion: IconFileText, actividad: IconCalendar };
 
 const navBase: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: IconLayoutDashboard },
@@ -105,19 +103,12 @@ function aplicarOrden(items: NavItem[], orden: string[] | null): NavItem[] {
 
 export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClose?: () => void }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { data: session } = useSession();
   const [modulos, setModulos] = useState<Record<string, boolean>>({});
   const [ordenGuardado, setOrdenGuardado] = useState<string[] | null>(null);
   const [reordenando, setReordenando] = useState(false);
   const [draggingHref, setDraggingHref] = useState<string | null>(null);
   const [dragOverHref, setDragOverHref] = useState<string | null>(null);
-  const [busqueda, setBusqueda] = useState("");
-  const [resultados, setResultados] = useState<Resultado[]>([]);
-  const [buscando, setBuscando] = useState(false);
-  const [mostrarResultados, setMostrarResultados] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
-  const inputBusquedaRef = useRef<HTMLInputElement>(null);
   const [plegados, setPlegados] = useState<Partial<Record<GrupoId, boolean>>>(PLEGADOS_DEFECTO);
   const [atajo, setAtajo] = useState("Ctrl K");
 
@@ -129,19 +120,6 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
     if (/Mac|iPhone|iPad/.test(navigator.platform)) setAtajo("⌘K");
   }, []);
 
-  // Ctrl+K (⌘K en Mac) lleva el cursor a la búsqueda desde cualquier pantalla.
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        inputBusquedaRef.current?.focus();
-        inputBusquedaRef.current?.select();
-      }
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, []);
-
   function alternarGrupo(id: GrupoId) {
     setPlegados(prev => {
       const siguiente = { ...prev, [id]: !prev[id] };
@@ -149,29 +127,6 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
       return siguiente;
     });
   }
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setMostrarResultados(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  useEffect(() => {
-    if (busqueda.length < 2) { setResultados([]); setMostrarResultados(false); return; }
-    const timer = setTimeout(async () => {
-      setBuscando(true);
-      const res = await fetch(`/api/buscar?q=${encodeURIComponent(busqueda)}`);
-      const data = await res.json();
-      setResultados(data);
-      setMostrarResultados(true);
-      setBuscando(false);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [busqueda]);
 
   useEffect(() => {
     fetch("/api/configuracion")
@@ -257,54 +212,17 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
         </a>
       </div>
 
-      {/* Búsqueda global */}
-      <div className="px-3 py-2 border-b border-white/10 relative" ref={searchRef}>
-        <div className="relative">
+      {/* Búsqueda global: abre la paleta de comandos (Ctrl+K / ⌘K), que busca,
+          crea registros y le pregunta a la IA. */}
+      <div className="px-3 py-2 border-b border-white/10">
+        <button type="button" onClick={() => { onClose?.(); abrirPaleta(); }}
+          className="relative w-full rounded-lg bg-white/5 border border-white/10 pl-8 pr-12 py-1.5 text-left text-xs text-brand-400 hover:border-brand-400 transition-colors">
           <IconSearch size={15} stroke={1.75} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-brand-400" />
-          <input
-            ref={inputBusquedaRef}
-            type="text"
-            value={busqueda}
-            onChange={e => setBusqueda(e.target.value)}
-            onFocus={() => resultados.length > 0 && setMostrarResultados(true)}
-            placeholder="Buscar..."
-            className="w-full rounded-lg bg-white/5 border border-white/10 pl-8 pr-12 py-1.5 text-xs text-white placeholder-brand-400 outline-none focus:border-brand-400"
-          />
-          {!buscando && !busqueda && (
-            <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-white/15 px-1 font-sans text-2xs text-brand-400">
-              {atajo}
-            </kbd>
-          )}
-          {buscando && <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-brand-400 text-xs">...</span>}
-          {!buscando && busqueda && (
-            <button onClick={() => { setBusqueda(""); setResultados([]); setMostrarResultados(false); }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-brand-400 hover:text-white">
-              <IconX size={14} stroke={2} />
-            </button>
-          )}
-        </div>
-        {mostrarResultados && resultados.length > 0 && (
-          <div className="absolute left-3 right-3 top-full mt-1 z-50 rounded-xl bg-white shadow-xl border border-slate-200 overflow-hidden">
-            {resultados.map(r => {
-              const Icono = TIPO_ICON[r.tipo];
-              return (
-                <button key={r.id} onClick={() => { router.push(r.href); setBusqueda(""); setMostrarResultados(false); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-left border-b border-slate-50 last:border-0">
-                  <Icono size={15} stroke={1.75} className="text-slate-400 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-slate-800 truncate">{r.titulo}</p>
-                    <p className="text-xs text-slate-400 truncate">{r.sub}</p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-        {mostrarResultados && resultados.length === 0 && busqueda.length >= 2 && !buscando && (
-          <div className="absolute left-3 right-3 top-full mt-1 z-50 rounded-xl bg-white shadow-xl border border-slate-200 px-3 py-2">
-            <p className="text-xs text-slate-400">Sin resultados para "{busqueda}"</p>
-          </div>
-        )}
+          Buscar o crear…
+          <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-white/15 px-1 font-sans text-2xs text-brand-400">
+            {atajo}
+          </kbd>
+        </button>
       </div>
 
       {/* Encabezado del menú + botón de reordenar */}

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IconSparkles, IconSend, IconArrowLeft } from "@tabler/icons-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { campo } from "@/components/ui/estilos";
 
 type Punto = { label: string; value: number };
@@ -21,6 +22,7 @@ const fmtMoneda = (v: number) =>
 const fmtEntero = (v: number) => new Intl.NumberFormat("es-CO").format(Math.round(v));
 
 export default function PreguntarPage() {
+  const router = useRouter();
   const [pregunta, setPregunta] = useState("");
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
@@ -34,6 +36,18 @@ export default function PreguntarPage() {
     } catch { /* silencioso */ }
   }
   useEffect(() => { cargarUso(); }, []);
+
+  // ?q= (desde la paleta Ctrl+K): hace la pregunta de una vez.
+  const preguntaInicial = useRef(false);
+  useEffect(() => {
+    if (preguntaInicial.current) return;
+    preguntaInicial.current = true;
+    const q = new URLSearchParams(window.location.search).get("q")?.trim();
+    if (!q) return;
+    router.replace("/dashboard/preguntar");
+    preguntar(q);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function preguntar(texto?: string) {
     const q = (texto ?? pregunta).trim();
