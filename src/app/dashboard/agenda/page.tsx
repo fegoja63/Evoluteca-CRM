@@ -377,6 +377,19 @@ function AgendaContent() {
     tipo: "TAREA", titulo: "", fecha: "", notas: "", empresaId: "", contactoId: "", oportunidadId: "",
     responsableId: "", estado: "PENDIENTE",
   });
+
+  // ?nueva=1 (desde los estados vacíos del Inicio) abre el formulario de
+  // "Nueva actividad". Se espera a la sesión para que el responsable quede en
+  // el usuario actual.
+  const nuevaAbierta = useRef(false);
+  useEffect(() => {
+    if (nuevaAbierta.current || !miId || searchParams.get("nueva") !== "1") return;
+    nuevaAbierta.current = true;
+    setEditandoId(null);
+    setForm({ tipo: "TAREA", titulo: "", fecha: "", notas: "", empresaId: "", contactoId: "", oportunidadId: "", responsableId: miId, estado: "PENDIENTE" });
+    setMostrarForm(true);
+  }, [miId, searchParams]);
+
   const [nuevoContacto, setNuevoContacto] = useState(false);
   const [nuevoContactoNombre, setNuevoContactoNombre] = useState("");
   const [creandoContacto, setCreandoContacto] = useState(false);

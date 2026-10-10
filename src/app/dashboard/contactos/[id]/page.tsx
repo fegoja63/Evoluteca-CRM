@@ -39,6 +39,8 @@ export default function FichaContactoPage() {
   const [cargando, setCargando] = useState(true);
   const [editando, setEditando] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  // Al pulsar "Registrar la primera" se vuelve a montar el formulario ya abierto.
+  const [quickKey, setQuickKey] = useState(0);
   const [form, setForm] = useState({ nombre: "", email: "", telefono: "", cargo: "", notas: "", empresaId: "" });
 
   async function cargar(silencioso = false) {
@@ -284,7 +286,11 @@ export default function FichaContactoPage() {
           </h2>
           <div className="flex flex-col gap-1 text-sm mb-3">
             {contacto.actividades.length === 0 ? (
-              <p className="text-xs text-neutral-400">Sin actividades.</p>
+              <p className="text-xs text-neutral-400">
+                Aún no hay actividades con este contacto.{" "}
+                <button onClick={() => setQuickKey(k => k + 1)}
+                  className="font-medium text-brand-600 hover:underline">Registrar la primera</button>
+              </p>
             ) : (
               contacto.actividades.map((a) => (
                 <div key={a.id} className={`flex items-center gap-2 ${a.completada ? "text-neutral-400 line-through" : "text-neutral-700"}`}>
@@ -295,7 +301,8 @@ export default function FichaContactoPage() {
               ))
             )}
           </div>
-          <NuevaActividadInline contactoId={contacto.id} empresaId={contacto.empresa?.id} onGuardado={cargar} />
+          <NuevaActividadInline key={quickKey} contactoId={contacto.id} empresaId={contacto.empresa?.id} onGuardado={cargar}
+            autoAbrir={quickKey > 0} />
         </div>
       </div>
     </div>
