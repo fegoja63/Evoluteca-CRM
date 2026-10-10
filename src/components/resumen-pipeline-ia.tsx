@@ -10,7 +10,8 @@ type Uso = { limite: number | null; usados: number; iaConfigurada: boolean };
 // tenant (o del vendedor, según rol) y lo pasa a Claude, mostrando el texto a
 // medida que llega (streaming). Comparte el cupo mensual con los Resúmenes de
 // cliente (mismo contador de UsoIA / limiteResumenesIA).
-export function ResumenPipelineIA() {
+// `compacto`: para columnas angostas (Inicio) — el botón va debajo, a todo el ancho.
+export function ResumenPipelineIA({ compacto = false }: { compacto?: boolean } = {}) {
   const [texto, setTexto] = useState("");
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
@@ -65,8 +66,8 @@ export function ResumenPipelineIA() {
   const topeAlcanzado = uso?.limite != null && uso.limite > 0 && uso.usados >= uso.limite;
 
   return (
-    <div className="mb-6 rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50 via-white to-brand-100/60 p-5 shadow-sm">
-      <div className="flex items-center justify-between gap-3">
+    <div className={`${compacto ? "" : "mb-6 "}rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50 via-white to-brand-100/60 p-5 shadow-sm`}>
+      <div className={compacto ? "flex flex-col gap-3" : "flex items-center justify-between gap-3"}>
         <div className="flex items-center gap-3">
           <div className="relative shrink-0">
             <div className="absolute -inset-1 rounded-xl bg-brand-400/30 blur-md animate-pulse" aria-hidden />
@@ -93,7 +94,7 @@ export function ResumenPipelineIA() {
           onClick={generar}
           disabled={cargando || sinPlan || topeAlcanzado}
           title={sinPlan ? "No incluido en tu plan" : topeAlcanzado ? "Alcanzaste tu límite del mes" : undefined}
-          className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-brand-600/20 hover:from-brand-700 hover:to-brand-600 disabled:opacity-60 disabled:cursor-not-allowed"
+          className={`${compacto ? "justify-center " : ""}shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-brand-600/20 hover:from-brand-700 hover:to-brand-600 disabled:opacity-60 disabled:cursor-not-allowed`}
         >
           <IconSparkles size={15} stroke={2} className="shrink-0" />
           <span>{cargando ? "Generando…" : sinPlan ? "No disponible" : topeAlcanzado ? "Límite alcanzado" : texto || error ? "Regenerar" : "Generar brief"}</span>

@@ -11,13 +11,15 @@ import { estadoComercial, ultimoMovimientoDe, inicioProximoPaso, type EstadoClav
 import { MODULO_POSTVENTA, DIAS_AVISO_RENOVACION, estadoRenovacion } from "@/lib/postventa";
 import Link from "next/link";
 import {
-  IconBuilding, IconUsers, IconChartFunnel, IconClipboardList, IconActivityHeartbeat,
+  IconUsers, IconChartFunnel,
   IconPhone, IconCheck, IconMail, IconTarget, IconTrophy, IconAlertTriangle,
   IconCircleCheck, IconScale, IconTheater, IconAlertCircle, IconSnowflake,
   IconMoodSmile, IconPinned, IconFilePlus, IconCalendarPlus, IconReportAnalytics, IconHeartHandshake,
   type Icon, IconTrendingUp, IconTrendingDown } from "@tabler/icons-react";
 import { boton, tarjeta } from "@/components/ui/estilos";
 import { mapaEtapas } from "@/lib/etapas-color";
+import { BotonHecha } from "@/components/boton-hecha";
+import { ResumenPipelineIA } from "@/components/resumen-pipeline-ia";
 
 export const dynamic = "force-dynamic";
 
@@ -48,10 +50,7 @@ export default async function DashboardPage() {
   const hace3dias   = new Date(hoy.getTime() - 3 * 86_400_000);
 
   const [
-    empresas,
-    contactos,
     oportunidades,
-    actividadesPendientes,
     actividadesHoy,
     actividadesVencidas,
     actividadesSemana,
@@ -76,13 +75,10 @@ export default async function DashboardPage() {
     tenantCfg,
     renovacionesCandidatas,
   ] = await Promise.all([
-    prisma.empresa.count({ where: { tenantId, eliminadoEn: null, ...ownerFiltro } }),
-    prisma.contacto.count({ where: { tenantId, eliminadoEn: null } }),
     prisma.oportunidad.findMany({
       where: { tenantId, eliminadoEn: null, ...ownerFiltro },
       select: { etapa: true, valor: true, creadoEn: true, fechaCierre: true, fechaEvento: true, extras: true, creadoBy: true },
     }),
-    prisma.actividad.count({ where: { tenantId, completada: false, ...ownerFiltro } }),
     prisma.actividad.findMany({
       where: { tenantId, completada: false, fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro },
       orderBy: { fecha: "asc" },
@@ -97,7 +93,11 @@ export default async function DashboardPage() {
       where: { tenantId, completada: false, fecha: { lt: inicioHoy }, ...ownerFiltro },
       orderBy: { fecha: "asc" },
       take: 6,
-      include: { empresa: { select: { id: true, nombre: true } } },
+      include: {
+        empresa:     { select: { id: true, nombre: true } },
+        contacto:    { select: { id: true, nombre: true } },
+        oportunidad: { select: { id: true, titulo: true } },
+      },
     }),
     prisma.actividad.findMany({
       where: { tenantId, completada: false, fecha: { gte: finHoy, lt: fin7dias }, ...ownerFiltro },
@@ -280,6 +280,14 @@ export default async function DashboardPage() {
   const perdidas        = oportunidades.filter(o => o.etapa === "PERDIDA").length;
   const totalCerradas   = ganadas + perdidas;
   const tasaCierre      = totalCerradas > 0 ? Math.round((ganadas / totalCerradas) * 100) : 0;
+  // Contadores del Inicio (los arreglos de arriba vienen con tope de filas).
+  const [nVencidas, nReunionesHoy] = await Promise.all([
+    prisma.actividad.count({ where: { tenantId, completada: false, fecha: { lt: inicioHoy }, ...ownerFiltro } }),
+    prisma.actividad.count({ where: { tenantId, completada: false, tipo: "REUNION", fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro } }),
+  ]);
+  const pendientesHoy = totalActividadesHoy - actividadesCompletadasHoy;
+  const cosasHoy = pendientesHoy + nVencidas;
+  const nSinProximoPaso = opActivasConActividad.filter(o => o._count.actividades === 0).length;
   const progresoDia     = totalActividadesHoy > 0 ? Math.round((actividadesCompletadasHoy / totalActividadesHoy) * 100) : 0;
 
   // Meta del mes — metaPct es el % real (puede superar 100, se muestra en texto);
@@ -382,6 +390,10 @@ export default async function DashboardPage() {
               {hoy.toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric",timeZone:"America/Bogota"})}
             </p>
             <h1 className="text-2xl font-bold tracking-tight">{saludo}, {nombre}</h1>
+            <p className="mt-1 text-sm font-medium text-white/90">
+              {cosasHoy === 0 ? "No tienes nada pendiente para hoy" : `Tienes ${cosasHoy} ${cosasHoy === 1 ? "cosa" : "cosas"} para hoy`}
+              {nVencidas > 0 && <span className="text-red-300"> · {nVencidas} vencida{nVencidas !== 1 ? "s" : ""}</span>}
+            </p>
             <p className="text-brand-300 mt-0.5 text-xs">{session?.user?.tenantNombre} · {session?.user?.rol ? session.user.rol.charAt(0)+session.user.rol.slice(1).toLowerCase() : ""}</p>
           </div>
 
@@ -464,85 +476,39 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* ══ KPI CARDS ══════════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      {/* ══ CONTADORES: lo que pide acción hoy ═════════════════════════════ */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {([
-          { label:"Empresas",         valor: empresas,             sub: "clientes registrados",    href:"/dashboard/cuentas",  icon: IconBuilding,        semantic: false },
-          { label:"Contactos",        valor: contactos,            sub: "personas en tu red",      href:"/dashboard/contactos",icon: IconUsers,           semantic: false },
-          { label:"Oportunidades",    valor: opActivas.length,     sub: "en el pipeline",          href:"/dashboard/pipeline", icon: IconChartFunnel,     semantic: false },
-          { label:"Tareas pendientes",valor: actividadesPendientes,sub: actividadesHoy.length>0?`${actividadesHoy.length} para hoy`:"sin actividades hoy", href:"/dashboard/agenda", icon: IconClipboardList, semantic: false },
-          { label:"Salud comercial",  valor: `${saludScore}/100`,  sub: saludScore>=75?"Excelente":saludScore>=50?"En proceso":"Necesita atención", href:"/dashboard/reportes", icon: IconActivityHeartbeat,
-            semantic: true, ibg: saludScore>=75?"bg-emerald-50":saludScore>=50?"bg-amber-50":"bg-red-50", itxt: saludScore>=75?"text-emerald-600":saludScore>=50?"text-amber-600":"text-red-500" },
-        ] as { label:string; valor:string|number; sub:string; href:string; icon:Icon; semantic:boolean; ibg?:string; itxt?:string }[]).map(k => {
+          { label: "Actividades vencidas",   valor: nVencidas,       sub: nVencidas ? "Ponte al día o reprográmalas" : "Estás al día", href: "/dashboard/agenda?vencidas=1", icon: IconAlertCircle,  caja: nVencidas ? "border-red-200 bg-red-50" : "border-slate-200 bg-white", num: nVencidas ? "text-red-600" : "text-slate-900", ico: nVencidas ? "bg-red-100 text-red-600" : "bg-slate-100 text-slate-500" },
+          { label: "Reuniones hoy",          valor: nReunionesHoy,   sub: nReunionesHoy ? "Revisa la agenda antes de cada una" : "Ninguna agendada", href: "/dashboard/agenda?tipo=REUNION", icon: IconUsers, caja: "border-slate-200 bg-white", num: "text-slate-900", ico: "bg-slate-100 text-slate-600" },
+          { label: "Negocios sin próximo paso", valor: nSinProximoPaso, sub: nSinProximoPaso ? "Agenda qué sigue en cada uno" : "Todos tienen algo agendado", href: "/dashboard/pipeline?sinPaso=1", icon: IconCalendarPlus, caja: nSinProximoPaso ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-white", num: nSinProximoPaso ? "text-amber-600" : "text-slate-900", ico: nSinProximoPaso ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-500" },
+        ] as { label: string; valor: number; sub: string; href: string; icon: Icon; caja: string; num: string; ico: string }[]).map(k => {
           const Icono = k.icon;
           return (
-          <Link key={k.href} href={k.href} className="group">
-            <div className={tarjeta("p-4 hover:shadow-md transition-all hover:-translate-y-0.5 duration-200")}>
-              <div className="flex items-start justify-between mb-3">
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${k.semantic ? k.ibg : "bg-brand-50"}`}>
-                  <Icono size={18} stroke={1.75} className={k.semantic ? k.itxt : "text-brand-600"} />
-                </div>
-                <span className="text-slate-300 text-xs group-hover:text-brand-400 transition-colors">→</span>
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 leading-none">{k.valor}</p>
-              <p className="text-xs font-semibold text-slate-700 mt-1">{k.label}</p>
-              <p className="text-xs text-slate-400 mt-0.5">{k.sub}</p>
-            </div>
-          </Link>
+            <Link key={k.href} href={k.href}
+              className={`group flex items-center gap-4 rounded-2xl border p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${k.caja}`}>
+              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${k.ico}`}>
+                <Icono size={22} stroke={1.75} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className={`block text-3xl font-extrabold leading-none ${k.num}`}>{k.valor}</span>
+                <span className="mt-1 block text-xs font-semibold text-slate-700">{k.label}</span>
+                <span className="block text-xs text-slate-400">{k.sub}</span>
+              </span>
+              <span className="text-slate-300 text-xs group-hover:text-brand-400 transition-colors">→</span>
+            </Link>
           );
         })}
       </div>
 
-      {/* ══ FILA CENTRAL: Pipeline | Vendedores | Calientes ════════════════ */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* ══ FILA CENTRAL: Lo primero de hoy | Brief IA + Calientes ═════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        {/* Pipeline funnel */}
-        <div className={tarjeta("p-5")}>
+        {/* Lo primero de hoy: vencidas + de hoy, con acción por fila */}
+        <div className={tarjeta("p-5 lg:col-span-2")}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-sm font-bold text-slate-900">Estado del pipeline</h2>
-              <p className="text-xs text-slate-400 mt-0.5">{totalOp} oportunidades · {fmtFull(valorPipeline)} activos</p>
-            </div>
-            <Link href="/dashboard/pipeline" className="text-xs font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-lg px-2.5 py-1 transition-colors">Ver kanban →</Link>
-          </div>
-          <div className="flex flex-col gap-2">
-            {ETAPAS_PIPELINE.map(etapa => {
-              const n   = oportunidades.filter(o => o.etapa === etapa).length;
-              const val = oportunidades.filter(o => o.etapa === etapa).reduce((a,o) => a+Number(o.valor??0),0);
-              const pct = maxEtapa > 0 ? (n/maxEtapa)*100 : 0;
-              return (
-                <div key={etapa} className="flex items-center gap-2">
-                  <span className={`text-xs font-medium w-20 shrink-0 ${ETAPA_TEXT[etapa]}`}>{ETAPA_LABEL[etapa]}</span>
-                  <div className="flex-1 h-5 rounded-lg bg-slate-50 overflow-hidden relative">
-                    <div className={`h-full rounded-lg ${ETAPA_COLOR[etapa]} transition-all duration-500`} style={{width:`${Math.max(pct,n>0?5:0)}%`}} />
-                    {n > 0 && <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-600">{n}</span>}
-                  </div>
-                  {val > 0 && <span className="text-xs text-slate-400 font-mono w-16 text-right shrink-0">{fmt(val)}</span>}
-                </div>
-              );
-            })}
-          </div>
-          <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-3 gap-2 text-center">
-            <div>
-              <p className="text-lg font-bold text-emerald-600">{ganadas}</p>
-              <p className="text-xs text-slate-400">Ganadas</p>
-            </div>
-            <div>
-              <p className="text-lg font-bold text-red-400">{perdidas}</p>
-              <p className="text-xs text-slate-400">Perdidas</p>
-            </div>
-            <div>
-              <p className="text-lg font-bold text-accent-600">{tasaCierre}%</p>
-              <p className="text-xs text-slate-400">Cierre</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Actividades de hoy */}
-        <div className={tarjeta("p-5")}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">Actividades de hoy</h2>
+              <h2 className="text-sm font-bold text-slate-900">Lo primero de hoy</h2>
               <p className="text-xs text-slate-400 mt-0.5">{actividadesCompletadasHoy}/{totalActividadesHoy} completadas · {progresoDia}%</p>
             </div>
             <Link href="/dashboard/agenda" className="text-xs font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-lg px-2.5 py-1 transition-colors">Agenda →</Link>
@@ -550,6 +516,32 @@ export default async function DashboardPage() {
           {totalActividadesHoy > 0 && (
             <div className="w-full h-1.5 bg-slate-100 rounded-full mb-3 overflow-hidden">
               <div className="h-1.5 rounded-full bg-accent-500 transition-all duration-700" style={{width:`${progresoDia}%`}} />
+            </div>
+          )}
+          {actividadesVencidas.length > 0 && (
+            <div className="mb-3 flex flex-col gap-1.5">
+              {actividadesVencidas.map(a => {
+                const IconoTipo = TIPO_ICON[a.tipo] ?? IconPinned;
+                const href = a.oportunidad ? `/dashboard/pipeline/${a.oportunidad.id}` : a.empresa ? `/dashboard/cuentas/${a.empresa.id}` : a.contacto ? `/dashboard/contactos/${a.contacto.id}` : "/dashboard/agenda";
+                return (
+                <div key={a.id} className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2">
+                  <IconoTipo size={16} stroke={1.75} className="text-red-500 shrink-0" />
+                  <Link href={href} className="flex-1 min-w-0 group">
+                    <p className="text-xs font-semibold text-red-700 truncate group-hover:underline">{a.titulo}</p>
+                    <p className="text-xs text-red-400 truncate">{a.oportunidad?.titulo ?? a.empresa?.nombre ?? a.contacto?.nombre ?? ""}</p>
+                  </Link>
+                  <span className="rounded-full bg-red-100 px-1.5 py-0.5 text-2xs font-semibold text-red-700 shrink-0">
+                    Vencida · {new Date(a.fecha).toLocaleDateString("es-CO", { day: "2-digit", month: "short", timeZone: "America/Bogota" })}
+                  </span>
+                  <BotonHecha id={a.id} />
+                </div>
+                );
+              })}
+              {nVencidas > actividadesVencidas.length && (
+                <Link href="/dashboard/agenda?vencidas=1" className="text-xs font-medium text-red-600 hover:underline">
+                  Ver las {nVencidas} vencidas →
+                </Link>
+              )}
             </div>
           )}
           {actividadesHoy.length === 0 ? (
@@ -565,14 +557,16 @@ export default async function DashboardPage() {
             <div className="flex flex-col gap-1.5">
               {actividadesHoy.map(a => {
                 const IconoTipo = TIPO_ICON[a.tipo] ?? IconPinned;
+                const href = a.oportunidad ? `/dashboard/pipeline/${a.oportunidad.id}` : a.empresa ? `/dashboard/cuentas/${a.empresa.id}` : a.contacto ? `/dashboard/contactos/${a.contacto.id}` : "/dashboard/agenda";
                 return (
-                <div key={a.id} className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-100 px-3 py-2">
-                  <IconoTipo size={16} stroke={1.75} className="text-red-500 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-red-700 truncate">{a.titulo}</p>
-                    <p className="text-xs text-red-400 truncate">{a.empresa?.nombre ?? a.contacto?.nombre ?? ""}</p>
-                  </div>
-                  <p className="text-xs text-red-400 font-mono shrink-0">{new Date(a.fecha).toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"})}</p>
+                <div key={a.id} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
+                  <IconoTipo size={16} stroke={1.75} className="text-brand-500 shrink-0" />
+                  <Link href={href} className="flex-1 min-w-0 group">
+                    <p className="text-xs font-semibold text-slate-800 truncate group-hover:underline">{a.titulo}</p>
+                    <p className="text-xs text-slate-400 truncate">{a.oportunidad?.titulo ?? a.empresa?.nombre ?? a.contacto?.nombre ?? ""}</p>
+                  </Link>
+                  <p className="text-xs text-slate-500 font-mono shrink-0">{new Date(a.fecha).toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit",timeZone:"America/Bogota"})}</p>
+                  <BotonHecha id={a.id} />
                 </div>
                 );
               })}
@@ -602,7 +596,9 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Oportunidades calientes */}
+        {/* Columna derecha: brief con IA + oportunidades calientes */}
+        <div className="flex flex-col gap-4">
+        <ResumenPipelineIA compacto />
         <div className={tarjeta("p-5")}>
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -648,10 +644,55 @@ export default async function DashboardPage() {
             </div>
           )}
         </div>
+        </div>
       </div>
 
-      {/* ══ OPORTUNIDADES POR ESTADO (qué está pasando y qué requiere acción) ══ */}
-      <div className={tarjeta("p-5")}>
+      {/* ══ PIPELINE: embudo + oportunidades por estado ════════════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Pipeline funnel */}
+        <div className={tarjeta("p-5")}>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">Estado del pipeline</h2>
+              <p className="text-xs text-slate-400 mt-0.5">{totalOp} oportunidades · {fmtFull(valorPipeline)} activos</p>
+            </div>
+            <Link href="/dashboard/pipeline" className="text-xs font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-lg px-2.5 py-1 transition-colors">Ver kanban →</Link>
+          </div>
+          <div className="flex flex-col gap-2">
+            {ETAPAS_PIPELINE.map(etapa => {
+              const n   = oportunidades.filter(o => o.etapa === etapa).length;
+              const val = oportunidades.filter(o => o.etapa === etapa).reduce((a,o) => a+Number(o.valor??0),0);
+              const pct = maxEtapa > 0 ? (n/maxEtapa)*100 : 0;
+              return (
+                <div key={etapa} className="flex items-center gap-2">
+                  <span className={`text-xs font-medium w-20 shrink-0 ${ETAPA_TEXT[etapa]}`}>{ETAPA_LABEL[etapa]}</span>
+                  <div className="flex-1 h-5 rounded-lg bg-slate-50 overflow-hidden relative">
+                    <div className={`h-full rounded-lg ${ETAPA_COLOR[etapa]} transition-all duration-500`} style={{width:`${Math.max(pct,n>0?5:0)}%`}} />
+                    {n > 0 && <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-600">{n}</span>}
+                  </div>
+                  {val > 0 && <span className="text-xs text-slate-400 font-mono w-16 text-right shrink-0">{fmt(val)}</span>}
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-3 gap-2 text-center">
+            <div>
+              <p className="text-lg font-bold text-emerald-600">{ganadas}</p>
+              <p className="text-xs text-slate-400">Ganadas</p>
+            </div>
+            <div>
+              <p className="text-lg font-bold text-red-400">{perdidas}</p>
+              <p className="text-xs text-slate-400">Perdidas</p>
+            </div>
+            <div>
+              <p className="text-lg font-bold text-accent-600">{tasaCierre}%</p>
+              <p className="text-xs text-slate-400">Cierre</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Oportunidades por estado (qué está pasando y qué requiere acción) */}
+      <div className={tarjeta("p-5 lg:col-span-2")}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-sm font-bold text-slate-900">Oportunidades por estado</h2>
@@ -701,6 +742,8 @@ export default async function DashboardPage() {
             )}
           </>
         )}
+      </div>
+
       </div>
 
       {/* ══ FILA INFERIOR: Alertas | Actividades hoy | Semana ══════════════ */}
