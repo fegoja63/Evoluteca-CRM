@@ -18,12 +18,22 @@ export const FAQS: Faq[] = [
     respuesta: "En la pantalla de inicio de sesión haz clic en \"¿Olvidaste tu contraseña?\", ingresa tu correo y recibirás un email con un enlace para restablecerla, válido por 1 hora. El Administrador de tu organización también puede restablecerla desde el panel de Equipo, sin necesidad de email." },
   { categoria: "Primeros pasos", pregunta: "¿Puedo usar el CRM desde el celular?",
     respuesta: "Sí, está optimizado para móvil. En pantallas pequeñas aparece una barra de navegación inferior y un botón flotante + con accesos rápidos a nueva actividad, nuevo cliente, nueva cotización y pipeline." },
+  { categoria: "Primeros pasos", pregunta: "¿Cómo busco o creo algo rápido desde cualquier pantalla?",
+    respuesta: "Presiona Ctrl+K (⌘K en Mac) o haz clic en \"Buscar o crear…\" arriba en el menú lateral. En esa ventana puedes buscar clientes, contactos, oportunidades, cotizaciones y actividades; crear un cliente, oportunidad, actividad, cotización o contacto (escribe \"nuevo\" o \"nueva\"); preguntarle a la IA lo que escribiste; o ir a cualquier pantalla. Se maneja con ↑↓, Enter y Esc." },
+  { categoria: "Primeros pasos", pregunta: "¿Cómo está organizado el menú lateral?",
+    respuesta: "En grupos: Hoy (Dashboard, Bandeja Hoy, Agenda), Ventas, Relaciones, Análisis, Módulos (los opcionales activos) y Más. Cada grupo se pliega o despliega con un clic en su título y el CRM lo recuerda en tu navegador; el grupo de la pantalla actual siempre queda abierto. Con \"Ordenar\" puedes mover los ítems dentro de cada grupo." },
+  { categoria: "Primeros pasos", pregunta: "¿Cómo activo el modo oscuro?",
+    respuesta: "Abajo en el menú lateral, junto a \"Cerrar sesión\", pulsa \"Tema\": cada clic pasa de Día a Noche y a Automático (sigue el modo claro u oscuro de tu equipo). La preferencia es personal y se guarda en ese navegador. La cotización que ve tu cliente, los PDFs y los correos no cambian." },
   { categoria: "Primeros pasos", pregunta: "¿Cómo creo una cuenta nueva para otra empresa?",
     respuesta: "El registro de cuentas nuevas no es autoservicio: solo tu asesor Evoluteca puede activar una organización nueva en la plataforma." },
 
   // ── Clientes y contactos ──
   { categoria: "Clientes y contactos", pregunta: "¿Cómo creo un cliente nuevo?",
     respuesta: "Ve a Clientes, botón \"+ Nuevo cliente\". Solo el \"Nombre del cliente o Empresa\" es obligatorio. Puedes escribir el \"Nombre del contacto\" (contacto principal, que usa el email y teléfono que ingreses arriba) y, en la sección \"OTRO contacto de este cliente\", registrar un segundo contacto — así el cliente queda con más de un contacto desde el inicio. El resto (sector, sitio web, notas) es opcional." },
+  { categoria: "Clientes y contactos", pregunta: "¿Cómo veo los clientes sin vendedor y se los asigno?",
+    respuesta: "En Clientes, la pestaña \"Sin vendedor N\" (sobre la tabla) muestra solo esos clientes. En la columna Vendedor, el botón punteado \"+ Asignar\" abre la confirmación para elegir vendedor; si el cliente ya tiene uno, un clic en su nombre permite cambiarlo. Reasignar también pasa al nuevo vendedor las oportunidades y actividades de ese cliente (solo Administrador). La pestaña \"Mis clientes\" muestra los tuyos." },
+  { categoria: "Clientes y contactos", pregunta: "¿Qué significa la barra de la columna \"Datos\"?",
+    respuesta: "Indica qué tan completa está la ficha. En Clientes cuenta correo, teléfono, sector, sitio web y si tiene contactos; en Contactos, correo, teléfono, cargo y empresa. Al pasar el cursor ves qué falta. En Contactos, las pestañas \"Sin empresa\" y \"Sin correo\" muestran a quién le falta ese dato." },
   { categoria: "Clientes y contactos", pregunta: "¿Cómo edito, agrego o elimino los contactos de un cliente?",
     respuesta: "Abre el cliente (clic en su nombre). En la sección Contactos, usa \"+ Agregar contacto\" para crear uno nuevo ya vinculado, o el ícono de lápiz junto a cada contacto para corregir su nombre, cargo, teléfono y email o eliminarlo. También puedes editarlos desde la página Contactos del menú." },
   { categoria: "Clientes y contactos", pregunta: "¿Cómo veo los clientes nuevos de un año o de un mes?",
@@ -65,6 +75,8 @@ export const FAQS: Faq[] = [
     respuesta: "Arriba de la ficha de cada oportunidad activa aparece su estado comercial con el porqué y una acción recomendada (ej: \"Reactivar hoy\", \"Hacer seguimiento hoy\", \"Agendar el próximo paso\"). El botón \"Actuar ahora\" crea con un clic esa actividad para hoy, ya vinculada a la oportunidad, el cliente y el contacto. Así pasas de ver el problema a resolverlo sin llenar un formulario." },
   { categoria: "Pipeline de ventas", pregunta: "¿Qué significa \"Sin próximo paso agendado\"?",
     respuesta: "Es la regla \"sin siguiente paso, no hay oportunidad\": todo negocio activo debe tener al menos una actividad pendiente (llamada, reunión, tarea…) con fecha de hoy en adelante. Si no la tiene, el negocio pasa a \"Requiere atención\" aunque esté caliente, porque un negocio sin siguiente paso es justo el que se enfría sin que nadie lo note. Una tarea vencida de días anteriores no cuenta: hay que agendar un paso nuevo. En el tablero, la tarjeta lo muestra con un chip gris punteado \"Sin próximo paso\" (al hacer clic abre la ficha para agendarlo); si lo único pendiente está vencido, el chip sale en rojo (\"Vencida hace N d\"). Se resuelve agendando la siguiente actividad (o con el botón \"Actuar ahora\" de la ficha)." },
+  { categoria: "Pipeline de ventas", pregunta: "¿Qué significan \"Quieto N d\" y la franja de negocios en riesgo?",
+    respuesta: "\"Quieto N d\" aparece en la tarjeta de un negocio que lleva el umbral de días sin movimiento o más (ámbar; rojo desde el doble). Arriba del tablero, la franja \"N negocios en riesgo · $ valor\" lista los negocios en riesgo del más valioso al menos valioso, con su porqué (por ejemplo \"Cierre vencido hace 88 días\") y un enlace a cada uno: es lo primero que conviene rescatar. Respeta los filtros del tablero." },
   { categoria: "Pipeline de ventas", pregunta: "¿Dónde están las columnas Ganada y Perdida?",
     respuesta: "Siguen en el tablero, a la derecha, pero compactas: muestran cuántos negocios hay y su valor total, para que el Pipeline se concentre en los negocios abiertos. Arrastrar una tarjeta hasta ellas sigue cerrando el negocio (en Perdida se pide el motivo). Para ver las tarjetas pulsa \"Ver negocios\" y para volver, \"Compactar\"; el CRM recuerda tu preferencia en ese navegador." },
   { categoria: "Pipeline de ventas", pregunta: "¿Qué muestra cada tarjeta del pipeline?",
@@ -92,7 +104,9 @@ export const FAQS: Faq[] = [
   { categoria: "Agenda", pregunta: "¿Qué tipos de actividad puedo registrar en la Agenda?",
     respuesta: "Llamada, Reunión, Tarea y Email. Cada actividad puede vincularse a un cliente, contacto y/o oportunidad." },
   { categoria: "Agenda", pregunta: "¿Cómo marco una actividad como completada?",
-    respuesta: "Marca el checkbox junto a la actividad; se mostrará tachada. Usa el filtro \"Solo pendientes\" para enfocarte en lo que falta." },
+    respuesta: "Haz clic en el círculo \"Hecha\" a la izquierda de la actividad: se pone verde y la actividad queda tachada (no se borra). Editar, Añadir a mi calendario, Reasignar y Borrar están en el menú \"⋯\" al final de la fila. También puedes marcarla con \"Hecha\" desde \"Lo primero de hoy\" en el Dashboard o desde la Bandeja Hoy." },
+  { categoria: "Agenda", pregunta: "¿Qué es la Bandeja Hoy?",
+    respuesta: "Es la pantalla para despachar el día (menú Hoy → Bandeja Hoy, o Ctrl+K): a la izquierda tus actividades pendientes de hoy y las vencidas; a la derecha el detalle de la elegida, una sugerencia de qué hacer y tres botones: Hacer (llama, escribe o abre el negocio según el tipo), Reprogramar (propone mañana a la misma hora) y Hecha (la completa y pasa a la siguiente). La sugerencia sale de reglas del CRM, no de la IA, así que no gasta cupo." },
   { categoria: "Agenda", pregunta: "¿El CRM me avisa si tengo actividades vencidas?",
     respuesta: "Sí. Cada mañana a las 8am se envían por email hasta 3 alertas automáticas: actividades vencidas, negocios estancados (sin actividad ni cambio de etapa desde hace más del umbral de días que definió tu Administrador — por defecto 14) y cierres próximos (en los siguientes 7 días). Solo llega el correo de las categorías que realmente tengan situaciones pendientes." },
   { categoria: "Agenda", pregunta: "¿Puedo sincronizar mis actividades con Google Calendar u Outlook?",
@@ -122,7 +136,7 @@ export const FAQS: Faq[] = [
   { categoria: "Cotizaciones", pregunta: "¿Cómo reutilizo un paquete de servicios que uso seguido?",
     respuesta: "Guárdalo como plantilla en el módulo Plantillas, o desde una cotización existente con el botón \"Guardar plantilla\". Editar o eliminar una plantilla después no afecta las cotizaciones ya creadas a partir de ella." },
   { categoria: "Cotizaciones", pregunta: "¿Qué pasa si una cotización vence sin respuesta del cliente?",
-    respuesta: "El sistema muestra badges automáticos: ámbar \"Vence en Xd\" (7 días o menos) y rojo \"Vencida Xd\" o \"Vence hoy\". Estos badges desaparecen cuando la cotización pasa a Aceptada o Rechazada." },
+    respuesta: "El sistema muestra badges automáticos: ámbar \"Vence en Xd\" (7 días o menos) y rojo \"Vencida Xd\" o \"Vence hoy\". Junto al buscador de Cotizaciones aparecen los filtros \"Vencidas N\" y \"Vencen en 7 días N\" para ver solo esas. Los badges desaparecen cuando la cotización pasa a Aceptada o Rechazada." },
 
   // ── Importación de Excel ──
   { categoria: "Importación de datos", pregunta: "¿Cómo importo mi base de datos de Excel?",
@@ -154,7 +168,7 @@ export const FAQS: Faq[] = [
 
   // ── Dashboard ──
   { categoria: "Dashboard", pregunta: "¿Qué es el Dashboard y qué muestra?",
-    respuesta: "Es la pantalla principal: un tablero gerencial de una sola página con meta del mes y del año, KPIs clave (pipeline activo, forecast, ganados del mes, actividades vencidas y de hoy), ranking de vendedores, oportunidades calientes, últimas ganadas, salud comercial y \"Oportunidades por estado\": cuántos negocios activos hay En riesgo, Requieren atención, Alta intención y En marcha, con la lista de los que requieren tu acción y su porqué. Si tienes el módulo Postventa activo, el panel \"Requieren atención\" también muestra las renovaciones por gestionar." },
+    respuesta: "Es la pantalla principal y empieza por lo que pide acción hoy: el saludo dice cuántas cosas tienes para hoy; tres contadores (actividades vencidas, reuniones de hoy y negocios sin próximo paso) llevan a su lista; y \"Lo primero de hoy\" lista vencidas y pendientes con su botón \"Hecha\", junto al Brief del pipeline con IA. Además muestra meta del mes y del año, ganado del mes, pipeline activo y tasa de cierre, ranking de vendedores, oportunidades calientes, últimas ganadas, salud comercial y \"Oportunidades por estado\": cuántos negocios activos hay En riesgo, Requieren atención, Alta intención y En marcha, con la lista de los que requieren tu acción y su porqué. Si tienes el módulo Postventa activo, el panel \"Requieren atención\" también muestra las renovaciones por gestionar." },
   { categoria: "Dashboard", pregunta: "¿Por qué no veo el medidor circular de meta del mes?",
     respuesta: "Los gauges de meta del mes y del año solo aparecen si tienes una meta configurada para ese período. Configúrala desde Reportes → Configurar metas." },
 
