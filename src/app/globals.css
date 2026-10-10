@@ -7,6 +7,29 @@
   --foreground: #0f172a;
 }
 
+/* ── Modo noche ───────────────────────────────────────────────────────────
+   Los colores de las paletas cambian solos (variables en tailwind.config.ts).
+   Aquí va lo que no es paleta: fondo de página, el blanco de las tarjetas y
+   los controles nativos del navegador. El blanco se ajusta por clase y no por
+   variable porque `text-white` sobre botones y el navy debe seguir blanco. */
+.dark {
+  --background: #0b1120;
+  --foreground: #e2e8f0;
+  --superficie: #131c2e;
+  color-scheme: dark;
+}
+.dark .bg-white,
+.dark .hover\:bg-white:hover {
+  background-color: var(--superficie);
+}
+.dark .via-white {
+  --tw-gradient-to: transparent var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--superficie) var(--tw-gradient-via-position), var(--tw-gradient-to);
+}
+.dark .border-white {
+  border-color: var(--superficie);
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
