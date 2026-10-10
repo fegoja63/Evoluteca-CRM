@@ -18,6 +18,9 @@ export async function GET(request: Request) {
     tenantId,
     eliminadoEn: null,
     ...(q ? { nombre: { contains: q, mode: "insensitive" as const } } : {}),
+    // Vistas guardadas de la tabla de Contactos.
+    ...(searchParams.get("vista") === "sinEmpresa" ? { empresaId: null } : {}),
+    ...(searchParams.get("vista") === "sinEmail" ? { email: null } : {}),
   };
 
   // Sin "page" se mantiene el comportamiento anterior (lista completa) —

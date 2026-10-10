@@ -6,6 +6,15 @@ import { filtroPeriodoCreacion } from "@/lib/filtros";
 import { crearEmpresaSchema } from "@/lib/validations/empresas";
 import { parseOrError } from "@/lib/validations/helpers";
 
+// Vistas guardadas de la tabla de Clientes. Van dentro de AND para no pisar el
+// `creadoBy` de filtroOwner: un COMERCIAL nunca ve clientes de otro ni los
+// "sin vendedor" (para él la vista queda vacía).
+function filtroVistaEmpresa(vista: string | null, userId: string) {
+  if (vista === "mios") return { AND: [{ creadoBy: userId }] };
+  if (vista === "sinVendedor") return { AND: [{ creadoBy: null }] };
+  return {};
+}
+
 export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -23,6 +32,7 @@ export async function GET(request: Request) {
     ...filtroOwner(session.user.rol, session.user.id),
     ...(q ? { nombre: { contains: q, mode: "insensitive" as const } } : {}),
     ...filtroPeriodoCreacion(anio, mes),
+    ...filtroVistaEmpresa(searchParams.get("vista"), session.user.id),
   };
   const contactosActivos = { contactos: { where: { eliminadoEn: null } } };
 

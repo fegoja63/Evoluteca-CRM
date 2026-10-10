@@ -30,6 +30,16 @@ type Contacto = {
 
 type Empresa = { id: string; nombre: string };
 
+// Qué tan completa está la ficha del contacto (correo, teléfono, cargo, empresa).
+function datosCompletos(c: Contacto) {
+  const campos: [string, boolean][] = [
+    ["correo", !!c.email], ["teléfono", !!c.telefono], ["cargo", !!c.cargo], ["empresa", !!c.empresa],
+  ];
+  return { llenos: campos.filter(([, ok]) => ok).length, total: campos.length, faltan: campos.filter(([, ok]) => !ok).map(([n]) => n) };
+}
+
+type Vista = "" | "sinEmpresa" | "sinEmail";
+
 export default function ContactosPage() {
   const [contactos, setContactos] = useState<Contacto[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
@@ -41,7 +51,10 @@ export default function ContactosPage() {
   const [todosContactos, setTodosContactos] = useState<Contacto[]>([]);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [stats, setStats] = useState({ total: 0, conEmpresa: 0, sinEmpresa: 0, conEmail: 0 });
+  const [stats, setStats] = useState({ total: 0, conEmpresa: 0, sinEmpresa: 0, conEmail: 0, sinEmail: 0 });
+  // Vista guardada (pestañas sobre la tabla); cargar() la lee del ref.
+  const [vista, setVista] = useState<Vista>("");
+  const vistaRef = useRef<Vista>("");
   const [editando, setEditando] = useState<Contacto | null>(null);
   useEscape(!!editando, () => setEditando(null));
   const [formEdit, setFormEdit] = useState({ nombre: "", email: "", telefono: "", cargo: "", empresaId: "" });
@@ -59,11 +72,12 @@ export default function ContactosPage() {
 
   const busquedaRef = useRef("");
   async function cargar(q = "", p = 1) {
-    busquedaRef.current = q;
+    const clave = `${q}|${vistaRef.current}`;
+    busquedaRef.current = clave;
     setCargando(true);
-    const res = await fetch(`/api/contactos?q=${encodeURIComponent(q)}&page=${p}&take=${TAKE}`);
+    const res = await fetch(`/api/contactos?q=${encodeURIComponent(q)}&vista=${vistaRef.current}&page=${p}&take=${TAKE}`);
     const data = await res.json();
-    if (busquedaRef.current !== q) return; // respuesta obsoleta — ya se lanzó una búsqueda más reciente
+    if (busquedaRef.current !== clave) return; // respuesta obsoleta — ya se lanzó una búsqueda más reciente
     setContactos(data);
     setTotalCount(Number(res.headers.get("X-Total-Count") ?? data.length));
     setCargando(false);
@@ -72,6 +86,13 @@ export default function ContactosPage() {
   async function cargarStats(q = "") {
     const res = await fetch(`/api/contactos/stats?q=${encodeURIComponent(q)}`);
     setStats(await res.json());
+  }
+
+  function cambiarVista(v: Vista) {
+    vistaRef.current = v;
+    setVista(v);
+    setPage(1);
+    cargar(busqueda, 1);
   }
 
   function cambiarPagina(p: number) {
@@ -332,10 +353,33 @@ export default function ContactosPage() {
         </div>
       )}
 
+      {/* Vistas guardadas */}
+      {stats.total > 0 && (
+        <div className="mb-3 flex flex-wrap gap-1 border-b border-slate-200" role="tablist">
+          {([
+            { key: "" as Vista,           label: "Todos",       n: stats.total },
+            { key: "sinEmpresa" as Vista, label: "Sin empresa", n: stats.sinEmpresa },
+            { key: "sinEmail" as Vista,   label: "Sin correo",  n: stats.sinEmail },
+          ]).filter(v => v.key === "" || v.n > 0 || vista === v.key).map(v => (
+            <button key={v.key || "todos"} type="button" role="tab" aria-selected={vista === v.key}
+              onClick={() => cambiarVista(v.key)}
+              className={`-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+                vista === v.key ? "border-brand-600 text-brand-700" : "border-transparent text-slate-500 hover:text-slate-800"
+              }`}>
+              {v.label}
+              <span className={`rounded-full px-1.5 text-xs ${
+                v.key ? "bg-amber-100 text-amber-700" : vista === v.key ? "bg-brand-50 text-brand-700" : "bg-slate-100 text-slate-500"
+              }`}>{v.n}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {cargando ? (
         <SkeletonTabla />
       ) : contactos.length === 0 ? (
-        busqueda ? <EstadoVacio icon={IconSearch} titulo="Sin resultados" descripcion={`Ningún contacto coincide con “${busqueda}”.`} /> : (
+        busqueda || vista ? <EstadoVacio icon={IconSearch} titulo="Sin resultados"
+          descripcion={busqueda ? `Ningún contacto coincide con “${busqueda}”.` : "No hay contactos en esta vista."} /> : (
           <EstadoVacio icon={IconUsers} titulo="Aún no tienes contactos"
             descripcion="Agrega a las personas con las que hablas en cada cliente."
             accion={<button onClick={() => setMostrarForm(true)} className={boton("primario", "md")}><IconPlus size={16} stroke={1.75} />Nuevo contacto</button>} />
@@ -349,6 +393,7 @@ export default function ContactosPage() {
                 <th className="px-4 py-1 font-medium">Cargo</th>
                 <th className="px-4 py-1 font-medium">Email</th>
                 <th className="px-4 py-1 font-medium">Empresa</th>
+                <th className="px-4 py-1 font-medium">Datos</th>
                 <th className="px-4 py-1 font-medium text-right">Acciones</th>
               </tr>
             </thead>
@@ -360,9 +405,30 @@ export default function ContactosPage() {
                       {c.nombre}
                     </Link>
                   </td>
-                  <td className="px-4 py-1 text-neutral-500">{c.cargo ?? "—"}</td>
-                  <td className="px-4 py-1 text-neutral-500">{c.email ?? "—"}</td>
-                  <td className="px-4 py-1 text-neutral-500">{c.empresa?.nombre ?? "—"}</td>
+                  <td className="px-4 py-1 text-neutral-500">{c.cargo ?? <span className="text-slate-300">—</span>}</td>
+                  <td className="px-4 py-1 text-neutral-500">{c.email ?? <span className="text-slate-300">—</span>}</td>
+                  <td className="px-4 py-1 text-neutral-500">
+                    {c.empresa?.nombre ?? (
+                      <button type="button" onClick={() => abrirEdicion(c)}
+                        className="inline-flex items-center gap-1 rounded-full border border-dashed border-amber-400 px-2 py-0.5 text-xs font-medium text-amber-700 hover:bg-amber-50">
+                        <IconPlus size={12} stroke={2} />Asignar
+                      </button>
+                    )}
+                  </td>
+                  <td className="px-4 py-1">
+                    {(() => {
+                      const d = datosCompletos(c);
+                      const pct = (d.llenos / d.total) * 100;
+                      return (
+                        <span className="flex items-center gap-2" title={d.faltan.length ? `Falta: ${d.faltan.join(", ")}` : "Ficha completa"}>
+                          <span className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100">
+                            <span className={`block h-full rounded-full ${pct === 100 ? "bg-emerald-500" : pct >= 50 ? "bg-brand-400" : "bg-amber-400"}`} style={{ width: `${pct}%` }} />
+                          </span>
+                          <span className="text-xs tabular-nums text-slate-400">{d.llenos}/{d.total}</span>
+                        </span>
+                      );
+                    })()}
+                  </td>
                   <td className="px-4 py-1 text-right">
                     <div className="inline-flex items-center gap-3">
                       <button onClick={() => abrirEdicion(c)} title="Editar"
