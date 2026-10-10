@@ -371,10 +371,10 @@ export default function CotizacionesPage() {
                   <g key={b.key}>
                     <rect x={x} y={y} width={80} height={barH} rx={6} fill={b.colorBar}
                       opacity={filtroEdad === "TODAS" || filtroEdad === b.key ? 1 : 0.3} />
-                    <text x={x + 40} y={y - 5} textAnchor="middle" fontSize={11} fontWeight="bold" fill="#334155">
+                    <text x={x + 40} y={y - 5} textAnchor="middle" fontSize={11} fontWeight="bold" className="fill-slate-700">
                       {n > 0 ? n : ""}
                     </text>
-                    <text x={x + 40} y={110} textAnchor="middle" fontSize={10} fill="#94a3b8">
+                    <text x={x + 40} y={110} textAnchor="middle" fontSize={10} className="fill-slate-400">
                       {b.label}
                     </text>
                   </g>

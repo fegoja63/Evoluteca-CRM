@@ -237,16 +237,16 @@ export default function ReportesPage() {
                   strokeDasharray={esParcial ? "4,3" : undefined}
                   stroke={esParcial ? color : "none"} strokeWidth={esParcial ? 1.5 : 0}
                   fillOpacity={esParcial ? 0.35 : undefined} />
-                <text x={x + barW / 2} y={y - 4} textAnchor="middle" fontSize={10} fontWeight="700" fill="#334155">
+                <text x={x + barW / 2} y={y - 4} textAnchor="middle" fontSize={10} fontWeight="700" className="fill-slate-700">
                   {v > 999 ? fmtK(v) : v}
                 </text>
-                <text x={x + barW / 2} y={H - 10} textAnchor="middle" fontSize={9} fill="#94a3b8">
+                <text x={x + barW / 2} y={H - 10} textAnchor="middle" fontSize={9} className="fill-slate-400">
                   {aniosOrden[i]}{esParcial ? " *" : ""}
                 </text>
               </g>
             );
           })}
-          <line x1={pad} y1={H - 28} x2={W} y2={H - 28} stroke="#e2e8f0" strokeWidth={1} />
+          <line x1={pad} y1={H - 28} x2={W} y2={H - 28} className="stroke-slate-200" strokeWidth={1} />
         </svg>
         {aniosOrden.some(a => Number(a) === anioActual) && (
           <p className="text-2xs text-slate-400 mt-1">* {anioActual} en curso — año incompleto, no comparable 1:1 con años cerrados</p>
@@ -306,7 +306,7 @@ export default function ReportesPage() {
                 <g key={a}>
                   <rect x={xGroup} y={yGanado} width={barW} height={barHGanado} rx={3} fill="#10b981" opacity={0.9} />
                   {metaV !== null && (
-                    <rect x={xMeta} y={yMeta} width={barW} height={barHMeta} rx={3} fill="#94a3b8" opacity={0.9} />
+                    <rect x={xMeta} y={yMeta} width={barW} height={barHMeta} rx={3} className="fill-slate-400" opacity={0.9} />
                   )}
                   {pct !== null && (
                     <text x={xGroup + groupW / 2} y={pctY} textAnchor="middle" fontSize={9} fontWeight="700"
@@ -320,15 +320,15 @@ export default function ReportesPage() {
                     </text>
                   )}
                   {metaV !== null && (
-                    <text x={xMeta + barW / 2} y={yMeta - 4} textAnchor="middle" fontSize={7} fill="#64748b" fontWeight="600">
+                    <text x={xMeta + barW / 2} y={yMeta - 4} textAnchor="middle" fontSize={7} className="fill-slate-500" fontWeight="600">
                       {fmtK(metaV)}
                     </text>
                   )}
-                  <text x={xGroup + groupW / 2} y={H - 8} textAnchor="middle" fontSize={9} fill="#94a3b8">{a}</text>
+                  <text x={xGroup + groupW / 2} y={H - 8} textAnchor="middle" fontSize={9} className="fill-slate-400">{a}</text>
                 </g>
               );
             })}
-            <line x1={pad} y1={baseY} x2={W} y2={baseY} stroke="#e2e8f0" strokeWidth={1} />
+            <line x1={pad} y1={baseY} x2={W} y2={baseY} className="stroke-slate-200" strokeWidth={1} />
           </svg>
         )}
       </div>
@@ -415,13 +415,13 @@ export default function ReportesPage() {
                       {ganados[i]}
                     </text>
                   )}
-                  <text x={x + barW / 2} y={H - 8} textAnchor="middle" fontSize={8} fill="#94a3b8">
+                  <text x={x + barW / 2} y={H - 8} textAnchor="middle" fontSize={8} className="fill-slate-400">
                     {MESES[i]}
                   </text>
                 </g>
               );
             })}
-            <line x1={pad} y1={H - 30} x2={W} y2={H - 30} stroke="#e2e8f0" strokeWidth={1} />
+            <line x1={pad} y1={H - 30} x2={W} y2={H - 30} className="stroke-slate-200" strokeWidth={1} />
           </svg>
         )}
       </div>
@@ -471,7 +471,7 @@ export default function ReportesPage() {
       <div className="flex flex-col xl:flex-row items-center gap-8">
         <div className="relative w-52 h-52 shrink-0">
           <svg viewBox="0 0 100 100" className="w-52 h-52 -rotate-90" style={{ filter: "drop-shadow(0 4px 10px rgba(220,38,38,0.18))" }}>
-            <circle cx="50" cy="50" r={r_} fill="none" stroke="#f1f5f9" strokeWidth="18" />
+            <circle cx="50" cy="50" r={r_} fill="none" className="stroke-slate-100" strokeWidth="18" />
             {ordenados.map(m => {
               const pct = m.cantidad / total;
               const dashFull = pct * C;
