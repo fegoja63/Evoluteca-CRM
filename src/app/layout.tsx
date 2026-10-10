@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { ErrorReporter } from "@/components/error-reporter";
+import { SCRIPT_TEMA } from "@/components/selector-tema";
 
 // next/font descarga la fuente en el build y la sirve desde el mismo dominio:
 // sin petición extra a Google al abrir la página y sin el salto de texto
@@ -25,7 +26,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={fuente.variable}>
+    // suppressHydrationWarning: SCRIPT_TEMA agrega la clase `dark` antes de hidratar.
+    <html lang="es" className={fuente.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
+      </head>
       <body className="antialiased">
         <ErrorReporter />
         <Providers>{children}</Providers>

@@ -1,5 +1,6 @@
 "use client";
 
+import { SelectorTema } from "@/components/selector-tema";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -410,6 +411,7 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
             </div>
           </Link>
         )}
+        <SelectorTema />
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
           className="w-full flex items-center gap-3 px-2 py-2 rounded-lg text-sm text-brand-200 hover:bg-white/5 hover:text-white transition-colors"
