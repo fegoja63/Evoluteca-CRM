@@ -39,8 +39,9 @@ export async function GET(request: Request) {
 
   // ── Traer todas las oportunidades con extras ──
   const [totalEmpresas, totalContactos, todasOps, actividadesPendientes, cambiosGanada, contactosConOp] = await Promise.all([
-    prisma.empresa.count({ where: { tenantId, ...ownerFiltro } }),
-    prisma.contacto.count({ where: { tenantId } }),
+    // Sin la Papelera: igual que las pantallas de Clientes y Contactos.
+    prisma.empresa.count({ where: { tenantId, eliminadoEn: null, ...ownerFiltro } }),
+    prisma.contacto.count({ where: { tenantId, eliminadoEn: null } }),
     prisma.oportunidad.findMany({
       where: { tenantId, eliminadoEn: null, ...ownerFiltro, ...vendedorFiltro },
       select: { id: true, etapa: true, valor: true, probabilidad: true, fechaCierre: true, fechaEvento: true, creadoEn: true, extras: true, creadoBy: true, motivoPerdida: true, sede: true, segmento: true, empresa: { select: { nombre: true } } },
@@ -59,7 +60,8 @@ export async function GET(request: Request) {
     // que no está scopeado por dueño porque los contactos son un recurso
     // compartido del equipo— y es acumulado (no depende del filtro año/mes).
     prisma.oportunidad.findMany({
-      where: { tenantId, eliminadoEn: null, contactoId: { not: null } },
+      // Solo contactos vivos, para medir contra el mismo total (sin Papelera).
+      where: { tenantId, eliminadoEn: null, contactoId: { not: null }, contacto: { eliminadoEn: null } },
       select: { contactoId: true },
       distinct: ["contactoId"],
     }),
