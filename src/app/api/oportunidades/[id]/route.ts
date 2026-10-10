@@ -26,6 +26,12 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
       // Postventa: de qué negocio es renovación, y sus renovaciones creadas.
       origenRenovacion: { select: { id: true, titulo: true } },
       renovaciones: { where: { eliminadoEn: null }, select: { id: true, titulo: true, etapa: true }, orderBy: { creadoEn: "desc" } },
+      // Cotizaciones formales ligadas (pestaña Cotizaciones de la ficha).
+      cotizaciones: {
+        where: { eliminadoEn: null, tenantId: session.user.tenantId },
+        select: { id: true, numero: true, numeroManual: true, estado: true, fechaValidez: true, creadoEn: true },
+        orderBy: { creadoEn: "desc" },
+      },
     },
   });
 

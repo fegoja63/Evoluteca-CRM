@@ -105,7 +105,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.25"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.26"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -525,13 +525,15 @@ export async function GET() {
       React.createElement(Nota, null, "Si cancelas el modal sin elegir un motivo, la oportunidad no se mueve a Perdida — el cambio de etapa solo se confirma junto con el motivo."),
 
       React.createElement(H2, null, "3.6 Ficha de oportunidad"),
-      React.createElement(P, null, "Haz clic en el título de una oportunidad para abrir su ficha. Desde allí puedes:"),
-      React.createElement(LI, null, "Editar todos los datos de la oportunidad"),
-      React.createElement(LI, null, "Cambiar la etapa con un clic"),
-      React.createElement(LI, null, "Crear actividades vinculadas a esta oportunidad"),
-      React.createElement(LI, null, "Ver y crear cotizaciones formales asociadas"),
-      React.createElement(LI, null, "Registrar notas internas con edición rápida"),
-      React.createElement(LI, null, "Ver arriba su estado comercial (ver 3.3) con el porqué y la acción recomendada, y resolverla con el botón \"Actuar ahora\", que crea esa actividad para hoy ya vinculada a la oportunidad, el cliente y el contacto"),
+      React.createElement(P, null, "Haz clic en el título de una oportunidad para abrir su ficha. Está organizada en tres partes:"),
+      React.createElement(P, null, "Encabezado: el nombre del negocio con su cliente y contacto; los botones Llamar y Correo (si el contacto o el cliente tienen teléfono o email), \"+ Actividad\", Editar y Eliminar; la etapa como una barra de pasos (Prospecto › Calificado › Cotización › Negociación, más Ganada y Perdida) en la que un clic mueve el negocio a esa etapa; y 5 datos clave: valor cotizado, probabilidad, ponderado (valor × probabilidad), cierre estimado (en rojo si ya venció; un clic permite cambiarlo) y fecha de creación. Debajo aparece su estado comercial (ver 3.3) con el porqué, la acción recomendada y el botón \"Actuar ahora\", que crea esa actividad para hoy ya vinculada a la oportunidad, el cliente y el contacto."),
+      React.createElement(P, null, "Centro, en pestañas:"),
+      React.createElement(LI, null, "Resumen — notas internas, minutas de reunión con IA (ver 2.10.1), campos personalizados, datos adicionales y la línea de tiempo con el historial de etapas (ver 3.8)."),
+      React.createElement(LI, null, "Actividad — las actividades del negocio con el formulario para crear una nueva, y los correos enviados y recibidos (ver 2.12)."),
+      React.createElement(LI, null, "Cotizaciones — las cotizaciones formales ligadas, con su número, estado y validez, y el botón \"Nueva cotización\"."),
+      React.createElement(LI, null, "Archivos — los adjuntos del negocio (ver 3.10)."),
+      React.createElement(P, null, "Panel derecho: la próxima actividad (en rojo si está vencida) con el enlace \"+ Agendar actividad\", el cliente, el contacto, un resumen de las cotizaciones y, si el módulo está activo, el Coach de objeciones con IA (ver 9.2.1). En el celular estas partes se apilan una debajo de otra."),
+      React.createElement(Tip, null, "\"+ Actividad\" del encabezado y \"+ Agendar actividad\" del panel derecho abren directamente el formulario en la pestaña Actividad."),
 
       React.createElement(H2, null, "3.7 Vista tabla del pipeline"),
       React.createElement(P, null, "Además del kanban, el pipeline tiene una vista de tabla. Usa el toggle Kanban / Tabla en la barra de filtros para cambiar entre vistas. La vista tabla muestra todas las oportunidades en filas con columnas ordenables:"),
@@ -541,7 +543,7 @@ export async function GET() {
       React.createElement(Tip, null, "Usa la vista tabla cuando necesitas comparar valores o fechas entre múltiples oportunidades. El kanban es mejor para mover etapas visualmente."),
 
       React.createElement(H2, null, "3.8 Historial de etapas"),
-      React.createElement(P, null, "Cada oportunidad registra automáticamente cada cambio de etapa. En la ficha de la oportunidad, el panel 'Historial de etapas' muestra una línea de tiempo con:"),
+      React.createElement(P, null, "Cada oportunidad registra automáticamente cada cambio de etapa. En la ficha de la oportunidad (pestaña Resumen), el panel 'Historial de etapas' muestra una línea de tiempo con:"),
       React.createElement(LI, null, "Etapa anterior a etapa nueva"),
       React.createElement(LI, null, "Fecha y hora del cambio"),
       React.createElement(LI, null, "Días que estuvo en la etapa anterior"),
