@@ -21,8 +21,9 @@ import { esClaveCampoPersonalizado } from "@/lib/campos-personalizados";
 import { estadoComercial, ultimoMovimientoDe, tieneProximoPasoDe } from "@/lib/estado-comercial";
 import {
   IconAlertTriangle, IconHistory, IconTarget, IconTrophy, IconX, IconArrowRight,
-  IconMoodSad, IconBolt,
+  IconMoodSad, IconBolt, IconPhone, IconMail, IconPlus, IconPencil, IconTrash, IconFilePlus,
 } from "@tabler/icons-react";
+import { numeroCotizacion } from "@/lib/cotizaciones";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
@@ -52,6 +53,14 @@ type Oportunidad = {
   fechaRenovacion?: string | null;
   origenRenovacion?: { id: string; titulo: string } | null;
   renovaciones?: { id: string; titulo: string; etapa: string }[];
+  cotizaciones?: { id: string; numero: number; numeroManual: string | null; estado: string; fechaValidez: string | null; creadoEn: string }[];
+};
+
+const ESTADO_COT: Record<string, { label: string; clase: string }> = {
+  BORRADOR:  { label: "Borrador",  clase: "bg-slate-100 text-slate-600" },
+  ENVIADA:   { label: "Enviada",   clase: "bg-brand-50 text-brand-700" },
+  ACEPTADA:  { label: "Aceptada",  clase: "bg-emerald-50 text-emerald-700" },
+  RECHAZADA: { label: "Rechazada", clase: "bg-red-50 text-red-600" },
 };
 
 // El nombre visible de cada etapa es configurable por tenant (Configuración →
@@ -105,6 +114,9 @@ export default function OportunidadDetallePage() {
   // config que el Pipeline, para que el estado comercial coincida en ambos.
   const [diasEstancamiento, setDiasEstancamiento] = useState(14);
   const [guardandoAccion, setGuardandoAccion] = useState(false);
+  // Pestaña del centro y "+ Actividad" (vuelve a montar el formulario ya abierto).
+  const [tab, setTab] = useState<"resumen" | "actividad" | "cotizaciones" | "archivos">("resumen");
+  const [quickKey, setQuickKey] = useState(0);
 
   const MOTIVOS_PERDIDA = [
     "Precio muy alto",
@@ -342,10 +354,6 @@ export default function OportunidadDetallePage() {
     <SkeletonDetalle />
   );
 
-  // Fallback por si la etapa guardada no está en las etapas del tenant (p. ej.
-  // stages personalizados): así la ficha nunca revienta por una etapa desconocida.
-  const etapaInfo = ETAPAS.find(e => e.key === op.etapa)
-    ?? { key: op.etapa, label: op.etapa, color: "bg-slate-100 text-slate-600" };
   function formatearValorExtra(k: string, v: string): string {
     if (k === "MES" && v.includes("T00:00")) {
       // Medianoche UTC del día 1 del mes importado — se fuerza timeZone: "UTC"
@@ -360,8 +368,35 @@ export default function OportunidadDetallePage() {
     !["AÑO","MES ELABORACION","ELABORACIÓN"].includes(k) && !esClaveCampoPersonalizado(k)
   ) : [];
 
+  // Teléfono y correo para los botones del encabezado (contacto primero).
+  const telefono = op.contacto?.telefono ?? op.empresa?.telefono ?? null;
+  const email = op.contacto?.email ?? null;
+  const activa = !["GANADA", "PERDIDA"].includes(op.etapa);
+  const cierreVencido = !!op.fechaCierre && new Date(op.fechaCierre) < new Date() && activa;
+  const ponderado = op.valor ? Number(op.valor) * ((op.probabilidad ?? 50) / 100) : null;
+  // Próxima actividad pendiente (la más cercana de hoy en adelante; si no hay, la vencida más reciente).
+  const pendientes = op.actividades.filter(a => !a.completada).sort((a, b) => a.fecha.localeCompare(b.fecha));
+  const proxima = pendientes.find(a => new Date(a.fecha) >= new Date(new Date().toDateString())) ?? pendientes[pendientes.length - 1] ?? null;
+  const cotizaciones = op.cotizaciones ?? [];
+  // Etapas del embudo en orden (la barra de pasos); Ganada y Perdida van como cierre.
+  const pasos = ETAPAS.filter(e => e.key !== "GANADA" && e.key !== "PERDIDA");
+  const idxActual = pasos.findIndex(e => e.key === op.etapa);
+
+  function abrirNuevaActividad() {
+    setTab("actividad");
+    setQuickKey(k => k + 1);
+    setTimeout(() => document.getElementById("tab-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  }
+
+  const TABS: { key: typeof tab; label: string; n?: number }[] = [
+    { key: "resumen", label: "Resumen" },
+    { key: "actividad", label: "Actividad", n: op.actividades.length },
+    { key: "cotizaciones", label: "Cotizaciones", n: cotizaciones.length },
+    { key: "archivos", label: "Archivos" },
+  ];
+
   return (
-    <div className="max-w-4xl">
+    <div>
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-slate-400 mb-5">
         <Link href="/dashboard/pipeline" className="hover:text-brand-600 transition-colors">← Pipeline</Link>
@@ -369,7 +404,7 @@ export default function OportunidadDetallePage() {
         <span className="text-slate-600 truncate max-w-xs">{op.titulo}</span>
       </div>
 
-      {/* Header */}
+      {/* ── ENCABEZADO: nombre, etapa como pasos, 5 datos clave y acciones ── */}
       <div className={tarjeta("p-6 mb-5")}>
         {editando ? (
           <form onSubmit={handleGuardar}>
@@ -471,15 +506,13 @@ export default function OportunidadDetallePage() {
           </form>
         ) : (
           <>
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div>
-                <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold mb-2 ${etapaInfo.color}`}>
-                  {etapaInfo.label}
-                </span>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between mb-5">
+              <div className="min-w-0">
                 <h1 className="text-xl font-bold text-slate-900">{op.titulo}</h1>
-                {op.extras?.["COTIZACION NUMERO"] && (
-                  <p className="text-sm text-slate-400 mt-0.5">{op.extras["COTIZACION NUMERO"]}</p>
-                )}
+                <p className="mt-0.5 text-sm text-slate-500">
+                  {op.empresa?.nombre ?? "Sin cliente"}{op.contacto ? ` · ${op.contacto.nombre}` : ""}
+                  {op.extras?.["COTIZACION NUMERO"] && <span className="text-slate-400"> · {op.extras["COTIZACION NUMERO"]}</span>}
+                </p>
                 {op.origenRenovacion && (
                   <p className="text-sm text-slate-500 mt-0.5">
                     Renovación de <Link href={`/dashboard/pipeline/${op.origenRenovacion.id}`} className="text-brand-600 hover:underline">{op.origenRenovacion.titulo}</Link>
@@ -491,15 +524,114 @@ export default function OportunidadDetallePage() {
                   </p>
                 )}
               </div>
-              <div className="flex gap-2 shrink-0">
-                <button onClick={() => setEditando(true)}
-                  className={boton("secundario", "md")}>
-                  Editar
+              <div className="flex flex-wrap gap-2 shrink-0">
+                {telefono && (
+                  <a href={`tel:${telefono.replace(/\s+/g, "")}`} title={`Llamar ${telefono}`} className={boton("secundario", "md")}>
+                    <IconPhone size={16} stroke={1.75} />Llamar
+                  </a>
+                )}
+                {email && (
+                  <a href={`mailto:${email}`} title={`Escribir a ${email}`} className={boton("secundario", "md")}>
+                    <IconMail size={16} stroke={1.75} />Correo
+                  </a>
+                )}
+                <button type="button" onClick={abrirNuevaActividad} className={boton("primario", "md")}>
+                  <IconPlus size={16} stroke={2} />Actividad
                 </button>
-                <button onClick={eliminar}
-                  className="rounded-xl border border-red-100 px-3 py-1.5 text-sm text-red-500 hover:bg-red-50">
-                  Eliminar
+                <button type="button" onClick={() => setEditando(true)} className={boton("fantasma", "md")} title="Editar oportunidad">
+                  <IconPencil size={16} stroke={1.75} />Editar
                 </button>
+                <button type="button" onClick={eliminar} title="Eliminar oportunidad"
+                  className="rounded-xl px-2.5 py-2 text-sm text-red-500 hover:bg-red-50">
+                  <IconTrash size={16} stroke={1.75} />
+                </button>
+              </div>
+            </div>
+
+            {/* Etapa como barra de pasos: un clic mueve el negocio a esa etapa. */}
+            <div className="mb-5">
+              {/* En pantallas angostas: las etapas en una fila y Ganada/Perdida debajo. */}
+              <div className="flex flex-wrap items-stretch gap-1" role="list" aria-label="Etapa del negocio">
+                <div className="grid flex-1 basis-full gap-1 sm:basis-0"
+                  style={{ gridTemplateColumns: `repeat(${pasos.length}, minmax(0, 1fr))` }}>
+                {pasos.map((e, i) => {
+                  const actual = e.key === op.etapa;
+                  const hecho = activa ? i < idxActual : op.etapa === "GANADA";
+                  return (
+                    <button key={e.key} type="button" role="listitem" aria-current={actual ? "step" : undefined}
+                      onClick={() => cambiarEtapa(e.key)} title={`Mover a ${e.label}`}
+                      className={`min-w-0 rounded-lg px-1 py-2 text-center text-2xs font-semibold transition-colors sm:text-xs ${
+                        actual ? "bg-brand-600 text-white ring-2 ring-brand-300 ring-offset-1"
+                          : hecho ? "bg-brand-100 text-brand-800 hover:bg-brand-200"
+                          : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                      }`}>
+                      <span className="block truncate">{e.label}</span>
+                    </button>
+                  );
+                })}
+                </div>
+                <span className="mx-1 hidden w-px self-stretch bg-slate-200 sm:block" aria-hidden />
+                <div className="flex basis-full gap-1 sm:basis-auto">
+                {ETAPAS.filter(e => e.key === "GANADA" || e.key === "PERDIDA").map(e => (
+                  <button key={e.key} type="button" onClick={() => cambiarEtapa(e.key)} title={`Marcar como ${e.label}`}
+                    aria-current={op.etapa === e.key ? "step" : undefined}
+                    className={`flex-1 shrink-0 rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:flex-none ${
+                      op.etapa === e.key
+                        ? (e.key === "GANADA" ? "bg-emerald-600 text-white" : "bg-slate-500 text-white")
+                        : (e.key === "GANADA" ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100" : "bg-slate-100 text-slate-500 hover:bg-slate-200")
+                    }`}>
+                    {e.label}
+                  </button>
+                ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 5 datos clave */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
+              <div className="rounded-xl bg-slate-50 p-3.5">
+                <p className="text-xs text-slate-400 mb-1">Valor cotizado</p>
+                <p className="text-base font-bold text-emerald-700">{op.valor ? fmt(Number(op.valor)) : "—"}</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-3.5">
+                <p className="text-xs text-slate-400 mb-1">Probabilidad</p>
+                <p className="text-base font-bold text-brand-600">{op.probabilidad ?? 50}%</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-3.5" title="Valor × probabilidad">
+                <p className="text-xs text-slate-400 mb-1">Ponderado</p>
+                <p className="text-base font-bold text-slate-800">{ponderado !== null ? fmt(ponderado) : "—"}</p>
+              </div>
+              <div className={`rounded-xl p-3.5 ${cierreVencido ? "bg-red-50 ring-1 ring-red-200" : "bg-slate-50"}`}>
+                <p className={`text-xs mb-1 ${cierreVencido ? "text-red-600 font-semibold" : "text-slate-400"}`}>{cierreVencido ? "Cierre vencido" : "Cierre estimado"}</p>
+                {editandoCierre ? (
+                  <input
+                    type="date"
+                    autoFocus
+                    disabled={guardandoCierre}
+                    defaultValue={op.fechaCierre ? new Date(op.fechaCierre).toISOString().substring(0, 10) : ""}
+                    onFocus={e => { try { (e.target as HTMLInputElement & { showPicker?: () => void }).showPicker?.(); } catch { /* el usuario abre el calendario con un clic */ } }}
+                    onChange={e => guardarCierreRapido(e.target.value)}
+                    onBlur={() => setEditandoCierre(false)}
+                    className="w-full rounded-lg border border-brand-300 bg-white px-2 py-1 text-sm font-semibold text-slate-800 outline-none focus:border-brand-500"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setEditandoCierre(true)}
+                    title="Haz clic para poner o cambiar la fecha de cierre"
+                    className={`text-sm font-semibold hover:text-brand-600 transition-colors ${cierreVencido ? "text-red-700" : "text-slate-800"}`}
+                  >
+                    {op.fechaCierre
+                      ? new Date(op.fechaCierre).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric", timeZone: "UTC" })
+                      : <span className="text-brand-600">＋ Poner fecha</span>}
+                  </button>
+                )}
+              </div>
+              <div className="rounded-xl bg-slate-50 p-3.5">
+                <p className="text-xs text-slate-400 mb-1">Creada el</p>
+                <p className="text-sm font-semibold text-slate-800">
+                  {new Date(op.creadoEn).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" })}
+                </p>
               </div>
             </div>
 
@@ -513,7 +645,7 @@ export default function OportunidadDetallePage() {
               );
               if (!estado) return null;
               return (
-                <div className={`mb-5 rounded-xl border border-slate-200 bg-white p-4 flex flex-wrap items-center justify-between gap-3 ${estado.borde}`}>
+                <div className={`rounded-xl border border-slate-200 bg-white p-4 flex flex-wrap items-center justify-between gap-3 ${estado.borde}`}>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${estado.badge}`}>
@@ -543,174 +675,54 @@ export default function OportunidadDetallePage() {
               />
             )}
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
-              <div className="rounded-xl bg-slate-50 p-4">
-                <p className="text-xs text-slate-400 mb-1">Valor cotizado</p>
-                <p className="text-lg font-bold text-emerald-700">{op.valor ? fmt(Number(op.valor)) : "—"}</p>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-4">
-                <p className="text-xs text-slate-400 mb-1">Probabilidad</p>
-                <p className="text-lg font-bold text-brand-600">{op.probabilidad ?? 50}%</p>
-              </div>
-              <div className={`rounded-xl p-4 ${op.fechaCierre && new Date(op.fechaCierre) < new Date() && !["GANADA","PERDIDA"].includes(op.etapa) ? "bg-red-50" : "bg-slate-50"}`}>
-                <p className="text-xs text-slate-400 mb-1">Cierre estimado</p>
-                {editandoCierre ? (
-                  <input
-                    type="date"
-                    autoFocus
-                    disabled={guardandoCierre}
-                    defaultValue={op.fechaCierre ? new Date(op.fechaCierre).toISOString().substring(0, 10) : ""}
-                    onFocus={e => { try { (e.target as HTMLInputElement & { showPicker?: () => void }).showPicker?.(); } catch { /* el usuario abre el calendario con un clic */ } }}
-                    onChange={e => guardarCierreRapido(e.target.value)}
-                    onBlur={() => setEditandoCierre(false)}
-                    className="w-full rounded-lg border border-brand-300 bg-white px-2 py-1 text-sm font-semibold text-slate-800 outline-none focus:border-brand-500"
-                  />
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setEditandoCierre(true)}
-                    title="Haz clic para poner o cambiar la fecha de cierre"
-                    className="text-sm font-semibold text-slate-800 hover:text-brand-600 transition-colors"
-                  >
-                    {op.fechaCierre
-                      ? new Date(op.fechaCierre).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric", timeZone: "UTC" })
-                      : <span className="text-brand-600">＋ Poner fecha</span>}
-                  </button>
-                )}
-              </div>
-              <div className="rounded-xl bg-slate-50 p-4">
-                <p className="text-xs text-slate-400 mb-1">Creada el</p>
-                <p className="text-sm font-semibold text-slate-800">
-                  {new Date(op.creadoEn).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" })}
-                </p>
-              </div>
-            </div>
-
-            {/* Progreso de etapa */}
-            <div>
-              <p className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wide">Mover a etapa</p>
-              <div className="flex gap-1.5 flex-wrap">
-                {ETAPAS.map(e => (
-                  <button key={e.key} onClick={() => cambiarEtapa(e.key)}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold transition-all ${
-                      op.etapa === e.key
-                        ? e.color + " ring-2 ring-offset-1 ring-brand-400"
-                        : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                    }`}>
-                    {e.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
           </>
         )}
       </div>
 
-      <NotasRapidas
-        valor={op?.notas ?? null}
-        onGuardar={async (notas) => {
-          await guardarJson(`/api/oportunidades/${op!.id}`, "PATCH", { notas: notas || null });
-          cargar();
-        }}
-      />
-
-      <MinutasIA oportunidadId={op.id} empresaNombre={op.empresa?.nombre ?? null} onGuardada={cargar} />
-
-      {moduloObjeciones && <CoachObjecionesIA oportunidadId={op.id} />}
-
-      <div className="mb-5">
-        <Adjuntos oportunidadId={op.id} />
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
-        {/* Cliente */}
-        <div className={tarjeta("p-5")}>
-          <h2 className="text-sm font-bold text-slate-900 mb-3">Cliente</h2>
-          {op.empresa ? (
-            <div className="space-y-1.5 text-sm">
-              <Link href={`/dashboard/cuentas/${op.empresa.id}`}
-                className="font-semibold text-brand-600 hover:underline block">{op.empresa.nombre}</Link>
-              {op.empresa.sector && <p className="text-slate-500">{op.empresa.sector}</p>}
-              {op.empresa.telefono && <p className="text-slate-500">{op.empresa.telefono}</p>}
-            </div>
-          ) : <p className="text-sm text-slate-400">Sin cliente asignado</p>}
-        </div>
-
-        {/* Contacto */}
-        <div className={tarjeta("p-5")}>
-          <h2 className="text-sm font-bold text-slate-900 mb-3">Contacto</h2>
-          {op.contacto ? (
-            <div className="space-y-1.5 text-sm">
-              <Link href={`/dashboard/contactos/${op.contacto.id}`}
-                className="font-semibold text-brand-600 hover:underline block">{op.contacto.nombre}</Link>
-              {op.contacto.cargo && <p className="text-slate-500">{op.contacto.cargo}</p>}
-              {op.contacto.email && <p className="text-slate-500">{op.contacto.email}</p>}
-              {op.contacto.telefono && <p className="text-slate-500">{op.contacto.telefono}</p>}
-            </div>
-          ) : <p className="text-sm text-slate-400">Sin contacto asignado</p>}
-        </div>
-      </div>
-
-      {/* Campos personalizados con valor */}
-      <CamposPersonalizadosVista entidad="OPORTUNIDAD" extras={op.extras} />
-
-      {/* Datos extras del Excel */}
-      {extrasRelevantes.length > 0 && (
-        <div className={tarjeta("p-5 mb-5")}>
-          <h2 className="text-sm font-bold text-slate-900 mb-3">Datos adicionales</h2>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-            {extrasRelevantes.map(([k, v]) => (
-              <div key={k} className="flex gap-2 text-sm border-b border-slate-50 pb-1.5">
-                <span className="text-slate-400 w-40 shrink-0 truncate">{k}</span>
-                <span className="text-slate-800 font-medium">{formatearValorExtra(k, v)}</span>
-              </div>
+      {/* ── CUERPO: pestañas (centro) y panel lateral (derecha) ── */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div className="lg:col-span-2 min-w-0">
+          <div className="mb-4 flex gap-1 overflow-x-auto overflow-y-hidden border-b border-slate-200" role="tablist">
+            {TABS.map(t => (
+              <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
+                className={`-mb-px shrink-0 inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+                  tab === t.key ? "border-brand-600 text-brand-700" : "border-transparent text-slate-500 hover:text-slate-800"
+                }`}>
+                {t.label}
+                {!!t.n && <span className="rounded-full bg-slate-100 px-1.5 text-xs text-slate-500">{t.n}</span>}
+              </button>
             ))}
           </div>
-        </div>
-      )}
 
-      {/* Actividades */}
-      <div className={tarjeta("p-5")}>
-        <h2 className="text-sm font-bold text-slate-900 mb-3">
-          Actividades {op.actividades.length > 0 && `(${op.actividades.length})`}
-        </h2>
-        {op.actividades.length > 0 && (
-          <div className="space-y-2 mb-4">
-            {op.actividades.map(a => (
-              <div key={a.id} className="flex items-start gap-3 text-sm py-2 border-b border-slate-50 last:border-0">
-                <span className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${a.completada ? "bg-emerald-400" : "bg-amber-400"}`} />
-                <div className="flex-1">
-                  <p className="font-medium text-slate-800">{a.titulo}</p>
-                  <p className="text-xs text-slate-400">
-                    {a.tipo} · {new Date(a.fecha).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" })}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        <NuevaActividadInline
-          oportunidadId={op.id}
-          empresaId={op.empresa?.id}
-          contactoId={op.contacto?.id}
-          onGuardado={cargar}
-        />
-      </div>
-
-      {/* Correos ligados a esta oportunidad */}
-      <div className="mb-5">
-        <CorreosPanel
-          oportunidadId={op.id}
-          empresaId={op.empresa?.id}
-          contactoId={op.contacto?.id}
-          emailDestino={op.contacto?.email}
-        />
-      </div>
-
-      {/* ── HISTORIAL DE ETAPAS ── */}
+          <div id="tab-panel" className="flex flex-col gap-5 scroll-mt-4">
+            {tab === "resumen" && (
+              <>
+                <NotasRapidas
+                  valor={op?.notas ?? null}
+                  onGuardar={async (notas) => {
+                    await guardarJson(`/api/oportunidades/${op!.id}`, "PATCH", { notas: notas || null });
+                    cargar();
+                  }}
+                />
+                {/* Análisis con IA: minutas de reunión (resumen, acuerdos y próximos pasos). */}
+                <MinutasIA oportunidadId={op.id} empresaNombre={op.empresa?.nombre ?? null} onGuardada={cargar} />
+                <CamposPersonalizadosVista entidad="OPORTUNIDAD" extras={op.extras} />
+                {extrasRelevantes.length > 0 && (
+                  <div className={tarjeta("p-5")}>
+                    <h2 className="text-sm font-bold text-slate-900 mb-3">Datos adicionales</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
+                      {extrasRelevantes.map(([k, v]) => (
+                        <div key={k} className="flex gap-2 text-sm border-b border-slate-50 pb-1.5">
+                          <span className="text-slate-400 w-40 shrink-0 truncate">{k}</span>
+                          <span className="text-slate-800 font-medium">{formatearValorExtra(k, v)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {/* Línea de tiempo del negocio */}
       {op.cambiosEtapa.length > 0 && (
-        <div className={tarjeta("p-5 mb-5")}>
+        <div className={tarjeta("p-5")}>
           <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-1.5"><IconHistory size={15} stroke={1.75} />Historial de etapas</h3>
           <div className="relative">
             <div className="absolute left-3.5 top-0 bottom-0 w-px bg-slate-100" />
@@ -760,6 +772,159 @@ export default function OportunidadDetallePage() {
           </div>
         </div>
       )}
+
+              </>
+            )}
+
+            {tab === "actividad" && (
+              <>
+                <div className={tarjeta("p-5")}>
+                  <h2 className="text-sm font-bold text-slate-900 mb-3">
+                    Actividades {op.actividades.length > 0 && `(${op.actividades.length})`}
+                  </h2>
+                  {op.actividades.length > 0 && (
+                    <div className="space-y-2 mb-4">
+                      {op.actividades.map(a => (
+                        <div key={a.id} className="flex items-start gap-3 text-sm py-2 border-b border-slate-50 last:border-0">
+                          <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${a.completada ? "bg-emerald-400" : "bg-amber-400"}`} />
+                          <div className="flex-1">
+                            <p className={a.completada ? "font-medium text-slate-400 line-through" : "font-medium text-slate-800"}>{a.titulo}</p>
+                            <p className="text-xs text-slate-400">
+                              {a.tipo} · {new Date(a.fecha).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" })}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <NuevaActividadInline
+                    key={quickKey}
+                    oportunidadId={op.id}
+                    empresaId={op.empresa?.id}
+                    contactoId={op.contacto?.id}
+                    onGuardado={cargar}
+                    autoAbrir={quickKey > 0}
+                  />
+                </div>
+                <CorreosPanel
+                  oportunidadId={op.id}
+                  empresaId={op.empresa?.id}
+                  contactoId={op.contacto?.id}
+                  emailDestino={op.contacto?.email}
+                />
+              </>
+            )}
+
+            {tab === "cotizaciones" && (
+              <div className={tarjeta("p-5")}>
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-bold text-slate-900">Cotizaciones de este negocio</h2>
+                  <Link href="/dashboard/cotizaciones-formales/nueva" className={boton("secundario", "sm")}>
+                    <IconFilePlus size={14} stroke={1.75} />Nueva cotización
+                  </Link>
+                </div>
+                {cotizaciones.length === 0 ? (
+                  <p className="text-sm text-slate-400">Aún no hay cotizaciones formales ligadas a este negocio.</p>
+                ) : (
+                  <div className="divide-y divide-slate-100">
+                    {cotizaciones.map(c => (
+                      <Link key={c.id} href={`/dashboard/cotizaciones-formales/${c.id}`}
+                        className="flex items-center gap-3 py-2.5 text-sm hover:text-brand-700">
+                        <span className="font-mono text-xs text-brand-700">{numeroCotizacion(c)}</span>
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ESTADO_COT[c.estado]?.clase ?? "bg-slate-100 text-slate-600"}`}>
+                          {ESTADO_COT[c.estado]?.label ?? c.estado}
+                        </span>
+                        <span className="flex-1" />
+                        <span className="text-xs text-slate-400">
+                          {c.fechaValidez ? `Válida hasta ${new Date(c.fechaValidez).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })}` : `Creada ${new Date(c.creadoEn).toLocaleDateString("es-CO", { day: "2-digit", month: "short" })}`}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {tab === "archivos" && <Adjuntos oportunidadId={op.id} />}
+          </div>
+        </div>
+
+        {/* ── PANEL LATERAL ── */}
+        <div className="flex flex-col gap-5">
+          {/* Próxima actividad */}
+          <div className={tarjeta("p-5")}>
+            <h2 className="text-sm font-bold text-slate-900 mb-2">Próxima actividad</h2>
+            {proxima ? (
+              <div className="text-sm">
+                <p className="font-medium text-slate-800">{proxima.titulo}</p>
+                <p className={`text-xs ${new Date(proxima.fecha) < new Date(new Date().toDateString()) ? "font-semibold text-red-600" : "text-slate-500"}`}>
+                  {new Date(proxima.fecha) < new Date(new Date().toDateString()) ? "Vencida · " : ""}
+                  {new Date(proxima.fecha).toLocaleString("es-CO", { weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota" })}
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-400">Sin próximo paso agendado.</p>
+            )}
+            <button type="button" onClick={abrirNuevaActividad} className="mt-2 text-xs font-medium text-brand-600 hover:underline">
+              + Agendar actividad
+            </button>
+          </div>
+
+          {/* Cliente */}
+          <div className={tarjeta("p-5")}>
+            <h2 className="text-sm font-bold text-slate-900 mb-2">Cliente</h2>
+            {op.empresa ? (
+              <div className="space-y-1 text-sm">
+                <Link href={`/dashboard/cuentas/${op.empresa.id}`}
+                  className="font-semibold text-brand-600 hover:underline block">{op.empresa.nombre}</Link>
+                {op.empresa.sector && <p className="text-slate-500">{op.empresa.sector}</p>}
+                {op.empresa.telefono && <p className="text-slate-500">{op.empresa.telefono}</p>}
+              </div>
+            ) : <p className="text-sm text-slate-400">Sin cliente asignado</p>}
+          </div>
+
+          {/* Contacto */}
+          <div className={tarjeta("p-5")}>
+            <h2 className="text-sm font-bold text-slate-900 mb-2">Contacto</h2>
+            {op.contacto ? (
+              <div className="space-y-1 text-sm">
+                <Link href={`/dashboard/contactos/${op.contacto.id}`}
+                  className="font-semibold text-brand-600 hover:underline block">{op.contacto.nombre}</Link>
+                {op.contacto.cargo && <p className="text-slate-500">{op.contacto.cargo}</p>}
+                {op.contacto.email && <p className="text-slate-500 break-all">{op.contacto.email}</p>}
+                {op.contacto.telefono && <p className="text-slate-500">{op.contacto.telefono}</p>}
+              </div>
+            ) : <p className="text-sm text-slate-400">Sin contacto asignado</p>}
+          </div>
+
+          {/* Cotizaciones (resumen) */}
+          <div className={tarjeta("p-5")}>
+            <h2 className="text-sm font-bold text-slate-900 mb-2">Cotizaciones</h2>
+            {cotizaciones.length === 0 ? (
+              <p className="text-sm text-slate-400">Ninguna todavía.</p>
+            ) : (
+              <div className="space-y-1.5">
+                {cotizaciones.slice(0, 3).map(c => (
+                  <Link key={c.id} href={`/dashboard/cotizaciones-formales/${c.id}`} className="flex items-center gap-2 text-sm hover:text-brand-700">
+                    <span className="font-mono text-xs text-brand-700">{numeroCotizacion(c)}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ESTADO_COT[c.estado]?.clase ?? "bg-slate-100 text-slate-600"}`}>
+                      {ESTADO_COT[c.estado]?.label ?? c.estado}
+                    </span>
+                  </Link>
+                ))}
+                {cotizaciones.length > 3 && (
+                  <button type="button" onClick={() => setTab("cotizaciones")} className="text-xs font-medium text-brand-600 hover:underline">
+                    Ver las {cotizaciones.length}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Coach de objeciones (módulo opcional) */}
+          {moduloObjeciones && <CoachObjecionesIA oportunidadId={op.id} />}
+        </div>
+      </div>
 
       {/* Modal motivo de pérdida */}
       {modalPerdida && (
