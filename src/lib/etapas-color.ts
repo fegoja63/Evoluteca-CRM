@@ -34,7 +34,9 @@ export type EstiloEtapa = {
 
 export const ETAPA_ESTILO: Record<EtapaKey, EstiloEtapa> = {
   PROSPECTO: {
-    barra: "bg-brand-200", bordeSup: "border-t-brand-200",
+    // De noche los fondos brand-200 se oscurecen (tinte sobre tarjeta); la
+    // barra de Prospecto debe seguir clara para verse sobre el fondo oscuro.
+    barra: "bg-brand-200 dark:bg-brand-300", bordeSup: "border-t-brand-200",
     insignia: "bg-brand-50 text-brand-700", fuerte: "bg-brand-300 text-brand-950",
     pastilla: "bg-brand-50 text-brand-700 hover:bg-brand-100",
     texto: "text-brand-600", iconoFondo: "bg-brand-50", iconoTexto: "text-brand-500",

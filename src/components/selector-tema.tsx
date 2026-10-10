@@ -19,8 +19,10 @@ const OPCIONES: Record<Tema, { label: string; icon: Icon }> = {
 };
 
 // Se inyecta en <head> (layout raíz) para poner la clase `dark` antes del
-// primer pintado: sin destello blanco al abrir en modo noche.
-export const SCRIPT_TEMA = `(function(){try{var t=localStorage.getItem("${CLAVE}")||"dia";var d=t==="noche"||(t==="auto"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d)}catch(e){}})()`;
+// primer pintado: sin destello blanco al abrir en modo noche. Solo aplica en
+// las pantallas internas (/dashboard): la cotización pública, el login y el
+// registro se ven siempre de día, sin importar la preferencia del vendedor.
+export const SCRIPT_TEMA = `(function(){try{if(location.pathname.indexOf("/dashboard")!==0)return;var t=localStorage.getItem("${CLAVE}")||"dia";var d=t==="noche"||(t==="auto"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d)}catch(e){}})()`;
 
 function aplicar(tema: Tema) {
   const oscuro = tema === "noche" || (tema === "auto" && window.matchMedia("(prefers-color-scheme: dark)").matches);

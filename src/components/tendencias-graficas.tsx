@@ -103,7 +103,7 @@ function Barras({ meses, valor, formato, color }: { meses: Mes[]; valor: (m: Mes
   const barW = Math.min(20, slot * 0.62);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ overflow: "visible" }}>
-      <line x1="0" y1={base} x2={W} y2={base} stroke="#e2e8f0" />
+      <line x1="0" y1={base} x2={W} y2={base} className="stroke-slate-200" />
       {meses.map((m, i) => {
         const h = (valor(m) / max) * (base - top);
         const x = i * slot + (slot - barW) / 2;
@@ -112,9 +112,9 @@ function Barras({ meses, valor, formato, color }: { meses: Mes[]; valor: (m: Mes
           <g key={i}>
             <rect x={x} y={base - h} width={barW} height={Math.max(0, h)} rx={3} fill={color} opacity={ultimo ? 1 : 0.55} />
             {ultimo && valor(m) > 0 && (
-              <text x={x + barW / 2} y={base - h - 4} textAnchor="middle" fontSize="8.5" fontWeight="700" fill="#475569">{formato(valor(m))}</text>
+              <text x={x + barW / 2} y={base - h - 4} textAnchor="middle" fontSize="8.5" fontWeight="700" className="fill-slate-600">{formato(valor(m))}</text>
             )}
-            {i % 2 === 0 && <text x={i * slot + slot / 2} y={H - 2} textAnchor="middle" fontSize="8" fill="#94a3b8">{m.label}</text>}
+            {i % 2 === 0 && <text x={i * slot + slot / 2} y={H - 2} textAnchor="middle" fontSize="8" className="fill-slate-400">{m.label}</text>}
           </g>
         );
       })}
@@ -134,15 +134,15 @@ function Linea({ meses }: { meses: Mes[] }) {
   const fin = pts[pts.length - 1];
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ overflow: "visible" }}>
-      <line x1="0" y1={base} x2={W} y2={base} stroke="#e2e8f0" />
+      <line x1="0" y1={base} x2={W} y2={base} className="stroke-slate-200" />
       {pts.length >= 2 && <polygon points={area} fill="#23708f" opacity={0.12} />}
       {pts.length >= 2 && <polyline points={linea} fill="none" stroke="#23708f" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />}
       {fin && <circle cx={fin.x} cy={fin.y} r={4} fill="#23708f" />}
       {fin && <text x={fin.x} y={fin.y - 8} textAnchor="middle" fontSize="8.5" fontWeight="700" fill="#1c5972">{fin.tasa}%</text>}
       {meses.map((m, i) => i % 2 === 0 && (
-        <text key={i} x={i * slot + slot / 2} y={H - 2} textAnchor="middle" fontSize="8" fill="#94a3b8">{m.label}</text>
+        <text key={i} x={i * slot + slot / 2} y={H - 2} textAnchor="middle" fontSize="8" className="fill-slate-400">{m.label}</text>
       ))}
-      {pts.length < 2 && <text x={W / 2} y={base / 2} textAnchor="middle" fontSize="10" fill="#94a3b8">Sin cierres suficientes</text>}
+      {pts.length < 2 && <text x={W / 2} y={base / 2} textAnchor="middle" fontSize="10" className="fill-slate-400">Sin cierres suficientes</text>}
     </svg>
   );
 }
@@ -157,7 +157,7 @@ function Apiladas({ meses }: { meses: Mes[] }) {
   return (
     <>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ overflow: "visible" }}>
-        <line x1="0" y1={base} x2={W} y2={base} stroke="#e2e8f0" />
+        <line x1="0" y1={base} x2={W} y2={base} className="stroke-slate-200" />
         {meses.map((m, i) => {
           const total = m.ganadas + m.perdidas;
           const hTot = (total / max) * (base - top);
@@ -168,11 +168,11 @@ function Apiladas({ meses }: { meses: Mes[] }) {
             <g key={i}>
               {hPer > 0 && <rect x={x} y={base - hTot} width={barW} height={hPer} rx={2} fill="#f87171" />}
               {hGan > 0 && <rect x={x} y={base - hGan} width={barW} height={hGan} rx={2} fill="#10b981" />}
-              {i % 2 === 0 && <text x={i * slot + slot / 2} y={H - 2} textAnchor="middle" fontSize="8" fill="#94a3b8">{m.label}</text>}
+              {i % 2 === 0 && <text x={i * slot + slot / 2} y={H - 2} textAnchor="middle" fontSize="8" className="fill-slate-400">{m.label}</text>}
             </g>
           );
         })}
-        {sinDatos && <text x={W / 2} y={base / 2} textAnchor="middle" fontSize="10" fill="#94a3b8">Sin cierres registrados</text>}
+        {sinDatos && <text x={W / 2} y={base / 2} textAnchor="middle" fontSize="10" className="fill-slate-400">Sin cierres registrados</text>}
       </svg>
       <div className="flex items-center gap-4 mt-1 text-xs text-slate-500">
         <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500" />Ganados</span>
