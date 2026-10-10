@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "./providers";
 import { ErrorReporter } from "@/components/error-reporter";
 import { SCRIPT_TEMA } from "@/components/selector-tema";
 
-// next/font descarga la fuente en el build y la sirve desde el mismo dominio:
-// sin petición extra a Google al abrir la página y sin el salto de texto
-// mientras carga (reserva el espacio con una fuente de respaldo ajustada).
-const fuente = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+// Plus Jakarta Sans (variable, 200–800) desde el paquete npm
+// @fontsource-variable/plus-jakarta-sans, no desde Google Fonts: así el build
+// no depende de descargar la fuente de Google (falló dos veces el 2026-10-10 y
+// tumbó builds de Vercel). next/font la sirve desde el mismo dominio, sin
+// petición extra al abrir la página y con fuente de respaldo ajustada para que
+// el texto no salte mientras carga. El archivo "latin" cubre todo el español.
+const fuente = localFont({
+  src: "../../node_modules/@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2",
+  weight: "200 800",
   display: "swap",
   variable: "--font-sans",
 });
