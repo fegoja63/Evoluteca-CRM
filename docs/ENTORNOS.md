@@ -203,6 +203,21 @@ CONFIRMO_BORRAR_DESTINO=si node --env-file=.env.test scripts/restaurar-db.ts <ca
 
 ---
 
+## 8. Fuente tipográfica — local, sin Google Fonts (build)
+
+La letra del CRM (Plus Jakarta Sans) **no se descarga de Google** en el build: sale
+del paquete npm `@fontsource-variable/plus-jakarta-sans` (versión fija, licencia
+OFL-1.1) y se carga con `next/font/local` en `src/app/layout.tsx` (PR #150).
+
+- **Por qué:** con `next/font/google`, Vercel tenía que bajar la fuente de Google en
+  cada build. El 2026-10-10 eso falló dos veces ("next/font/google queries have
+  exactly one entry" / module-not-found en `plus_jakarta_sans.module.css`) y el
+  build quedó en error; en producción, el cambio no sale hasta relanzarlo.
+- **Regla:** no volver a `next/font/google`. Si se cambia de fuente, usar el paquete
+  `@fontsource-variable/<fuente>` + `next/font/local`, igual que ahora.
+- **Si un build viejo falla por la fuente** (ramas creadas antes del PR #150):
+  `npx vercel redeploy dpl_<id>` o traer `master` a la rama.
+
 ## Apéndice — Estado a la fecha de esta guía
 
 - `master` local y `origin` = `fegoja63/Evoluteca-CRM` (consolidado).
