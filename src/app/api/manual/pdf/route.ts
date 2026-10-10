@@ -105,7 +105,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.26"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.27"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -948,9 +948,9 @@ export async function GET() {
       React.createElement(H2, null, "9.2.1 Módulo Manejo de objeciones"),
       React.createElement(P, null, "Al activarlo aparece la pestaña \"Objeciones\" y se habilitan tres cosas:"),
       React.createElement(LI, null, "Guía de objeciones: biblioteca editable con las objeciones del cliente, la respuesta recomendada y lo que conviene evitar. Se precarga con 15 objeciones probadas y las adaptas; Administrador y Gerente editan, todos consultan."),
-      React.createElement(LI, null, "Coach con IA en el negocio: en la ficha de la oportunidad, eliges una objeción de la guía o escribes la del cliente y la IA sugiere una respuesta a la medida del negocio (usa cliente, sector, etapa, valor y últimas gestiones). Comparte el cupo mensual de IA."),
+      React.createElement(LI, null, "Coach con IA en el negocio: en la ficha de la oportunidad (panel derecho), eliges una objeción de la guía o escribes la del cliente y la IA responde en cuatro partes: la respuesta sugerida, por qué funciona, qué falta calificar del negocio (Presupuesto, Quién decide, Prioridad o momento, Necesidad o dolor, o Competencia) y una pregunta para destrabarlo. Usa cliente, sector, etapa, valor, últimas gestiones y la metodología de ventas del equipo (ver 9.10). Reconoce la objeción de la guía aunque el cliente la diga con otras palabras, y en ese caso avisa en qué entrada se basó. Comparte el cupo mensual de IA."),
       React.createElement(LI, null, "Enlace con Motivos de pérdida: cada objeción puede asociarse a un motivo; en Reportes, ese motivo muestra un botón \"Cómo responder\" con la respuesta de la guía."),
-      React.createElement(Nota, null, "La idea no es pelear la objeción, sino entender la prioridad, el contexto y el valor percibido del cliente — y de paso alinear al equipo y acortar la curva de los vendedores nuevos."),
+      React.createElement(Nota, null, "La idea no es pelear la objeción, sino entender la prioridad, el contexto y el valor percibido del cliente — y de paso alinear al equipo y acortar la curva de los vendedores nuevos. Casi toda objeción revela algo que falta calificar; la pregunta para destrabar ayuda a convertirla en información del negocio."),
 
       React.createElement(H2, null, "9.2.2 Módulo Postventa y renovaciones"),
       React.createElement(P, null, "Para quien vende contratos, licencias, suscripciones o servicios que se renuevan. Al activarlo aparece la pestaña \"Postventa\" y cada negocio que se gana entra solo a su tablero, en la etapa Entrega. Esto pasa tanto al moverlo a Ganada en el Pipeline como al aceptar su cotización. Los negocios importados de Excel no entran solos."),
@@ -1035,6 +1035,14 @@ export async function GET() {
       React.createElement(LI, null, "Enviar un correo — al dueño del negocio o a los gerentes, con asunto y cuerpo"),
       React.createElement(P, null, "En los textos del título, asunto o cuerpo puedes usar los marcadores {oportunidad} y {cliente}, que se reemplazan por el nombre real al ejecutarse. Cada regla se puede activar/desactivar y muestra cuántas veces se ha ejecutado."),
       React.createElement(Tip, null, "Ejemplo: \"Cuando una oportunidad pase a Cotización › crear la tarea 'Llamar a {cliente}' a 3 días para el dueño\". Empieza con una regla sencilla y verifica que la tarea aparezca en la Agenda antes de crear reglas más agresivas."),
+
+      React.createElement(H2, null, "9.10 Metodología de ventas"),
+      React.createElement(P, null, "En Configuración › Metodología de ventas el Administrador elige el enfoque con el que responde el Coach de objeciones con IA (ver 9.2.1). Las opciones son:"),
+      React.createElement(LI, null, "Consultiva (por defecto): entender prioridad, contexto y valor percibido antes de proponer. Sirve para casi cualquier venta B2B."),
+      React.createElement(LI, null, "SPIN Selling: descubrir el dolor con preguntas de Situación, Problema, Implicación y Necesidad-beneficio. Útil cuando el cliente aún no ve el problema."),
+      React.createElement(LI, null, "Challenger: enseñar algo nuevo y reencuadrar cómo el cliente ve su situación. Útil en mercados competidos o ante \"ya tenemos proveedor\"."),
+      React.createElement(LI, null, "Venta de valor (Value Selling): vender el impacto y el retorno, no el producto. Útil ante objeciones de precio."),
+      React.createElement(Tip, null, "Para servicios B2B con ciclos medianos o largos suelen encajar SPIN (para descubrir el dolor) y Venta de valor (para las objeciones de precio). El cambio aplica de inmediato a todo el equipo; solo el Administrador puede hacerlo."),
     ),
 
     // ── CAPÍTULO 10: INTELIGENCIA ARTIFICIAL ──

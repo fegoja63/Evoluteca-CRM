@@ -72,6 +72,9 @@ model Tenant {
   // largo (optimización de gasto TIC) 30. Lo leen por igual la señal visual del
   // Pipeline y el correo diario del cron, para que ambos digan lo mismo.
   diasEstancamiento Int      @default(14)
+  // Metodología de ventas del tenant (CONSULTIVA, SPIN, CHALLENGER, VALOR): la usa
+  // el Coach de objeciones con IA. Ver src/lib/metodologias-venta.ts.
+  metodologiaVentas String   @default("CONSULTIVA")
   // Aceptación del Acuerdo de Licencia a nivel de TENANT: el contrato vincula a
   // la empresa, así que lo acepta UNA sola persona (el titular) UNA sola vez, en
   // nombre de la organización. Los demás usuarios no vuelven a verlo.
