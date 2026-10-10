@@ -397,8 +397,9 @@ export default async function DashboardPage() {
             <p className="text-brand-300 mt-0.5 text-xs">{session?.user?.tenantNombre} · {session?.user?.rol ? session.user.rol.charAt(0)+session.user.rol.slice(1).toLowerCase() : ""}</p>
           </div>
 
-          {/* Mega-KPIs del mes */}
-          <div className="flex items-center gap-6">
+          {/* Mega-KPIs del mes. En el celular pasan a varias filas en vez de
+              cortarse por la derecha (los separadores solo se ven en pantallas anchas). */}
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4 sm:flex-nowrap sm:justify-start">
             {metaValor > 0 && (
               <>
                 <div className="text-center">
@@ -412,7 +413,7 @@ export default async function DashboardPage() {
                   </div>
                   <p className="text-brand-300 text-xs mt-1">Meta del mes</p>
                 </div>
-                <div className="w-px bg-white/20 self-stretch" />
+                <div className="hidden w-px bg-white/20 self-stretch sm:block" />
               </>
             )}
             {metaAnioValor > 0 && (
@@ -428,7 +429,7 @@ export default async function DashboardPage() {
                   </div>
                   <p className="text-brand-300 text-xs mt-1">Meta del año</p>
                 </div>
-                <div className="w-px bg-white/20 self-stretch" />
+                <div className="hidden w-px bg-white/20 self-stretch sm:block" />
               </>
             )}
             <div className="text-center">
@@ -462,12 +463,12 @@ export default async function DashboardPage() {
                 </>
               )}
             </div>
-            <div className="w-px bg-white/20 self-stretch" />
+            <div className="hidden w-px bg-white/20 self-stretch sm:block" />
             <div className="text-center">
               <p className="text-2xl font-bold">{fmt(valorPipeline)}</p>
               <p className="text-brand-300 text-xs mt-0.5">Pipeline activo</p>
             </div>
-            <div className="w-px bg-white/20 self-stretch" />
+            <div className="hidden w-px bg-white/20 self-stretch sm:block" />
             <div className="text-center">
               <p className="text-2xl font-bold">{tasaCierre}%</p>
               <p className="text-brand-300 text-xs mt-0.5">Tasa de cierre</p>
