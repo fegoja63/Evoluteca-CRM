@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { PaletaComandos } from "@/components/paleta-comandos";
 import { auth } from "@/lib/auth";
 import { estadoActivacion } from "@/lib/activacion";
 import { Sidebar } from "@/components/sidebar";
@@ -46,6 +47,7 @@ export default async function DashboardLayout({
       <MobileNav />
       <Fab />
       <Toaster />
+      <PaletaComandos />
     </div>
   );
 }

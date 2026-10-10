@@ -198,6 +198,14 @@ export default function ClientesPage() {
   }, []);
 
   useEffect(() => { cargar("", 1, "", ""); cargarStats("", "", ""); }, []);
+
+  // ?nuevo=1 (desde la paleta Ctrl+K) abre el formulario de creación. Se lee
+  // de location para no envolver la página en Suspense por useSearchParams.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("nuevo") !== "1") return;
+    setMostrarForm(true);
+    router.replace("/dashboard/cuentas");
+  }, [router]);
   useEffect(() => {
     const t = setTimeout(() => { setPage(1); cargar(busqueda, 1, filtroAnio, filtroMes); cargarStats(busqueda, filtroAnio, filtroMes); }, 300);
     return () => clearTimeout(t);

@@ -228,6 +228,12 @@ export default function PipelinePage() {
   // "Nueva oportunidad" con ese cliente (y contacto) ya puestos, en Prospecto.
   // Así crear un cliente lleva siempre a crear su oportunidad.
   useEffect(() => {
+    // ?nueva=1 (desde la paleta Ctrl+K): abre "Nueva oportunidad" en blanco.
+    if (searchParams.get("nueva") === "1") {
+      setMostrarForm(true);
+      router.replace("/dashboard/pipeline");
+      return;
+    }
     const cliente = searchParams.get("cliente");
     if (!cliente) return;
     const contacto = searchParams.get("contacto") ?? "";
