@@ -76,7 +76,7 @@ function PageHeader({ base }: { base: string }) {
 }
 function Footer() {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo v1.2"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo v1.3"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -225,7 +225,7 @@ export async function GET() {
       React.createElement(Paso, { n: 1, titulo: "Dashboard", desc: "Al entrar verás el tablero principal: meta del mes, pipeline activo, ranking de vendedores y un panel de Alertas. Fíjate en el bloque de alertas — ahí es donde en el paso 8 verás también la alerta de ocupación de funciones." }),
       React.createElement(Paso, { n: 2, titulo: "Clientes", desc: "Ve a Clientes. Verás 6 empresas B2B: 2 colegios, 2 corporativos, 1 agencia de eventos y 1 ONG — el tipo de cliente que alquila la sala, no el público que compra boletería (eso vive en Audiencia, capítulo 4)." }),
       React.createElement(Paso, { n: 3, titulo: "Pipeline", desc: "Ve a Pipeline. Verás 6 oportunidades de alquiler en distintas etapas: un kickoff corporativo en negociación, una función privada de colegio en propuesta, etc. La graduación ya ganada está en la columna Ganada, que aparece compacta: pulsa \"Ver negocios\" para verla. Arrastra una tarjeta entre columnas para ver cómo se actualiza." }),
-      React.createElement(Paso, { n: 4, titulo: "Cotizaciones", desc: "Ve a Nueva cotización o al detalle de una oportunidad para ver una cotización formal ya generada, con el desglose de alquiler de sala, catering y producción técnica. Descarga el PDF para ver cómo le llega al cliente." }),
+      React.createElement(Paso, { n: 4, titulo: "Cotizaciones", desc: "Ve a Nueva cotización o abre una oportunidad y entra a su pestaña Cotizaciones para ver una cotización formal ya generada, con el desglose de alquiler de sala, catering y producción técnica. Descarga el PDF para ver cómo le llega al cliente." }),
       React.createElement(Paso, { n: 5, titulo: "Agenda", desc: "Revisa la Agenda: hay actividades vencidas (para que veas cómo se ven las alertas rojas) y próximas, vinculadas a los negocios del pipeline." }),
       React.createElement(Paso, { n: 6, titulo: "Reportes", desc: "Ve a Reportes para ver el embudo de conversión, top de clientes y el cumplimiento de la meta mensual y anual ya configuradas en esta cuenta." }),
       React.createElement(Tip, null, "Todo lo anterior funciona exactamente igual sin importar el tipo de negocio. Es la base que ya tendrías funcionando desde el primer día, incluso antes de activar nada específico de teatros."),

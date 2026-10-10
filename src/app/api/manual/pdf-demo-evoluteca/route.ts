@@ -86,7 +86,7 @@ function PageHeader({ base }: { base: string }) {
 }
 function Footer() {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.5"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.6"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -360,7 +360,7 @@ export async function GET() {
       React.createElement(Paso, { n: 2, titulo: "Agrégale un contacto", desc: "Dentro de la ficha, añade un contacto (nombre, cargo, email, teléfono).", esperado: "El contacto queda vinculado a la empresa y aparece también en el módulo Contactos." }),
       React.createElement(Paso, { n: 3, titulo: "Crea una oportunidad", desc: "Crea una oportunidad para ese cliente: título, valor (p. ej. 10.000.000), etapa inicial 'Prospecto' y una fecha de cierre estimada.", esperado: "La oportunidad aparece en el Pipeline, en la columna Prospecto. Los campos de dinero muestran separador de miles automático." }),
       React.createElement(Paso, { n: 4, titulo: "Avánzala por el pipeline (drag & drop)", desc: "Ve a Pipeline y arrastra tu tarjeta de 'Prospecto' hasta 'Cotización'. Suéltala en la columna.", esperado: "La tarjeta cambia de columna al instante y la etapa queda registrada en su historial." }),
-      React.createElement(Paso, { n: 5, titulo: "Registra una actividad de seguimiento", desc: "Abre tu oportunidad y crea una actividad (una llamada para mañana, por ejemplo).", esperado: "La actividad aparece en la Agenda y, si la pones vencida, se sumará al panel de alertas del dashboard." }),
+      React.createElement(Paso, { n: 5, titulo: "Registra una actividad de seguimiento", desc: "Abre tu oportunidad y pulsa '+ Actividad' (arriba a la derecha): se abre el formulario en la pestaña Actividad. Crea una llamada para mañana.", esperado: "La actividad aparece en la pestaña Actividad, en el panel derecho como 'Próxima actividad' y en la Agenda; si la pones vencida, se sumará al panel de alertas del dashboard." }),
     ),
 
     // ── CAPÍTULO 5: FLUJO END-TO-END — parte 2 (cotización → PDF → ganar) ──
@@ -370,8 +370,8 @@ export async function GET() {
       React.createElement(Paso, { n: 6, titulo: "Crea una cotización formal", desc: "Ve a Cotizaciones > Nueva. Selecciona tu cliente y contacto, y agrega ítems desde el Catálogo (o escríbelos a mano). Prueba también cargar una Plantilla.", esperado: "El total se calcula solo con su desglose e impuesto; cargar una plantilla llena los ítems de golpe." }),
       React.createElement(Paso, { n: 7, titulo: "Descarga el PDF", desc: "Guarda la cotización y descárgala en PDF.", esperado: "Un PDF profesional con el logo, el desglose de servicios, el impuesto y el total, listo para enviar al cliente." }),
       React.createElement(Paso, { n: 8, titulo: "Cámbiale el estado / envíala por email", desc: "Marca la cotización como 'Enviada' (o usa el envío por email). Observa cómo el estado cambia de color.", esperado: "El estado pasa a Enviada; una cotización sin respuesta por varios días dispara luego una alerta." }),
-      React.createElement(Paso, { n: 9, titulo: "Gana el negocio", desc: "Vuelve a tu oportunidad y arrástrala (o cámbiala) a la etapa 'Ganada'.", esperado: "La oportunidad se marca como ganada y su valor empieza a contar en la meta del mes y en los reportes." }),
-      React.createElement(Paso, { n: 10, titulo: "Prueba también perder una", desc: "Crea otra oportunidad rápida y márcala como 'Perdida'. El sistema te pedirá el motivo de pérdida (precio, competencia, etc.).", esperado: "El motivo queda guardado; aparece en rojo en la oportunidad, entre paréntesis en la lista del cliente, y alimenta el reporte de motivos de pérdida." }),
+      React.createElement(Paso, { n: 9, titulo: "Gana el negocio", desc: "Vuelve a tu oportunidad y pulsa 'Ganada' en la barra de etapas del encabezado (o arrástrala a la columna Ganada del Pipeline).", esperado: "La oportunidad se marca como ganada y su valor empieza a contar en la meta del mes y en los reportes." }),
+      React.createElement(Paso, { n: 10, titulo: "Prueba también perder una", desc: "Crea otra oportunidad rápida y márcala como 'Perdida' (botón Perdida de la barra de etapas, o arrastrándola). El sistema te pedirá el motivo de pérdida (precio, competencia, etc.).", esperado: "El motivo queda guardado; aparece en rojo en la oportunidad, entre paréntesis en la lista del cliente, y alimenta el reporte de motivos de pérdida." }),
       React.createElement(Paso, { n: 11, titulo: "Mira el impacto", desc: "Vuelve al Dashboard y a Reportes.", esperado: "Tu venta ganada movió el gauge de la meta, el ticket promedio y la tasa de cierre. Todo el ciclo quedó reflejado." }),
       React.createElement(Wow, { titulo: "Por qué importa" }, "Acabas de recorrer el ciclo completo — lead, seguimiento, cotización, PDF, cierre — sin salir del CRM y sin un solo Excel. Cada dato que registraste se convirtió automáticamente en métrica de negocio."),
     ),
@@ -418,7 +418,8 @@ export async function GET() {
       React.createElement(LI, null, "Estado comercial: cada tarjeta dice si el negocio está En riesgo, Requiere atención, Alta intención o En marcha, y por qué. Prueba los chips \"estancadas\" y \"sin próximo paso\" de la barra de filtros, y el botón \"Actuar ahora\" dentro de una oportunidad."),
       React.createElement(LI, null, "Drag & drop entre columnas para cambiar de etapa (lo probaste en el capítulo 5)."),
       React.createElement(LI, null, "Vista tabla: alterna del tablero (kanban) a una vista de tabla ordenable y filtrable."),
-      React.createElement(LI, null, "Historial de etapas: dentro de una oportunidad, ve por qué etapas pasó y cuándo."),
+      React.createElement(LI, null, "Ficha de oportunidad: arriba, la etapa como barra de pasos (un clic la cambia), 5 datos clave —valor, probabilidad, ponderado, cierre (rojo si venció) y creación— y los botones Llamar, Correo y + Actividad; en el centro, pestañas Resumen, Actividad, Cotizaciones y Archivos; a la derecha, próxima actividad, cliente, contacto, cotizaciones y Coach de objeciones."),
+      React.createElement(LI, null, "Historial de etapas: en la ficha de una oportunidad, pestaña Resumen, ve por qué etapas pasó y cuándo."),
       React.createElement(LI, null, "Ganada y Perdida aparecen compactas (conteo y valor total). Pulsa \"Ver negocios\" para ver sus tarjetas y \"Compactar\" para volver. Arrastrar una tarjeta hasta ellas sigue cerrando el negocio."),
       React.createElement(LI, null, "Próximo paso: cada tarjeta activa muestra su siguiente actividad (azul), una tarea vencida (rojo) o \"Sin próximo paso\" (gris, abre la ficha para agendarlo)."),
       React.createElement(LI, null, "\"Quieto N d\": los negocios sin movimiento muestran cuántos días llevan quietos (ámbar; rojo desde el doble del umbral). Arriba del tablero, la franja \"N negocios en riesgo · $ valor\" los ordena del más valioso al menos, con su porqué."),
@@ -427,7 +428,7 @@ export async function GET() {
 
       React.createElement(LI, null, "Postventa: en la pestaña Postventa, los negocios ganados del mes están repartidos en Entrega, Seguimiento, Renovación y Cerrado. Usa el chip \"por renovar\", abre uno y pulsa \"Crear oportunidad de renovación\": aparece el negocio nuevo en el Pipeline, ligado al original y con su tarea para hoy."),
 
-      React.createElement(LI, null, "Minutas con IA: en la ficha de una oportunidad, pulsa \"Minuta con IA\" y pega unas notas de reunión inventadas (quién asistió, qué se acordó, quién quedó en hacer qué). Revisa la propuesta, guárdala y mira cómo aparecen la reunión y las tareas en las actividades del negocio. Después usa \"Copiar para enviar\"."),
+      React.createElement(LI, null, "Minutas con IA: en la ficha de una oportunidad (pestaña Resumen), pulsa \"Minuta con IA\" y pega unas notas de reunión inventadas (quién asistió, qué se acordó, quién quedó en hacer qué). Revisa la propuesta, guárdala y mira cómo aparecen la reunión y las tareas en las actividades del negocio. Después usa \"Copiar para enviar\"."),
 
       React.createElement(LI, null, "Color de marca: en Configuración, elige un color en \"Color de marca\" y mira la vista previa. Después descarga el PDF de cualquier cotización: sale con ese color. Vuelve al azul con \"Volver al azul por defecto\" para dejar la cuenta como estaba."),
 
@@ -509,6 +510,7 @@ export async function GET() {
       React.createElement(Check, null, "Abrí una ficha 360°: timeline, contactos, notas, WhatsApp, adjuntos y Resumen con IA."),
       React.createElement(Check, null, "Ejecuté el flujo completo: cliente › contacto › oportunidad › cotización › PDF › ganada."),
       React.createElement(Check, null, "Arrastré tarjetas en el pipeline y registré un motivo de pérdida."),
+      React.createElement(Check, null, "Abrí la ficha de una oportunidad: barra de etapas, 5 datos clave, pestañas y panel derecho."),
       React.createElement(Check, null, "Configuré etapas del pipeline y vi la clave de captura externa de leads."),
       React.createElement(Check, null, "Probé la papelera (borrar y restaurar)."),
       React.createElement(Check, null, "Exploré Reportes: embudo, metas, top clientes y motivos de pérdida."),
