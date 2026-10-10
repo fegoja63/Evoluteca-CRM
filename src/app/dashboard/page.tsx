@@ -17,6 +17,7 @@ import {
   IconMoodSmile, IconPinned, IconFilePlus, IconCalendarPlus, IconReportAnalytics, IconHeartHandshake,
   type Icon, IconTrendingUp, IconTrendingDown } from "@tabler/icons-react";
 import { tarjeta } from "@/components/ui/estilos";
+import { mapaEtapas } from "@/lib/etapas-color";
 
 export const dynamic = "force-dynamic";
 
@@ -341,8 +342,8 @@ export default async function DashboardPage() {
   // el orden los personaliza el tenant (EtapaPipeline). Igual patrón que el
   // kanban en /dashboard/pipeline.
   const ETAPA_LABEL_DEFAULT: Record<string,string> = { PROSPECTO:"Prospecto", CALIFICADO:"Calificado", PROPUESTA:"Cotización", NEGOCIACION:"Negociación", GANADA:"Ganada", PERDIDA:"Perdida" };
-  const ETAPA_COLOR: Record<string,string> = { PROSPECTO:"bg-slate-400", CALIFICADO:"bg-blue-500", PROPUESTA:"bg-violet-500", NEGOCIACION:"bg-amber-500", GANADA:"bg-emerald-500", PERDIDA:"bg-red-400" };
-  const ETAPA_TEXT: Record<string,string>  = { PROSPECTO:"text-slate-600", CALIFICADO:"text-blue-700", PROPUESTA:"text-violet-700", NEGOCIACION:"text-amber-700", GANADA:"text-emerald-700", PERDIDA:"text-red-600" };
+  const ETAPA_COLOR: Record<string,string> = mapaEtapas("barra");
+  const ETAPA_TEXT: Record<string,string>  = mapaEtapas("texto");
 
   // Nombres visibles: los personalizados del tenant sobreescriben los de por
   // defecto (para que "Oportunidades calientes" y las alertas también los usen).

@@ -14,6 +14,7 @@ import { MoneyInput } from "@/components/money-input";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
+import { ETAPA_ESTILO, mapaEtapas } from "@/lib/etapas-color";
 
 type Oportunidad = {
   id: string;
@@ -43,32 +44,11 @@ const ETAPA_LABEL: Record<string, string> = {
   PERDIDA:     "Perdida",
 };
 
-const ETAPA_COLOR: Record<string, string> = {
-  PROSPECTO:   "bg-slate-100 text-slate-600",
-  CALIFICADO:  "bg-blue-50 text-blue-700",
-  PROPUESTA:   "bg-violet-50 text-violet-700",
-  NEGOCIACION: "bg-amber-50 text-amber-700",
-  GANADA:      "bg-emerald-50 text-emerald-700",
-  PERDIDA:     "bg-red-50 text-red-600",
-};
+const ETAPA_COLOR: Record<string, string> = mapaEtapas("insignia");
 
-const ETAPA_PILL_ACTIVE: Record<string, string> = {
-  PROSPECTO:   "bg-slate-700 text-white",
-  CALIFICADO:  "bg-blue-600 text-white",
-  PROPUESTA:   "bg-violet-600 text-white",
-  NEGOCIACION: "bg-amber-500 text-white",
-  GANADA:      "bg-emerald-600 text-white",
-  PERDIDA:     "bg-red-500 text-white",
-};
+const ETAPA_PILL_ACTIVE: Record<string, string> = mapaEtapas("fuerte");
 
-const ETAPA_PILL_INACTIVE: Record<string, string> = {
-  PROSPECTO:   "bg-slate-100 text-slate-600 hover:bg-slate-200",
-  CALIFICADO:  "bg-blue-50 text-blue-700 hover:bg-blue-100",
-  PROPUESTA:   "bg-violet-50 text-violet-700 hover:bg-violet-100",
-  NEGOCIACION: "bg-amber-50 text-amber-700 hover:bg-amber-100",
-  GANADA:      "bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
-  PERDIDA:     "bg-red-50 text-red-600 hover:bg-red-100",
-};
+const ETAPA_PILL_INACTIVE: Record<string, string> = mapaEtapas("pastilla");
 
 export default function CotizacionesPage() {
   const [cotizaciones, setCotizaciones] = useState<Oportunidad[]>([]);
@@ -309,10 +289,10 @@ export default function CotizacionesPage() {
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
         {([
           { label: "En negociación", valor: activas.length, sub: fmt(valorTotal) + " potencial", icon: IconChartFunnel, ibg: "bg-brand-50", itxt: "text-brand-600" },
-          { label: "Prospecto", valor: conteoEtapas.PROSPECTO, sub: valorEtapas.PROSPECTO > 0 ? fmt(valorEtapas.PROSPECTO) : undefined, icon: IconTarget, ibg: "bg-slate-100", itxt: "text-slate-600" },
-          { label: "Calificado", valor: conteoEtapas.CALIFICADO, sub: valorEtapas.CALIFICADO > 0 ? fmt(valorEtapas.CALIFICADO) : undefined, icon: IconCircleCheck, ibg: "bg-blue-50", itxt: "text-blue-600" },
-          { label: "Cotización", valor: conteoEtapas.PROPUESTA, sub: valorEtapas.PROPUESTA > 0 ? fmt(valorEtapas.PROPUESTA) : undefined, icon: IconFileText, ibg: "bg-violet-50", itxt: "text-violet-600" },
-          { label: "Negociación", valor: conteoEtapas.NEGOCIACION, sub: valorEtapas.NEGOCIACION > 0 ? fmt(valorEtapas.NEGOCIACION) : undefined, icon: IconArrowsExchange, ibg: "bg-amber-50", itxt: "text-amber-600" },
+          { label: "Prospecto", valor: conteoEtapas.PROSPECTO, sub: valorEtapas.PROSPECTO > 0 ? fmt(valorEtapas.PROSPECTO) : undefined, icon: IconTarget, ibg: ETAPA_ESTILO.PROSPECTO.iconoFondo, itxt: ETAPA_ESTILO.PROSPECTO.iconoTexto },
+          { label: "Calificado", valor: conteoEtapas.CALIFICADO, sub: valorEtapas.CALIFICADO > 0 ? fmt(valorEtapas.CALIFICADO) : undefined, icon: IconCircleCheck, ibg: ETAPA_ESTILO.CALIFICADO.iconoFondo, itxt: ETAPA_ESTILO.CALIFICADO.iconoTexto },
+          { label: "Cotización", valor: conteoEtapas.PROPUESTA, sub: valorEtapas.PROPUESTA > 0 ? fmt(valorEtapas.PROPUESTA) : undefined, icon: IconFileText, ibg: ETAPA_ESTILO.PROPUESTA.iconoFondo, itxt: ETAPA_ESTILO.PROPUESTA.iconoTexto },
+          { label: "Negociación", valor: conteoEtapas.NEGOCIACION, sub: valorEtapas.NEGOCIACION > 0 ? fmt(valorEtapas.NEGOCIACION) : undefined, icon: IconArrowsExchange, ibg: ETAPA_ESTILO.NEGOCIACION.iconoFondo, itxt: ETAPA_ESTILO.NEGOCIACION.iconoTexto },
         ] as { label: string; valor: number; sub?: string; icon: Icon; ibg: string; itxt: string }[]).map(k => {
           const Icono = k.icon;
           return (

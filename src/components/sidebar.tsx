@@ -10,7 +10,7 @@ import {
   IconUsersGroup, IconTheater, IconTicket, IconScale, IconBuildingPavilion, IconMessageChatbot,
   IconDatabaseImport, IconTrash, IconRocket, IconLifebuoy, IconSettings, IconHistory,
   IconUserCircle, IconLogout, IconSearch, IconX, IconArrowsSort, IconCheck,
-  IconGripVertical, IconArrowBackUp, IconSparkles, IconHeartHandshake, type Icon,
+  IconGripVertical, IconArrowBackUp, IconSparkles, IconHeartHandshake, IconChevronDown, IconChevronRight, type Icon,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/cn";
 
@@ -41,6 +41,47 @@ const navOpcionales: Record<string, NavItem> = {
   objeciones: { href: "/dashboard/objeciones", label: "Objeciones", icon: IconMessageChatbot },
   postventa: { href: "/dashboard/postventa", label: "Postventa", icon: IconHeartHandshake },
 };
+
+// ── Grupos del menú ─────────────────────────────────────────────────────────
+// El menú se agrupa según el día del comercial. Cada ítem cae en un grupo por
+// su href; los módulos opcionales (Funciones, Salones…) van juntos en
+// "Módulos" y lo administrativo (Datos, Papelera, Ayuda…) en "Más", que
+// arranca plegado. "Ordenar" sigue funcionando, pero dentro de cada grupo.
+type GrupoId = "hoy" | "ventas" | "relaciones" | "analisis" | "modulos" | "mas";
+
+const GRUPOS: { id: GrupoId; label: string }[] = [
+  { id: "hoy", label: "Hoy" },
+  { id: "ventas", label: "Ventas" },
+  { id: "relaciones", label: "Relaciones" },
+  { id: "analisis", label: "Análisis" },
+  { id: "modulos", label: "Módulos" },
+  { id: "mas", label: "Más" },
+];
+
+const GRUPO_DE_HREF: Record<string, GrupoId> = {
+  "/dashboard": "hoy",
+  "/dashboard/agenda": "hoy",
+  "/dashboard/pipeline": "ventas",
+  "/dashboard/cotizaciones-formales": "ventas",
+  "/dashboard/catalogo": "ventas",
+  "/dashboard/plantillas": "ventas",
+  "/dashboard/cuentas": "relaciones",
+  "/dashboard/contactos": "relaciones",
+  "/dashboard/reportes": "analisis",
+  "/dashboard/asistente-ia": "analisis",
+  "/dashboard/equipo": "analisis",
+};
+
+const HREFS_OPCIONALES = new Set(Object.values(navOpcionales).map(i => i.href));
+
+function grupoDe(href: string): GrupoId {
+  return GRUPO_DE_HREF[href] ?? (HREFS_OPCIONALES.has(href) ? "modulos" : "mas");
+}
+
+// Qué grupos tiene plegados el usuario. Vive en este navegador: es una
+// comodidad visual, no un dato del CRM.
+const CLAVE_PLEGADOS = "evoluteca:menu-plegados";
+const PLEGADOS_DEFECTO: Partial<Record<GrupoId, boolean>> = { mas: true };
 
 function iniciales(nombre: string) {
   const partes = nombre.trim().split(/\s+/);
@@ -75,6 +116,38 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
   const [buscando, setBuscando] = useState(false);
   const [mostrarResultados, setMostrarResultados] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const inputBusquedaRef = useRef<HTMLInputElement>(null);
+  const [plegados, setPlegados] = useState<Partial<Record<GrupoId, boolean>>>(PLEGADOS_DEFECTO);
+  const [atajo, setAtajo] = useState("Ctrl K");
+
+  useEffect(() => {
+    try {
+      const guardado = window.localStorage.getItem(CLAVE_PLEGADOS);
+      if (guardado) setPlegados(JSON.parse(guardado));
+    } catch { /* sin almacenamiento: se usan los valores por defecto */ }
+    if (/Mac|iPhone|iPad/.test(navigator.platform)) setAtajo("⌘K");
+  }, []);
+
+  // Ctrl+K (⌘K en Mac) lleva el cursor a la búsqueda desde cualquier pantalla.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        inputBusquedaRef.current?.focus();
+        inputBusquedaRef.current?.select();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  function alternarGrupo(id: GrupoId) {
+    setPlegados(prev => {
+      const siguiente = { ...prev, [id]: !prev[id] };
+      try { window.localStorage.setItem(CLAVE_PLEGADOS, JSON.stringify(siguiente)); } catch { /* ignorar */ }
+      return siguiente;
+    });
+  }
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -128,6 +201,10 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
   ];
 
   const navItems = aplicarOrden(navItemsBase, ordenGuardado);
+  const esActivo = (href: string) => pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+  const grupos = GRUPOS
+    .map(g => ({ ...g, items: navItems.filter(i => grupoDe(i.href) === g.id) }))
+    .filter(g => g.items.length > 0);
 
   async function guardarOrden(nuevoOrden: string[] | null) {
     setOrdenGuardado(nuevoOrden);
@@ -139,7 +216,10 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
   }
 
   function onDrop(hrefDestino: string) {
-    if (!draggingHref || draggingHref === hrefDestino) { setDraggingHref(null); setDragOverHref(null); return; }
+    // Solo se reordena dentro del mismo grupo.
+    if (!draggingHref || draggingHref === hrefDestino || grupoDe(draggingHref) !== grupoDe(hrefDestino)) {
+      setDraggingHref(null); setDragOverHref(null); return;
+    }
     const hrefs = navItems.map(i => i.href);
     const origenIdx = hrefs.indexOf(draggingHref);
     const destinoIdx = hrefs.indexOf(hrefDestino);
@@ -181,13 +261,19 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
         <div className="relative">
           <IconSearch size={15} stroke={1.75} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-brand-400" />
           <input
+            ref={inputBusquedaRef}
             type="text"
             value={busqueda}
             onChange={e => setBusqueda(e.target.value)}
             onFocus={() => resultados.length > 0 && setMostrarResultados(true)}
             placeholder="Buscar..."
-            className="w-full rounded-lg bg-white/5 border border-white/10 pl-8 pr-3 py-1.5 text-xs text-white placeholder-brand-400 outline-none focus:border-brand-400"
+            className="w-full rounded-lg bg-white/5 border border-white/10 pl-8 pr-12 py-1.5 text-xs text-white placeholder-brand-400 outline-none focus:border-brand-400"
           />
+          {!buscando && !busqueda && (
+            <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-white/15 px-1 font-sans text-2xs text-brand-400">
+              {atajo}
+            </kbd>
+          )}
           {buscando && <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-brand-400 text-xs">...</span>}
           {!buscando && busqueda && (
             <button onClick={() => { setBusqueda(""); setResultados([]); setMostrarResultados(false); }}
@@ -248,42 +334,65 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 pb-3 pt-1 flex flex-col gap-0.5">
-        {navItems.map((item) => {
-          const activo = pathname === item.href ||
-            (item.href !== "/dashboard" && pathname.startsWith(item.href));
-          const Icono = item.icon;
-          const claseBase = cn(
-            "flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors",
-            activo && !reordenando
-              ? "bg-accent-600 text-white font-medium"
-              : "text-brand-200 hover:bg-white/5 hover:text-white",
-            reordenando && dragOverHref === item.href && draggingHref !== item.href && "ring-1 ring-accent-400",
-            reordenando && draggingHref === item.href && "opacity-40"
-          );
-
-          if (reordenando) {
-            return (
-              <div
-                key={item.href}
-                draggable
-                onDragStart={() => setDraggingHref(item.href)}
-                onDragOver={e => { e.preventDefault(); setDragOverHref(item.href); }}
-                onDrop={() => onDrop(item.href)}
-                onDragEnd={() => { setDraggingHref(null); setDragOverHref(null); }}
-                className={cn(claseBase, "cursor-grab active:cursor-grabbing select-none")}
-              >
-                <IconGripVertical size={15} stroke={1.75} className="shrink-0 text-brand-400" />
-                <Icono size={16} stroke={1.75} className="shrink-0" />
-                {item.label}
-              </div>
-            );
-          }
-
+        {grupos.map(g => {
+          const tieneActivo = g.items.some(i => esActivo(i.href));
+          const abierto = reordenando || tieneActivo || !plegados[g.id];
+          const plegable = !reordenando && !tieneActivo;
           return (
-            <Link key={item.href} href={item.href} className={claseBase}>
-              <Icono size={17} stroke={1.75} className="shrink-0" />
-              {item.label}
-            </Link>
+            <div key={g.id} className="flex flex-col gap-0.5">
+              <button
+                type="button"
+                onClick={() => plegable && alternarGrupo(g.id)}
+                aria-expanded={abierto}
+                className={cn(
+                  "mt-2 flex items-center justify-between rounded-md px-2 py-1 text-2xs font-semibold uppercase tracking-wide text-brand-400 transition-colors",
+                  plegable ? "hover:text-brand-200" : "cursor-default"
+                )}
+              >
+                <span>{g.label}</span>
+                {plegable && (abierto
+                  ? <IconChevronDown size={13} stroke={2} />
+                  : <IconChevronRight size={13} stroke={2} />)}
+              </button>
+              {abierto && g.items.map((item) => {
+                const activo = pathname === item.href ||
+                  (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                const Icono = item.icon;
+                const claseBase = cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors",
+                  activo && !reordenando
+                    ? "bg-accent-600 text-white font-medium"
+                    : "text-brand-200 hover:bg-white/5 hover:text-white",
+                  reordenando && dragOverHref === item.href && draggingHref !== item.href && "ring-1 ring-accent-400",
+                  reordenando && draggingHref === item.href && "opacity-40"
+                );
+
+                if (reordenando) {
+                  return (
+                    <div
+                      key={item.href}
+                      draggable
+                      onDragStart={() => setDraggingHref(item.href)}
+                      onDragOver={e => { e.preventDefault(); setDragOverHref(item.href); }}
+                      onDrop={() => onDrop(item.href)}
+                      onDragEnd={() => { setDraggingHref(null); setDragOverHref(null); }}
+                      className={cn(claseBase, "cursor-grab active:cursor-grabbing select-none")}
+                    >
+                      <IconGripVertical size={15} stroke={1.75} className="shrink-0 text-brand-400" />
+                      <Icono size={16} stroke={1.75} className="shrink-0" />
+                      {item.label}
+                    </div>
+                  );
+                }
+
+                return (
+                  <Link key={item.href} href={item.href} className={claseBase}>
+                    <Icono size={17} stroke={1.75} className="shrink-0" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
           );
         })}
       </div>
