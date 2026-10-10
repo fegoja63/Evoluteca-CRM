@@ -21,6 +21,7 @@ import { TendenciasGraficas } from "@/components/tendencias-graficas";
 import { PanelLunes } from "@/components/panel-lunes";
 import { tarjeta } from "@/components/ui/estilos";
 import { SkeletonKpis, SkeletonTabla } from "@/components/ui/estados";
+import { mapaEtapas } from "@/lib/etapas-color";
 
 type ResAnio = { ganadas: number; perdidas: number; activas: number; valorGanado: number; valorPerdido: number; valorActivo: number; total: number };
 type ResMes  = { ganadas: number; perdidas: number; valorGanado: number; total: number };
@@ -83,14 +84,7 @@ type Vendedor = { id: string; nombre: string };
 
 // El nombre visible de cada etapa es configurable por tenant (Configuración →
 // Etapas del pipeline); el "key" y el color de la barra quedan fijos en código.
-const ETAPA_COLOR_BAR: Record<string, string> = {
-  PROSPECTO:   "#94a3b8",
-  CALIFICADO:  "#60a5fa",
-  PROPUESTA:   "#8b5cf6",
-  NEGOCIACION: "#fbbf24",
-  GANADA:      "#10b981",
-  PERDIDA:     "#f87171",
-};
+const ETAPA_COLOR_BAR: Record<string, string> = mapaEtapas("hex");
 
 const ETAPAS_DEFECTO = [
   { key: "PROSPECTO",   label: "Prospecto" },
@@ -785,7 +779,7 @@ export default function ReportesPage() {
             {[
               { label: "Ganado",   valor: r.valorGanado,  color: "bg-emerald-500", text: "text-emerald-700" },
               { label: "En juego", valor: r.valorActivo,  color: "bg-brand-500",   text: "text-brand-700" },
-              { label: "Perdido",  valor: r.valorPerdido, color: "bg-red-400",     text: "text-red-600" },
+              { label: "Perdido",  valor: r.valorPerdido, color: "bg-slate-400",   text: "text-slate-500" },
             ].map(item => {
               const total = r.valorGanado + r.valorActivo + r.valorPerdido;
               const pct = total > 0 ? (item.valor / total) * 100 : 0;

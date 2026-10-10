@@ -5,6 +5,7 @@ import { MoneyInput } from "@/components/money-input";
 import { boton, tarjeta } from "@/components/ui/estilos";
 import { SkeletonLista } from "@/components/ui/estados";
 import { IconChartBar, IconPencil } from "@tabler/icons-react";
+import { ETAPA_ESTILO } from "@/lib/etapas-color";
 
 type Vendedor = {
   id: string;
@@ -279,12 +280,12 @@ export function RendimientoEquipo({ esAdmin }: { esAdmin: boolean }) {
                 <div className="mt-4 rounded-xl border border-slate-100 p-4">
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Embudo de conversión</p>
                   {[
-                    { etapa: "PROSPECTO",   label: "Prospecto",   color: "bg-slate-300" },
-                    { etapa: "CALIFICADO",  label: "Calificado",  color: "bg-blue-400" },
-                    { etapa: "PROPUESTA",   label: "Cotización",  color: "bg-violet-400" },
-                    { etapa: "NEGOCIACION", label: "Negociación", color: "bg-amber-400" },
-                    { etapa: "GANADA",      label: "Ganada",      color: "bg-emerald-500" },
-                    { etapa: "PERDIDA",     label: "Perdida",     color: "bg-red-400" },
+                    { etapa: "PROSPECTO",   label: "Prospecto",   color: ETAPA_ESTILO.PROSPECTO.barra },
+                    { etapa: "CALIFICADO",  label: "Calificado",  color: ETAPA_ESTILO.CALIFICADO.barra },
+                    { etapa: "PROPUESTA",   label: "Cotización",  color: ETAPA_ESTILO.PROPUESTA.barra },
+                    { etapa: "NEGOCIACION", label: "Negociación", color: ETAPA_ESTILO.NEGOCIACION.barra },
+                    { etapa: "GANADA",      label: "Ganada",      color: ETAPA_ESTILO.GANADA.barra },
+                    { etapa: "PERDIDA",     label: "Perdida",     color: ETAPA_ESTILO.PERDIDA.barra },
                   ].map(({ etapa, label, color }) => {
                     const n = detalle.porEtapa?.[etapa] ?? 0;
                     const max = Math.max(...Object.values(detalle.porEtapa ?? {}), 1);

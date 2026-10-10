@@ -19,6 +19,7 @@ import {
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonKanban, SkeletonKpis, SkeletonTabla } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
+import { ETAPA_ESTILO as ESTILO_ETAPA } from "@/lib/etapas-color";
 
 const MOTIVOS_PERDIDA = [
   "Precio muy alto",
@@ -110,14 +111,9 @@ type Disponibilidad = { aceptadas: { id: string; empresa: { nombre: string } | n
 // El nombre visible y el orden de cada etapa son configurables por tenant
 // (Configuración → Etapas del pipeline), pero el "key" (usado como valor de
 // Oportunidad.etapa) y su color/badge quedan fijos en código.
-const ETAPA_ESTILO: Record<string, { color: string; badge: string }> = {
-  PROSPECTO:   { color: "border-t-slate-400",   badge: "bg-slate-100 text-slate-600" },
-  CALIFICADO:  { color: "border-t-blue-400",    badge: "bg-blue-50 text-blue-700" },
-  PROPUESTA:   { color: "border-t-violet-400",  badge: "bg-violet-50 text-violet-700" },
-  NEGOCIACION: { color: "border-t-amber-400",   badge: "bg-amber-50 text-amber-700" },
-  GANADA:      { color: "border-t-emerald-400", badge: "bg-emerald-50 text-emerald-700" },
-  PERDIDA:     { color: "border-t-red-400",     badge: "bg-red-50 text-red-600" },
-};
+const ETAPA_ESTILO: Record<string, { color: string; badge: string }> = Object.fromEntries(
+  Object.entries(ESTILO_ETAPA).map(([k, v]) => [k, { color: v.bordeSup, badge: v.insignia }])
+);
 
 const ETAPAS_DEFECTO = [
   { key: "PROSPECTO",   label: "Prospecto" },

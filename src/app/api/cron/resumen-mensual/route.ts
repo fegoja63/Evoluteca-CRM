@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { Resend } from "resend";
 import { EtapaOportunidad } from "@prisma/client";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
+import { mapaEtapas } from "@/lib/etapas-color";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -16,7 +17,7 @@ const ETAPAS_ACTIVAS: EtapaOportunidad[] = ["PROSPECTO", "CALIFICADO", "PROPUEST
 // Nombre y color por defecto de cada etapa activa (el nombre puede sobreescribirse
 // con el que el tenant configuró en EtapaPipeline).
 const ETAPA_LABEL: Record<string, string> = { PROSPECTO: "Prospecto", CALIFICADO: "Calificado", PROPUESTA: "Cotización", NEGOCIACION: "Negociación" };
-const ETAPA_COLOR: Record<string, string> = { PROSPECTO: "#94a3b8", CALIFICADO: "#3b82f6", PROPUESTA: "#8b5cf6", NEGOCIACION: "#f59e0b" };
+const ETAPA_COLOR: Record<string, string> = mapaEtapas("hex");
 
 function fmt(v: number | null | undefined) {
   const n = Number(v ?? 0);

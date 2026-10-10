@@ -29,6 +29,7 @@ import { IconPhone, IconMail, IconUsers, IconPencil, IconTrash, IconPlus, type I
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
+import { mapaEtapas } from "@/lib/etapas-color";
 
 type Detalle = {
   id: string;
@@ -47,14 +48,7 @@ type Detalle = {
   cotizaciones: { id: string; numero: number; numeroManual: string | null; estado: string; items: { cantidad: number; precioUnit: string }[] }[];
 };
 
-const ETAPA_COLOR: Record<string, string> = {
-  GANADA: "text-emerald-700",
-  PERDIDA: "text-red-500",
-  PROPUESTA: "text-violet-600",
-  NEGOCIACION: "text-amber-600",
-  CALIFICADO: "text-blue-600",
-  PROSPECTO: "text-slate-500",
-};
+const ETAPA_COLOR: Record<string, string> = mapaEtapas("texto");
 
 export default function FichaClientePage() {
   const params = useParams();

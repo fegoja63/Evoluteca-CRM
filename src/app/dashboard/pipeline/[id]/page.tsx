@@ -26,6 +26,7 @@ import {
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
+import { mapaEtapas } from "@/lib/etapas-color";
 
 type Oportunidad = {
   id: string;
@@ -55,14 +56,7 @@ type Oportunidad = {
 
 // El nombre visible de cada etapa es configurable por tenant (Configuración →
 // Etapas del pipeline); el "key" y el color quedan fijos en código.
-const ETAPA_COLOR: Record<string, string> = {
-  PROSPECTO:   "bg-slate-100 text-slate-700",
-  CALIFICADO:  "bg-blue-100 text-blue-700",
-  PROPUESTA:   "bg-violet-100 text-violet-700",
-  NEGOCIACION: "bg-amber-100 text-amber-700",
-  GANADA:      "bg-emerald-100 text-emerald-700",
-  PERDIDA:     "bg-red-100 text-red-600",
-};
+const ETAPA_COLOR: Record<string, string> = mapaEtapas("insignia");
 
 const ETAPAS_DEFECTO = [
   { key: "PROSPECTO",   label: "Prospecto" },
