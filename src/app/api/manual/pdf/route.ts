@@ -105,7 +105,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.24"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.25"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -270,14 +270,15 @@ export async function GET() {
       React.createElement(Nota, null, "El administrador de tu organización también puede restablecer la contraseña de cualquier usuario desde el panel de Equipo, sin necesidad de email."),
 
       React.createElement(H2, null, "1.3 Navegación general"),
-      React.createElement(P, null, "El menú lateral izquierdo contiene todos los módulos del CRM. El módulo activo se resalta en azul. Puedes navegar entre módulos en cualquier momento sin perder tu trabajo."),
+      React.createElement(P, null, "El menú lateral izquierdo contiene todos los módulos del CRM, agrupados por para qué sirven: Hoy (Dashboard, Bandeja Hoy y Agenda), Ventas (Pipeline, Plantillas, Cotizaciones, Catálogo), Relaciones (Clientes, Contactos), Análisis (Asistente IA, Reportes, Equipo), Módulos (los opcionales que tengas activos) y Más (Datos, Papelera, Ayuda, Configuración y similares). El módulo activo se resalta. Puedes navegar entre módulos en cualquier momento sin perder tu trabajo."),
+      React.createElement(P, null, "Cada grupo se pliega o despliega con un clic en su título, y el CRM recuerda en ese navegador cuáles dejaste plegados. \"Más\" empieza plegado, y el grupo de la pantalla en la que estás siempre queda abierto."),
       React.createElement(P, null, "En dispositivos móviles el menú lateral se oculta. Toca el ícono de menú (tres líneas) en la barra superior para abrirlo como panel deslizante. Toca fuera del panel o la × para cerrarlo."),
       React.createElement(Tip, null, "El CRM está optimizado para móvil. Puedes gestionar clientes, pipeline y agenda desde tu teléfono sin perder funcionalidad."),
 
       React.createElement(H2, null, "1.4 Uso desde el celular"),
       React.createElement(P, null, "En dispositivos móviles el CRM activa automáticamente una interfaz adaptada:"),
       React.createElement(LI, null, "Barra de navegación inferior — acceso rápido a Dashboard, Clientes, Pipeline, Agenda y Cotizaciones con un solo toque"),
-      React.createElement(LI, null, "Botón flotante + (azul, esquina inferior derecha) — abre un menú con acciones rápidas: nueva actividad, nuevo cliente, nueva cotización y ver pipeline"),
+      React.createElement(LI, null, "Botón flotante + (rojo ladrillo, esquina inferior derecha) — abre un menú con acciones rápidas: nueva actividad, nuevo cliente, nueva cotización y ver pipeline"),
       React.createElement(LI, null, "Contenido con margen inferior para que la barra no tape el contenido"),
       React.createElement(Tip, null, "El botón + se convierte en × al abrirse. Toca fuera del menú o toca × para cerrarlo sin navegar."),
 
@@ -292,7 +293,8 @@ export async function GET() {
             React.createElement(Text, { style: [s.tablaHCell, { flex: 3 }] }, "Para qué sirve"),
           ),
           ...[
-            ["Dashboard",        "Resumen ejecutivo: alertas, actividades del día, salud comercial y productividad"],
+            ["Dashboard",        "Inicio: lo que pide acción hoy, metas, pipeline, alertas y salud comercial"],
+            ["Bandeja Hoy",      "Lo pendiente de hoy y lo vencido, uno por uno: hacer, reprogramar o marcar como hecha"],
             ["Clientes",          "Empresas y cuentas que gestionas. Cada cliente tiene su ficha 360°"],
             ["Contactos",         "Personas dentro de cada cliente. Vinculados a empresa, oportunidades y actividades"],
             ["Pipeline",          "Oportunidades de venta con indicadores de urgencia por color y drag & drop"],
@@ -311,22 +313,28 @@ export async function GET() {
         ),
       ),
 
-      React.createElement(H2, null, "1.6 Búsqueda global"),
-      React.createElement(P, null, "En la parte superior del menú lateral hay un buscador (\"Buscar...\") que consulta toda tu organización en un solo lugar. Escribe al menos 2 letras y el sistema muestra, mientras tecleas, coincidencias en todos los tipos de registro a la vez:"),
-      React.createElement(LI, null, "Clientes (empresas)"),
-      React.createElement(LI, null, "Contactos (personas)"),
-      React.createElement(LI, null, "Oportunidades del pipeline"),
-      React.createElement(LI, null, "Cotizaciones"),
-      React.createElement(LI, null, "Actividades de la agenda"),
-      React.createElement(P, null, "Haz clic en cualquier resultado para ir directo a su ficha. La lupa junto a cada resultado indica de qué tipo es. Toca la × del buscador para limpiar el texto y cerrar los resultados."),
-      React.createElement(Tip, null, "Es la forma más rápida de abrir un cliente o una cotización sin recorrer el listado: escribe parte del nombre y salta directo. El buscador respeta tus permisos — solo encuentra registros que tu rol puede ver."),
+      React.createElement(H2, null, "1.6 Buscar o crear desde cualquier pantalla (Ctrl+K)"),
+      React.createElement(P, null, "Presiona Ctrl+K (Cmd+K en Mac) en cualquier pantalla, o haz clic en \"Buscar o crear…\" arriba en el menú lateral. Se abre una ventana con un solo campo desde el que puedes hacer cuatro cosas:"),
+      React.createElement(LI, null, "Crear: escribe \"nuevo\" o \"nueva\" y elige Nuevo cliente, Nueva oportunidad, Nueva actividad, Nueva cotización o Nuevo contacto. Se abre el formulario de siempre en su pantalla."),
+      React.createElement(LI, null, "Buscar: con al menos 2 letras busca a la vez en clientes, contactos, oportunidades, cotizaciones y actividades. Un clic (o Enter) abre la ficha."),
+      React.createElement(LI, null, "Preguntar a la IA: con 3 letras o más aparece al final \"Preguntar a la IA: «lo que escribiste»\", que abre Pregúntale a tus datos (ver 10.5) y hace la pregunta de una vez."),
+      React.createElement(LI, null, "Ir a: las pantallas principales (Inicio, Bandeja Hoy, Agenda, Pipeline, Clientes, Reportes, Configuración…)."),
+      React.createElement(P, null, "Se maneja con el teclado: flechas arriba y abajo para moverte, Enter para abrir y Esc para cerrar. Encuentra con o sin tildes."),
+      React.createElement(Tip, null, "La opción de IA siempre va al final: si lo que escribes coincide con un comando (por ejemplo \"nuevo cli\"), Enter crea el cliente y no gasta una consulta de IA. La búsqueda respeta tus permisos: solo encuentra registros que tu rol puede ver."),
 
       React.createElement(H2, null, "1.7 Personalizar el orden del menú"),
       React.createElement(P, null, "Puedes reordenar los módulos del menú lateral para dejar arriba los que más usas. Junto al título \"Menú\" hay un botón \"Ordenar\":"),
       React.createElement(Paso, { n: 1, titulo: "Activar el modo ordenar", desc: "Haz clic en \"Ordenar\". Cada módulo muestra un ícono de puntos (agarradera) a la izquierda." }),
-      React.createElement(Paso, { n: 2, titulo: "Arrastrar y soltar", desc: "Arrastra cada módulo a la posición que prefieras. El nuevo orden se guarda automáticamente en tu perfil." }),
+      React.createElement(Paso, { n: 2, titulo: "Arrastrar y soltar", desc: "Arrastra cada módulo a la posición que prefieras dentro de su grupo (Hoy, Ventas, Relaciones…). El nuevo orden se guarda automáticamente en tu perfil." }),
       React.createElement(Paso, { n: 3, titulo: "Terminar", desc: "Haz clic en \"Listo\" para volver a la navegación normal. Con el botón \"Restablecer\" vuelves al orden original en cualquier momento." }),
-      React.createElement(Nota, null, "El orden del menú es personal de cada usuario — no afecta a tus compañeros. Si se activa un módulo nuevo (por ejemplo Funciones o Salones), aparece automáticamente al final de tu menú sin alterar el orden que ya definiste."),
+      React.createElement(Nota, null, "El orden del menú es personal de cada usuario — no afecta a tus compañeros. Si se activa un módulo nuevo (por ejemplo Funciones o Salones), aparece automáticamente en el grupo Módulos del menú, sin alterar el orden que ya definiste."),
+
+      React.createElement(H2, null, "1.8 Modo Día, Noche o Automático"),
+      React.createElement(P, null, "Abajo en el menú lateral, junto a \"Cerrar sesión\", está el botón \"Tema\". Cada clic pasa al siguiente modo:"),
+      React.createElement(LI, null, "Día — fondo claro (el de siempre)."),
+      React.createElement(LI, null, "Noche — fondo oscuro, más cómodo de noche o con poca luz."),
+      React.createElement(LI, null, "Automático — sigue el modo claro u oscuro de tu computador o celular, y cambia solo si lo cambias allá."),
+      React.createElement(Nota, null, "La preferencia se guarda en ese navegador y es personal: no afecta a tus compañeros. Por defecto todos empiezan en Día. El modo Noche solo cambia las pantallas internas del CRM: la cotización que ve tu cliente, los PDFs y los correos se ven siempre igual."),
 
     ),
 
@@ -441,6 +449,12 @@ export async function GET() {
       React.createElement(Paso, { n: 4, titulo: "Consultar", desc: "Cada correo de la lista muestra asunto, remitente/destinatario y fecha, con su etiqueta Enviado o Recibido; haz clic para desplegar el mensaje completo. Así toda la conversación queda ligada al cliente." }),
       React.createElement(P, null, "Además, cuando entra una respuesta te llega un aviso a tu propio correo (el que tienes en Mi perfil) con el texto y un botón para abrir la ficha en el CRM."),
       React.createElement(Nota, null, "Solo se capturan las respuestas a correos que enviaste desde el CRM; no reemplaza tu bandeja de entrada. Por ahora los correos se manejan en texto sencillo, sin adjuntos."),
+
+      React.createElement(H2, null, "2.13 Vistas, datos completos y asignar desde la lista"),
+      React.createElement(P, null, "Sobre la tabla de Clientes hay pestañas de vistas: Todos, Mis clientes y \"Sin vendedor N\" (aparece solo si hay clientes sin vendedor). Un clic filtra la tabla al instante. El rol Comercial no ve estas pestañas porque ya solo ve sus propios clientes."),
+      React.createElement(P, null, "En Contactos las vistas son Todos, \"Sin empresa N\" y \"Sin correo N\", para encontrar rápido los contactos a los que les falta un dato."),
+      React.createElement(P, null, "La columna \"Datos\" muestra con una barra qué tan completa está cada ficha: en Clientes cuenta correo, teléfono, sector, sitio web y si tiene contactos; en Contactos, correo, teléfono, cargo y empresa. Al pasar el cursor se ve qué falta."),
+      React.createElement(P, null, "Asignar desde la lista: en Clientes, si un cliente no tiene vendedor aparece el botón punteado \"+ Asignar\"; y si ya lo tiene, un clic en el nombre del vendedor permite cambiarlo. Ambos abren la confirmación de reasignar, porque el cambio también pasa al nuevo vendedor las oportunidades y actividades de ese cliente (solo Administrador). En Contactos, \"+ Asignar\" en la columna Empresa abre la edición del contacto para ponerle su empresa."),
     ),
 
     // ── CAPÍTULO 3: PIPELINE ──
@@ -471,6 +485,7 @@ export async function GET() {
         ),
       ),
       React.createElement(Tip, null, "El nombre visible de cada etapa se puede personalizar (y el orden de las columnas, reordenar) desde Configuración > Etapas del pipeline — ver 9.5. El significado de fondo (activa, ganada o perdida) no cambia, solo cómo se ve en pantalla."),
+      React.createElement(P, null, "Colores de las etapas: las etapas abiertas usan el azul de la marca, de claro a oscuro según avanzan en el embudo (Prospecto más claro, Negociación más oscuro). Ganada es verde y Perdida gris; el rojo queda reservado para lo vencido o en riesgo. Los mismos colores se usan en el Dashboard, el Pipeline, las fichas, Cotizaciones, Reportes y el correo del resumen mensual."),
       React.createElement(P, null, "Las columnas Ganada y Perdida aparecen compactas: muestran cuántos negocios hay y su valor total, para que el tablero se concentre en los negocios abiertos. Siguen funcionando para cerrar: arrastra una tarjeta hasta Ganada o Perdida igual que antes (al soltar en Perdida se pide el motivo). Para ver los negocios cerrados pulsa \"Ver negocios\"; para volver a la vista compacta, \"Compactar\". El CRM recuerda tu preferencia en ese navegador."),
 
       React.createElement(H2, null, "3.2 Crear una oportunidad"),
@@ -491,6 +506,8 @@ export async function GET() {
       React.createElement(P, null, "Cada tarjeta activa muestra su próximo paso: en azul, la siguiente actividad pendiente con su tipo y cuándo es (\"Hoy 3:00 p. m.\", \"Mañana\", \"jue\", \"20 oct\"); en rojo, si lo único pendiente es una tarea de días anteriores (\"Vencida hace 3 d\"); y un chip gris punteado \"Sin próximo paso\" si no hay ninguna, que al hacer clic abre la ficha para agendarlo. Al pasar el cursor por el chip se ve el título de la actividad."),
       React.createElement(P, null, "En la barra de filtros aparecen dos chips de acceso rápido cuando aplican: el rojo \"N estancadas\" (negocios activos que superan el umbral de días sin contacto) y el ámbar \"N sin próximo paso\". Haz clic en cualquiera para ver solo esos negocios."),
       React.createElement(Tip, null, "Empieza el día con los dos chips: primero reactiva lo estancado y luego agenda el siguiente paso de lo que no lo tiene. Así ningún negocio queda en el aire."),
+      React.createElement(P, null, "Etiqueta \"Quieto N d\": cuando un negocio lleva el umbral de días sin movimiento (o más), su tarjeta muestra cuántos días lleva quieto, en ámbar; desde el doble del umbral pasa a rojo, igual que el borde."),
+      React.createElement(P, null, "Franja de negocios en riesgo: arriba del tablero aparece \"N negocios en riesgo · $ valor\", ordenados del más valioso al menos valioso, con el porqué de cada uno (por ejemplo \"Cierre vencido hace 88 días\" o \"133 días sin contacto\") y un enlace para abrirlo. Muestra los 5 más valiosos; si son 5 o menos aparece abierta, y si son más, plegada (un clic la abre). Respeta los filtros del tablero."),
 
       React.createElement(H2, null, "3.4 Drag & Drop"),
       React.createElement(P, null, "Arrastra cualquier tarjeta de una columna a otra para cambiar su etapa. El cambio se guarda automáticamente. También puedes cambiar la etapa desde la ficha de la oportunidad."),
@@ -578,7 +595,8 @@ export async function GET() {
       React.createElement(Nota, null, "Los contactos sin empresa asignada no aparecen en el campo Contacto cuando hay una empresa seleccionada. Si necesitas uno de ellos, asígnale primero su empresa desde la ficha del contacto."),
 
       React.createElement(H2, null, "4.3 Marcar como completada"),
-      React.createElement(P, null, 'Marca el checkbox junto a la actividad para marcarla como completada. Las actividades completadas se muestran tachadas. Usa el filtro "Solo pendientes" para enfocarte en lo que falta.'),
+      React.createElement(P, null, 'Haz clic en el círculo "Hecha" a la izquierda de la actividad: se pone verde con un check y la actividad queda completada (se muestra tachada). Marcarla como hecha no la borra. Usa el filtro "Pendientes" para enfocarte en lo que falta.'),
+      React.createElement(P, null, 'Las demás acciones de cada actividad están en el menú "..." al final de la fila: Editar, Añadir a mi calendario (Google, Outlook o .ics — ver 4.6), Reasignar a otra persona del equipo y Borrar. En la fila quedan siempre a la vista el estado y, si está vencida, la campana para enviarte el recordatorio.'),
 
       React.createElement(H2, null, "4.4 Notificaciones por email"),
       React.createElement(P, null, "Cada mañana a las 8am el CRM envía automáticamente hasta 3 tipos de alertas por email:"),
@@ -599,7 +617,7 @@ export async function GET() {
       React.createElement(H2, null, "4.6 Llevar la agenda a tu calendario (Google, Outlook, Apple)"),
       React.createElement(P, null, "Tienes tres formas de llevar tus actividades a tu calendario personal, según lo que necesites:"),
 
-      React.createElement(P, null, "Opción 1 — Una sola actividad: cada actividad de la lista tiene un botón Calendario con tres destinos:"),
+      React.createElement(P, null, "Opción 1 — Una sola actividad: en el menú \"...\" de cada actividad, \"Añadir a mi calendario\" ofrece tres destinos:"),
       React.createElement(LI, null, "Google Calendar — abre la pantalla de evento nuevo ya rellenada; ahí eliges en qué calendario guardarla"),
       React.createElement(LI, null, "Outlook — igual que el anterior, en Outlook web"),
       React.createElement(LI, null, "Descargar .ics — un archivo con esa única actividad"),
@@ -608,7 +626,7 @@ export async function GET() {
 
       React.createElement(P, null, "Opción 3 — Suscripción en vivo (recomendada): desde Mi perfil, en la sección \"Agenda en tu calendario\", genera tu enlace privado y pégalo en Google, Outlook o Apple. A diferencia de las anteriores, el enlace se mantiene actualizado solo: cuando agregas o cambias actividades, tu calendario las refresca cada pocas horas sin volver a importar nada."),
 
-      React.createElement(Tip, null, "Si abres directamente un .ics con muchas actividades, Windows lo importa al calendario por defecto sin preguntarte cuál. Para escoger el calendario de destino usa el botón Calendario de cada actividad (opción 1) o la suscripción (opción 3); si prefieres el archivo, en Google Calendar impórtalo desde Configuración > Importar y exportar, donde sí aparece el selector \"Añadir al calendario\"."),
+      React.createElement(Tip, null, "Si abres directamente un .ics con muchas actividades, Windows lo importa al calendario por defecto sin preguntarte cuál. Para escoger el calendario de destino usa \"Añadir a mi calendario\" en el menú \"...\" de cada actividad (opción 1) o la suscripción (opción 3); si prefieres el archivo, en Google Calendar impórtalo desde Configuración > Importar y exportar, donde sí aparece el selector \"Añadir al calendario\"."),
       React.createElement(Nota, null, "El enlace de suscripción es privado: cualquiera que lo tenga puede ver tu agenda, así que no lo compartas. Si crees que se filtró, genera uno nuevo desde Mi perfil y el anterior deja de funcionar al instante."),
 
       React.createElement(H2, null, "4.7 Actividades de hoy resaltadas en rojo"),
@@ -621,6 +639,15 @@ export async function GET() {
       React.createElement(LI, null, "Completada — terminada (badge verde); equivale a marcar el checkbox de completada"),
       React.createElement(P, null, "El campo \"Responsable\" permite asignar la actividad a otra persona del equipo en vez de a ti mismo. Por defecto queda a tu nombre (\"Yo mismo\"); en el selector puedes elegir a cualquier miembro del equipo para delegarla."),
       React.createElement(Tip, null, "El estado \"En progreso\" es útil para tareas que toman varios días (preparar una propuesta grande, coordinar un evento): ves de un vistazo qué está arrancado y qué sigue sin tocar, sin tener que marcarlo como completado antes de tiempo."),
+
+      React.createElement(H2, null, "4.9 Bandeja Hoy"),
+      React.createElement(P, null, "La Bandeja Hoy (menú Hoy › Bandeja Hoy, o Ctrl+K › Bandeja Hoy) reúne lo que tienes que despachar: las actividades pendientes de hoy y las vencidas (en rojo). El Comercial ve las que creó o tiene asignadas; Administrador y Gerente, las de todo el equipo."),
+      React.createElement(P, null, "A la izquierda está la lista; al elegir una, a la derecha aparece su detalle: tipo, fecha, notas, el negocio, cliente y contacto (con enlace) y una sugerencia de qué hacer. Abajo, tres botones:"),
+      React.createElement(LI, null, "Hacer — si es una llamada y hay teléfono, \"Llamar\" marca el número; si es un correo y hay email, \"Escribir\" abre tu correo; en los demás casos abre el negocio o la ficha."),
+      React.createElement(LI, null, "Reprogramar — elige nueva fecha y hora (propone mañana a la misma hora). Si la dejas para más tarde hoy, se queda en la bandeja; si es otro día, sale de ella."),
+      React.createElement(LI, null, "Hecha — la marca como completada y pasa a la siguiente."),
+      React.createElement(P, null, "La sugerencia sale de reglas, no de la IA (es instantánea y no gasta cupo): si el negocio ya está cerrado, sugiere marcarla como hecha si ya no aplica; si está vencida, hacerla hoy o reprogramarla con una fecha realista; si no, la acción del estado comercial del negocio (ver 3.3)."),
+      React.createElement(Tip, null, "Empieza el día en la Bandeja Hoy y despáchala de arriba abajo: cuando queda vacía, el CRM te propone ver los negocios sin próximo paso para agendarles el siguiente."),
     ),
 
     // ── CAPÍTULO 5: COTIZACIONES ──
@@ -692,7 +719,7 @@ export async function GET() {
       React.createElement(LI, null, "Badge rojo 'Vencida Xd' — la fecha de validez ya pasó"),
       React.createElement(LI, null, "Badge rojo 'Vence hoy' — vence el día de hoy"),
       React.createElement(LI, null, "Badge ámbar 'Vence en Xd' — vence en 7 días o menos"),
-      React.createElement(P, null, "En la propia lista de Cotizaciones aparece una franja roja de alerta con el número de cotizaciones vencidas o próximas a vencer, y un botón \"Ver vencidas\" que filtra el listado para mostrar solo esas. También en el dashboard principal el panel de alertas muestra ese conteo y enlaza a la lista."),
+      React.createElement(P, null, "En la propia lista de Cotizaciones, junto al buscador, aparecen dos filtros cuando hay casos: \"Vencidas N\" (rojo; vencidas o que vencen hoy) y \"Vencen en 7 días N\" (ámbar). Un clic filtra el listado para mostrar solo esas; otro clic (o \"Limpiar\") quita el filtro. También en el dashboard principal el panel de alertas muestra ese conteo y enlaza a la lista."),
       React.createElement(Tip, null, "Cuando una cotización es ACEPTADA o RECHAZADA, los badges de vencimiento desaparecen — el estado definitivo ya no requiere seguimiento de validez."),
 
       React.createElement(H2, null, "5.11 Plantillas de cotización"),
@@ -822,7 +849,8 @@ export async function GET() {
       React.createElement(PageHeader, { base }),
       React.createElement(Footer, { numero: 9 }),
       React.createElement(H1, null, "8. Dashboard — Tablero gerencial One Page"),
-      React.createElement(P, null, "El Dashboard es la pantalla principal del CRM. Funciona como un tablero de control gerencial que concentra en una sola página el estado completo de la operación comercial: meta del mes, KPIs clave, ranking de vendedores, oportunidades calientes y alertas de salud comercial."),
+      React.createElement(P, null, "El Dashboard (Inicio) es la pantalla principal del CRM. Empieza por lo que pide acción hoy y luego muestra el estado de la operación comercial: metas, pipeline, oportunidades calientes, ranking de vendedores y alertas de salud comercial."),
+      React.createElement(P, null, "De arriba abajo: el encabezado con el saludo, las metas y las cifras del mes (8.1 y 8.2); los tres contadores de lo que pide acción (8.2); \"Lo primero de hoy\" con el Brief del pipeline y las oportunidades calientes al lado (8.7 y 8.4); el embudo del pipeline junto a \"Oportunidades por estado\" (8.9); y abajo las alertas, el rendimiento del equipo, los próximos 7 días y la salud comercial."),
 
       React.createElement(H2, null, "8.1 Meta del mes y meta del año — Gauges circulares"),
       React.createElement(P, null, "En la parte superior del Dashboard hay dos medidores circulares (gauges): Meta del mes y Meta del año. Cada uno muestra el porcentaje alcanzado de su meta respectiva, calculado sobre los negocios cerrados como GANADOS versus el valor objetivo configurado en COP. Solo aparecen si tienes una meta configurada de ese tipo (mensual o anual) para el período correspondiente."),
@@ -832,26 +860,27 @@ export async function GET() {
       React.createElement(P, null, "Debajo de cada gauge, en la tarjeta 'Resumen del año', también puedes ver el valor exacto ganado y la meta en pesos."),
       React.createElement(Tip, null, "Configura la meta mensual o anual desde el módulo Reportes, botón Configurar metas. Deja el campo Mes en blanco para que sea una meta anual. Sin meta configurada, el gauge correspondiente no aparece."),
 
-      React.createElement(H2, null, "8.2 KPIs principales"),
+      React.createElement(H2, null, "8.2 Saludo y contadores de hoy"),
+      React.createElement(P, null, "Bajo tu nombre, el encabezado dice cuántas cosas tienes para hoy: las actividades pendientes de hoy más las vencidas (por ejemplo \"Tienes 12 cosas para hoy · 4 vencidas\")."),
+      React.createElement(P, null, "El encabezado muestra además \"Meta del mes\" y \"Meta del año\" (ver 8.1) y las cifras de \"Ganado este mes\", \"Pipeline activo\" y \"Tasa de cierre\". Bajo \"Ganado este mes\" hay una mini gráfica de lo ganado en los últimos 6 meses y la variación frente al mes anterior al mismo corte de días (por ejemplo, del 1 al 9 de este mes contra del 1 al 9 del mes pasado), para que la comparación sea justa aunque el mes vaya a la mitad. Si el mes aún no tiene ventas, en lugar de \"$0\" dice \"Aún no hay ventas este mes\" y ofrece ver los negocios en Cotización o Negociación."),
+      React.createElement(P, null, "Debajo hay tres contadores grandes; cada uno lleva a su lista:"),
       React.createElement(View, { style: { paddingHorizontal: 40 } },
         React.createElement(View, { style: s.tabla },
           React.createElement(View, { style: s.tablaHead },
-            React.createElement(Text, { style: [s.tablaHCell, { flex: 1 }] }, "KPI"),
-            React.createElement(Text, { style: [s.tablaHCell, { flex: 3 }] }, "Qué mide"),
+            React.createElement(Text, { style: [s.tablaHCell, { flex: 1 }] }, "Contador"),
+            React.createElement(Text, { style: [s.tablaHCell, { flex: 3 }] }, "Qué cuenta y a dónde lleva"),
           ),
           ...[
-            ["Empresas",           "Clientes registrados, con enlace directo al listado de Clientes."],
-            ["Contactos",          "Personas en tu red, vinculadas a las empresas."],
-            ["Oportunidades",      "Oportunidades activas en el pipeline (no cerradas)."],
-            ["Tareas pendientes",  "Actividades sin completar; el subtítulo indica cuántas son de hoy."],
-            ["Salud comercial",    "Puntaje de 0 a 100 que resume la salud del pipeline (ver 8.6)."],
+            ["Actividades vencidas",      "Pendientes con fecha anterior a hoy (rojo si hay). Abre la Agenda filtrada en Vencidas."],
+            ["Reuniones hoy",             "Reuniones pendientes de hoy. Abre la Agenda filtrada en Reuniones."],
+            ["Negocios sin próximo paso", "Negocios activos sin actividad agendada (ámbar si hay). Abre el Pipeline con ese filtro."],
           ].map(([kpi, desc], i) => React.createElement(View, { key: kpi, style: [s.tablaRow, i % 2 === 1 ? { backgroundColor: C.grisClaro } : {}] },
             React.createElement(Text, { style: [s.tablaCell, { flex: 1, fontFamily: "Helvetica-Bold" }] }, kpi),
             React.createElement(Text, { style: [s.tablaCell, { flex: 3 }] }, desc),
           )),
         ),
       ),
-      React.createElement(Nota, null, "El banner superior del Dashboard, aparte, muestra \"Meta del mes\" y \"Meta del año\" (ver 8.1), y las cifras de \"Ganado este mes\", \"Pipeline activo\" y \"Tasa de cierre\". Bajo \"Ganado este mes\" hay una mini gráfica de lo ganado en los últimos 6 meses y la variación frente al mes anterior al mismo corte de días (por ejemplo, del 1 al 9 de este mes contra del 1 al 9 del mes pasado), para que la comparación sea justa aunque el mes vaya a la mitad."),
+      React.createElement(Nota, null, "Los conteos de clientes, contactos y oportunidades ya no están en el Dashboard: se ven en las tarjetas de resumen de Clientes y Contactos, y en el Pipeline. La Salud comercial sigue más abajo (ver 8.6)."),
 
       React.createElement(H2, null, "8.3 Rendimiento del equipo"),
       React.createElement(P, null, "Muestra el ranking de vendedores del equipo ordenados por valor ganado en el mes. Incluye para cada vendedor: número de oportunidades activas, tasa de cierre, valor ganado en el mes y valor total en pipeline. Debajo del ranking, una barra muestra el total ganado por el equipo contra la meta del mes."),
@@ -867,16 +896,18 @@ export async function GET() {
       React.createElement(P, null, "Puntaje de 0 a 100 que resume qué tan sano está el pipeline del equipo, con una barra de progreso y una lista de 5 factores que lo componen: seguimiento activo, tasa de cierre, tareas vencidas, negocios estancados y movimiento del pipeline."),
       React.createElement(Tip, null, "Úsalo como termómetro rápido en la reunión semanal: un puntaje bajo señala en cuál de los 5 factores hay que poner atención primero."),
 
-      React.createElement(H2, null, "8.7 Actividades de hoy"),
-      React.createElement(P, null, "La tarjeta \"Actividades de hoy\" está en la primera fila del Dashboard, junto a Pipeline y Oportunidades calientes, para que lo más urgente del día quede visible de inmediato al entrar. Cada actividad pendiente de hoy se muestra resaltada en rojo, igual que en la Agenda (ver 4.7). Rendimiento del equipo (ver 8.3) pasa a la segunda fila."),
-      React.createElement(P, null, "Debajo de las actividades de hoy, la misma tarjeta incluye una sección \"Próximas actividades\" con las siguientes 5 actividades pendientes desde mañana en adelante (título, empresa o contacto y fecha), para que veas lo que viene sin salir del Dashboard. Si no tienes actividades futuras pendientes, la sección muestra el aviso \"No hay actividades próximas programadas\"."),
+      React.createElement(H2, null, "8.7 Lo primero de hoy"),
+      React.createElement(P, null, "La tarjeta \"Lo primero de hoy\" ocupa el centro del Dashboard. Arriba lista las actividades vencidas (en rojo, con su fecha) y luego las de hoy con su hora. Cada fila lleva al negocio, cliente o contacto relacionado y tiene un botón \"Hecha\" para marcarla sin salir del Dashboard (no la borra). Si hay más vencidas de las que caben, un enlace lleva a verlas todas en la Agenda."),
+      React.createElement(P, null, "Debajo, la sección \"Próximas actividades\" muestra las siguientes 5 pendientes desde mañana. Si no tienes nada para hoy, la tarjeta dice \"Nada agendado para hoy\" con el botón \"Agendar actividad\", que abre directamente el formulario de nueva actividad en la Agenda."),
+      React.createElement(P, null, "A la derecha están el Brief del pipeline con IA (ver 3.12) y las Oportunidades calientes (ver 8.4)."),
+      React.createElement(Tip, null, "Para despachar el día una por una, con más detalle y la opción de reprogramar, usa la Bandeja Hoy (ver 4.9)."),
 
       React.createElement(H2, null, "8.8 Panel de alertas (\"Requieren atención\")"),
       React.createElement(P, null, "Reúne las situaciones que necesitan seguimiento: actividades vencidas, negocios sin actividad reciente, cierres previstos para esta semana, cotizaciones enviadas sin respuesta y, si el tenant tiene los módulos correspondientes activos, renovaciones por gestionar (módulo Postventa, ver 9.2.2), plazos procesales próximos a vencer o funciones con ocupación baja."),
       React.createElement(Tip, null, "El objetivo diario es llegar al Dashboard sin alertas pendientes en este panel."),
 
       React.createElement(H2, null, "8.9 Oportunidades por estado"),
-      React.createElement(P, null, "Agrupa todo el pipeline activo por su estado comercial (ver 3.3): cuántos negocios hay En riesgo, Requieren atención, Alta intención y En marcha. Debajo, \"Requieren tu acción\" lista los más urgentes con su porqué (ej: 'Sin próximo paso agendado' o '30 días sin contacto'); un clic abre la oportunidad para actuar."),
+      React.createElement(P, null, "Va junto al embudo \"Estado del pipeline\" (oportunidades por etapa con su valor). Agrupa todo el pipeline activo por su estado comercial (ver 3.3): cuántos negocios hay En riesgo, Requieren atención, Alta intención y En marcha. Debajo, \"Requieren tu acción\" lista los más urgentes con su porqué (ej: 'Sin próximo paso agendado' o '30 días sin contacto'); un clic abre la oportunidad para actuar."),
     ),
 
     // ── CAPÍTULO 9: CONFIGURACIÓN ──
@@ -1018,13 +1049,13 @@ export async function GET() {
       React.createElement(P, null, "Genera un informe accionable de seis secciones sobre una cuenta: panorama, relación y actividad, oportunidades y cotizaciones, señales, contactos clave y próximas acciones. Disponible desde el Asistente IA y desde la ficha de cada cliente (ver 2.10)."),
 
       React.createElement(H2, null, "10.3 Brief del pipeline"),
-      React.createElement(P, null, "Un resumen ejecutivo de tus oportunidades abiertas: negocios calientes, en riesgo, avance de la meta y prioridades de la semana. Disponible desde el Asistente IA y desde la pantalla de Pipeline (ver 3.12)."),
+      React.createElement(P, null, "Un resumen ejecutivo de tus oportunidades abiertas: negocios calientes, en riesgo, avance de la meta y prioridades de la semana. Disponible desde el Asistente IA, desde la pantalla de Pipeline (ver 3.12) y en el Dashboard, junto a \"Lo primero de hoy\"."),
 
       React.createElement(H2, null, "10.4 Análisis de tendencias"),
       React.createElement(P, null, "En Reportes, la IA lee tus reportes de los últimos meses y explica qué cambió, por qué, la proyección hacia adelante y qué conviene hacer. El análisis se acompaña de gráficas de tendencia para verlo de un vistazo."),
 
       React.createElement(H2, null, "10.5 Pregúntale a tus datos"),
-      React.createElement(P, null, "Escribe una pregunta en lenguaje natural — por ejemplo '¿Cuáles son mis 5 clientes con más ventas este año?' — y la IA responde con el dato exacto y su gráfica al instante, sin que tengas que construir un reporte a mano."),
+      React.createElement(P, null, "Escribe una pregunta en lenguaje natural — por ejemplo '¿Cuáles son mis 5 clientes con más ventas este año?' — y la IA responde con el dato exacto y su gráfica al instante, sin que tengas que construir un reporte a mano. También puedes preguntar desde cualquier pantalla con Ctrl+K: escribe la pregunta y elige \"Preguntar a la IA\" (ver 1.6)."),
 
       React.createElement(H2, null, "10.6 Redactor de correos"),
       React.createElement(P, null, "Desde la ficha de una cotización, el panel 'Redactor de correos con IA' redacta el correo que necesitas en tres variantes — Envío, Seguimiento o Cierre — usando el contexto de esa cotización. El borrador es editable y se copia con un clic; revísalo siempre antes de enviarlo."),
