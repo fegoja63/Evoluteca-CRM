@@ -179,7 +179,8 @@ export default function PipelinePage() {
   // Lo define el ADMIN en Configuración (default 14); aquí solo se lee.
   const [diasEstancamiento, setDiasEstancamiento] = useState(14);
   const [soloEstancadas, setSoloEstancadas] = useState(false);
-  const [soloSinPaso, setSoloSinPaso] = useState(false);
+  // ?sinPaso=1 llega desde el contador "Sin próximo paso" del Inicio.
+  const [soloSinPaso, setSoloSinPaso] = useState(() => searchParams.get("sinPaso") === "1");
   const [vista, setVista] = useState<"kanban" | "tabla">("kanban");
   const [orden, setOrden] = useState<{ col: string; dir: "asc" | "desc" }>({ col: "creadoEn", dir: "desc" });
   const [form, setForm] = useState({
