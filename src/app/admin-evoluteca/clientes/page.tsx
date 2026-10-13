@@ -26,9 +26,9 @@ type Tenant = {
 };
 
 const NIVEL: Record<NivelUso, { label: string; tono: TonoInsignia; ayuda: string }> = {
-  ACTIVO: { label: "Activo", tono: "exito", ayuda: "Usó el CRM en los últimos 7 días" },
+  ACTIVO: { label: "En uso", tono: "exito", ayuda: "Usó el CRM en los últimos 7 días" },
   ENFRIANDOSE: { label: "Enfriándose", tono: "alerta", ayuda: "Último uso hace 8 a 30 días" },
-  INACTIVO: { label: "Inactivo", tono: "peligro", ayuda: "Sin uso en más de 30 días (o nunca)" },
+  INACTIVO: { label: "Sin uso", tono: "peligro", ayuda: "Sin uso en más de 30 días (o nunca)" },
 };
 
 function haceCuanto(iso: string | null): string {
@@ -207,14 +207,13 @@ export default function ClientesInternoPage() {
         )}
 
         {cargando ? (
-          <SkeletonTabla columnas={9} />
+          <SkeletonTabla columnas={8} />
         ) : (
-          <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+          <div className="rounded-2xl border border-slate-200 bg-white overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-200 text-left text-xs text-slate-500">
                 <tr>
                   <th className="px-4 py-2 font-semibold uppercase tracking-wide">Empresa</th>
-                  <th className="px-4 py-2 font-semibold uppercase tracking-wide">Plan</th>
                   <th className="px-4 py-2 font-semibold uppercase tracking-wide">Estado</th>
                   <th className="px-4 py-2 font-semibold uppercase tracking-wide">Uso</th>
                   <th className="px-4 py-2 font-semibold uppercase tracking-wide" title="Negocios abiertos con una actividad pendiente desde hoy">Próximo paso</th>
@@ -229,10 +228,9 @@ export default function ClientesInternoPage() {
                   <Fragment key={t.id}>
                     <tr className="hover:bg-slate-50">
                       <td className="px-4 py-2">
-                        <p className="font-medium text-slate-900">{t.nombre}</p>
-                        <p className="text-xs text-slate-400">{t.slug}</p>
+                        <p className="font-medium text-slate-900 whitespace-nowrap">{t.nombre}</p>
+                        <p className="text-xs text-slate-400 whitespace-nowrap">{t.slug} · <span className="capitalize">{t.plan}</span></p>
                       </td>
-                      <td className="px-4 py-2 text-slate-600 capitalize">{t.plan}</td>
                       <td className="px-4 py-2">
                         <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${t.activo ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
                           {t.activo ? "Activo" : "Suspendido"}
@@ -275,7 +273,7 @@ export default function ClientesInternoPage() {
                     </tr>
                     {editandoId === t.id && (
                       <tr key={`${t.id}-editor`} className="bg-slate-50">
-                        <td colSpan={9} className="px-4 py-4">
+                        <td colSpan={8} className="px-4 py-4">
                           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                             <div>
                               <p className="text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Estado de la cuenta</p>
