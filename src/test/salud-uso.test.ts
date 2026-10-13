@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { A, B, sembrar } from "./sembrar";
 import { prisma, sinAislamiento } from "./prisma-vigilado";
-import { saludDeUso, nivelDeUso } from "@/lib/salud-uso";
+import { saludDeUso, nivelDeUso, sinCargasDeSoporte } from "@/lib/salud-uso";
 
 const DIA = 24 * 60 * 60 * 1000;
 const salud = () => sinAislamiento("el panel interno mira todos los tenants", () => saludDeUso());
@@ -25,12 +25,49 @@ describe("nivel de uso", () => {
   });
 });
 
+describe("cargas de soporte", () => {
+  const marca = { tenantId: "t1", creadoEn: new Date("2026-10-13T12:36:40Z") };
+  it("descarta lo creado en los minutos previos a la marca del mismo tenant, no lo demás", () => {
+    const enLaCarga = { tenantId: "t1", creadoEn: new Date("2026-10-13T12:36:38Z") };
+    const horasAntes = { tenantId: "t1", creadoEn: new Date("2026-10-13T09:00:00Z") };
+    const otroTenant = { tenantId: "t2", creadoEn: new Date("2026-10-13T12:36:38Z") };
+    expect(sinCargasDeSoporte([enLaCarga, horasAntes, otroTenant], [marca])).toEqual([horasAntes, otroTenant]);
+  });
+});
+
 describe("salud de uso", () => {
+  it("un cliente creado por un usuario cuenta como uso; uno de una carga de soporte no", async () => {
+    const hace40 = new Date(Date.now() - 40 * DIA);
+    // Deja a A sin ninguna señal reciente.
+    await prisma.actividad.updateMany({ where: { tenantId: A.tenantId }, data: { creadoEn: hace40 } });
+    await prisma.cotizacion.updateMany({ where: { tenantId: A.tenantId }, data: { creadoEn: hace40 } });
+    await prisma.empresa.updateMany({ where: { tenantId: A.tenantId }, data: { creadoEn: hace40 } });
+    await prisma.oportunidad.updateMany({ where: { tenantId: A.tenantId }, data: { creadoEn: hace40 } });
+    await sinAislamiento("cambios de etapa cuelgan de la oportunidad", () =>
+      prisma.cambioEtapa.deleteMany({ where: { oportunidad: { tenantId: A.tenantId } } }));
+    await prisma.registroAuditoria.deleteMany({ where: { tenantId: A.tenantId } });
+
+    // Carga de soporte: el cliente queda a nombre del vendedor, seguido de la marca sin usuario.
+    await prisma.empresa.create({ data: { tenantId: A.tenantId, nombre: "Cargado por soporte", creadoBy: A.comercial } });
+    await prisma.registroAuditoria.create({
+      data: { tenantId: A.tenantId, usuarioNombre: "Evoluteca (soporte)", accion: "CREAR", entidad: "Empresa" },
+    });
+    expect((await salud())[A.tenantId].nivel).toBe("INACTIVO");
+
+    // Un cliente creado por el vendedor 20 minutos después ya es uso propio.
+    await prisma.empresa.create({
+      data: { tenantId: A.tenantId, nombre: "Creado por el vendedor", creadoBy: A.comercial, creadoEn: new Date(Date.now() + 20 * 60 * 1000) },
+    });
+    expect((await salud())[A.tenantId].nivel).toBe("ACTIVO");
+  });
+
   it("un inicio de sesión cuenta como uso; una carga de soporte (sin usuario) no", async () => {
     const hace40 = new Date(Date.now() - 40 * DIA);
     // Deja a A sin señales recientes: la siembra crea actividad/cotización hoy.
     await prisma.actividad.updateMany({ where: { tenantId: A.tenantId }, data: { creadoEn: hace40 } });
     await prisma.cotizacion.updateMany({ where: { tenantId: A.tenantId }, data: { creadoEn: hace40 } });
+    await prisma.empresa.updateMany({ where: { tenantId: A.tenantId }, data: { creadoEn: hace40 } });
+    await prisma.oportunidad.updateMany({ where: { tenantId: A.tenantId }, data: { creadoEn: hace40 } });
     await sinAislamiento("cambios de etapa cuelgan de la oportunidad", () =>
       prisma.cambioEtapa.deleteMany({ where: { oportunidad: { tenantId: A.tenantId } } }));
     await prisma.registroAuditoria.deleteMany({ where: { tenantId: A.tenantId } });
