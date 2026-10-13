@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verificarClaveAdmin } from "@/lib/admin-evoluteca";
+import { saludDeUso, SALUD_VACIA } from "@/lib/salud-uso";
 
 export const dynamic = "force-dynamic";
 
@@ -20,10 +21,13 @@ export async function GET(req: Request) {
     },
   });
 
+  const salud = await saludDeUso();
+
   // Aplana el consumo de IA del mes actual a un número simple por tenant.
   const conUso = tenants.map(({ usoIA, ...t }) => ({
     ...t,
     resumenesIAUsados: usoIA[0]?.cantidad ?? 0,
+    salud: salud[t.id] ?? SALUD_VACIA,
   }));
 
   return NextResponse.json(conUso);

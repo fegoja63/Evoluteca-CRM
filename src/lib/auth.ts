@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validations/auth";
 import { estaBloqueado, registrarIntentoFallido, limpiarIntentos } from "@/lib/rate-limit";
+import { registrarAuditoria } from "@/lib/auditoria";
 import { tieneDosFactores, codigoValido, consumirCodigoRespaldo } from "@/lib/dos-factores";
 
 const VENTANA_LOGIN_MS = 15 * 60 * 1000; // 15 minutos
@@ -49,7 +50,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         // entra igual que siempre.
         codigo: { label: "Código de verificación", type: "text" },
       },
-      authorize: async (credentials) => {
+      authorize: async (credentials, request) => {
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
@@ -124,6 +125,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         await limpiarIntentos(clave);
+
+        // Queda en la auditoría del cliente y alimenta la "salud de uso" del
+        // panel interno. registrarAuditoria nunca lanza: no frena el ingreso.
+        await registrarAuditoria({
+          tenantId: usuario.tenantId,
+          usuario: { id: usuario.id, email: usuario.email, name: usuario.nombre, rol: usuario.rol },
+          accion: "INICIAR_SESION",
+          entidad: "Usuario",
+          entidadId: usuario.id,
+          peticion: request instanceof Request ? request : null,
+        });
 
         return {
           id: usuario.id,

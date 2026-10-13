@@ -2,7 +2,8 @@
 
 import { Fragment, useEffect, useState } from "react";
 import { CampoPassword } from "@/components/campo-password";
-import { boton, campo } from "@/components/ui/estilos";
+import { boton, campo, insignia, type TonoInsignia } from "@/components/ui/estilos";
+import type { NivelUso, SaludUso } from "@/lib/salud-uso";
 import { SkeletonTabla } from "@/components/ui/estados";
 import { IconCheck } from "@tabler/icons-react";
 
@@ -21,7 +22,22 @@ type Tenant = {
   emailsActivos: boolean;
   limiteUsuarios: number | null;
   _count: { usuarios: number; empresas: number; cotizaciones: number };
+  salud: SaludUso;
 };
+
+const NIVEL: Record<NivelUso, { label: string; tono: TonoInsignia; ayuda: string }> = {
+  ACTIVO: { label: "En uso", tono: "exito", ayuda: "Usó el CRM en los últimos 7 días" },
+  ENFRIANDOSE: { label: "Enfriándose", tono: "alerta", ayuda: "Último uso hace 8 a 30 días" },
+  INACTIVO: { label: "Sin uso", tono: "peligro", ayuda: "Sin uso en más de 30 días (o nunca)" },
+};
+
+function haceCuanto(iso: string | null): string {
+  if (!iso) return "nunca";
+  const dias = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (dias <= 0) return "hoy";
+  if (dias === 1) return "ayer";
+  return `hace ${dias} días`;
+}
 
 // Los 3 escalones de precio más comunes, para elegir en un clic — "Personalizado"
 // deja escribir cualquier número (ej. plan de 5 + adicionales pagados).
@@ -96,7 +112,8 @@ export default function ClientesInternoPage() {
     });
     if (res.ok) {
       const actualizado = await res.json();
-      setTenants(prev => prev.map(t => (t.id === id ? actualizado : t)));
+      // El PATCH no trae la salud de uso: se conserva la que ya estaba.
+      setTenants(prev => prev.map(t => (t.id === id ? { ...t, ...actualizado } : t)));
     }
     setGuardando(false);
   }
@@ -114,6 +131,8 @@ export default function ClientesInternoPage() {
     if (!confirm(`¿Seguro que quieres ${accion} el acceso de "${t.nombre}"?${detalle}`)) return;
     actualizar(t.id, { activo: !t.activo });
   }
+
+  const porNivel = (n: NivelUso) => tenants.filter(t => t.activo && t.salud.nivel === n).length;
 
   const filtrados = tenants.filter(t => t.nombre.toLowerCase().includes(busqueda.toLowerCase()) || t.slug.toLowerCase().includes(busqueda.toLowerCase()));
 
@@ -152,7 +171,7 @@ export default function ClientesInternoPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-semibold text-slate-900">Clientes de Evoluteca</h1>
@@ -176,16 +195,29 @@ export default function ClientesInternoPage() {
           className={campo("md", "w-full max-w-sm mb-4")}
         />
 
+        {!cargando && tenants.length > 0 && (
+          <div className="mb-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            <span className="font-semibold uppercase tracking-wide">Salud de uso (cuentas activas):</span>
+            {(Object.keys(NIVEL) as NivelUso[]).map(n => (
+              <span key={n} className={insignia(NIVEL[n].tono)} title={NIVEL[n].ayuda}>
+                {porNivel(n)} {NIVEL[n].label.toLowerCase()}
+              </span>
+            ))}
+          </div>
+        )}
+
         {cargando ? (
-          <SkeletonTabla columnas={6} />
+          <SkeletonTabla columnas={8} />
         ) : (
-          <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+          <div className="rounded-2xl border border-slate-200 bg-white overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-200 text-left text-xs text-slate-500">
                 <tr>
                   <th className="px-4 py-2 font-semibold uppercase tracking-wide">Empresa</th>
-                  <th className="px-4 py-2 font-semibold uppercase tracking-wide">Plan</th>
                   <th className="px-4 py-2 font-semibold uppercase tracking-wide">Estado</th>
+                  <th className="px-4 py-2 font-semibold uppercase tracking-wide">Uso</th>
+                  <th className="px-4 py-2 font-semibold uppercase tracking-wide" title="Negocios abiertos con una actividad pendiente desde hoy">Próximo paso</th>
+                  <th className="px-4 py-2 font-semibold uppercase tracking-wide" title="Últimos 30 días">Movimiento 30 d</th>
                   <th className="px-4 py-2 font-semibold uppercase tracking-wide">Usuarios</th>
                   <th className="px-4 py-2 font-semibold uppercase tracking-wide">Creado</th>
                   <th className="px-4 py-2" />
@@ -196,14 +228,33 @@ export default function ClientesInternoPage() {
                   <Fragment key={t.id}>
                     <tr className="hover:bg-slate-50">
                       <td className="px-4 py-2">
-                        <p className="font-medium text-slate-900">{t.nombre}</p>
-                        <p className="text-xs text-slate-400">{t.slug}</p>
+                        <p className="font-medium text-slate-900 whitespace-nowrap">{t.nombre}</p>
+                        <p className="text-xs text-slate-400 whitespace-nowrap">{t.slug} · <span className="capitalize">{t.plan}</span></p>
                       </td>
-                      <td className="px-4 py-2 text-slate-600 capitalize">{t.plan}</td>
                       <td className="px-4 py-2">
                         <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${t.activo ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
                           {t.activo ? "Activo" : "Suspendido"}
                         </span>
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap">
+                        <span className={insignia(NIVEL[t.salud.nivel].tono)} title={NIVEL[t.salud.nivel].ayuda}>
+                          {NIVEL[t.salud.nivel].label}
+                        </span>
+                        <p className="mt-0.5 text-xs text-slate-400">{haceCuanto(t.salud.ultimoUso)}</p>
+                      </td>
+                      <td className="px-4 py-2 text-slate-600 whitespace-nowrap">
+                        {t.salud.abiertas === 0 ? (
+                          <span className="text-slate-400">sin abiertas</span>
+                        ) : (
+                          <>
+                            {Math.round((100 * t.salud.abiertasConProximoPaso) / t.salud.abiertas)}%
+                            <span className="text-xs text-slate-400"> · {t.salud.abiertasConProximoPaso}/{t.salud.abiertas}</span>
+                          </>
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-xs text-slate-600 whitespace-nowrap">
+                        <p>{t.salud.actividades30d} actividades <span className="text-slate-400">({t.salud.actividades7d} en 7 d)</span></p>
+                        <p className="text-slate-400">{t.salud.negociosNuevos30d} negocios nuevos · {t.salud.usuariosActivos30d} usuarios activos</p>
                       </td>
                       <td className="px-4 py-2 text-slate-600">
                         {t._count.usuarios} <span className="text-slate-400">/ {t.limiteUsuarios ?? "∞"}</span>
@@ -222,7 +273,7 @@ export default function ClientesInternoPage() {
                     </tr>
                     {editandoId === t.id && (
                       <tr key={`${t.id}-editor`} className="bg-slate-50">
-                        <td colSpan={6} className="px-4 py-4">
+                        <td colSpan={8} className="px-4 py-4">
                           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                             <div>
                               <p className="text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Estado de la cuenta</p>
