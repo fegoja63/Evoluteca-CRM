@@ -5,6 +5,7 @@ import { Resend } from "resend";
 import { EtapaOportunidad } from "@prisma/client";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { mapaEtapas } from "@/lib/etapas-color";
+import { destinoCopia, PREFIJO_COPIA } from "@/lib/copia-resumen";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -409,12 +410,15 @@ export async function GET(req: Request) {
 
   for (const tenant of tenants) {
     try {
-      if (!tenant.emailsActivos) { tenantsOmitidos++; continue; }
       const destinatarios = await prisma.usuario.findMany({
         where: { tenantId: tenant.id, activo: true, rol: { in: ["ADMINISTRADOR", "GERENTE"] } },
         select: { nombre: true, email: true },
       });
-      const conCorreo = destinatarios.filter(u => !!u.email);
+      // El resumen del admin del demo va solo a la copia de Evoluteca (ver
+      // lib/copia-resumen), aunque el tenant tenga los correos apagados.
+      const conCorreo = destinatarios
+        .filter(u => !!u.email && (tenant.emailsActivos || destinoCopia(u.email)))
+        .map(u => ({ ...u, copiaA: destinoCopia(u.email) }));
       if (conCorreo.length === 0) { tenantsOmitidos++; continue; }
 
       const d = await construirDatos(tenant);
@@ -425,11 +429,11 @@ export async function GET(req: Request) {
         if (dryRun) { generados++; if (!muestraHtml) muestraHtml = html; continue; }
         const { error } = await resend!.emails.send({
           from: "Evoluteca CRM <noreply@evoluteca.com>",
-          to: u.email!,
-          subject,
+          to: u.copiaA || u.email!,
+          subject: u.copiaA ? PREFIJO_COPIA + subject : subject,
           html,
         });
-        if (error) errores.push(`${u.email}: ${error.message}`);
+        if (error) errores.push(`${u.copiaA || u.email}: ${error.message}`);
         else enviados++;
       }
     } catch (e) {

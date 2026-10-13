@@ -6,6 +6,7 @@ import { EtapaOportunidad } from "@prisma/client";
 import { estadoComercial, ultimoMovimientoDe, inicioProximoPaso } from "@/lib/estado-comercial";
 import { moduloActivo } from "@/lib/permisos";
 import { MODULO_POSTVENTA, DIAS_AVISO_RENOVACION, estadoRenovacion } from "@/lib/postventa";
+import { destinoCopia, PREFIJO_COPIA } from "@/lib/copia-resumen";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -312,14 +313,16 @@ export async function GET(req: Request) {
     const resultados = await Promise.all(lote.map(async u => {
       try {
         const tenantInfo = await obtenerTenantInfo(u.tenantId, tenantCache);
-        if (!tenantInfo.emailsActivos) return { estado: "omitido" as const };
+        // El resumen del admin del demo va solo a la copia de Evoluteca (ver lib/copia-resumen).
+        const copiaA = destinoCopia(u.email);
+        if (!tenantInfo.emailsActivos && !copiaA) return { estado: "omitido" as const };
         const correo = await construirResumen(u, tenantInfo, f);
         if (!correo) return { estado: "omitido" as const };
         if (dryRun) return { estado: "generado" as const, html: correo.html };
         const { error } = await resend!.emails.send({
           from: "Evoluteca CRM <noreply@evoluteca.com>",
-          to: u.email,
-          subject: `[${u.nombre}] ${correo.subject}`,
+          to: copiaA || u.email,
+          subject: `${copiaA ? PREFIJO_COPIA : ""}[${u.nombre}] ${correo.subject}`,
           html: correo.html,
         });
         if (error) return { estado: "error" as const, msg: `${u.email}: ${error.message}` };
