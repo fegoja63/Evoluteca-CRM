@@ -4,6 +4,7 @@
  * son ejemplos de la plantilla y NO se cargan.
  *  - 2026-10-05: 3 clientes (v1), responsable Juan Manuel.
  *  - 2026-10-06: 5 clientes de Rafael (v2).
+ *  - 2026-10-13: 4 clientes más de Juan Manuel (v3; el archivo repite los 3 de v1, que se omiten).
  *
  * Igual que Dashboard → Datos → Importación completa (cliente + contacto +
  * oportunidad por fila), más dos cosas: la oportunidad queda ligada a su
@@ -32,6 +33,7 @@ const CORRECCIONES: Record<string, Partial<Record<string, string | null>>> = {
   },
   "CEMENTOS SAN MARCOS": { "Sector": "INDUSTRIAL CONSTRUCCIÓN" },
   "Automovil Club de Colombia": { "Sector": "Agremiaciones" },
+  "ACTIVA BPO": { "Tipo de negocio / evento": "TEM" },
 };
 
 /** "a@b.co <a@b.co>" (copiado de Outlook) → "a@b.co". */
