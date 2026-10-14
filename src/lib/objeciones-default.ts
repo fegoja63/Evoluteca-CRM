@@ -37,7 +37,7 @@ export const OBJECIONES_SUGERIDAS: ObjecionSugerida[] = [
   {
     categoria: "Competencia",
     objecion: "Estamos atados a un contrato con la competencia",
-    respuesta: "Entiendo. ¿Hay algo que cambiarías de lo que tienen hoy?",
+    respuesta: "Entiendo. ¿Hay algo que cambiaría de lo que tienen hoy?",
     loQueNoDecir: "Le muestro algo mejor y vemos cómo salir del contrato.",
   },
   {
@@ -97,7 +97,7 @@ export const OBJECIONES_SUGERIDAS: ObjecionSugerida[] = [
   {
     categoria: "Precio",
     objecion: "¿Cuál es el precio?",
-    respuesta: "Se mueve entre A y B, según lo que necesite. ¿Encaja con lo que esperabas o no?",
+    respuesta: "Se mueve entre A y B, según lo que necesite. ¿Encaja con lo que esperaba o no?",
     loQueNoDecir: "Es confidencial hasta que sepamos sus necesidades.",
   },
   {
