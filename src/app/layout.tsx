@@ -30,8 +30,10 @@ export default function RootLayout({
 }>) {
   return (
     // suppressHydrationWarning: SCRIPT_TEMA agrega la clase `dark` antes de hidratar.
-    <html lang="es" className={fuente.variable} suppressHydrationWarning>
+    // translate="no" + meta notranslate: el traductor del navegador cambiaba "Pipeline" por "Tubería".
+    <html lang="es" translate="no" className={fuente.variable} suppressHydrationWarning>
       <head>
+        <meta name="google" content="notranslate" />
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
       </head>
       <body className="antialiased">
