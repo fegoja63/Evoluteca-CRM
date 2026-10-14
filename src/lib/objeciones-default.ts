@@ -1,7 +1,8 @@
 // Set de 15 objeciones de venta sugeridas (basado en el material de Luis Salinas)
 // con la respuesta recomendada y "lo que no conviene responder". Sirve para
 // precargar la Guía de objeciones de un tenant; luego el equipo la adapta.
-// Redactadas en español de Latinoamérica (el material original era de España).
+// Redactadas en español de Latinoamérica, tratando de "usted" como el coach con IA
+// (el material original era de España).
 export type ObjecionSugerida = {
   categoria: string;
   objecion: string;
@@ -23,9 +24,9 @@ export const MOTIVO_SUGERIDO: Record<string, string> = {
 export const OBJECIONES_SUGERIDAS: ObjecionSugerida[] = [
   {
     categoria: "Timing",
-    objecion: "Escríbeme en 3 meses",
-    respuesta: "Claro… solo una cosa más: ¿qué va a cambiar en esos 3 meses que hoy no tengas ya?",
-    loQueNoDecir: "Listo, te escribo entonces.",
+    objecion: "Escríbame en 3 meses",
+    respuesta: "Claro… solo una cosa más: ¿qué va a cambiar en esos 3 meses que hoy no tenga ya?",
+    loQueNoDecir: "Listo, le escribo entonces.",
   },
   {
     categoria: "Presupuesto",
@@ -37,25 +38,25 @@ export const OBJECIONES_SUGERIDAS: ObjecionSugerida[] = [
     categoria: "Competencia",
     objecion: "Estamos atados a un contrato con la competencia",
     respuesta: "Entiendo. ¿Hay algo que cambiarías de lo que tienen hoy?",
-    loQueNoDecir: "Te muestro algo mejor y vemos cómo salir del contrato.",
+    loQueNoDecir: "Le muestro algo mejor y vemos cómo salir del contrato.",
   },
   {
     categoria: "Competencia",
     objecion: "Ya usamos a la competencia",
-    respuesta: "Es buena herramienta, sobre todo para ABC. ¿Te cuento 3 cosas en las que somos distintos?",
+    respuesta: "Es buena herramienta, sobre todo para ABC. ¿Le cuento 3 cosas en las que somos distintos?",
     loQueNoDecir: "Nosotros somos muchísimo mejores en XYZ.",
   },
   {
     categoria: "Precio",
     objecion: "Es muy caro",
-    respuesta: "Suena a que lo estás comparando con lo que ya tienes… o el valor simplemente no te ha llegado. ¿Cuál de las dos?",
-    loQueNoDecir: "Te hago un descuento.",
+    respuesta: "Suena a que lo está comparando con lo que ya tiene… o el valor simplemente no le ha llegado. ¿Cuál de las dos?",
+    loQueNoDecir: "Le hago un descuento.",
   },
   {
     categoria: "Timing",
-    objecion: "Mándame un correo",
-    respuesta: "No quiero ser insistente si esto no es tu prioridad ahora… ¿te cuento primero por qué te llamé, y luego tú decides si vale la pena que te llene el correo?",
-    loQueNoDecir: "Listo, te lo mando después de la llamada.",
+    objecion: "Mándeme un correo",
+    respuesta: "No quiero ser insistente si esto no es su prioridad ahora… ¿le cuento primero por qué lo llamé, y luego usted decide si vale la pena que le llene el correo?",
+    loQueNoDecir: "Listo, se lo mando después de la llamada.",
   },
   {
     categoria: "Interés",
@@ -67,48 +68,48 @@ export const OBJECIONES_SUGERIDAS: ObjecionSugerida[] = [
     categoria: "Objeción de fondo",
     objecion: "Ya lo probamos y no funcionó",
     respuesta: "Gracias por decirlo. ¿Qué fue exactamente lo que no funcionó?",
-    loQueNoDecir: "Te muestro qué podrías haber hecho diferente.",
+    loQueNoDecir: "Le muestro qué podría haber hecho diferente.",
   },
   {
     categoria: "Proceso",
     objecion: "Tengo que hablarlo internamente",
-    respuesta: "Claro. ¿Quién más entra ahí, para darte los detalles que necesiten?",
-    loQueNoDecir: "Perfecto, espero tu respuesta.",
+    respuesta: "Claro. ¿Quién más participa en esa decisión, para darle los detalles que necesiten?",
+    loQueNoDecir: "Perfecto, quedo atento a su respuesta.",
   },
   {
     categoria: "Competencia",
     objecion: "¿En qué se diferencian de [competidor]?",
-    respuesta: "Si no te importa la pregunta… ¿qué es lo que mejor te funciona hoy de tu solución actual?",
+    respuesta: "Si no le molesta la pregunta… ¿qué es lo que mejor le funciona hoy de su solución actual?",
     loQueNoDecir: "Tenemos cosas que ellos no tienen.",
   },
   {
     categoria: "Interés",
     objecion: "¿Y qué gano yo?",
-    respuesta: "Buena pregunta. Si [reto] es prioridad para ti, te cuento cómo hemos ayudado a otros con eso.",
-    loQueNoDecir: "Impacta en tu estado de resultados.",
+    respuesta: "Buena pregunta. Si [reto] es prioridad para usted, le cuento cómo hemos ayudado a otros con eso.",
+    loQueNoDecir: "Impacta en su estado de resultados.",
   },
   {
     categoria: "Interés",
     objecion: "Por ahora estamos bien así",
-    respuesta: "Perfecto. Solo para tenerlo claro… ¿qué es lo que te tiene tranquilo con cómo va todo ahora?",
-    loQueNoDecir: "Bueno… ¿pero has pensado en…?",
+    respuesta: "Perfecto. Solo para tenerlo claro… ¿qué es lo que lo tiene tranquilo con cómo va todo ahora?",
+    loQueNoDecir: "Bueno… ¿pero ha pensado en…?",
   },
   {
     categoria: "Precio",
     objecion: "¿Cuál es el precio?",
-    respuesta: "Se mueve entre A y B, según lo que necesites. ¿Encaja con lo que esperabas o no?",
-    loQueNoDecir: "Es confidencial hasta que sepamos tus necesidades.",
+    respuesta: "Se mueve entre A y B, según lo que necesite. ¿Encaja con lo que esperabas o no?",
+    loQueNoDecir: "Es confidencial hasta que sepamos sus necesidades.",
   },
   {
     categoria: "Timing",
     objecion: "En este momento estoy muy ocupado",
-    respuesta: "Lo entiendo. ¿Hay un mejor momento, o prefieres que te mande algo rápido por correo?",
-    loQueNoDecir: "Te llamo más tarde.",
+    respuesta: "Lo entiendo. ¿Hay un mejor momento, o prefiere que le mande algo rápido por correo?",
+    loQueNoDecir: "Lo llamo más tarde.",
   },
   {
     categoria: "Competencia",
     objecion: "Estamos contentos con nuestro proveedor",
-    respuesta: "Me alegra que les funcione. ¿Te interesaría ver otras opciones solo para comparar antes de renovar?",
+    respuesta: "Me alegra que les funcione. ¿Le interesaría ver otras opciones solo para comparar antes de renovar?",
     loQueNoDecir: "Ellos están bien, pero nosotros somos mejores en XYZ.",
   },
 ];
