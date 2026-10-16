@@ -75,7 +75,9 @@ async function procesarUsuario(
     // El recordatorio es personal ("Hola X, tienes…") para TODOS los roles: solo
     // lo propio. Un gerente o administrador no recibe las tareas ni los
     // negocios de su equipo como si fueran suyos; la vista del equipo le llega
-    // en el resumen del lunes y en el mensual.
+    // en el resumen del lunes y en el mensual. El Administrador, que controla
+    // toda la actividad, recibe además un correo aparte con las vencidas del
+    // resto del equipo (1b).
     const ownerWhere = { creadoBy: u.id };
     const emails: CorreoPendiente[] = [];
 
@@ -107,6 +109,45 @@ async function procesarUsuario(
             ${footer()}
           </div>`),
       });
+    }
+
+    // ── 1b. Vencidas del equipo (solo Administrador) ─────────────────────────
+    // Las de los demás: las propias ya van en su correo de vencidas.
+    if (u.rol === "ADMINISTRADOR") {
+      const filtroEquipo = { tenantId: u.tenantId, completada: false, fecha: { lt: ahora }, NOT: filtroActividadPropia(u.id) };
+      const [vencidasEquipo, totalEquipo] = await Promise.all([
+        prisma.actividad.findMany({
+          where: filtroEquipo,
+          orderBy: { fecha: "asc" },
+          take: 30,
+          select: { titulo: true, tipo: true, fecha: true, empresa: { select: { nombre: true } }, responsable: { select: { nombre: true } } },
+        }),
+        prisma.actividad.count({ where: filtroEquipo }),
+      ]);
+
+      if (vencidasEquipo.length > 0) {
+        const filas = vencidasEquipo.map(a => {
+          const dias = Math.floor((ahora.getTime() - new Date(a.fecha).getTime()) / 86_400_000);
+          const color = dias >= 7 ? "#dc2626" : dias >= 2 ? "#d97706" : "#64748b";
+          return `<div style="background:white;border:1px solid #e2e8f0;border-left:4px solid ${color};border-radius:8px;padding:12px;margin-bottom:8px">
+            <p style="margin:0 0 4px;font-weight:600;font-size:13px;color:#1e293b">${a.titulo}</p>
+            <p style="margin:0;font-size:12px;color:#94a3b8"><strong style="color:#475569">${a.responsable?.nombre ?? "Sin responsable"}</strong> · ${a.tipo}${a.empresa ? ` · ${a.empresa.nombre}` : ""} · <span style="color:${color};font-weight:600">${dias === 0 ? "Hoy" : `${dias}d de atraso`}</span></p>
+          </div>`;
+        }).join("");
+        const resto = totalEquipo - vencidasEquipo.length;
+
+        emails.push({
+          subject: `👥 ${totalEquipo} actividad(es) vencida(s) del equipo — Evoluteca CRM`,
+          html: wrapper(`${header("", "Actividades vencidas del equipo", logoUrl)}
+            <div style="background:#fef9f0;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
+              <p style="font-size:14px;color:#64748b;margin-bottom:16px">Hola <strong>${u.nombre}</strong>, tu equipo tiene <strong>${totalEquipo}</strong> actividad(es) vencida(s):</p>
+              ${filas}
+              ${resto > 0 ? `<p style="font-size:12px;color:#94a3b8;margin:4px 0 0">…y ${resto} más.</p>` : ""}
+              ${btn(`${BASE_URL}/dashboard/hoy?alcance=equipo`, "Ver la Bandeja del equipo")}
+              ${footer()}
+            </div>`),
+        });
+      }
     }
 
     // ── 2. Negocios estancados (sin actividad NI cambio de etapa ≥ umbral) ────
