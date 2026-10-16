@@ -33,14 +33,17 @@ export function filtroActividadPropia(userId: string) {
 }
 
 /**
- * Alcance de las vistas personales (Bandeja Hoy, Inicio): "mias" por defecto;
- * Administrador y Gerente pueden pedir "equipo" (?alcance=equipo). Un
+ * Alcance de las vistas personales (Bandeja Hoy, Inicio). Por defecto: el
+ * Administrador ve las del equipo (controla toda la actividad) y el Gerente
+ * las suyas; ambos pueden cambiar con ?alcance=mias | ?alcance=equipo. Un
  * COMERCIAL siempre ve solo lo suyo.
  */
 export type Alcance = "mias" | "equipo";
 
 export function alcanceDe(rol: string | undefined, valor: string | string[] | undefined): Alcance {
-  return !esComercial(rol) && valor === "equipo" ? "equipo" : "mias";
+  if (esComercial(rol)) return "mias";
+  if (valor === "mias" || valor === "equipo") return valor;
+  return rol === "ADMINISTRADOR" ? "equipo" : "mias";
 }
 
 /** Filtro de actividades según el alcance: las propias, o las que el rol puede ver. */

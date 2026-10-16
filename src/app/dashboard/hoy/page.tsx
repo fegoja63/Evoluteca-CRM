@@ -20,8 +20,8 @@ const SUGERENCIA_POR_TIPO: Record<string, string> = {
 
 /**
  * Bandeja Hoy: lo pendiente de hoy y lo vencido, uno por uno, con la acción
- * para despacharlo (Hacer, Reprogramar, Hecha). Por defecto solo lo propio;
- * Administrador y Gerente pueden ver la del equipo con ?alcance=equipo.
+ * para despacharlo (Hacer, Reprogramar, Hecha). Por defecto el Administrador
+ * ve la del equipo y el Gerente la suya; ambos cambian con ?alcance=.
  */
 export default async function BandejaHoyPage(props: { searchParams: Promise<{ alcance?: string }> }) {
   const session = await auth();

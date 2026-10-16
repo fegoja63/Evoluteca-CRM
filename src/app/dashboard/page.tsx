@@ -29,8 +29,8 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
   const tenantId = session?.user?.tenantId ?? "";
   const ownerFiltro = filtroOwner(session?.user?.rol, session?.user?.id ?? "");
   // Las actividades del Inicio ("Tienes N cosas para hoy", "Lo primero de hoy")
-  // son personales: por defecto solo las propias. Administrador y Gerente
-  // pueden ver las del equipo con ?alcance=equipo. Los indicadores de negocio
+  // siguen el alcance: por defecto el Administrador ve las del equipo y el
+  // Gerente las suyas (cambian con ?alcance=). Los indicadores de negocio
   // (pipeline, metas) siguen mostrando lo que el rol puede ver.
   const alcance = alcanceDe(session?.user?.rol, (await props.searchParams).alcance);
   const actFiltro = filtroActividadAlcance(session?.user?.rol, session?.user?.id ?? "", alcance);
