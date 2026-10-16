@@ -105,7 +105,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.27"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.28"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -353,12 +353,12 @@ export async function GET() {
 
       React.createElement(H2, null, "2.2 Ficha 360° del cliente"),
       React.createElement(P, null, "Haz clic en cualquier cliente para abrir su ficha completa. Verás:"),
-      React.createElement(LI, null, "Datos generales (editable con botón Editar)"),
-      React.createElement(LI, null, "Contactos vinculados: agrega uno con \"+ Agregar contacto\", edítalos o elimínalos con el ícono de lápiz, y escríbeles por WhatsApp si tienen teléfono"),
-      React.createElement(LI, null, "Oportunidades de venta y su etapa actual"),
-      React.createElement(LI, null, "Actividades registradas y opción de crear nuevas"),
-      React.createElement(LI, null, "Cotizaciones formales emitidas con totales"),
-      React.createElement(LI, null, "Timeline 360°: historial cronológico de todas las interacciones"),
+      React.createElement(LI, null, "Arriba, el nombre y la barra de acciones (ver 2.3); a la derecha, Editar y el ícono de eliminar"),
+      React.createElement(LI, null, "Pestaña Actividad (la que abre por defecto): tareas pendientes (las vencidas en rojo) y hechas, los correos con el cliente y las minutas de reunión"),
+      React.createElement(LI, null, "Pestaña Resumen: notas, resumen con IA, condiciones comerciales, campos personalizados y el Timeline 360° (historial de todas las interacciones)"),
+      React.createElement(LI, null, "Pestañas Oportunidades y Cotizaciones: cada una con su enlace y su botón para crear una nueva"),
+      React.createElement(LI, null, "Pestaña Archivos: los adjuntos del cliente"),
+      React.createElement(LI, null, "Panel derecho: datos del cliente, contactos (\"+ Agregar\", lápiz para editar, correo y WhatsApp) y etiquetas"),
 
       React.createElement(H2, null, "2.3 Acciones rápidas desde la ficha"),
       React.createElement(P, null, "Arriba de la ficha del cliente está la barra de acciones: + Tarea, Llamada, Reunión, Enviar correo, Oportunidad y Cotización. Tarea, Llamada y Reunión abren el formulario de actividad con ese tipo pre-seleccionado; Enviar correo abre el redactor con el correo del cliente; Oportunidad y Cotización abren el formulario con el cliente ya puesto. Todo queda en la pestaña Actividad de la ficha, sin necesidad de ir a la Agenda."),
@@ -375,7 +375,8 @@ export async function GET() {
 
       React.createElement(H2, null, "2.5 Contactos"),
       React.createElement(P, null, 'Los contactos son personas dentro de un cliente. Ve a Contactos, "+ Nuevo contacto". Puedes vincular el contacto a una empresa y asignarle cargo, email y teléfono.'),
-      React.createElement(P, null, 'También puedes crear, editar y eliminar los contactos de un cliente directamente desde su ficha, en la sección Contactos ("+ Agregar contacto" y el ícono de lápiz de cada uno). Un cliente puede tener varios contactos.'),
+      React.createElement(P, null, 'También puedes crear, editar y eliminar los contactos de un cliente directamente desde su ficha, en el panel Contactos de la derecha ("+ Agregar" y el ícono de lápiz de cada uno). Un cliente puede tener varios contactos.'),
+      React.createElement(P, null, "La ficha del contacto tiene arriba la misma barra de acciones que la del cliente: + Tarea, Llamada, Reunión, Enviar correo, Oportunidad (con el cliente y el contacto ya puestos) y WhatsApp. Debajo están sus tareas y actividades, sus correos, notas y archivos; a la derecha, sus datos (con enlace a su empresa) y sus oportunidades."),
       React.createElement(P, null, "Si el contacto tiene teléfono, aparecerá un botón verde WhatsApp que abre la conversación directamente con ese número."),
       React.createElement(Nota, null, "Un contacto puede existir sin empresa (contacto independiente). También puede estar vinculado a múltiples oportunidades."),
 
@@ -606,8 +607,10 @@ export async function GET() {
       React.createElement(LI, null, "Negocios estancados: oportunidades activas sin actividad ni cambio de etapa desde hace más del umbral de días que definió tu Administrador (por defecto 14 — ver 9.7)"),
       React.createElement(LI, null, "Cierres próximos: negocios con fecha de cierre estimada en los próximos 7 días"),
       React.createElement(P, null, "Además, en la Agenda las actividades vencidas muestran un ícono de campana. Al tocarlo recibes el recordatorio inmediatamente sin esperar al día siguiente."),
+      React.createElement(P, null, "Estas alertas son personales para todos los roles: cada quien recibe solo sus tareas (las que tiene como responsable o creó sin asignar) y sus negocios. Una tarea que creaste y asignaste a otra persona le llega a ella, no a ti."),
+      React.createElement(P, null, "El Administrador, que controla toda la actividad, recibe además un correo aparte: \"Actividades vencidas del equipo\", con las vencidas de los demás, el responsable de cada una y un botón a la Bandeja Hoy del equipo. El Gerente y el Comercial no lo reciben."),
       React.createElement(Tip, null, "Solo recibirás el email de cada tipo si tienes situaciones reales en esa categoría. Si no tienes actividades vencidas, ese email no se envía."),
-      React.createElement(P, null, "Aparte de las alertas diarias, cada lunes en la mañana llega el \"Resumen del Lunes\": un solo correo por persona que abre la semana con una cabecera de indicadores (pipeline activo, nº de oportunidades y tasa de cierre) y responde las tres preguntas del lunes comercial — (1) ¿Qué puedo cerrar? (cierres de la semana, las más valiosas y, con el módulo Postventa activo, las renovaciones por gestionar), (2) ¿Qué está bloqueado? (negocios en riesgo o que requieren atención, incluidos los que no tienen próximo paso agendado) y (3) ¿Qué generará ventas futuras? (tu actividad de los últimos 7 días y lo agendado), con un botón directo al Panel del Lunes en Reportes."),
+      React.createElement(P, null, "Aparte de las alertas diarias, cada lunes en la mañana llega el \"Resumen del Lunes\": un solo correo por persona que abre la semana con una cabecera de indicadores (pipeline activo, nº de oportunidades y tasa de cierre) y responde las tres preguntas del lunes comercial — (1) ¿Qué puedo cerrar? (cierres de la semana, las más valiosas y, con el módulo Postventa activo, las renovaciones por gestionar), (2) ¿Qué está bloqueado? (negocios en riesgo o que requieren atención, incluidos los que no tienen próximo paso agendado) y (3) ¿Qué generará ventas futuras? (tu actividad de los últimos 7 días y lo agendado), con un botón directo al Panel del Lunes en Reportes. Al Comercial le resume lo suyo; al Administrador y al Gerente, todo el equipo, y así lo dice el correo (\"El equipo tiene…\")."),
       React.createElement(Nota, null, "Tanto las alertas diarias como el Resumen del Lunes dependen del mismo interruptor \"Notificaciones automáticas por email\" en Configuración; si se apaga, no se envía ninguno. El resumen solo llega a quien tenga pipeline o actividad que resumir esa semana."),
 
       React.createElement(H2, null, "4.5 Lista o Calendario"),
@@ -626,7 +629,7 @@ export async function GET() {
 
       React.createElement(P, null, "Opción 2 — Un bloque (.ics): el botón iCal de la parte superior descarga las actividades del filtro que tengas activo (Pendientes, Todas, Vencidas o Asignadas a mí). El propio botón indica qué bloque va a descargar, por ejemplo \"iCal: Vencidas\". Cada actividad se exporta con título, tipo, fecha y hora, nombre del cliente y oportunidad vinculada (duración por defecto: 1 hora). Es una fotografía del momento: descarga el .ics de nuevo cuando quieras volver a sincronizar."),
 
-      React.createElement(P, null, "Opción 3 — Suscripción en vivo (recomendada): desde Mi perfil, en la sección \"Agenda en tu calendario\", genera tu enlace privado y pégalo en Google, Outlook o Apple. A diferencia de las anteriores, el enlace se mantiene actualizado solo: cuando agregas o cambias actividades, tu calendario las refresca cada pocas horas sin volver a importar nada."),
+      React.createElement(P, null, "Opción 3 — Suscripción en vivo (recomendada): desde Mi perfil, en la sección \"Agenda en tu calendario\", genera tu enlace privado y pégalo en Google, Outlook o Apple. A diferencia de las anteriores, el enlace se mantiene actualizado solo: cuando agregas o cambias actividades, tu calendario las refresca cada pocas horas sin volver a importar nada. Trae solo tus actividades (las que tienes como responsable o creaste sin asignar), también si eres Administrador o Gerente: es tu calendario personal."),
 
       React.createElement(Tip, null, "Si abres directamente un .ics con muchas actividades, Windows lo importa al calendario por defecto sin preguntarte cuál. Para escoger el calendario de destino usa \"Añadir a mi calendario\" en el menú \"...\" de cada actividad (opción 1) o la suscripción (opción 3); si prefieres el archivo, en Google Calendar impórtalo desde Configuración > Importar y exportar, donde sí aparece el selector \"Añadir al calendario\"."),
       React.createElement(Nota, null, "El enlace de suscripción es privado: cualquiera que lo tenga puede ver tu agenda, así que no lo compartas. Si crees que se filtró, genera uno nuevo desde Mi perfil y el anterior deja de funcionar al instante."),
@@ -643,7 +646,8 @@ export async function GET() {
       React.createElement(Tip, null, "El estado \"En progreso\" es útil para tareas que toman varios días (preparar una propuesta grande, coordinar un evento): ves de un vistazo qué está arrancado y qué sigue sin tocar, sin tener que marcarlo como completado antes de tiempo."),
 
       React.createElement(H2, null, "4.9 Bandeja Hoy"),
-      React.createElement(P, null, "La Bandeja Hoy (menú Hoy › Bandeja Hoy, o Ctrl+K › Bandeja Hoy) reúne lo que tienes que despachar: las actividades pendientes de hoy y las vencidas (en rojo). El Comercial ve las que creó o tiene asignadas; Administrador y Gerente, las de todo el equipo."),
+      React.createElement(P, null, "La Bandeja Hoy (menú Hoy › Bandeja Hoy, o Ctrl+K › Bandeja Hoy) reúne lo que tienes que despachar: las actividades pendientes de hoy y las vencidas (en rojo)."),
+      React.createElement(P, null, "Arriba a la derecha está el interruptor rojo \"Mías / Equipo\" (solo para Administrador y Gerente). \"Mías\" son las tareas que tienes como responsable o creaste sin asignar; \"Equipo\", las de todos. El Administrador abre por defecto en Equipo, porque controla toda la actividad; el Gerente, en Mías. El Comercial siempre ve solo las suyas, sin interruptor."),
       React.createElement(P, null, "A la izquierda está la lista; al elegir una, a la derecha aparece su detalle: tipo, fecha, notas, el negocio, cliente y contacto (con enlace) y una sugerencia de qué hacer. Abajo, tres botones:"),
       React.createElement(LI, null, "Hacer — si es una llamada y hay teléfono, \"Llamar\" marca el número; si es un correo y hay email, \"Escribir\" abre tu correo; en los demás casos abre el negocio o la ficha."),
       React.createElement(LI, null, "Reprogramar — elige nueva fecha y hora (propone mañana a la misma hora). Si la dejas para más tarde hoy, se queda en la bandeja; si es otro día, sale de ella."),
@@ -863,7 +867,7 @@ export async function GET() {
       React.createElement(Tip, null, "Configura la meta mensual o anual desde el módulo Reportes, botón Configurar metas. Deja el campo Mes en blanco para que sea una meta anual. Sin meta configurada, el gauge correspondiente no aparece."),
 
       React.createElement(H2, null, "8.2 Saludo y contadores de hoy"),
-      React.createElement(P, null, "Bajo tu nombre, el encabezado dice cuántas cosas tienes para hoy: las actividades pendientes de hoy más las vencidas (por ejemplo \"Tienes 12 cosas para hoy · 4 vencidas\")."),
+      React.createElement(P, null, "Bajo tu nombre, el encabezado dice cuántas cosas tienes para hoy: las actividades pendientes de hoy más las vencidas (por ejemplo \"Tienes 12 cosas para hoy · 4 vencidas\"). Sigue el interruptor \"Mías / Equipo\" de \"Lo primero de hoy\" (ver 8.7): en Equipo dice \"El equipo tiene…\". Las metas y cifras del encabezado no cambian con el interruptor."),
       React.createElement(P, null, "El encabezado muestra además \"Meta del mes\" y \"Meta del año\" (ver 8.1) y las cifras de \"Ganado este mes\", \"Pipeline activo\" y \"Tasa de cierre\". Bajo \"Ganado este mes\" hay una mini gráfica de lo ganado en los últimos 6 meses y la variación frente al mes anterior al mismo corte de días (por ejemplo, del 1 al 9 de este mes contra del 1 al 9 del mes pasado), para que la comparación sea justa aunque el mes vaya a la mitad. Si el mes aún no tiene ventas, en lugar de \"$0\" dice \"Aún no hay ventas este mes\" y ofrece ver los negocios en Cotización o Negociación."),
       React.createElement(P, null, "Debajo hay tres contadores grandes; cada uno lleva a su lista:"),
       React.createElement(View, { style: { paddingHorizontal: 40 } },
@@ -900,6 +904,7 @@ export async function GET() {
 
       React.createElement(H2, null, "8.7 Lo primero de hoy"),
       React.createElement(P, null, "La tarjeta \"Lo primero de hoy\" ocupa el centro del Dashboard. Arriba lista las actividades vencidas (en rojo, con su fecha) y luego las de hoy con su hora. Cada fila lleva al negocio, cliente o contacto relacionado y tiene un botón \"Hecha\" para marcarla sin salir del Dashboard (no la borra). Si hay más vencidas de las que caben, un enlace lleva a verlas todas en la Agenda."),
+      React.createElement(P, null, "Junto al título está el interruptor rojo \"Mías / Equipo\" (Administrador y Gerente), igual que en la Bandeja Hoy: el Administrador abre en Equipo y el Gerente en Mías."),
       React.createElement(P, null, "Debajo, la sección \"Próximas actividades\" muestra las siguientes 5 pendientes desde mañana. Si no tienes nada para hoy, la tarjeta dice \"Nada agendado para hoy\" con el botón \"Agendar actividad\", que abre directamente el formulario de nueva actividad en la Agenda."),
       React.createElement(P, null, "A la derecha están el Brief del pipeline con IA (ver 3.12) y las Oportunidades calientes (ver 8.4)."),
       React.createElement(Tip, null, "Para despachar el día una por una, con más detalle y la opción de reprogramar, usa la Bandeja Hoy (ver 4.9)."),

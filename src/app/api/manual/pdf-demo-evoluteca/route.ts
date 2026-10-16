@@ -86,7 +86,7 @@ function PageHeader({ base }: { base: string }) {
 }
 function Footer() {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.6"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.7"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -309,8 +309,8 @@ export async function GET() {
       React.createElement(P, null, "Como administrador ves absolutamente todo. Este recorrido te da la visión gerencial completa del negocio en una sola pantalla y te muestra dónde vive cada cosa."),
 
       React.createElement(H2, null, "4.1 El Dashboard — tu tablero de una página"),
-      React.createElement(Paso, { n: 1, titulo: "Encabezado: saludo y metas", desc: "Al entrar, el encabezado te saluda y dice cuántas cosas tienes para hoy (pendientes de hoy + vencidas). Al lado están los medidores circulares de meta del mes y del año, y las cifras de Ganado este mes, Pipeline activo y Tasa de cierre.", esperado: "\"Tienes N cosas para hoy · M vencidas\" y los gauges con el porcentaje alcanzado contra la meta cargada." }),
-      React.createElement(Paso, { n: 2, titulo: "Tres contadores y 'Lo primero de hoy'", desc: "Debajo hay tres contadores: actividades vencidas (rojo), reuniones de hoy y negocios sin próximo paso (ámbar); cada uno abre su lista filtrada. Luego, 'Lo primero de hoy' lista las vencidas y las de hoy, cada una con su botón 'Hecha'. A la derecha están el Brief del pipeline con IA y las oportunidades calientes.", esperado: "Contadores con cifras reales y una lista de actividades en la que puedes marcar una como hecha sin salir del Dashboard." }),
+      React.createElement(Paso, { n: 1, titulo: "Encabezado: saludo y metas", desc: "Al entrar, el encabezado te saluda y dice cuántas cosas tienes para hoy (pendientes de hoy + vencidas). Al lado están los medidores circulares de meta del mes y del año, y las cifras de Ganado este mes, Pipeline activo y Tasa de cierre.", esperado: "Como Administradora, Laura ve la actividad del equipo: \"El equipo tiene N cosas para hoy · M vencidas\", y los gauges con el porcentaje alcanzado contra la meta cargada." }),
+      React.createElement(Paso, { n: 2, titulo: "Tres contadores y 'Lo primero de hoy'", desc: "Debajo hay tres contadores: actividades vencidas (rojo), reuniones de hoy y negocios sin próximo paso (ámbar); cada uno abre su lista filtrada. Luego, 'Lo primero de hoy' lista las vencidas y las de hoy, cada una con su botón 'Hecha'. Junto a su título, prueba el interruptor rojo 'Mías / Equipo': en Mías el saludo y la lista muestran solo las tareas de Laura; en Equipo, las de todos. A la derecha están el Brief del pipeline con IA y las oportunidades calientes.", esperado: "Contadores con cifras reales y una lista de actividades en la que puedes marcar una como hecha sin salir del Dashboard." }),
       React.createElement(Paso, { n: 3, titulo: "Oportunidades calientes y últimas ganadas", desc: "En la columna derecha verás los negocios activos de mayor valor (calientes) y, debajo, las ventas cerradas este mes.", esperado: "Nombres reales como 'Formación tripulación Aerolínea Regional' o 'Transformación cultural Banco Regional' entre las calientes." }),
       React.createElement(Paso, { n: 4, titulo: "Rendimiento del equipo y salud comercial", desc: "El ranking de vendedores (Sofía, Andrés, Miguel) y los indicadores de salud del pipeline.", esperado: "Un ranking con lo ganado por cada comercial este período." }),
       React.createElement(Paso, { n: 5, titulo: "Panel de alertas — 'Requieren atención'", desc: "Baja hasta el panel de alertas. Reúne lo que se te está pasando: actividades vencidas, negocios estancados y cotizaciones sin respuesta.", esperado: "Varias actividades vencidas en rojo (hay 3 o más ya cargadas) y avisos de negocios sin movimiento." }),
@@ -326,8 +326,8 @@ export async function GET() {
       React.createElement(Paso, { n: 7, titulo: "Menú agrupado, orden y tema", desc: "El menú está agrupado (Hoy, Ventas, Relaciones, Análisis, Módulos, Más); pliega o despliega un grupo con un clic en su título. Pulsa 'Ordenar' para mover ítems dentro de cada grupo y 'Listo' para terminar. Abajo, junto a 'Cerrar sesión', pulsa 'Tema' para pasar a Noche o Automático.", esperado: "Los grupos plegados y el orden se mantienen al recargar; con Tema: Noche todo el CRM pasa a fondo oscuro." }),
 
       React.createElement(H2, null, "4.3 Ficha 360° del cliente"),
-      React.createElement(Paso, { n: 8, titulo: "Abre un cliente con historial", desc: "Ve a Clientes y abre 'Tech Solutions Colombia'. Es una cuenta con mucha actividad, ideal para ver la ficha completa.", esperado: "Su ficha con datos, etiquetas, contactos, todas sus oportunidades y su historial." }),
-      React.createElement(Paso, { n: 9, titulo: "Timeline 360° y contactos", desc: "En la ficha revisa la línea de tiempo (actividades y cambios) y la lista de contactos de la empresa (por ejemplo, Verónica Palacios, CEO).", esperado: "Un timeline cronológico y los contactos con su cargo y datos." }),
+      React.createElement(Paso, { n: 8, titulo: "Abre un cliente con historial", desc: "Ve a Clientes y abre 'Tech Solutions Colombia'. Es una cuenta con mucha actividad, ideal para ver la ficha completa.", esperado: "Arriba, la barra de acciones (+ Tarea, Llamada, Reunión, Enviar correo, Oportunidad, Cotización); en el centro, las pestañas Actividad (abierta), Resumen, Oportunidades, Cotizaciones y Archivos; a la derecha, datos, contactos y etiquetas." }),
+      React.createElement(Paso, { n: 9, titulo: "Timeline 360° y contactos", desc: "Pulsa '+ Tarea' en la barra de acciones y crea una tarea para mañana: el formulario abre ya ligado al cliente. Luego, en la pestaña Resumen revisa la línea de tiempo (actividades y cambios) y, en el panel derecho, los contactos de la empresa (por ejemplo, Verónica Palacios, CEO).", esperado: "Un timeline cronológico y los contactos con su cargo y datos." }),
       React.createElement(Paso, { n: 10, titulo: "Notas rápidas y WhatsApp con plantillas", desc: "Agrega una nota rápida a la cuenta. Luego, sobre un contacto, prueba el botón de WhatsApp: abre el chat con un mensaje de plantilla ya redactado.", esperado: "La nota queda guardada en la ficha; WhatsApp se abre con el texto de plantilla listo para enviar." }),
       React.createElement(Paso, { n: 11, titulo: "Archivos adjuntos", desc: "En la misma ficha busca la sección Archivos adjuntos. Sube un archivo de prueba (o descarga el que ya está cargado).", esperado: "El archivo queda vinculado a la cuenta y se puede descargar." }),
       React.createElement(Paso, { n: 12, titulo: "Resumen con IA del cliente", desc: "En el panel 'Resumen con IA' pulsa 'Generar resumen'. En segundos redacta un informe con los datos reales de la cuenta.", esperado: "Un informe de varias secciones: panorama, relación y actividad, oportunidades y cotizaciones, señales, contactos clave y próximas acciones." }),
@@ -461,7 +461,7 @@ export async function GET() {
       React.createElement(LI, null, "Vista Lista o Calendario (alterna entre ambas)."),
       React.createElement(LI, null, "Las actividades de hoy se resaltan en rojo; las vencidas alimentan las alertas."),
       React.createElement(LI, null, "Cada fila tiene a la izquierda el círculo 'Hecha' (se pone verde al completarla) y al final el menú '...' con Editar, Añadir a mi calendario, Reasignar y Borrar."),
-      React.createElement(LI, null, "Bandeja Hoy (menú Hoy): las pendientes de hoy y las vencidas una por una, con su detalle, una sugerencia y los botones Hacer (llamar, escribir o abrir el negocio), Reprogramar y Hecha."),
+      React.createElement(LI, null, "Bandeja Hoy (menú Hoy): las pendientes de hoy y las vencidas una por una, con su detalle, una sugerencia y los botones Hacer (llamar, escribir o abrir el negocio), Reprogramar y Hecha. El interruptor rojo 'Mías / Equipo' (Administrador y Gerente) cambia entre tus tareas y las de todos: el Administrador abre en Equipo y el Gerente en Mías."),
       React.createElement(LI, null, "Llévala a tu calendario de tres formas: una actividad suelta ('Añadir a mi calendario' en el menú '...' de cada fila, que te deja elegir el calendario en Google u Outlook), un bloque completo según el filtro activo (botón iCal), o un enlace de suscripción en vivo desde Mi perfil que se mantiene actualizado solo. Además, notificaciones por email."),
 
       React.createElement(H2, null, "8.5 Otros módulos"),
@@ -505,9 +505,9 @@ export async function GET() {
       React.createElement(Check, null, "Entré con los 3 roles (administrador, gerente y comercial) y noté las diferencias."),
       React.createElement(Check, null, "Revisé el dashboard: gauges de meta, los tres contadores, 'Lo primero de hoy' y el panel de alertas."),
       React.createElement(Check, null, "Usé Ctrl+K para buscar, crear un registro y preguntar a la IA, y reordené el menú."),
-      React.createElement(Check, null, "Despaché actividades en la Bandeja Hoy (Hacer, Reprogramar, Hecha)."),
+      React.createElement(Check, null, "Despaché actividades en la Bandeja Hoy (Hacer, Reprogramar, Hecha) y probé el interruptor 'Mías / Equipo'."),
       React.createElement(Check, null, "Cambié el tema a Noche y volví a Día."),
-      React.createElement(Check, null, "Abrí una ficha 360°: timeline, contactos, notas, WhatsApp, adjuntos y Resumen con IA."),
+      React.createElement(Check, null, "Abrí una ficha 360°: barra de acciones (+ Tarea, Enviar correo…), pestañas, timeline, contactos, notas, WhatsApp, adjuntos y Resumen con IA."),
       React.createElement(Check, null, "Ejecuté el flujo completo: cliente › contacto › oportunidad › cotización › PDF › ganada."),
       React.createElement(Check, null, "Arrastré tarjetas en el pipeline y registré un motivo de pérdida."),
       React.createElement(Check, null, "Abrí la ficha de una oportunidad: barra de etapas, 5 datos clave, pestañas y panel derecho."),
