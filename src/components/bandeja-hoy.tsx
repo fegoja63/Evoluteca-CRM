@@ -11,6 +11,8 @@ import { aInputDatetimeLocal } from "@/lib/fecha-bogota";
 import { toast } from "@/lib/toast";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { EstadoVacio } from "@/components/ui/estados";
+import { SelectorAlcance } from "@/components/selector-alcance";
+import type { Alcance } from "@/lib/permisos";
 
 type Ref = { id: string; nombre: string; telefono: string | null; email: string | null } | null;
 
@@ -56,7 +58,8 @@ function accionHacer(it: ItemBandeja): { label: string; href: string; externo: b
   return { label: it.oportunidad ? "Abrir el negocio" : "Abrir la ficha", href: ficha, externo: false, icon: IconExternalLink };
 }
 
-export function BandejaHoy({ itemsIniciales }: { itemsIniciales: ItemBandeja[] }) {
+// `alcance` es null para un Comercial (siempre ve solo lo suyo, sin interruptor).
+export function BandejaHoy({ itemsIniciales, alcance }: { itemsIniciales: ItemBandeja[]; alcance: Alcance | null }) {
   const [items, setItems] = useState(itemsIniciales);
   const [selId, setSelId] = useState<string | null>(itemsIniciales[0]?.id ?? null);
   const [reprogramando, setReprogramando] = useState(false);
@@ -123,13 +126,16 @@ export function BandejaHoy({ itemsIniciales }: { itemsIniciales: ItemBandeja[] }
   return (
     <div>
       <div className="mb-5">
-        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-          <IconInbox size={24} stroke={1.75} className="text-brand-600" />Bandeja Hoy
-        </h1>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <IconInbox size={24} stroke={1.75} className="text-brand-600" />Bandeja Hoy
+          </h1>
+          {alcance && <SelectorAlcance ruta="/dashboard/hoy" alcance={alcance} />}
+        </div>
         <p className="mt-0.5 text-sm text-slate-500">
           {items.length === 0
-            ? "Nada pendiente para hoy."
-            : `${items.length} por despachar${vencidas ? ` · ${vencidas} vencida${vencidas !== 1 ? "s" : ""}` : ""}. Una por una: hazla, reprográmala o márcala como hecha.`}
+            ? (alcance === "equipo" ? "El equipo no tiene nada pendiente para hoy." : "Nada pendiente para hoy.")
+            : `${items.length} por despachar${alcance === "equipo" ? " en el equipo" : ""}${vencidas ? ` · ${vencidas} vencida${vencidas !== 1 ? "s" : ""}` : ""}. Una por una: hazla, reprográmala o márcala como hecha.`}
         </p>
       </div>
 

@@ -72,6 +72,11 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
   const esComercial = u.rol === "COMERCIAL";
   const ownerWhere = esComercial ? { creadoBy: u.id } : {};
   const ownerWhereAct = esComercial ? { OR: [{ creadoBy: u.id }, { responsableId: u.id }] } : {};
+  // Administrador y Gerente reciben las cifras de todo el equipo: el texto lo
+  // dice así, para que no las lean como propias.
+  const sujeto = esComercial
+    ? { tiene: "Tienes", notiene: "No tienes", negocios: "todos tus negocios", semana: "así arranca tu semana" }
+    : { tiene: "El equipo tiene", notiene: "El equipo no tiene", negocios: "todos los negocios del equipo", semana: "así arranca la semana de tu equipo" };
 
   const [opActivas, ganadas, perdidas, actividades7d, proximas7d] = await Promise.all([
     prisma.oportunidad.findMany({
@@ -169,7 +174,7 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
     q1 += `<p style="margin:${cierranSemana.length || altaIntencion.length || renovaciones.length ? "10" : "0"}px 0 6px;font-size:12px;font-weight:600;color:#334155">Las más valiosas en curso</p>`;
     q1 += valiosas.map(o => fila(o.titulo, `${o.empresa?.nombre ?? ""} · ${o.etapa} · ${fmt(o.valor as unknown as number)}`, "#10b981")).join("");
   }
-  if (!q1) q1 = `<p style="margin:0;font-size:12px;color:#94a3b8">No tienes oportunidades activas por ahora.</p>`;
+  if (!q1) q1 = `<p style="margin:0;font-size:12px;color:#94a3b8">${sujeto.notiene} oportunidades activas por ahora.</p>`;
 
   // ── Q2: ¿Qué está bloqueado? — negocios En riesgo / Requieren atención ──
   // Usa el estado comercial (que ya cuenta el correo como señal): un cliente que
@@ -185,7 +190,7 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
       return fila(x.o.titulo, `${x.o.empresa?.nombre ?? ""} · ${x.o.etapa} · ${x.estado?.label}: ${x.estado?.razon}`, color);
     }).join("");
   } else {
-    q2 = `<p style="margin:0;font-size:12px;color:#94a3b8">Nada bloqueado — todos tus negocios se han movido en los últimos ${tenantInfo.diasEstancamiento} días. 👏</p>`;
+    q2 = `<p style="margin:0;font-size:12px;color:#94a3b8">Nada bloqueado — ${sujeto.negocios} se han movido en los últimos ${tenantInfo.diasEstancamiento} días. 👏</p>`;
   }
 
   // ── Q3: ¿Qué generará ventas futuras? — actividad de la semana + agenda ──
@@ -201,7 +206,7 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
   const q3 = `<p style="margin:0 0 6px;font-size:13px;color:#334155">Actividad de los últimos 7 días: ${
     actividades7d.length > 0 ? `${resumenTipos || `<strong>${actividades7d.length}</strong> actividades`} (${actividades7d.length} en total)` : "<strong>sin registrar</strong> — el pipeline no se mueve solo."
   }</p>
-  <p style="margin:0;font-size:13px;color:#334155">Tienes <strong>${proximas7d}</strong> actividad(es) agendada(s) para los próximos 7 días.</p>`;
+  <p style="margin:0;font-size:13px;color:#334155">${sujeto.tiene} <strong>${proximas7d}</strong> actividad(es) agendada(s) para los próximos 7 días.</p>`;
 
   // ── KPIs de cabecera ──
   const kpis = `<div style="display:flex;gap:8px;margin-top:4px">
@@ -221,7 +226,7 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
 
   const html = wrapper(`${header("Tu resumen del lunes", tenantInfo.logoUrl)}
     <div style="background:#f8fafc;padding:22px 24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
-      <p style="font-size:14px;color:#64748b;margin:0 0 14px">Hola <strong>${u.nombre}</strong>, así arranca tu semana:</p>
+      <p style="font-size:14px;color:#64748b;margin:0 0 14px">Hola <strong>${u.nombre}</strong>, ${sujeto.semana}:</p>
       ${kpis}
       ${bloquePregunta("① ¿Qué oportunidades puedo cerrar?", q1, "#eff6ff")}
       ${bloquePregunta("② ¿Qué operaciones están bloqueadas?", q2, "#fffbeb")}

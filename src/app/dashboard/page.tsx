@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { filtroOwner, moduloActivo } from "@/lib/permisos";
+import { filtroOwner, moduloActivo, alcanceDe, esComercial, filtroActividadAlcance } from "@/lib/permisos";
+import { SelectorAlcance } from "@/components/selector-alcance";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { componentesHoyBogota, medianocheBogota } from "@/lib/fecha-bogota";
 import { variacionPct, rangoMesAnteriorAlCorte, ultimosMeses } from "@/lib/tendencia";
@@ -23,10 +24,16 @@ import { ResumenPipelineIA } from "@/components/resumen-pipeline-ia";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+export default async function DashboardPage(props: { searchParams: Promise<{ alcance?: string }> }) {
   const session = await auth();
   const tenantId = session?.user?.tenantId ?? "";
   const ownerFiltro = filtroOwner(session?.user?.rol, session?.user?.id ?? "");
+  // Las actividades del Inicio ("Tienes N cosas para hoy", "Lo primero de hoy")
+  // son personales: por defecto solo las propias. Administrador y Gerente
+  // pueden ver las del equipo con ?alcance=equipo. Los indicadores de negocio
+  // (pipeline, metas) siguen mostrando lo que el rol puede ver.
+  const alcance = alcanceDe(session?.user?.rol, (await props.searchParams).alcance);
+  const actFiltro = filtroActividadAlcance(session?.user?.rol, session?.user?.id ?? "", alcance);
 
   // `hoy` es el instante actual (se usa tal cual donde se compara "desde ahora").
   // Los límites de día/mes/año se calculan sobre la fecha real de BOGOTÁ, no la
@@ -80,7 +87,7 @@ export default async function DashboardPage() {
       select: { etapa: true, valor: true, creadoEn: true, fechaCierre: true, fechaEvento: true, extras: true, creadoBy: true },
     }),
     prisma.actividad.findMany({
-      where: { tenantId, completada: false, fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro },
+      where: { tenantId, completada: false, fecha: { gte: inicioHoy, lt: finHoy }, ...actFiltro },
       orderBy: { fecha: "asc" },
       take: 6,
       include: {
@@ -90,7 +97,7 @@ export default async function DashboardPage() {
       },
     }),
     prisma.actividad.findMany({
-      where: { tenantId, completada: false, fecha: { lt: inicioHoy }, ...ownerFiltro },
+      where: { tenantId, completada: false, fecha: { lt: inicioHoy }, ...actFiltro },
       orderBy: { fecha: "asc" },
       take: 6,
       include: {
@@ -100,7 +107,7 @@ export default async function DashboardPage() {
       },
     }),
     prisma.actividad.findMany({
-      where: { tenantId, completada: false, fecha: { gte: finHoy, lt: fin7dias }, ...ownerFiltro },
+      where: { tenantId, completada: false, fecha: { gte: finHoy, lt: fin7dias }, ...actFiltro },
       orderBy: { fecha: "asc" },
       take: 5,
       include: { empresa: { select: { nombre: true } } },
@@ -108,7 +115,7 @@ export default async function DashboardPage() {
     // Próximas actividades pendientes desde mañana en adelante (sin tope de 7
     // días) — alimenta la sección "Próximas actividades" de la tarjeta de hoy.
     prisma.actividad.findMany({
-      where: { tenantId, completada: false, fecha: { gte: finHoy }, ...ownerFiltro },
+      where: { tenantId, completada: false, fecha: { gte: finHoy }, ...actFiltro },
       orderBy: { fecha: "asc" },
       take: 5,
       include: {
@@ -116,8 +123,8 @@ export default async function DashboardPage() {
         contacto: { select: { id: true, nombre: true } },
       },
     }),
-    prisma.actividad.count({ where: { tenantId, completada: true, fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro } }),
-    prisma.actividad.count({ where: { tenantId, fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro } }),
+    prisma.actividad.count({ where: { tenantId, completada: true, fecha: { gte: inicioHoy, lt: finHoy }, ...actFiltro } }),
+    prisma.actividad.count({ where: { tenantId, fecha: { gte: inicioHoy, lt: finHoy }, ...actFiltro } }),
     prisma.oportunidad.findMany({
       where: { tenantId, eliminadoEn: null, etapa: { in: ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION"] }, creadoEn: { lt: hace60dias }, ...ownerFiltro },
       select: { id: true, titulo: true, etapa: true, empresa: { select: { nombre: true } } },
@@ -180,7 +187,7 @@ export default async function DashboardPage() {
         _count: { select: { actividades: { where: { completada: false, fecha: { gte: inicioProximoPaso() } } } } },
       },
     }),
-    prisma.actividad.findFirst({ where: { tenantId, completada: true, ...ownerFiltro }, orderBy: { fecha: "desc" }, select: { fecha: true } }),
+    prisma.actividad.findFirst({ where: { tenantId, completada: true, ...actFiltro }, orderBy: { fecha: "desc" }, select: { fecha: true } }),
     prisma.terminoExpediente.findMany({
       where: { tenantId, estado: "PENDIENTE", fechaLimite: { lte: fin7dias }, ...ownerFiltro },
       select: { id: true, descripcion: true, fechaLimite: true, expediente: { select: { id: true, numeroRadicado: true } } },
@@ -282,8 +289,8 @@ export default async function DashboardPage() {
   const tasaCierre      = totalCerradas > 0 ? Math.round((ganadas / totalCerradas) * 100) : 0;
   // Contadores del Inicio (los arreglos de arriba vienen con tope de filas).
   const [nVencidas, nReunionesHoy] = await Promise.all([
-    prisma.actividad.count({ where: { tenantId, completada: false, fecha: { lt: inicioHoy }, ...ownerFiltro } }),
-    prisma.actividad.count({ where: { tenantId, completada: false, tipo: "REUNION", fecha: { gte: inicioHoy, lt: finHoy }, ...ownerFiltro } }),
+    prisma.actividad.count({ where: { tenantId, completada: false, fecha: { lt: inicioHoy }, ...actFiltro } }),
+    prisma.actividad.count({ where: { tenantId, completada: false, tipo: "REUNION", fecha: { gte: inicioHoy, lt: finHoy }, ...actFiltro } }),
   ]);
   const pendientesHoy = totalActividadesHoy - actividadesCompletadasHoy;
   const cosasHoy = pendientesHoy + nVencidas;
@@ -391,7 +398,9 @@ export default async function DashboardPage() {
             </p>
             <h1 className="text-2xl font-bold tracking-tight">{saludo}, {nombre}</h1>
             <p className="mt-1 text-sm font-medium text-white/90">
-              {cosasHoy === 0 ? "No tienes nada pendiente para hoy" : `Tienes ${cosasHoy} ${cosasHoy === 1 ? "cosa" : "cosas"} para hoy`}
+              {alcance === "equipo"
+                ? (cosasHoy === 0 ? "El equipo no tiene nada pendiente para hoy" : `El equipo tiene ${cosasHoy} ${cosasHoy === 1 ? "cosa" : "cosas"} para hoy`)
+                : (cosasHoy === 0 ? "No tienes nada pendiente para hoy" : `Tienes ${cosasHoy} ${cosasHoy === 1 ? "cosa" : "cosas"} para hoy`)}
               {nVencidas > 0 && <span className="text-red-300"> · {nVencidas} vencida{nVencidas !== 1 ? "s" : ""}</span>}
             </p>
             <p className="text-brand-300 mt-0.5 text-xs">{session?.user?.tenantNombre} · {session?.user?.rol ? session.user.rol.charAt(0)+session.user.rol.slice(1).toLowerCase() : ""}</p>
@@ -512,7 +521,10 @@ export default async function DashboardPage() {
               <h2 className="text-sm font-bold text-slate-900">Lo primero de hoy</h2>
               <p className="text-xs text-slate-400 mt-0.5">{actividadesCompletadasHoy}/{totalActividadesHoy} completadas · {progresoDia}%</p>
             </div>
-            <Link href="/dashboard/agenda" className="text-xs font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-lg px-2.5 py-1 transition-colors">Agenda →</Link>
+            <div className="flex items-center gap-2">
+              {!esComercial(session?.user?.rol) && <SelectorAlcance ruta="/dashboard" alcance={alcance} />}
+              <Link href="/dashboard/agenda" className="text-xs font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-lg px-2.5 py-1 transition-colors">Agenda →</Link>
+            </div>
           </div>
           {totalActividadesHoy > 0 && (
             <div className="w-full h-1.5 bg-slate-100 rounded-full mb-3 overflow-hidden">

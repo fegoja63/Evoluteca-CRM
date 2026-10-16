@@ -32,6 +32,22 @@ export function filtroActividadPropia(userId: string) {
   return { OR: [{ responsableId: userId }, { responsableId: null, creadoBy: userId }] };
 }
 
+/**
+ * Alcance de las vistas personales (Bandeja Hoy, Inicio): "mias" por defecto;
+ * Administrador y Gerente pueden pedir "equipo" (?alcance=equipo). Un
+ * COMERCIAL siempre ve solo lo suyo.
+ */
+export type Alcance = "mias" | "equipo";
+
+export function alcanceDe(rol: string | undefined, valor: string | string[] | undefined): Alcance {
+  return !esComercial(rol) && valor === "equipo" ? "equipo" : "mias";
+}
+
+/** Filtro de actividades según el alcance: las propias, o las que el rol puede ver. */
+export function filtroActividadAlcance(rol: string | undefined, userId: string, alcance: Alcance) {
+  return alcance === "equipo" ? filtroOwnerActividad(rol, userId) : filtroActividadPropia(userId);
+}
+
 /** Verifica si un módulo opcional (Tenant.modulos) está activo. */
 export function moduloActivo(modulos: unknown, key: string): boolean {
   if (!modulos || typeof modulos !== "object") return false;
