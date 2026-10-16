@@ -58,8 +58,12 @@ async function correrCron(): Promise<Envio[]> {
   return send.mock.calls.map(([e]) => e as Envio);
 }
 
+// Correos personales de un usuario de A (sin el aparte "del equipo").
 const deA = (envios: Envio[], usuario: "admin" | "gerente" | "comercial") =>
-  envios.filter(e => e.to === `${usuario}@${A.tenantId}.test`).map(e => e.html).join("\n");
+  envios.filter(e => e.to === `${usuario}@${A.tenantId}.test` && !e.subject.includes("del equipo")).map(e => e.html).join("\n");
+// El correo aparte de vencidas del equipo, si le llegó.
+const delEquipoA = (envios: Envio[], usuario: "admin" | "gerente" | "comercial") =>
+  envios.filter(e => e.to === `${usuario}@${A.tenantId}.test` && e.subject.includes("del equipo"));
 
 describe("Recordatorio diario: cada quien recibe solo lo suyo", () => {
   it("el gerente recibe sus tareas, no las del comercial ni el negocio del admin", async () => {
@@ -69,11 +73,26 @@ describe("Recordatorio diario: cada quien recibe solo lo suyo", () => {
     expect(html).not.toContain("Oportunidad del admin");
   });
 
-  it("el administrador recibe su negocio quieto, no las tareas del equipo ni la que asignó a otro", async () => {
+  it("en sus correos personales el administrador recibe su negocio quieto, no las tareas de otros", async () => {
     const html = deA(await correrCron(), "admin");
     expect(html).toContain("Oportunidad del admin");
     expect(html).not.toContain("Actividad de ");
     expect(html).not.toContain(TAREA_DEL_GERENTE);
+  });
+
+  it("el administrador recibe aparte las vencidas del equipo, con su responsable", async () => {
+    const equipo = delEquipoA(await correrCron(), "admin");
+    expect(equipo).toHaveLength(1);
+    expect(equipo[0].subject).toContain("2 actividad(es) vencida(s) del equipo");
+    expect(equipo[0].html).toContain("Actividad de ");
+    expect(equipo[0].html).toContain(TAREA_DEL_GERENTE);
+    expect(equipo[0].html).toContain("Gerente ");
+  });
+
+  it("el gerente y el comercial no reciben el correo del equipo", async () => {
+    const envios = await correrCron();
+    expect(delEquipoA(envios, "gerente")).toHaveLength(0);
+    expect(delEquipoA(envios, "comercial")).toHaveLength(0);
   });
 
   it("el comercial sigue recibiendo sus tareas, y nada de los demás", async () => {
