@@ -1,8 +1,8 @@
 /**
- * Vistas personales ("tus pendientes"): Bandeja Hoy, Inicio y el calendario
- * suscrito muestran por defecto SOLO lo propio, sea cual sea el rol.
- * Administrador y Gerente pueden pedir la vista del equipo (?alcance=equipo);
- * un Comercial no. Antes, en cuentas sin comerciales (Belarte, OLT), cada
+ * Vistas para despachar el día: Bandeja Hoy e Inicio abren por defecto en lo
+ * propio para el Gerente y en el equipo para el Administrador (controla toda
+ * la actividad); ambos cambian con ?alcance=mias|equipo. Un Comercial siempre
+ * ve lo suyo. El calendario suscrito trae solo lo propio para todos. Antes, en cuentas sin comerciales (Belarte, OLT), cada
  * gerente veía las tareas del otro como si fueran suyas.
  */
 import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
@@ -69,10 +69,20 @@ describe("Bandeja Hoy", () => {
     expect(titulos.some(t => t.startsWith(DEL_COMERCIAL))).toBe(true);
   });
 
-  it("el administrador no recibe la tarea que asignó a otro", async () => {
+  it("al administrador le abre por defecto en el equipo", async () => {
     comoUsuario(A, "ADMINISTRADOR");
-    const { titulos } = await bandeja();
+    const { titulos, alcance } = await bandeja();
+    expect(alcance).toBe("equipo");
+    expect(titulos).toContain(TAREA_DEL_GERENTE);
+    expect(titulos.some(t => t.startsWith(DEL_COMERCIAL))).toBe(true);
+  });
+
+  it("en 'Mías' el administrador no recibe la tarea que asignó a otro", async () => {
+    comoUsuario(A, "ADMINISTRADOR");
+    const { titulos, alcance } = await bandeja("mias");
+    expect(alcance).toBe("mias");
     expect(titulos).not.toContain(TAREA_DEL_GERENTE);
+    expect(titulos.some(t => t.startsWith(DEL_COMERCIAL))).toBe(false);
   });
 
   it("un comercial no puede pedir la vista del equipo ni ve el interruptor", async () => {
