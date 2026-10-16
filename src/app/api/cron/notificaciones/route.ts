@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
 import { EtapaOportunidad } from "@prisma/client";
 import { plazoVencido, diasHastaPlazo } from "@/lib/plazo-legal";
+import { filtroActividadPropia } from "@/lib/permisos";
 
 export const dynamic = "force-dynamic";
 // Con muchos tenants el recorrido completo puede tardar más que el límite
@@ -71,12 +72,16 @@ async function procesarUsuario(
 
   try {
     const logoUrl = tenantInfo.logoUrl;
-    const ownerWhere = u.rol === "COMERCIAL" ? { creadoBy: u.id } : {};
+    // El recordatorio es personal ("Hola X, tienes…") para TODOS los roles: solo
+    // lo propio. Un gerente o administrador no recibe las tareas ni los
+    // negocios de su equipo como si fueran suyos; la vista del equipo le llega
+    // en el resumen del lunes y en el mensual.
+    const ownerWhere = { creadoBy: u.id };
     const emails: CorreoPendiente[] = [];
 
     // ── 1. Actividades vencidas ──────────────────────────────────────────────
     const vencidas = await prisma.actividad.findMany({
-      where: { tenantId: u.tenantId, completada: false, fecha: { lt: ahora }, ...ownerWhere },
+      where: { tenantId: u.tenantId, completada: false, fecha: { lt: ahora }, ...filtroActividadPropia(u.id) },
       orderBy: { fecha: "asc" },
       take: 20,
       select: { titulo: true, tipo: true, fecha: true, empresa: { select: { nombre: true } } },
