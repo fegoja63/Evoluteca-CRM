@@ -5,6 +5,7 @@ import { Resend } from "resend";
 import { enviarNotificacionSchema } from "@/lib/validations/notificaciones";
 import { parseOrError } from "@/lib/validations/helpers";
 import { escapeHtml } from "@/lib/html";
+import { filtroActividadPropia } from "@/lib/permisos";
 
 export const dynamic = "force-dynamic";
 
@@ -68,7 +69,8 @@ export async function POST(req: Request) {
     const mañana = new Date();
     mañana.setDate(mañana.getDate() + 1);
     const actividadesPendientes = await prisma.actividad.findMany({
-      where: { tenantId: session.user.tenantId, completada: false, fecha: { lte: mañana } },
+      // "Tienes N pendientes": solo las tareas del propio usuario, sea cual sea su rol.
+      where: { tenantId: session.user.tenantId, completada: false, fecha: { lte: mañana }, ...filtroActividadPropia(session.user.id) },
       orderBy: { fecha: "asc" }, take: 10,
       select: { titulo: true, tipo: true, fecha: true, empresa: { select: { nombre: true } } },
     });

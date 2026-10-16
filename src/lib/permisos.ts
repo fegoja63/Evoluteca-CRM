@@ -21,6 +21,17 @@ export function filtroOwnerActividad(rol: string | undefined, userId: string) {
     : {};
 }
 
+/**
+ * Las actividades que son tarea DE este usuario, sea cual sea su rol: las que
+ * tiene como responsable, o las que creó sin responsable. Una tarea que el
+ * usuario creó pero asignó a otro ya es del otro. Se usa en los avisos
+ * personales ("tienes N vencidas"), donde un gerente no debe recibir las
+ * tareas de su equipo como si fueran suyas.
+ */
+export function filtroActividadPropia(userId: string) {
+  return { OR: [{ responsableId: userId }, { responsableId: null, creadoBy: userId }] };
+}
+
 /** Verifica si un módulo opcional (Tenant.modulos) está activo. */
 export function moduloActivo(modulos: unknown, key: string): boolean {
   if (!modulos || typeof modulos !== "object") return false;
