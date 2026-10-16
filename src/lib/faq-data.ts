@@ -41,7 +41,7 @@ export const FAQS: Faq[] = [
   { categoria: "Clientes y contactos", pregunta: "¿Qué es la ficha 360° de un cliente?",
     respuesta: "Al hacer clic en un cliente ves en un solo lugar sus datos generales, contactos vinculados, oportunidades y su etapa, actividades registradas, cotizaciones formales emitidas y un timeline cronológico con todas las interacciones." },
   { categoria: "Clientes y contactos", pregunta: "¿Cómo creo una tarea, llamada, reunión o correo para un cliente?",
-    respuesta: "En la ficha del cliente, arriba, está la barra de acciones: + Tarea, Llamada, Reunión, Enviar correo, Oportunidad y Cotización. Cada botón abre el formulario ya ligado a ese cliente (y con el tipo elegido), sin salir de la pantalla. Lo creado aparece en la pestaña Actividad." },
+    respuesta: "En la ficha del cliente (o del contacto), arriba, está la barra de acciones: + Tarea, Llamada, Reunión, Enviar correo, Oportunidad y Cotización (en el contacto: WhatsApp en lugar de Cotización). Cada botón abre el formulario ya ligado a ese cliente (y con el tipo elegido), sin salir de la pantalla. Lo creado aparece en la pestaña Actividad." },
   { categoria: "Clientes y contactos", pregunta: "¿Cómo envío un WhatsApp a un cliente o contacto desde el CRM?",
     respuesta: "En la ficha de contacto o cliente, el botón WhatsApp abre plantillas prellenadas (saludo inicial, seguimiento de cotización, confirmar reunión, recordatorio de evento, cierre de negocio o mensaje libre). Puedes editar el texto antes de enviarlo — nunca se envía sin que lo veas primero." },
   { categoria: "Clientes y contactos", pregunta: "¿Cómo guardo una nota interna sobre un cliente?",
@@ -62,7 +62,7 @@ export const FAQS: Faq[] = [
   { categoria: "Clientes y contactos", pregunta: "¿Las respuestas de mis clientes quedan guardadas en el CRM?",
     respuesta: "Sí, automáticamente. Cuando el cliente responde un correo que le enviaste desde el CRM —incluidas las cotizaciones que envías por correo— su respuesta se registra sola en la tarjeta \"Correos\" de la ficha (y en la de su oportunidad, si es una cotización), marcada como \"Recibido\", y además te llega un aviso a tu propio correo con el texto y un botón para abrir la ficha. La captura corre cada pocos minutos, así que la respuesta puede tardar un momento en aparecer. Solo se capturan las respuestas a correos enviados desde el CRM (no reemplaza tu bandeja de entrada normal)." },
   { categoria: "Clientes y contactos", pregunta: "¿Dónde quedan guardados los correos que envío desde el CRM?",
-    respuesta: "En la misma tarjeta \"Correos\" de la ficha del contacto u oportunidad desde donde lo enviaste. Cada correo aparece con su asunto, destinatario y fecha, y una etiqueta que indica si fue Enviado o Recibido; haz clic para desplegar el mensaje completo. Así toda la conversación (ida y vuelta) queda ligada al cliente sin copiar y pegar." },
+    respuesta: "En la misma tarjeta \"Correos\" de la ficha del cliente, contacto u oportunidad desde donde lo enviaste. Cada correo aparece con su asunto, destinatario y fecha, y una etiqueta que indica si fue Enviado o Recibido; haz clic para desplegar el mensaje completo. Así toda la conversación (ida y vuelta) queda ligada al cliente sin copiar y pegar." },
 
   // ── Pipeline de ventas ──
   { categoria: "Pipeline de ventas", pregunta: "¿Qué significan las etapas del pipeline?",
@@ -180,7 +180,7 @@ export const FAQS: Faq[] = [
 
   // ── Configuración y equipo ──
   { categoria: "Configuración", pregunta: "¿Qué puede hacer cada rol de usuario (Comercial, Gerente, Administrador)?",
-    respuesta: "Comercial ve y gestiona solo sus propios registros. Gerente además ve todo el equipo, reportes consolidados y puede eliminar registros y editar metas. Administrador además configura el CRM, gestiona usuarios y reasigna registros sin dueño." },
+    respuesta: "Comercial ve y gestiona solo sus propios registros. Gerente además ve todo el equipo, reportes consolidados y puede eliminar registros y editar metas (en la Bandeja Hoy y el Inicio abre en sus propias tareas y puede cambiar a \"Equipo\"). Administrador además ve por defecto la actividad de todo el equipo en la Bandeja Hoy y el Inicio, recibe cada mañana las vencidas del equipo, configura el CRM, gestiona usuarios y reasigna registros sin dueño." },
   { categoria: "Configuración", pregunta: "Cuando un cliente responde una cotización que le envié, ¿dónde llega?",
     respuesta: "Queda guardada automáticamente en el CRM: la respuesta se registra en la tarjeta \"Correos\" de la cotización (ficha del contacto y de su oportunidad) y te llega un aviso a tu correo con el texto y un enlace para abrirla. El campo \"Correo de la empresa\" en Configuración (solo Administrador) es un respaldo: solo se usa como buzón de respuesta si la captura automática no estuviera disponible." },
   { categoria: "Configuración", pregunta: "¿Cómo activo o desactivo las notificaciones automáticas por email?",
