@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { filtroOwnerActividad } from "@/lib/permisos";
+import { filtroActividadPropia, filtroOwnerActividad } from "@/lib/permisos";
 
 /** Mismos filtros que ofrece la Agenda, para poder exportar solo lo que se ve. */
 export type FiltroAgenda = "pendientes" | "todas" | "vencidas" | "asignadas";
@@ -59,9 +59,15 @@ export async function generarIcsAgenda(opts: {
   nombre: string | null;
   /** Qué subconjunto exportar. Por defecto, las pendientes. */
   filtro?: FiltroAgenda;
+  /**
+   * Solo las actividades del propio usuario, sea cual sea su rol. La usa la
+   * suscripción a un calendario personal: a un gerente no deben llenársele
+   * su Google/Outlook con las tareas de todo el equipo.
+   */
+  soloPropias?: boolean;
 }): Promise<string> {
   const filtro = opts.filtro ?? "pendientes";
-  const ownerFiltro = filtroOwnerActividad(opts.rol, opts.userId);
+  const ownerFiltro = opts.soloPropias ? filtroActividadPropia(opts.userId) : filtroOwnerActividad(opts.rol, opts.userId);
 
   const actividades = await prisma.actividad.findMany({
     where: { tenantId: opts.tenantId, ...condicionFiltro(filtro, opts.userId), ...ownerFiltro },

@@ -109,6 +109,8 @@ export const FAQS: Faq[] = [
     respuesta: "Llamada, Reunión, Tarea y Email. Cada actividad puede vincularse a un cliente, contacto y/o oportunidad." },
   { categoria: "Agenda", pregunta: "¿Cómo marco una actividad como completada?",
     respuesta: "Haz clic en el círculo \"Hecha\" a la izquierda de la actividad: se pone verde y la actividad queda tachada (no se borra). Editar, Añadir a mi calendario, Reasignar y Borrar están en el menú \"⋯\" al final de la fila. También puedes marcarla con \"Hecha\" desde \"Lo primero de hoy\" en el Dashboard o desde la Bandeja Hoy." },
+  { categoria: "Agenda", pregunta: "¿Por qué en la Bandeja Hoy y en el Inicio solo veo mis tareas?",
+    respuesta: "Porque son vistas personales: muestran las tareas de las que eres responsable (o que creaste sin asignar). Si eres Administrador o Gerente, el interruptor \"Mías / Equipo\" arriba de la Bandeja Hoy y en \"Lo primero de hoy\" del Inicio te deja ver las de todo el equipo. El calendario que suscribes a Google u Outlook también trae solo las tuyas. Para revisar al equipo completo están la Agenda, el Pipeline, los Reportes y el Resumen del Lunes." },
   { categoria: "Agenda", pregunta: "¿Qué es la Bandeja Hoy?",
     respuesta: "Es la pantalla para despachar el día (menú Hoy → Bandeja Hoy, o Ctrl+K): a la izquierda tus actividades pendientes de hoy y las vencidas; a la derecha el detalle de la elegida, una sugerencia de qué hacer y tres botones: Hacer (llama, escribe o abre el negocio según el tipo), Reprogramar (propone mañana a la misma hora) y Hecha (la completa y pasa a la siguiente). La sugerencia sale de reglas del CRM, no de la IA, así que no gasta cupo." },
   { categoria: "Agenda", pregunta: "¿El CRM me avisa si tengo actividades vencidas?",

@@ -34,6 +34,7 @@ export async function GET(_req: Request, props: { params: Promise<{ token: strin
     rol:      usuario.rol,
     userId:   usuario.id,
     nombre:   usuario.nombre,
+    soloPropias: true,
   });
 
   return new NextResponse(ics, {

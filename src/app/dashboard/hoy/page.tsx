@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { filtroOwnerActividad } from "@/lib/permisos";
+import { alcanceDe, esComercial, filtroActividadAlcance } from "@/lib/permisos";
 import { medianocheBogota } from "@/lib/fecha-bogota";
 import { estadoComercial, ultimoMovimientoDe, inicioProximoPaso } from "@/lib/estado-comercial";
 import { BandejaHoy, type ItemBandeja } from "@/components/bandeja-hoy";
@@ -20,18 +20,20 @@ const SUGERENCIA_POR_TIPO: Record<string, string> = {
 
 /**
  * Bandeja Hoy: lo pendiente de hoy y lo vencido, uno por uno, con la acción
- * para despacharlo (Hacer, Reprogramar, Hecha).
+ * para despacharlo (Hacer, Reprogramar, Hecha). Por defecto solo lo propio;
+ * Administrador y Gerente pueden ver la del equipo con ?alcance=equipo.
  */
-export default async function BandejaHoyPage() {
+export default async function BandejaHoyPage(props: { searchParams: Promise<{ alcance?: string }> }) {
   const session = await auth();
   if (!session?.user) redirect("/login");
   const { tenantId, rol, id: userId } = session.user;
+  const alcance = alcanceDe(rol, (await props.searchParams).alcance);
   const ahora = new Date();
   const finHoy = medianocheBogota(1, ahora);
 
   const [actividades, tenant] = await Promise.all([
     prisma.actividad.findMany({
-      where: { tenantId, completada: false, fecha: { lt: finHoy }, ...filtroOwnerActividad(rol, userId) },
+      where: { tenantId, completada: false, fecha: { lt: finHoy }, ...filtroActividadAlcance(rol, userId, alcance) },
       orderBy: { fecha: "asc" },
       take: 100,
       select: {
@@ -89,5 +91,6 @@ export default async function BandejaHoyPage() {
     };
   });
 
-  return <BandejaHoy itemsIniciales={items} />;
+  // `key`: al pasar de "Mías" a "Equipo" la bandeja se monta de nuevo con su lista.
+  return <BandejaHoy key={alcance} itemsIniciales={items} alcance={esComercial(rol) ? null : alcance} />;
 }
