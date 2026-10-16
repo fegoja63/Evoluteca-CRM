@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
 import { tiposActividadVisibles } from "@/lib/tipos-actividad";
 import { boton, campo } from "@/components/ui/estilos";
+import { IconPlus } from "@tabler/icons-react";
 
 type Props = {
   empresaId?: string;
@@ -68,11 +69,10 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
 
   if (!abierto) {
     return (
-      <button
-        onClick={() => setAbierto(true)}
-        className="flex items-center gap-1.5 rounded-xl border border-dashed border-slate-300 px-3 py-2 text-xs text-slate-500 hover:border-brand-400 hover:text-brand-600 hover:bg-brand-50 transition-colors w-full"
-      >
-        <span className="text-base leading-none">+</span>
+      // Botón lleno y con texto claro: es la forma de registrar el seguimiento,
+      // tiene que verse a primera vista (antes era un recuadro punteado gris).
+      <button type="button" onClick={() => setAbierto(true)} className={boton("marca", "md", "w-full")}>
+        <IconPlus size={16} stroke={2.25} />
         Nueva actividad
       </button>
     );
