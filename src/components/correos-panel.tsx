@@ -22,12 +22,14 @@ type Props = {
   oportunidadId?: string;
   // Correo del contacto, para precargar el destinatario.
   emailDestino?: string | null;
+  // Abre ya en "Redactar" (botón "Enviar correo" de la ficha del cliente).
+  abrirRedactando?: boolean;
 };
 
-export function CorreosPanel({ contactoId, empresaId, oportunidadId, emailDestino }: Props) {
+export function CorreosPanel({ contactoId, empresaId, oportunidadId, emailDestino, abrirRedactando }: Props) {
   const [correos, setCorreos] = useState<Correo[]>([]);
   const [cargando, setCargando] = useState(true);
-  const [redactando, setRedactando] = useState(false);
+  const [redactando, setRedactando] = useState(abrirRedactando ?? false);
   const [enviando, setEnviando] = useState(false);
   const [expandido, setExpandido] = useState<string | null>(null);
 
