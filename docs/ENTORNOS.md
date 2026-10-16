@@ -218,6 +218,19 @@ OFL-1.1) y se carga con `next/font/local` en `src/app/layout.tsx` (PR #150).
 - **Si un build viejo falla por la fuente** (ramas creadas antes del PR #150):
   `npx vercel redeploy dpl_<id>` o traer `master` a la rama.
 
+## 9. Región de las funciones — São Paulo (`gru1`), junto a la base
+
+Las bases de Neon están en **São Paulo (`sa-east-1`)**. Las funciones de Vercel corren
+también en São Paulo: `"regions": ["gru1"]` en `vercel.json`.
+
+- **Por qué:** sin esa línea Vercel usa Washington (`iad1`) y cada consulta a la base
+  cruzaba el continente (medido el 2026-10-16: ~80 ms por consulta, ~300 ms la primera
+  en frío). El Inicio hace unos 8 viajes en fila, así que cada clic perdía ~1 s solo
+  en distancia.
+- **Regla:** si alguna vez se mueve la base a otra región, mover también `regions`.
+  Cómo verificar dónde corre: la cabecera `X-Vercel-Id` de cualquier respuesta empieza
+  por la región (`gru1::…`).
+
 ## Apéndice — Estado a la fecha de esta guía
 
 - `master` local y `origin` = `fegoja63/Evoluteca-CRM` (consolidado).
