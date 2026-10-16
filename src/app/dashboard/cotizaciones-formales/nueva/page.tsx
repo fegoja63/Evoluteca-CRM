@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { IconArrowLeft, IconAlertTriangle, IconTemplate, IconCheck } from "@tabler/icons-react";
 import { MoneyInput } from "@/components/money-input";
@@ -100,6 +100,17 @@ export default function NuevaCotizacionPage() {
   const [contactoId, setContactoId]       = useState<string>(d.contactoId ?? "");
   const [oportunidadId, setOportunidadId] = useState<string>(d.oportunidadId ?? "");
   const [salonId, setSalonId]         = useState<string>(d.salonId ?? "");
+
+  // "+ Cotización" desde la ficha del cliente u oportunidad llega con
+  // ?cliente=…&oportunidad=…: esos valores mandan sobre el borrador guardado.
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const cliente = searchParams.get("cliente");
+    if (!cliente) return;
+    setEmpresaId(cliente);
+    setContactoId("");
+    setOportunidadId(searchParams.get("oportunidad") ?? "");
+  }, [searchParams]);
   const [numeroManual, setNumeroManual] = useState<string>(d.numeroManual ?? "");
   const [sede, setSede]               = useState<string>(d.sede ?? "");
   const [fechaEvento, setFechaEvento] = useState<string>(d.fechaEvento ?? "");

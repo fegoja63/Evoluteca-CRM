@@ -93,10 +93,10 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
           value={form.titulo}
           onChange={e => setForm({ ...form, titulo: e.target.value })}
           placeholder="Título de la actividad *"
-          className={campo("sm", "flex-1")}
+          className={campo("sm", "min-w-0 flex-1")}
         />
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <input
           required
           type="datetime-local"
@@ -108,7 +108,7 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
           value={form.notas}
           onChange={e => setForm({ ...form, notas: e.target.value })}
           placeholder="Notas (opcional)"
-          className={campo("sm", "flex-1")}
+          className={campo("sm", "min-w-0 flex-1")}
         />
       </div>
       <div className="flex gap-2 justify-end">

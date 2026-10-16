@@ -361,8 +361,8 @@ export async function GET() {
       React.createElement(LI, null, "Timeline 360°: historial cronológico de todas las interacciones"),
 
       React.createElement(H2, null, "2.3 Acciones rápidas desde la ficha"),
-      React.createElement(P, null, "En la sección de Actividades dentro de la ficha del cliente encontrarás tres botones de acción rápida: Llamada, Email y Reunión. Al hacer clic en cualquiera de ellos, el formulario de actividad se abre de inmediato con ese tipo pre-seleccionado, sin necesidad de ir a la Agenda."),
-      React.createElement(Tip, null, "Registra una llamada en segundos: abre la ficha del cliente, clic en el botón Llamada, escribe el resumen y Guardar. Mucho más rápido que ir a la Agenda y seleccionar el cliente manualmente."),
+      React.createElement(P, null, "Arriba de la ficha del cliente está la barra de acciones: + Tarea, Llamada, Reunión, Enviar correo, Oportunidad y Cotización. Tarea, Llamada y Reunión abren el formulario de actividad con ese tipo pre-seleccionado; Enviar correo abre el redactor con el correo del cliente; Oportunidad y Cotización abren el formulario con el cliente ya puesto. Todo queda en la pestaña Actividad de la ficha, sin necesidad de ir a la Agenda."),
+      React.createElement(Tip, null, "Registra una llamada en segundos: abre la ficha del cliente, clic en Llamada (arriba), escribe el resumen y Guardar. Mucho más rápido que ir a la Agenda y seleccionar el cliente manualmente."),
 
       React.createElement(H2, null, "2.4 Timeline 360°"),
       React.createElement(P, null, "El timeline unifica en orden cronológico: actividades, oportunidades, cotizaciones y eventos manuales. Puedes registrar:"),

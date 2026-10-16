@@ -819,7 +819,7 @@ export default function OportunidadDetallePage() {
               <div className={tarjeta("p-5")}>
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <h2 className="text-sm font-bold text-slate-900">Cotizaciones de este negocio</h2>
-                  <Link href="/dashboard/cotizaciones-formales/nueva" className={boton("secundario", "sm")}>
+                  <Link href={op.empresa ? `/dashboard/cotizaciones-formales/nueva?cliente=${op.empresa.id}&oportunidad=${op.id}` : "/dashboard/cotizaciones-formales/nueva"} className={boton("secundario", "sm")}>
                     <IconFilePlus size={14} stroke={1.75} />Nueva cotización
                   </Link>
                 </div>

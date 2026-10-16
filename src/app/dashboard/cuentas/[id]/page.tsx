@@ -25,11 +25,16 @@ import { guardarJson } from "@/lib/guardar";
 import { WhatsAppBtn } from "@/components/whatsapp-btn";
 import { ResumenIA } from "@/components/resumen-ia";
 import { MinutasIA } from "@/components/minutas-ia";
-import { IconPhone, IconMail, IconUsers, IconPencil, IconTrash, IconPlus, type Icon } from "@tabler/icons-react";
-import { boton, campo } from "@/components/ui/estilos";
+import { CorreosPanel } from "@/components/correos-panel";
+import {
+  IconPhone, IconMail, IconUsers, IconPencil, IconTrash, IconPlus, IconCheck,
+  IconBriefcase, IconFilePlus, IconSend,
+} from "@tabler/icons-react";
+import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
 import { mapaEtapas } from "@/lib/etapas-color";
+import { tipoActividadDef } from "@/lib/tipos-actividad";
 
 type Detalle = {
   id: string;
@@ -44,9 +49,11 @@ type Detalle = {
   etiquetas: string[];
   contactos: { id: string; nombre: string; cargo: string | null; telefono: string | null; email: string | null }[];
   oportunidades: { id: string; titulo: string; etapa: string; valor: string | null; motivoPerdida: string | null }[];
-  actividades: { id: string; titulo: string; fecha: string; completada: boolean }[];
+  actividades: { id: string; titulo: string; tipo: string; fecha: string; completada: boolean }[];
   cotizaciones: { id: string; numero: number; numeroManual: string | null; estado: string; items: { cantidad: number; precioUnit: string }[] }[];
 };
+
+type Pestana = "actividad" | "resumen" | "oportunidades" | "cotizaciones" | "archivos";
 
 const ETAPA_COLOR: Record<string, string> = mapaEtapas("texto");
 
@@ -63,8 +70,14 @@ export default function FichaClientePage() {
   // Valores de los campos personalizados (clave cp_* -> valor). Se separan de
   // los extras importados de Excel, que no se editan aquí.
   const [camposValores, setCamposValores] = useState<Record<string, string>>({});
+
+  // Pestaña del centro. Arranca en "Actividad": es lo que se usa a diario.
+  const [tab, setTab] = useState<Pestana>("actividad");
+  // Los botones de la barra de acciones vuelven a montar el formulario de
+  // actividad (o el de correo) ya abierto, con el tipo elegido.
   const [quickTipo, setQuickTipo] = useState<string | undefined>(undefined);
   const [quickKey, setQuickKey] = useState(0);
+  const [correoKey, setCorreoKey] = useState(0);
 
   // Crear/editar un contacto del cliente desde su propia ficha. El mismo modal
   // sirve para ambos: "nuevo" → POST; editando uno existente → PATCH.
@@ -90,6 +103,23 @@ export default function FichaClientePage() {
   function cerrarModalContacto() {
     setEditContacto(null);
     setNuevoContacto(false);
+  }
+
+  function irA(elementoId: string) {
+    setTimeout(() => document.getElementById(elementoId)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  }
+
+  function nuevaActividad(tipo: string) {
+    setTab("actividad");
+    setQuickTipo(tipo);
+    setQuickKey(k => k + 1);
+    irA("tab-panel");
+  }
+
+  function nuevoCorreo() {
+    setTab("actividad");
+    setCorreoKey(k => k + 1);
+    irA("panel-correos");
   }
 
   async function handleGuardarContacto(e: React.FormEvent) {
@@ -226,33 +256,70 @@ export default function FichaClientePage() {
   if (cargando) return <SkeletonDetalle />;
   if (!empresa) return <p className="text-sm text-slate-400">No encontrado.</p>;
 
+  // Destinatario sugerido del correo: el del cliente o, si no tiene, el del
+  // primer contacto con correo.
+  const emailDestino = empresa.email ?? empresa.contactos.find(c => c.email)?.email ?? null;
+  // Pendientes primero (la más próxima arriba) y luego las hechas (la más reciente arriba).
+  const pendientes = empresa.actividades.filter(a => !a.completada).sort((a, b) => a.fecha.localeCompare(b.fecha));
+  const hechas = empresa.actividades.filter(a => a.completada).sort((a, b) => b.fecha.localeCompare(a.fecha));
+  const ahora = new Date();
+
+  const TABS: { key: Pestana; label: string; n?: number }[] = [
+    { key: "actividad", label: "Actividad", n: pendientes.length },
+    { key: "resumen", label: "Resumen" },
+    { key: "oportunidades", label: "Oportunidades", n: empresa.oportunidades.length },
+    { key: "cotizaciones", label: "Cotizaciones", n: empresa.cotizaciones.length },
+    { key: "archivos", label: "Archivos" },
+  ];
+
   return (
     <div>
       <Link href="/dashboard/cuentas" className="mb-4 inline-block text-xs text-slate-500 hover:underline">
         ← Volver a Clientes
       </Link>
 
-      <div className="mb-6 flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-900">{empresa.nombre}</h1>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl font-bold text-slate-900">{empresa.nombre}</h1>
           <p className="text-sm text-slate-500">{empresa.sector ?? "Sin sector"}</p>
         </div>
-        <div className="flex gap-2">
-          <button onClick={() => setEditando(!editando)}
-            className={boton("secundario", "md")}>
-            {editando ? "Cancelar" : "Editar"}
+        <div className="flex shrink-0 gap-1">
+          <button onClick={() => setEditando(!editando)} className={boton("fantasma", "md")} title="Editar cliente">
+            <IconPencil size={16} stroke={1.75} />{editando ? "Cancelar" : "Editar"}
           </button>
-          <button onClick={handleEliminar}
-            className="rounded-xl border border-red-200 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50">
-            Eliminar
+          <button onClick={handleEliminar} title="Eliminar cliente"
+            className="rounded-xl px-2.5 py-2 text-sm text-red-500 hover:bg-red-50">
+            <IconTrash size={16} stroke={1.75} />
           </button>
         </div>
       </div>
 
-      {editando ? (
+      {/* Barra de acciones: todo lo que se hace con este cliente, a la vista y con nombre. */}
+      <div className="mb-6 flex flex-wrap gap-2" aria-label="Acciones con este cliente">
+        <button type="button" onClick={() => nuevaActividad("TAREA")} className={boton("primario", "md")}>
+          <IconPlus size={16} stroke={2} />Tarea
+        </button>
+        <button type="button" onClick={() => nuevaActividad("LLAMADA")} className={boton("secundario", "md")}>
+          <IconPhone size={16} stroke={1.75} />Llamada
+        </button>
+        <button type="button" onClick={() => nuevaActividad("REUNION")} className={boton("secundario", "md")}>
+          <IconUsers size={16} stroke={1.75} />Reunión
+        </button>
+        <button type="button" onClick={nuevoCorreo} className={boton("secundario", "md")}>
+          <IconSend size={16} stroke={1.75} />Enviar correo
+        </button>
+        <Link href={`/dashboard/pipeline?cliente=${empresa.id}`} className={boton("secundario", "md")}>
+          <IconBriefcase size={16} stroke={1.75} />Oportunidad
+        </Link>
+        <Link href={`/dashboard/cotizaciones-formales/nueva?cliente=${empresa.id}`} className={boton("secundario", "md")}>
+          <IconFilePlus size={16} stroke={1.75} />Cotización
+        </Link>
+      </div>
+
+      {editando && (
         <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
           <form onSubmit={handleGuardar} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Nombre *</label>
               <input required value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })}
                 className={campo("md", "w-full")} />
@@ -280,12 +347,12 @@ export default function FichaClientePage() {
               <input value={form.sitioWeb} onChange={e => setForm({ ...form, sitioWeb: e.target.value })}
                 className={campo("md", "w-full")} />
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Notas</label>
               <textarea value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })} rows={3}
                 className={campo("md", "w-full")} />
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <label className="mb-1 block text-xs text-slate-500">Condiciones comerciales</label>
               <textarea value={form.condicionesComerciales} onChange={e => setForm({ ...form, condicionesComerciales: e.target.value })} rows={4}
                 placeholder="Forma de pago, plazos de entrega, cláusulas negociadas con este cliente..."
@@ -294,7 +361,7 @@ export default function FichaClientePage() {
             </div>
             <CamposPersonalizadosForm entidad="EMPRESA" valores={camposValores}
               onChange={(clave, valor) => setCamposValores(prev => ({ ...prev, [clave]: valor }))} />
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <button type="submit" disabled={guardando}
                 className={boton("primario", "md")}>
                 {guardando ? "Guardando..." : "Guardar cambios"}
@@ -302,181 +369,226 @@ export default function FichaClientePage() {
             </div>
           </form>
         </div>
-      ) : (
-        <div className="mb-6 grid grid-cols-2 gap-x-8 gap-y-2 rounded-2xl border border-slate-200 p-5 text-sm">
-          <div className="flex gap-2"><span className="text-slate-400 w-20 shrink-0">Email</span><span className="text-slate-800">{empresa.email ?? "—"}</span></div>
-          <div className="flex gap-2"><span className="text-slate-400 w-20 shrink-0">Teléfono</span><span className="text-slate-800">{empresa.telefono ?? "—"}</span></div>
-          <div className="flex gap-2"><span className="text-slate-400 w-20 shrink-0">Sitio web</span><span className="text-slate-800">{empresa.sitioWeb ?? "—"}</span></div>
-          <div className="flex gap-2"><span className="text-slate-400 w-20 shrink-0">Sector</span><span className="text-slate-800">{empresa.sector ?? "—"}</span></div>
-          {empresa.notas && (
-            <div className="col-span-2 flex gap-2"><span className="text-slate-400 w-20 shrink-0">Notas</span><span className="text-slate-800">{empresa.notas}</span></div>
-          )}
-          {empresa.condicionesComerciales && (
-            <div className="col-span-2 flex gap-2"><span className="text-slate-400 w-28 shrink-0">Condiciones</span><span className="text-slate-800 whitespace-pre-wrap">{empresa.condicionesComerciales}</span></div>
-          )}
-        </div>
       )}
 
-      <ResumenIA empresaId={empresa.id} />
-
-      <MinutasIA empresaId={empresa.id} empresaNombre={empresa.nombre} onGuardada={() => cargar(true)} />
-
-      <div className="mt-4">
-        <CamposPersonalizadosVista entidad="EMPRESA" extras={empresa.extras} />
-        <ExtrasPanel extras={empresa.extras} />
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 bg-white p-5">
-        <h2 className="text-sm font-bold text-slate-700 mb-3">Etiquetas</h2>
-        <Etiquetas
-          etiquetas={empresa.etiquetas ?? []}
-          onGuardar={async (etiquetas) => {
-            await guardarJson(`/api/empresas/${empresa.id}`, "PATCH", { etiquetas });
-            cargar();
-          }}
-        />
-      </div>
-
-      <NotasRapidas
-        valor={empresa.notas}
-        onGuardar={async (notas) => {
-          await guardarJson(`/api/empresas/${empresa.id}`, "PATCH", { notas });
-          cargar();
-        }}
-      />
-
-      <div className="mt-4">
-        <Adjuntos empresaId={empresa.id} />
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-        {/* Contactos */}
-        <div className="rounded-2xl border border-slate-200 p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-800">Contactos ({empresa.contactos.length})</h2>
-            <button onClick={abrirNuevoContacto}
-              className="inline-flex items-center gap-1 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700 hover:bg-brand-100">
-              <IconPlus size={13} stroke={2} /> Agregar contacto
-            </button>
+      {/* ── CUERPO: pestañas (centro) y panel lateral (derecha) ── */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div className="lg:col-span-2 min-w-0">
+          <div className="mb-4 flex gap-1 overflow-x-auto overflow-y-hidden border-b border-slate-200" role="tablist">
+            {TABS.map(t => (
+              <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
+                className={`-mb-px shrink-0 inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+                  tab === t.key ? "border-brand-600 text-brand-700" : "border-transparent text-slate-500 hover:text-slate-800"
+                }`}>
+                {t.label}
+                {!!t.n && <span className="rounded-full bg-slate-100 px-1.5 text-xs text-slate-500">{t.n}</span>}
+              </button>
+            ))}
           </div>
-          {empresa.contactos.length === 0 ? (
-            <p className="text-xs text-slate-400">Sin contactos vinculados. Usa <button onClick={abrirNuevoContacto} className="text-brand-600 hover:underline">Agregar contacto</button> para crear uno.</p>
-          ) : (
-            <ul className="flex flex-col gap-2 text-sm">
-              {empresa.contactos.map((c) => (
-                <li key={c.id} className="flex items-center justify-between gap-2">
-                  <span className="text-slate-700">
-                    {c.nombre}{c.cargo && <span className="text-slate-400"> · {c.cargo}</span>}
-                  </span>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {c.telefono && (
-                      <WhatsAppBtn telefono={c.telefono} nombre={c.nombre} />
-                    )}
-                    <button onClick={() => abrirEdicionContacto(c)} title="Editar contacto"
-                      className="text-slate-300 hover:text-brand-600">
-                      <IconPencil size={15} stroke={1.75} />
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
 
-        {/* Oportunidades */}
-        <div className="rounded-2xl border border-slate-200 p-4">
-          <h2 className="mb-3 text-sm font-semibold text-slate-800">Oportunidades ({empresa.oportunidades.length})</h2>
-          {empresa.oportunidades.length === 0 ? (
-            <p className="text-xs text-slate-400">Sin oportunidades.</p>
-          ) : (
-            <ul className="flex flex-col gap-1.5 text-sm">
-              {empresa.oportunidades.map((o) => (
-                <li key={o.id} className="text-slate-700">
-                  {o.titulo}
-                  <span className={`ml-1.5 text-xs font-medium ${ETAPA_COLOR[o.etapa] ?? "text-slate-400"}`}>· {o.etapa}</span>
-                  {o.valor && <span className="ml-1.5 text-xs font-semibold text-emerald-700">{fmt(o.valor)}</span>}
-                  {o.etapa === "PERDIDA" && o.motivoPerdida && (
-                    <span className="ml-1.5 text-xs text-red-400 italic">({o.motivoPerdida})</span>
+          <div id="tab-panel" className="flex flex-col gap-5 scroll-mt-4">
+            {tab === "actividad" && (
+              <>
+                <div className={tarjeta("p-5")}>
+                  <h2 className="mb-3 text-sm font-bold text-slate-900">Tareas y actividades</h2>
+                  <NuevaActividadInline key={quickKey} empresaId={empresa.id}
+                    onGuardado={() => { setQuickTipo(undefined); cargar(true); }}
+                    tipoInicial={quickTipo} autoAbrir={!!quickTipo} />
+                  {empresa.actividades.length === 0 ? (
+                    <p className="mt-3 text-xs text-slate-400">Aún no hay actividades con este cliente.</p>
+                  ) : (
+                    <div className="mt-4 flex flex-col gap-4">
+                      {[{ titulo: "Pendientes", lista: pendientes }, { titulo: "Hechas", lista: hechas }]
+                        .filter(g => g.lista.length > 0)
+                        .map(g => (
+                          <div key={g.titulo}>
+                            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">{g.titulo}</p>
+                            <ul className="flex flex-col gap-1.5 text-sm">
+                              {g.lista.map(a => {
+                                const def = tipoActividadDef(a.tipo);
+                                const Icono = def?.icon ?? IconCheck;
+                                const vencida = !a.completada && new Date(a.fecha) < ahora;
+                                return (
+                                  <li key={a.id} className={`flex items-center gap-2 ${a.completada ? "text-slate-400 line-through" : "text-slate-700"}`}>
+                                    <Icono size={15} stroke={1.75} className="shrink-0 text-slate-400" aria-label={def?.label ?? a.tipo} />
+                                    <span className="min-w-0 truncate">{a.titulo}</span>
+                                    <span className={`ml-auto shrink-0 text-xs ${vencida ? "font-semibold text-red-600" : "text-slate-400"}`}>
+                                      {vencida && "Vencida · "}{new Date(a.fecha).toLocaleDateString("es-CO")}
+                                    </span>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        ))}
+                    </div>
                   )}
-                </li>
-              ))}
-            </ul>
-          )}
+                </div>
+
+                <div id="panel-correos" className="scroll-mt-4">
+                  <CorreosPanel key={correoKey} empresaId={empresa.id} emailDestino={emailDestino}
+                    abrirRedactando={correoKey > 0} />
+                </div>
+
+                <MinutasIA empresaId={empresa.id} empresaNombre={empresa.nombre} onGuardada={() => cargar(true)} />
+              </>
+            )}
+
+            {tab === "resumen" && (
+              <>
+                <NotasRapidas
+                  valor={empresa.notas}
+                  onGuardar={async (notas) => {
+                    await guardarJson(`/api/empresas/${empresa.id}`, "PATCH", { notas });
+                    cargar(true);
+                  }}
+                />
+                <ResumenIA empresaId={empresa.id} />
+                {empresa.condicionesComerciales && (
+                  <div className={tarjeta("p-5")}>
+                    <h2 className="mb-2 text-sm font-bold text-slate-900">Condiciones comerciales</h2>
+                    <p className="whitespace-pre-wrap text-sm text-slate-700">{empresa.condicionesComerciales}</p>
+                  </div>
+                )}
+                <CamposPersonalizadosVista entidad="EMPRESA" extras={empresa.extras} />
+                <ExtrasPanel extras={empresa.extras} />
+                <TimelineCliente
+                  empresaId={empresa.id}
+                  contactos={empresa.contactos.map(c => ({ id: c.id, nombre: c.nombre }))}
+                />
+              </>
+            )}
+
+            {tab === "oportunidades" && (
+              <div className={tarjeta("p-5")}>
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-bold text-slate-900">Oportunidades de este cliente</h2>
+                  <Link href={`/dashboard/pipeline?cliente=${empresa.id}`} className={boton("secundario", "sm")}>
+                    <IconPlus size={14} stroke={2} />Nueva oportunidad
+                  </Link>
+                </div>
+                {empresa.oportunidades.length === 0 ? (
+                  <p className="text-xs text-slate-400">Sin oportunidades.</p>
+                ) : (
+                  <ul className="flex flex-col divide-y divide-slate-100 text-sm">
+                    {empresa.oportunidades.map((o) => (
+                      <li key={o.id} className="py-2">
+                        <Link href={`/dashboard/pipeline/${o.id}`} className="font-medium text-slate-800 hover:text-brand-600">
+                          {o.titulo}
+                        </Link>
+                        <span className={`ml-1.5 text-xs font-medium ${ETAPA_COLOR[o.etapa] ?? "text-slate-400"}`}>· {o.etapa}</span>
+                        {o.valor && <span className="ml-1.5 text-xs font-semibold text-emerald-700">{fmt(o.valor)}</span>}
+                        {o.etapa === "PERDIDA" && o.motivoPerdida && (
+                          <span className="ml-1.5 text-xs text-red-400 italic">({o.motivoPerdida})</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {tab === "cotizaciones" && (
+              <div className={tarjeta("p-5")}>
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-bold text-slate-900">Cotizaciones de este cliente</h2>
+                  <Link href={`/dashboard/cotizaciones-formales/nueva?cliente=${empresa.id}`} className={boton("secundario", "sm")}>
+                    <IconFilePlus size={14} stroke={1.75} />Nueva cotización
+                  </Link>
+                </div>
+                {empresa.cotizaciones.length === 0 ? (
+                  <p className="text-xs text-slate-400">Sin cotizaciones.</p>
+                ) : (
+                  <ul className="flex flex-col divide-y divide-slate-100 text-sm">
+                    {empresa.cotizaciones.map((c) => {
+                      const total = c.items.reduce((acc, it) => acc + it.cantidad * Number(it.precioUnit), 0);
+                      return (
+                        <li key={c.id} className="py-2 text-slate-700">
+                          <Link href={`/dashboard/cotizaciones-formales/${c.id}`} className="font-medium hover:text-brand-600">
+                            {numeroCotizacion(c)}
+                          </Link>
+                          <span className="text-slate-400 text-xs ml-1">· {c.estado}</span>
+                          <span className="text-xs font-semibold text-emerald-700 ml-1">· {fmt(String(total))}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {tab === "archivos" && <Adjuntos empresaId={empresa.id} />}
+          </div>
         </div>
 
-        {/* Actividades */}
-        <div className="rounded-2xl border border-slate-200 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-slate-800">Actividades ({empresa.actividades.length})</h2>
-            <div className="flex gap-1">
+        {/* ── Panel lateral: datos del cliente, contactos y etiquetas ── */}
+        <aside className="flex flex-col gap-5">
+          <div className={tarjeta("p-5")}>
+            <h2 className="mb-3 text-sm font-bold text-slate-900">Datos</h2>
+            <dl className="flex flex-col gap-2 text-sm">
               {([
-                { tipo: "LLAMADA", icon: IconPhone, label: "Llamada" },
-                { tipo: "EMAIL",   icon: IconMail,  label: "Email" },
-                { tipo: "REUNION", icon: IconUsers, label: "Reunión" },
-              ] as { tipo: string; icon: Icon; label: string }[]).map(q => {
-                const Icono = q.icon;
-                return (
-                  <button key={q.tipo}
-                    onClick={() => { setQuickTipo(q.tipo); setQuickKey(k => k + 1); }}
-                    title={`Registrar ${q.label}`}
-                    className="rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:border-brand-400 hover:text-brand-600 hover:bg-brand-50 transition-colors">
-                    <Icono size={14} stroke={1.75} />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <div className="flex flex-col gap-1 text-sm mb-3">
-            {empresa.actividades.length === 0 ? (
-              <p className="text-xs text-slate-400">
-                Aún no hay actividades con este cliente.{" "}
-                <button onClick={() => { setQuickTipo("LLAMADA"); setQuickKey(k => k + 1); }}
-                  className="font-medium text-brand-600 hover:underline">Registrar la primera llamada</button>
-              </p>
-            ) : (
-              empresa.actividades.map((a) => (
-                <div key={a.id} className={`flex items-center gap-2 ${a.completada ? "text-slate-400 line-through" : "text-slate-700"}`}>
-                  <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-current opacity-50" />
-                  {a.titulo}
-                  <span className="text-slate-400 text-xs ml-auto">{new Date(a.fecha).toLocaleDateString("es-CO")}</span>
+                ["Email", empresa.email],
+                ["Teléfono", empresa.telefono],
+                ["Sitio web", empresa.sitioWeb],
+                ["Sector", empresa.sector],
+              ] as const).map(([etiqueta, valor]) => (
+                <div key={etiqueta} className="flex gap-2">
+                  <dt className="w-20 shrink-0 text-slate-400">{etiqueta}</dt>
+                  <dd className="min-w-0 break-words text-slate-800">{valor ?? "—"}</dd>
                 </div>
-              ))
+              ))}
+            </dl>
+          </div>
+
+          <div className={tarjeta("p-5")}>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-bold text-slate-900">Contactos ({empresa.contactos.length})</h2>
+              <button onClick={abrirNuevoContacto}
+                className="inline-flex items-center gap-1 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700 hover:bg-brand-100">
+                <IconPlus size={13} stroke={2} /> Agregar
+              </button>
+            </div>
+            {empresa.contactos.length === 0 ? (
+              <p className="text-xs text-slate-400">Sin contactos vinculados. Usa <button onClick={abrirNuevoContacto} className="text-brand-600 hover:underline">Agregar</button> para crear uno.</p>
+            ) : (
+              <ul className="flex flex-col divide-y divide-slate-100 text-sm">
+                {empresa.contactos.map((c) => (
+                  <li key={c.id} className="flex flex-col gap-1.5 py-2 first:pt-0 last:pb-0">
+                    <Link href={`/dashboard/contactos/${c.id}`} className="min-w-0 text-slate-700 hover:text-brand-600">
+                      <span className="block truncate font-medium">{c.nombre}</span>
+                      {c.cargo && <span className="block truncate text-xs text-slate-400">{c.cargo}</span>}
+                    </Link>
+                    <div className="flex items-center gap-3">
+                      {c.email && (
+                        <a href={`mailto:${c.email}`} title={`Escribir a ${c.email}`} className="text-slate-300 hover:text-brand-600">
+                          <IconMail size={15} stroke={1.75} />
+                        </a>
+                      )}
+                      {c.telefono && (
+                        <WhatsAppBtn telefono={c.telefono} nombre={c.nombre} />
+                      )}
+                      <button onClick={() => abrirEdicionContacto(c)} title="Editar contacto"
+                        className="text-slate-300 hover:text-brand-600">
+                        <IconPencil size={15} stroke={1.75} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
-          <NuevaActividadInline key={quickKey} empresaId={empresa.id} onGuardado={() => { setQuickTipo(undefined); cargar(); }}
-            tipoInicial={quickTipo} autoAbrir={!!quickTipo} />
-        </div>
 
-        {/* Cotizaciones */}
-        <div className="rounded-2xl border border-slate-200 p-4">
-          <h2 className="mb-3 text-sm font-semibold text-slate-800">Cotizaciones ({empresa.cotizaciones.length})</h2>
-          {empresa.cotizaciones.length === 0 ? (
-            <p className="text-xs text-slate-400">Sin cotizaciones.</p>
-          ) : (
-            <ul className="flex flex-col gap-1 text-sm">
-              {empresa.cotizaciones.map((c) => {
-                const total = c.items.reduce((acc, it) => acc + it.cantidad * Number(it.precioUnit), 0);
-                return (
-                  <li key={c.id} className="text-slate-700">
-                    <Link href={`/dashboard/cotizaciones-formales/${c.id}`} className="hover:text-brand-600">
-                      {numeroCotizacion(c)}
-                    </Link>
-                    <span className="text-slate-400 text-xs ml-1">· {c.estado}</span>
-                    <span className="text-xs font-semibold text-emerald-700 ml-1">· {fmt(String(total))}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-      </div>
-
-      {/* Timeline 360° */}
-      <div className="mt-4">
-        <TimelineCliente
-          empresaId={empresa.id}
-          contactos={empresa.contactos.map(c => ({ id: c.id, nombre: c.nombre }))}
-        />
+          <div className={tarjeta("p-5")}>
+            <h2 className="text-sm font-bold text-slate-900 mb-3">Etiquetas</h2>
+            <Etiquetas
+              etiquetas={empresa.etiquetas ?? []}
+              onGuardar={async (etiquetas) => {
+                await guardarJson(`/api/empresas/${empresa.id}`, "PATCH", { etiquetas });
+                cargar(true);
+              }}
+            />
+          </div>
+        </aside>
       </div>
 
       {/* Modal crear / editar contacto */}
@@ -487,7 +599,7 @@ export default function FichaClientePage() {
             onClick={(e) => e.stopPropagation()}>
             <h2 className="mb-4 text-sm font-semibold text-slate-800">{nuevoContacto ? "Nuevo contacto" : "Editar contacto"}</h2>
             <form onSubmit={handleGuardarContacto} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <label className="mb-1 block text-xs text-slate-500">Nombre *</label>
                 <input required value={formContacto.nombre}
                   onChange={e => setFormContacto(f => ({ ...f, nombre: e.target.value }))}
@@ -505,13 +617,13 @@ export default function FichaClientePage() {
                   onChange={e => setFormContacto(f => ({ ...f, telefono: e.target.value }))}
                   className={campo("md", "w-full")} />
               </div>
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <label className="mb-1 block text-xs text-slate-500">Email</label>
                 <input type="email" value={formContacto.email}
                   onChange={e => setFormContacto(f => ({ ...f, email: e.target.value }))}
                   className={campo("md", "w-full")} />
               </div>
-              <div className="col-span-2 flex items-center justify-between pt-1">
+              <div className="sm:col-span-2 flex items-center justify-between pt-1">
                 {!nuevoContacto ? (
                   <button type="button" onClick={handleEliminarContacto}
                     className="inline-flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-700">
