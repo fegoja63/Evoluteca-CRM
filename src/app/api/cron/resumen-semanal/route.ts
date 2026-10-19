@@ -7,6 +7,7 @@ import { estadoComercial, ultimoMovimientoDe, inicioProximoPaso } from "@/lib/es
 import { moduloActivo } from "@/lib/permisos";
 import { MODULO_POSTVENTA, DIAS_AVISO_RENOVACION, estadoRenovacion } from "@/lib/postventa";
 import { destinoCopia, PREFIJO_COPIA } from "@/lib/copia-resumen";
+import { barrasHorizontales, barraApilada, barrasComparadas, variacion, tituloGrafica } from "@/lib/graficas-correo";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -59,16 +60,34 @@ function bloquePregunta(pregunta: string, cuerpoHtml: string, bg: string) {
 
 type Usuario = { id: string; nombre: string; email: string; tenantId: string; rol: string };
 type TenantInfo = { emailsActivos: boolean; logoUrl: string | null; diasEstancamiento: number; postventa: boolean };
-type Fechas = { ahora: Date; hace7: Date; en7: Date };
+type Fechas = { ahora: Date; hace7: Date; hace14: Date; en7: Date };
 
 const TIPO_LABEL: Record<string, string> = {
   LLAMADA: "llamadas", REUNION: "reuniones", VISITA: "visitas", EMAIL: "correos", TAREA: "tareas",
 };
 
+const ETAPA_LABEL: Record<string, string> = {
+  PROSPECTO: "Prospecto", CALIFICADO: "Calificado", PROPUESTA: "Propuesta", NEGOCIACION: "Negociación",
+};
+// Tonos del navy de la marca: más oscuro a medida que el negocio avanza.
+const ETAPA_COLOR: Record<string, string> = {
+  PROSPECTO: "#93c5fd", CALIFICADO: "#60a5fa", PROPUESTA: "#2563eb", NEGOCIACION: "#1e3a8a",
+};
+
+// Agrupa las actividades por tipo (las dos visitas cuentan como "visita").
+function contarPorTipo(acts: { tipo: string }[]) {
+  const porTipo: Record<string, number> = {};
+  for (const a of acts) {
+    const key = a.tipo === "VISITA_COMERCIAL" || a.tipo === "VISITA_TECNICA" ? "VISITA" : a.tipo;
+    porTipo[key] = (porTipo[key] ?? 0) + 1;
+  }
+  return porTipo;
+}
+
 // Construye el correo "Resumen del Lunes" de un usuario. Devuelve null si no hay
 // nada que contar (sin pipeline activo ni actividad) para no enviar ruido.
 async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): Promise<{ subject: string; html: string } | null> {
-  const { ahora, hace7, en7 } = f;
+  const { ahora, hace7, hace14, en7 } = f;
   const esComercial = u.rol === "COMERCIAL";
   const ownerWhere = esComercial ? { creadoBy: u.id } : {};
   const ownerWhereAct = esComercial ? { OR: [{ creadoBy: u.id }, { responsableId: u.id }] } : {};
@@ -78,7 +97,7 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
     ? { tiene: "Tienes", notiene: "No tienes", negocios: "todos tus negocios", semana: "así arranca tu semana" }
     : { tiene: "El equipo tiene", notiene: "El equipo no tiene", negocios: "todos los negocios del equipo", semana: "así arranca la semana de tu equipo" };
 
-  const [opActivas, ganadas, perdidas, actividades7d, proximas7d] = await Promise.all([
+  const [opActivas, ganadas, perdidas, actividades7d, proximas7d, actividadesPrevias] = await Promise.all([
     prisma.oportunidad.findMany({
       where: { tenantId: u.tenantId, eliminadoEn: null, etapa: { in: ETAPAS_ACTIVAS }, ...ownerWhere },
       select: {
@@ -100,6 +119,11 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
     }),
     prisma.actividad.count({
       where: { tenantId: u.tenantId, completada: false, fecha: { gt: ahora, lte: en7 }, ...ownerWhereAct },
+    }),
+    // La semana anterior, para comparar el ritmo de actividad en la gráfica.
+    prisma.actividad.findMany({
+      where: { tenantId: u.tenantId, fecha: { gte: hace14, lt: hace7 }, ...ownerWhereAct },
+      select: { tipo: true },
     }),
   ]);
 
@@ -184,21 +208,28 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
     .sort((a, b) => a.ultMov.getTime() - b.ultMov.getTime())
     .slice(0, 5);
   let q2 = "";
+  // Gráfica: cómo está repartido el pipeline por estado comercial.
+  const porEstado = { alta: 0, marcha: 0, atencion: 0, riesgo: 0 };
+  for (const x of conEstado) if (x.estado) porEstado[x.estado.clave]++;
+  const salud = barraApilada([
+    { etiqueta: "Alta intención", valor: porEstado.alta, color: "#10b981" },
+    { etiqueta: "En marcha", valor: porEstado.marcha, color: "#3b82f6" },
+    { etiqueta: "Requiere atención", valor: porEstado.atencion, color: "#f59e0b" },
+    { etiqueta: "En riesgo", valor: porEstado.riesgo, color: "#ef4444" },
+  ]);
+  if (salud) q2 += `<div style="margin-bottom:12px">${tituloGrafica("Salud del pipeline")}${salud}</div>`;
   if (enRiesgo.length > 0) {
-    q2 = enRiesgo.map(x => {
+    q2 += enRiesgo.map(x => {
       const color = x.estado?.clave === "riesgo" ? "#ef4444" : "#f59e0b";
       return fila(x.o.titulo, `${x.o.empresa?.nombre ?? ""} · ${x.o.etapa} · ${x.estado?.label}: ${x.estado?.razon}`, color);
     }).join("");
   } else {
-    q2 = `<p style="margin:0;font-size:12px;color:#94a3b8">Nada bloqueado — ${sujeto.negocios} se han movido en los últimos ${tenantInfo.diasEstancamiento} días. 👏</p>`;
+    q2 += `<p style="margin:0;font-size:12px;color:#94a3b8">Nada bloqueado — ${sujeto.negocios} se han movido en los últimos ${tenantInfo.diasEstancamiento} días. 👏</p>`;
   }
 
   // ── Q3: ¿Qué generará ventas futuras? — actividad de la semana + agenda ──
-  const porTipo: Record<string, number> = {};
-  for (const a of actividades7d) {
-    const key = a.tipo === "VISITA_COMERCIAL" || a.tipo === "VISITA_TECNICA" ? "VISITA" : a.tipo;
-    porTipo[key] = (porTipo[key] ?? 0) + 1;
-  }
+  const porTipo = contarPorTipo(actividades7d);
+  const porTipoPrevio = contarPorTipo(actividadesPrevias);
   const resumenTipos = ["LLAMADA", "REUNION", "VISITA", "EMAIL"]
     .filter(k => (porTipo[k] ?? 0) > 0)
     .map(k => `<strong>${porTipo[k]}</strong> ${TIPO_LABEL[k]}`)
@@ -207,6 +238,31 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
     actividades7d.length > 0 ? `${resumenTipos || `<strong>${actividades7d.length}</strong> actividades`} (${actividades7d.length} en total)` : "<strong>sin registrar</strong> — el pipeline no se mueve solo."
   }</p>
   <p style="margin:0;font-size:13px;color:#334155">${sujeto.tiene} <strong>${proximas7d}</strong> actividad(es) agendada(s) para los próximos 7 días.</p>`;
+
+  // Gráfica: esta semana vs. la anterior, por tipo de actividad.
+  const filasComparadas = ["LLAMADA", "REUNION", "VISITA", "EMAIL", "TAREA"]
+    .map(k => ({ etiqueta: TIPO_LABEL[k][0].toUpperCase() + TIPO_LABEL[k].slice(1), actual: porTipo[k] ?? 0, anterior: porTipoPrevio[k] ?? 0 }))
+    .filter(x => x.actual > 0 || x.anterior > 0);
+  let graficaActividad = "";
+  if (filasComparadas.length > 0) {
+    const v = variacion(actividades7d.length, actividadesPrevias.length);
+    graficaActividad = `<div style="margin-top:12px">${tituloGrafica("Esta semana vs. la anterior")}
+      ${barrasComparadas(filasComparadas, "#059669")}
+      <p style="margin:6px 0 0;font-size:12px;font-weight:600;color:${v.color}">${v.texto} (${actividades7d.length} vs ${actividadesPrevias.length})</p>
+    </div>`;
+  }
+
+  // ── Gráfica: embudo por etapa (valor y cantidad) ──
+  const embudo = opActivas.length > 0
+    ? `<div style="margin-top:14px;background:white;border:1px solid #e2e8f0;border-radius:10px;padding:12px">
+        ${tituloGrafica("Pipeline por etapa")}
+        ${barrasHorizontales(ETAPAS_ACTIVAS.map(e => {
+          const deEtapa = opActivas.filter(o => o.etapa === e);
+          const valor = deEtapa.reduce((a, o) => a + Number(o.valor ?? 0), 0);
+          return { etiqueta: ETAPA_LABEL[e], valor, detalle: `${deEtapa.length} · ${fmt(valor)}`, color: ETAPA_COLOR[e] };
+        }))}
+      </div>`
+    : "";
 
   // ── KPIs de cabecera ──
   const kpis = `<div style="display:flex;gap:8px;margin-top:4px">
@@ -228,9 +284,10 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
     <div style="background:#f8fafc;padding:22px 24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
       <p style="font-size:14px;color:#64748b;margin:0 0 14px">Hola <strong>${u.nombre}</strong>, ${sujeto.semana}:</p>
       ${kpis}
+      ${embudo}
       ${bloquePregunta("① ¿Qué oportunidades puedo cerrar?", q1, "#eff6ff")}
       ${bloquePregunta("② ¿Qué operaciones están bloqueadas?", q2, "#fffbeb")}
-      ${bloquePregunta("③ ¿Qué acción generará ventas futuras?", q3, "#f0fdf4")}
+      ${bloquePregunta("③ ¿Qué acción generará ventas futuras?", q3 + graficaActividad, "#f0fdf4")}
       <div style="margin-top:18px">${btn(`${BASE_URL}/dashboard/reportes`, "Abrir el Panel del Lunes")}</div>
       ${footer()}
     </div>`);
@@ -251,7 +308,7 @@ async function obtenerTenantInfo(tenantId: string, cache: Record<string, TenantI
 
 function fechasAhora(): Fechas {
   const ahora = new Date();
-  return { ahora, hace7: new Date(ahora.getTime() - 7 * 86_400_000), en7: new Date(ahora.getTime() + 7 * 86_400_000) };
+  return { ahora, hace7: new Date(ahora.getTime() - 7 * 86_400_000), hace14: new Date(ahora.getTime() - 14 * 86_400_000), en7: new Date(ahora.getTime() + 7 * 86_400_000) };
 }
 
 export async function GET(req: Request) {
