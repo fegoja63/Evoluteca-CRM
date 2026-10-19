@@ -4,14 +4,14 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { permitirYRegistrar } from "@/lib/rate-limit";
 import { filtroOwner } from "@/lib/permisos";
-import { componentesHoyBogota } from "@/lib/fecha-bogota";
+import { componentesHoyBogota, formatoFecha } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const fmt = (v: unknown) =>
   new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(Number(v || 0));
-const fecha = (d: Date) => new Date(d).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
+const fecha = (d: Date) => formatoFecha(new Date(d), { day: "2-digit", month: "short", year: "numeric" });
 const dias = (d: Date) => Math.floor((Date.now() - new Date(d).getTime()) / 86_400_000);
 
 const SYSTEM = `Eres un asesor comercial dentro de un CRM. Recibes un panorama agregado del pipeline de ventas de un equipo (o de un vendedor): oportunidades abiertas por etapa, valor y valor ponderado, negocios calientes, negocios estancados, cierres y pérdidas recientes, y el avance contra la meta del mes. Produces un brief ejecutivo breve y accionable para la reunión de ventas.

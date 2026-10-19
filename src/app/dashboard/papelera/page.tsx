@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { IconRestore, IconTrash, IconInboxOff } from "@tabler/icons-react";
 import { numeroCotizacion } from "@/lib/cotizaciones";
 import { SkeletonTabla } from "@/components/ui/estados";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 type Item = { id: string; nombre: string; email: string | null; eliminadoEn: string };
 type ItemEmpresa = Item & { sector: string | null };
@@ -68,7 +69,7 @@ export default function PapeleraPage() {
   }
 
   function fmt(fecha: string) {
-    return new Date(fecha).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
+    return formatoFecha(new Date(fecha), { day: "2-digit", month: "short", year: "numeric" });
   }
 
   return (

@@ -6,6 +6,7 @@ import { MODALIDAD_LABEL, numeroCotizacion } from "@/lib/cotizaciones";
 import { seccionesVisibles } from "@/lib/cuerpo-cotizacion";
 import { paletaMarca } from "@/lib/color-marca";
 import React from "react";
+import { formatoFecha, formatoDia } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 
@@ -77,7 +78,7 @@ function fmt(v: number) {
 }
 function fmtFecha(d: Date | null) {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric" });
+  return formatoFecha(new Date(d), { day: "2-digit", month: "long", year: "numeric" });
 }
 // Para fechas de CALENDARIO (fechaEvento, fechaValidez): se guardan como medianoche
 // UTC del día elegido en un <input type="date">. Formatearlas en hora local las
@@ -86,7 +87,7 @@ function fmtFecha(d: Date | null) {
 // donde la hora local es la correcta.
 function fmtFechaCalendario(d: Date | null) {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric", timeZone: "UTC" });
+  return formatoDia(new Date(d), { day: "2-digit", month: "long", year: "numeric" });
 }
 
 export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
@@ -299,7 +300,7 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
       // Footer
       React.createElement(View, { style: styles.footer },
         React.createElement(Text, { style: styles.footerTx }, `Cotización ${numEtiqueta} · ${cot.tenant.nombre}`),
-        React.createElement(Text, { style: styles.footerTx }, `Generado el ${new Date().toLocaleDateString("es-CO")}`),
+        React.createElement(Text, { style: styles.footerTx }, `Generado el ${formatoFecha(new Date())}`),
       )
     )
   );

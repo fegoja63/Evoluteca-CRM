@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { permitirYRegistrar } from "@/lib/rate-limit";
 import { filtroOwner } from "@/lib/permisos";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
-import { componentesHoyBogota } from "@/lib/fecha-bogota";
+import { componentesHoyBogota, formatoFecha, formatoDia } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
   const anioHoy = componentesHoyBogota(hoy).anio; // calendario de Colombia, no el del servidor (UTC)
   const SYSTEM = `Eres un traductor de preguntas comerciales a consultas estructuradas sobre una base de oportunidades de venta de un CRM. NO respondes con datos ni cifras: solo llamas a la herramienta "consultar" con los parámetros que mejor representen la pregunta del usuario.
 
-Hoy es ${hoy.toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric", timeZone: "America/Bogota" })}: "este año" = ${anioHoy}, "el año pasado" = ${anioHoy - 1}, "este mes" = el mes en curso.
+Hoy es ${formatoFecha(hoy, { day: "2-digit", month: "long", year: "numeric" })}: "este año" = ${anioHoy}, "el año pasado" = ${anioHoy - 1}, "este mes" = el mes en curso.
 
 Guía:
 - metrica: "conteo" (número de oportunidades), "valor_total" (suma de su valor), "valor_ganado" (valor de las que están GANADA), "valor_ponderado" (valor × probabilidad).
@@ -178,7 +178,7 @@ Elige valores solo de las listas dadas. Si la pregunta no encaja con estos datos
 
   const mesLabel = (ym: string) => {
     const [y, m] = ym.split("-").map(Number);
-    return new Date(y, m - 1, 1).toLocaleDateString("es-CO", { month: "short", year: "2-digit" });
+    return formatoDia(new Date(y, m - 1, 1), { month: "short", year: "2-digit" });
   };
 
   type Punto = { label: string; value: number };
@@ -190,6 +190,7 @@ Elige valores solo de las listas dadas. Si la pregunta no encaja con estos datos
     for (const o of filtradas) {
       let key: string;
       switch (spec.dimension) {
+        // fecha-guardian: permitido (agrupación por mes con la convención de fechaEfectiva/Reportes; no es una conversión para mostrar)
         case "mes": { const ef = fechaEfectiva(o); key = `${ef.getFullYear()}-${String(ef.getMonth() + 1).padStart(2, "0")}`; break; }
         case "etapa": key = NOMBRE_ETAPA[o.etapa] ?? o.etapa; break;
         case "segmento": key = o.segmento?.trim() || "Sin segmento"; break;

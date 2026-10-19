@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -22,6 +22,7 @@ import { PanelLunes } from "@/components/panel-lunes";
 import { tarjeta } from "@/components/ui/estilos";
 import { SkeletonKpis, SkeletonTabla } from "@/components/ui/estados";
 import { mapaEtapas } from "@/lib/etapas-color";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 type ResAnio = { ganadas: number; perdidas: number; activas: number; valorGanado: number; valorPerdido: number; valorActivo: number; total: number };
 type ResMes  = { ganadas: number; perdidas: number; valorGanado: number; total: number };
@@ -627,7 +628,7 @@ export default function ReportesPage() {
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
           <div>
             <p className="text-brand-300 text-xs font-semibold uppercase tracking-widest mb-1">
-              {new Date().toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+              {formatoFecha(new Date(), { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
             </p>
             <h1 className="text-3xl font-bold text-white mb-1">Reporte comercial</h1>
             <p className="text-brand-300 text-sm">Período: <span className="text-white font-medium">{periodoLabel}</span></p>

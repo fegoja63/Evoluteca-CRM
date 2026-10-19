@@ -5,6 +5,7 @@ import Link from "next/link";
 import { IconBuildingPavilion, IconCircleCheck } from "@tabler/icons-react";
 import { campo } from "@/components/ui/estilos";
 import { SkeletonTabla } from "@/components/ui/estados";
+import { formatoFecha, fechaISO } from "@/lib/fecha-bogota";
 
 type Salon = { id: string; nombre: string; capacidad: number | null };
 type Cotizacion = {
@@ -18,8 +19,7 @@ type Cotizacion = {
 };
 
 function hoyISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return fechaISO(); // hoy en Bogotá
 }
 
 export default function TablaDiaSalonesPage() {
@@ -54,7 +54,7 @@ export default function TablaDiaSalonesPage() {
 
   const fechaFormateada = useMemo(() => {
     const [anio, mes, dia] = fecha.split("-").map(Number);
-    return new Date(Date.UTC(anio, mes - 1, dia)).toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+    return formatoFecha(new Date(Date.UTC(anio, mes - 1, dia)), { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   }, [fecha]);
 
   if (cargando) return <SkeletonTabla />;

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import ExcelJS from "exceljs";
+import { formatoFecha, fechaISO } from "@/lib/fecha-bogota";
 
 export async function GET() {
   const session = await auth();
@@ -43,7 +44,7 @@ export async function GET() {
       cargo: c.cargo ?? "",
       empresa: c.empresa?.nombre ?? "",
       notas: c.notas ?? "",
-      creadoEn: new Date(c.creadoEn).toLocaleDateString("es-CO"),
+      creadoEn: formatoFecha(new Date(c.creadoEn)),
     });
   }
 
@@ -60,7 +61,7 @@ export async function GET() {
   });
 
   const buffer = await wb.xlsx.writeBuffer();
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = fechaISO(new Date());
 
   return new NextResponse(new Uint8Array(buffer as ArrayBuffer), {
     status: 200,

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 type NpsRespuesta = {
   id: string;
@@ -206,7 +207,7 @@ export default function FichaEspectadorPage() {
             <div className="flex gap-2"><span className="text-slate-400 w-20 shrink-0">Email</span><span className="text-slate-800">{esp.email ?? "—"}</span></div>
             <div className="flex gap-2"><span className="text-slate-400 w-20 shrink-0">Teléfono</span><span className="text-slate-800">{esp.telefono ?? "—"}</span></div>
             <div className="flex gap-2"><span className="text-slate-400 w-20 shrink-0">Desde</span>
-              <span className="text-slate-800">{new Date(esp.creadoEn).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" })}</span>
+              <span className="text-slate-800">{formatoFecha(new Date(esp.creadoEn), { day:"2-digit", month:"short", year:"numeric" })}</span>
             </div>
             {esp.notas && <div className="col-span-2 flex gap-2"><span className="text-slate-400 w-20 shrink-0">Notas</span><span className="text-slate-800">{esp.notas}</span></div>}
           </div>
@@ -250,7 +251,7 @@ export default function FichaEspectadorPage() {
                   </Link>
                 ) : <span className="text-sm text-slate-400">Función eliminada</span>}
                 <span className="text-xs text-slate-400">
-                  {a.funcion ? new Date(a.funcion.fecha).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" }) : ""}
+                  {a.funcion ? formatoFecha(new Date(a.funcion.fecha), { day: "2-digit", month: "short", year: "numeric" }) : ""}
                 </span>
               </div>
             ))}
@@ -279,7 +280,7 @@ export default function FichaEspectadorPage() {
                           className="text-sm font-medium text-brand-600 hover:underline">{n.funcion.titulo}</Link>
                       )}
                       <span className="text-xs text-slate-400 ml-auto">
-                        {n.funcion ? new Date(n.funcion.fecha).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" }) : ""}
+                        {n.funcion ? formatoFecha(new Date(n.funcion.fecha), { day:"2-digit", month:"short", year:"numeric" }) : ""}
                       </span>
                     </div>
                     {n.comentario && <p className="text-sm text-slate-600">{n.comentario}</p>}

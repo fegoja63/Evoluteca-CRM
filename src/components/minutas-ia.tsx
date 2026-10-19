@@ -15,6 +15,7 @@ import {
 } from "@tabler/icons-react";
 import { minutaATexto, MAX_TEXTO_MINUTA, MIN_TEXTO_MINUTA, type MinutaIA } from "@/lib/minutas";
 import { boton } from "@/components/ui/estilos";
+import { fechaISO, formatoFecha } from "@/lib/fecha-bogota";
 
 type Asistente = MinutaIA["asistentes"][number];
 type Compromiso = MinutaIA["compromisos"][number] & { crearTarea: boolean };
@@ -35,10 +36,10 @@ type Props = {
   onGuardada?: () => void | Promise<void>;
 };
 
-const hoyBogota = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
-const fechaDeIso = (iso: string) => new Date(iso).toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
+const hoyBogota = () => fechaISO(new Date());
+const fechaDeIso = (iso: string) => fechaISO(new Date(iso));
 const fmtFecha = (f: string) =>
-  new Date(`${f}T12:00:00-05:00`).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric", timeZone: "America/Bogota" });
+  formatoFecha(new Date(`${f}T12:00:00-05:00`), { day: "numeric", month: "short", year: "numeric" });
 
 const input = "w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-brand-500";
 const LADO_LABEL: Record<string, string> = { NOSOTROS: "Nuestro equipo", CLIENTE: "Cliente", DESCONOCIDO: "Sin definir" };

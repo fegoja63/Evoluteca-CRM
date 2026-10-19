@@ -18,6 +18,7 @@ import { tipoActividadDef } from "@/lib/tipos-actividad";
 import {
   IconPhone, IconUsers, IconPencil, IconTrash, IconPlus, IconCheck, IconBriefcase, IconSend,
 } from "@tabler/icons-react";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 type Empresa = { id: string; nombre: string };
 
@@ -304,7 +305,7 @@ export default function FichaContactoPage() {
                               <Icono size={15} stroke={1.75} className="shrink-0 text-slate-400" aria-label={def?.label ?? a.tipo} />
                               <span className="min-w-0 truncate">{a.titulo}</span>
                               <span className={`ml-auto shrink-0 text-xs ${vencida ? "font-semibold text-red-600" : "text-slate-400"}`}>
-                                {vencida && "Vencida · "}{new Date(a.fecha).toLocaleDateString("es-CO")}
+                                {vencida && "Vencida · "}{formatoFecha(new Date(a.fecha))}
                               </span>
                             </li>
                           );

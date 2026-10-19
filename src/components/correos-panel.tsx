@@ -5,6 +5,7 @@ import { toast } from "@/lib/toast";
 import { IconMail, IconSend, IconX, IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonLista } from "@/components/ui/estados";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 type Correo = {
   id: string;
@@ -133,7 +134,7 @@ export function CorreosPanel({ contactoId, empresaId, oportunidadId, emailDestin
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-800 truncate">{c.asunto}</p>
                     <p className="text-xs text-slate-400 truncate">
-                      {c.direccion === "ENVIADO" ? `Para ${c.para}` : `De ${c.de}`} · {new Date(c.fecha).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })}
+                      {c.direccion === "ENVIADO" ? `Para ${c.para}` : `De ${c.de}`} · {formatoFecha(new Date(c.fecha), { day: "2-digit", month: "short", year: "numeric" })}
                     </p>
                   </div>
                   {abierto ? <IconChevronUp size={15} className="text-slate-300 shrink-0 mt-1" /> : <IconChevronDown size={15} className="text-slate-300 shrink-0 mt-1" />}

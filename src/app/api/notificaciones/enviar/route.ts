@@ -6,6 +6,7 @@ import { enviarNotificacionSchema } from "@/lib/validations/notificaciones";
 import { parseOrError } from "@/lib/validations/helpers";
 import { escapeHtml } from "@/lib/html";
 import { filtroActividadPropia } from "@/lib/permisos";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 
@@ -74,7 +75,7 @@ export async function POST(req: Request) {
       orderBy: { fecha: "asc" }, take: 10,
       select: { titulo: true, tipo: true, fecha: true, empresa: { select: { nombre: true } } },
     });
-    subject = `📊 Resumen diario — ${new Date().toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" })}`;
+    subject = `📊 Resumen diario — ${formatoFecha(new Date(), { weekday: "long", day: "numeric", month: "long" })}`;
     html = `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;color:#1e293b">
         <div style="background:#1e3a8a;padding:24px;border-radius:12px 12px 0 0">
@@ -88,7 +89,7 @@ export async function POST(req: Request) {
                ${actividadesPendientes.map(a => `
                  <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:8px">
                    <p style="margin:0 0 4px;font-weight:600;font-size:13px">${a.titulo}</p>
-                   <p style="margin:0;font-size:12px;color:#94a3b8">${a.tipo} · ${a.empresa?.nombre ?? ""} · ${new Date(a.fecha).toLocaleDateString("es-CO")}</p>
+                   <p style="margin:0;font-size:12px;color:#94a3b8">${a.tipo} · ${a.empresa?.nombre ?? ""} · ${formatoFecha(new Date(a.fecha))}</p>
                  </div>`).join("")}`}
           <a href="${process.env.NEXTAUTH_URL}/dashboard/agenda" style="display:inline-block;margin-top:12px;background:#2563eb;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">Ir a la Agenda →</a>
         </div>

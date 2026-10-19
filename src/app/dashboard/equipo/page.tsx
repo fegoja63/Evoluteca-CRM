@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
@@ -9,6 +9,7 @@ import { CampoPassword } from "@/components/campo-password";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonTabla } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
+import { fechaISO } from "@/lib/fecha-bogota";
 
 type Usuario = {
   id: string;
@@ -70,7 +71,7 @@ export default function EquipoPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `equipo-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.download = `equipo-${fechaISO(new Date())}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
     setExportando(false);

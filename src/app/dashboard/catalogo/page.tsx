@@ -5,6 +5,7 @@ import { IconDownload, IconPlus, IconX, IconPackage, IconTarget, IconTrash } fro
 import { MoneyInput } from "@/components/money-input";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonTarjetas, EstadoVacio } from "@/components/ui/estados";
+import { fechaISO } from "@/lib/fecha-bogota";
 
 type Producto = { id: string; nombre: string; descripcion: string | null; precioBase: string; activo: boolean };
 type Fila = { nombre: string; descripcion: string; precioBase: string };
@@ -33,7 +34,7 @@ export default function CatalogoPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `catalogo-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.download = `catalogo-${fechaISO(new Date())}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
     setExportando(false);

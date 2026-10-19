@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { IconPaperclip, IconFile, IconFileTypePdf, IconPhoto, IconDownload, IconTrash, IconLoader2 } from "@tabler/icons-react";
 import { tarjeta } from "@/components/ui/estilos";
 import { SkeletonLista } from "@/components/ui/estados";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 type Adjunto = { id: string; nombre: string; tipo: string; tamano: number; creadoEn: string };
 
@@ -131,7 +132,7 @@ export function Adjuntos({ empresaId, contactoId, oportunidadId }: AdjuntosProps
                 <Icono size={18} stroke={1.75} className="text-slate-400 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm text-slate-800 truncate">{a.nombre}</p>
-                  <p className="text-xs text-slate-400">{fmtTamano(a.tamano)} · {new Date(a.creadoEn).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })}</p>
+                  <p className="text-xs text-slate-400">{fmtTamano(a.tamano)} · {formatoFecha(new Date(a.creadoEn), { day: "2-digit", month: "short", year: "numeric" })}</p>
                 </div>
                 <button onClick={() => descargar(a.id, a.nombre)} disabled={descargandoId === a.id}
                   className="text-slate-400 hover:text-brand-600 p-1 shrink-0" title="Descargar">

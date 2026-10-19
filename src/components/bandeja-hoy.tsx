@@ -7,7 +7,7 @@ import {
   IconBuilding, IconUser, IconChartFunnel, IconInbox,
 } from "@tabler/icons-react";
 import { tipoActividadDef } from "@/lib/tipos-actividad";
-import { aInputDatetimeLocal } from "@/lib/fecha-bogota";
+import { aInputDatetimeLocal, formatoFechaHora, formatoFecha, formatoHora } from "@/lib/fecha-bogota";
 import { toast } from "@/lib/toast";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { EstadoVacio } from "@/components/ui/estados";
@@ -35,7 +35,7 @@ const ETAPA_LABEL: Record<string, string> = {
 };
 
 const fmtFecha = (iso: string) =>
-  new Date(iso).toLocaleString("es-CO", { weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota" });
+  formatoFechaHora(new Date(iso), { weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 const fmtValor = (v: number) =>
   new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
 
@@ -166,8 +166,8 @@ export function BandejaHoy({ itemsIniciales, alcance }: { itemsIniciales: ItemBa
                     it.vencida ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-600"
                   }`}>
                     {it.vencida
-                      ? `Vencida · ${new Date(it.fecha).toLocaleDateString("es-CO", { day: "2-digit", month: "short", timeZone: "America/Bogota" })}`
-                      : new Date(it.fecha).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota" })}
+                      ? `Vencida · ${formatoFecha(new Date(it.fecha), { day: "2-digit", month: "short" })}`
+                      : formatoHora(new Date(it.fecha), { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </button>
               );

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -15,6 +15,7 @@ import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
 import { ETAPA_ESTILO, mapaEtapas } from "@/lib/etapas-color";
+import { fechaISO, formatoFecha } from "@/lib/fecha-bogota";
 
 type Oportunidad = {
   id: string;
@@ -84,7 +85,7 @@ export default function CotizacionesPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `cotizaciones-activas-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.download = `cotizaciones-activas-${fechaISO(new Date())}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
     setExportando(false);
@@ -96,7 +97,7 @@ export default function CotizacionesPage() {
 
   function fmtFecha(f: string | null) {
     if (!f) return null;
-    return new Date(f).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
+    return formatoFecha(new Date(f), { day: "2-digit", month: "short", year: "numeric" });
   }
 
   const ETAPAS_VIGENTES = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"];

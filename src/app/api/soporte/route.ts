@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { Resend } from "resend";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 const SOPORTE_EMAIL = "felipe.gomez@evoluteca.com";
 
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
             </tr>
             <tr>
               <td style="padding:8px 0;font-size:13px;color:#64748b">Fecha</td>
-              <td style="padding:8px 0;font-size:14px;color:#1e293b">${new Date().toLocaleString("es-CO", { timeZone: "America/Bogota" })}</td>
+              <td style="padding:8px 0;font-size:14px;color:#1e293b">${formatoFecha(new Date())}</td>
             </tr>
           </table>
           <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px 20px">

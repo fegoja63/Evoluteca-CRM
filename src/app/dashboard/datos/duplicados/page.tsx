@@ -9,6 +9,7 @@ import {
 import { puedeEliminar } from "@/lib/permisos";
 import { toast } from "@/lib/toast";
 import { boton } from "@/components/ui/estilos";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 type Registro = {
   id: string;
@@ -32,7 +33,7 @@ const ETIQUETA_CONTEO: Record<string, string> = {
 };
 
 function fechaCorta(iso: string): string {
-  return new Date(iso).toLocaleDateString("es-CO", { year: "numeric", month: "short", day: "numeric" });
+  return formatoFecha(new Date(iso), { year: "numeric", month: "short", day: "numeric" });
 }
 
 export default function DuplicadosPage() {

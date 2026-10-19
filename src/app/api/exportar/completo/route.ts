@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
 import ExcelJS from "exceljs";
+import { fechaISO, formatoDia } from "@/lib/fecha-bogota";
 
 export async function GET() {
   const session = await auth();
@@ -50,7 +51,7 @@ export async function GET() {
 
   function fmtFecha(d: Date | null): string {
     if (!d) return "";
-    return new Date(d).toLocaleDateString("es-CO", { day: "2-digit", month: "2-digit", year: "numeric" });
+    return formatoDia(new Date(d), { day: "2-digit", month: "2-digit", year: "numeric" });
   }
 
   // Traer oportunidades con todo relacionado
@@ -164,7 +165,7 @@ export async function GET() {
   ws.views = [{ state: "frozen", ySplit: 1 }];
 
   const buffer = await wb.xlsx.writeBuffer();
-  const fecha = new Date().toISOString().slice(0, 10);
+  const fecha = fechaISO(new Date());
 
   return new NextResponse(buffer, {
     headers: {

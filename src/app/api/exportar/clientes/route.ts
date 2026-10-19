@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
 import { filtroPeriodoCreacion } from "@/lib/filtros";
 import ExcelJS from "exceljs";
+import { formatoFecha, fechaISO } from "@/lib/fecha-bogota";
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
       contactos: e._count.contactos,
       oportunidades: e._count.oportunidades,
       notas: e.notas ?? "",
-      creadoEn: new Date(e.creadoEn).toLocaleDateString("es-CO"),
+      creadoEn: formatoFecha(new Date(e.creadoEn)),
     });
   }
 
@@ -77,7 +78,7 @@ export async function GET(request: Request) {
   });
 
   const buffer = await wb.xlsx.writeBuffer();
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = fechaISO(new Date());
   const anioOk = anio && /^\d{4}$/.test(anio);
   const mesOk = mes && /^(0?[1-9]|1[0-2])$/.test(mes);
   const sufijo = anioOk

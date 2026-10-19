@@ -5,6 +5,7 @@
 // Sin dependencias del servidor: lo usan la API, la pantalla y las pruebas.
 
 import { z } from "zod";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 export const LADOS_ASISTENTE = ["NOSOTROS", "CLIENTE", "DESCONOCIDO"] as const;
 export const LADOS_COMPROMISO = ["NOSOTROS", "CLIENTE"] as const;
@@ -90,7 +91,7 @@ export function limpiarMinutaIA(m: MinutaIA, ahora: Date = new Date()): MinutaIA
 }
 
 const fmtFecha = (f: string) =>
-  new Date(`${f}T12:00:00-05:00`).toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric", timeZone: "America/Bogota" });
+  formatoFecha(new Date(`${f}T12:00:00-05:00`), { day: "numeric", month: "long", year: "numeric" });
 
 /**
  * La minuta como texto plano, lista para pegar en un correo o WhatsApp al

@@ -10,6 +10,7 @@ import {
   type Icon,
 } from "@tabler/icons-react";
 import { boton, campo as estiloCampo, tarjeta } from "@/components/ui/estilos";
+import { fechaISO } from "@/lib/fecha-bogota";
 
 type Preview = {
   columnas: string[];
@@ -386,7 +387,7 @@ export default function ImportarCompletoPage() {
                 <input
                   type="date"
                   value={fechaCreacion}
-                  max={new Date().toISOString().slice(0, 10)}
+                  max={fechaISO(new Date())}
                   onChange={e => setFechaCreacion(e.target.value)}
                   className={estiloCampo("md")}
                 />

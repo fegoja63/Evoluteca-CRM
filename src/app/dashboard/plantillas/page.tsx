@@ -5,6 +5,7 @@ import { IconPlus, IconX, IconClipboardText, IconStar, IconInfoCircle, IconPenci
 import { LineasEditor, LINEA_VACIA, type Linea } from "@/components/lineas-editor";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonTarjetas, EstadoVacio } from "@/components/ui/estados";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 type ItemPlantilla = { id: string; descripcion: string; cantidad: string | number; precioUnit: string | number };
 type Plantilla = { id: string; nombre: string; notas: string | null; creadoEn: string; items: ItemPlantilla[] };
@@ -226,7 +227,7 @@ export default function PlantillasPage() {
                             <span className="ml-2 text-xs font-semibold text-brand-600">{fmt(totalPlantilla(p))}</span>
                           )}
                         </h3>
-                        <p className="text-xs text-slate-400">{p.items.length} ítem(s) · creada el {new Date(p.creadoEn).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })}</p>
+                        <p className="text-xs text-slate-400">{p.items.length} ítem(s) · creada el {formatoFecha(new Date(p.creadoEn), { day: "2-digit", month: "short", year: "numeric" })}</p>
                       </button>
                     </div>
                     <div className="flex gap-2 shrink-0">

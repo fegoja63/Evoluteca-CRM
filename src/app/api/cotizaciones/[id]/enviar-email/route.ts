@@ -9,6 +9,7 @@ import { randomBytes } from "crypto";
 import { generarTokenHilo, construirReplyTo } from "@/lib/correo-inbound";
 import { baseUrlDesdePeticion } from "@/lib/base-url";
 import { paletaMarca } from "@/lib/color-marca";
+import { formatoFecha, formatoDia } from "@/lib/fecha-bogota";
 
 export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -141,7 +142,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
         ${tablaHtml}
 
         ${cot.notas ? `<div style="margin-top:16px;background:#f8fafc;border-radius:8px;padding:12px;font-size:12px;color:#64748b"><strong>Notas:</strong> ${cot.notas}</div>` : ""}
-        ${cot.fechaValidez ? `<p style="margin-top:12px;font-size:12px;color:#94a3b8">Cotización válida hasta: <strong>${new Date(cot.fechaValidez).toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric", timeZone: "UTC" })}</strong></p>` : ""}
+        ${cot.fechaValidez ? `<p style="margin-top:12px;font-size:12px;color:#94a3b8">Cotización válida hasta: <strong>${formatoDia(new Date(cot.fechaValidez), { day:"2-digit", month:"long", year:"numeric" })}</strong></p>` : ""}
 
         <div style="margin-top:24px;text-align:center">
           <a href="${verUrl}" style="display:inline-block;background:${marca.oscuro};color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;margin:0 4px 8px">
@@ -153,7 +154,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
         </div>
 
         <p style="margin-top:24px;font-size:10px;color:#cbd5e1;text-align:center">
-          Enviado usando Evoluteca CRM · ${new Date().toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric" })}
+          Enviado usando Evoluteca CRM · ${formatoFecha(new Date(), { day:"2-digit", month:"long", year:"numeric" })}
         </p>
       </div>
     </div>`;
@@ -177,7 +178,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
   // filtros anti-spam; incluir el equivalente en texto mejora la entregabilidad.
   const totalMostrar = esFijo ? total : valorContrato;
   const validezTxt = cot.fechaValidez
-    ? `\nVálida hasta: ${new Date(cot.fechaValidez).toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric", timeZone: "UTC" })}`
+    ? `\nVálida hasta: ${formatoDia(new Date(cot.fechaValidez), { day: "2-digit", month: "long", year: "numeric" })}`
     : "";
   const texto = `Estimado/a ${contacto || cliente},
 

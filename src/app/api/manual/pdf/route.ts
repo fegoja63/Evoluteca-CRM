@@ -5,6 +5,7 @@ import {
 import React from "react";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
+import { formatoFecha, aInputDatetimeLocal } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 
@@ -243,7 +244,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.26 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.26 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -1124,7 +1125,7 @@ export async function GET() {
   return new NextResponse(buffer as unknown as BodyInit, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="manual-evoluteca-crm-${new Date().toLocaleString("sv-SE", { timeZone: "America/Bogota" }).slice(0, 16).replace(" ", "-").replace(":", "")}.pdf"`,
+      "Content-Disposition": `attachment; filename="manual-evoluteca-crm-${aInputDatetimeLocal(new Date()).replace("T", "-").replace(":", "")}.pdf"`,
     },
   });
 }

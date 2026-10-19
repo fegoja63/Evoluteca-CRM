@@ -5,6 +5,7 @@ import { toast } from "@/lib/toast";
 import { tiposActividadVisibles } from "@/lib/tipos-actividad";
 import { boton, campo } from "@/components/ui/estilos";
 import { IconPlus } from "@tabler/icons-react";
+import { ahoraParaInput } from "@/lib/fecha-bogota";
 
 type Props = {
   empresaId?: string;
@@ -15,12 +16,6 @@ type Props = {
   autoAbrir?: boolean;
 };
 
-function fechaLocalDefault() {
-  const d = new Date();
-  d.setMinutes(0, 0, 0);
-  d.setHours(d.getHours() + 1);
-  return d.toISOString().slice(0, 16);
-}
 
 export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onGuardado, tipoInicial, autoAbrir }: Props) {
   const [abierto, setAbierto] = useState(autoAbrir ?? false);
@@ -39,7 +34,7 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
   const [form, setForm] = useState({
     tipo: tipoInicial ?? "TAREA",
     titulo: "",
-    fecha: fechaLocalDefault(),
+    fecha: ahoraParaInput(),
     notas: "",
   });
 
@@ -62,7 +57,7 @@ export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onG
       toast.error(data.error ?? "No se pudo crear la actividad. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
-    setForm({ tipo: tipoInicial ?? "TAREA", titulo: "", fecha: fechaLocalDefault(), notas: "" });
+    setForm({ tipo: tipoInicial ?? "TAREA", titulo: "", fecha: ahoraParaInput(), notas: "" });
     setAbierto(false);
     onGuardado?.();
   }

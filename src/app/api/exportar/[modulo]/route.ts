@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
 import ExcelJS from "exceljs";
+import { formatoFecha, formatoFechaHora, fechaISO } from "@/lib/fecha-bogota";
 
 export async function GET(request: Request, props: { params: Promise<{ modulo: string }> }) {
   const params = await props.params;
@@ -43,7 +44,7 @@ export async function GET(request: Request, props: { params: Promise<{ modulo: s
       datos.forEach((e) => ws.addRow({
         nombre: e.nombre, sector: e.sector, telefono: e.telefono,
         sitioWeb: e.sitioWeb, contactos: e._count.contactos,
-        notas: e.notas, creadoEn: new Date(e.creadoEn).toLocaleDateString("es-CO"),
+        notas: e.notas, creadoEn: formatoFecha(new Date(e.creadoEn)),
       }));
       estilo(ws);
       break;
@@ -94,7 +95,7 @@ export async function GET(request: Request, props: { params: Promise<{ modulo: s
       datos.forEach((o) => ws.addRow({
         titulo: o.titulo, etapa: o.etapa, valor: o.valor ? Number(o.valor) : null,
         empresa: o.empresa?.nombre, contacto: o.contacto?.nombre,
-        notas: o.notas, creadoEn: new Date(o.creadoEn).toLocaleDateString("es-CO"),
+        notas: o.notas, creadoEn: formatoFecha(new Date(o.creadoEn)),
       }));
       estilo(ws);
       break;
@@ -120,7 +121,7 @@ export async function GET(request: Request, props: { params: Promise<{ modulo: s
       ];
       datos.forEach((a) => ws.addRow({
         titulo: a.titulo, tipo: a.tipo,
-        fecha: new Date(a.fecha).toLocaleString("es-CO"),
+        fecha: formatoFechaHora(new Date(a.fecha)),
         completada: a.completada ? "Sí" : "No",
         empresa: a.empresa?.nombre, contacto: a.contacto?.nombre,
         notas: a.notas,
@@ -200,7 +201,7 @@ export async function GET(request: Request, props: { params: Promise<{ modulo: s
       ];
       datos.forEach((f) => ws.addRow({
         titulo: f.titulo,
-        fecha: new Date(f.fecha).toLocaleString("es-CO"),
+        fecha: formatoFechaHora(new Date(f.fecha)),
         sillasTotales: f.sillasTotales,
         sillasVendidas: f.sillasVendidas,
         ocupacion: f.sillasTotales > 0 ? `${Math.round((f.sillasVendidas / f.sillasTotales) * 100)}%` : "0%",
@@ -216,7 +217,7 @@ export async function GET(request: Request, props: { params: Promise<{ modulo: s
   }
 
   const buffer = await wb.xlsx.writeBuffer();
-  const nombreArchivo = `${params.modulo}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  const nombreArchivo = `${params.modulo}_${fechaISO(new Date())}.xlsx`;
 
   return new NextResponse(buffer, {
     headers: {

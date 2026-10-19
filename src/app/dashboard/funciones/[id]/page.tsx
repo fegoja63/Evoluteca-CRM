@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { IconUpload } from "@tabler/icons-react";
 import { MoneyInput } from "@/components/money-input";
-import { aInputDatetimeLocal } from "@/lib/fecha-bogota";
+import { aInputDatetimeLocal, formatoFecha } from "@/lib/fecha-bogota";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
 
@@ -263,7 +263,7 @@ export default function FichaFuncionPage() {
             <div className="flex items-start justify-between mb-5">
               <div>
                 <p className="text-xs text-slate-400 mb-1">
-                  {new Date(fn.fecha).toLocaleDateString("es-CO", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+                  {formatoFecha(new Date(fn.fecha), { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
                   {" · "}{CANALES[fn.canal] ?? fn.canal}
                 </p>
                 <h1 className="text-xl font-bold text-slate-900">{fn.titulo}</h1>
@@ -471,7 +471,7 @@ export default function FichaFuncionPage() {
                           className="text-xs text-brand-600 hover:underline">{n.espectador.nombre}</Link>
                       )}
                       <span className="text-xs text-slate-400 ml-auto">
-                        {new Date(n.creadoEn).toLocaleDateString("es-CO", { day:"2-digit", month:"short" })}
+                        {formatoFecha(new Date(n.creadoEn), { day:"2-digit", month:"short" })}
                       </span>
                     </div>
                     {n.comentario && <p className="text-sm text-slate-600">{n.comentario}</p>}

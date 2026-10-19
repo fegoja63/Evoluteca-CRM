@@ -10,6 +10,7 @@ import { plazoVencido, plazoProximo } from "@/lib/plazo-legal";
 import { IconAlertTriangle } from "@tabler/icons-react";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
+import { formatoFecha, formatoDia } from "@/lib/fecha-bogota";
 
 type Termino = {
   id: string;
@@ -400,7 +401,7 @@ export default function DetalleExpedientePage() {
                       {t.descripcion}
                     </p>
                     <p className="text-xs text-slate-500">
-                      {new Date(t.fechaLimite).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })}
+                      {formatoDia(new Date(t.fechaLimite), { day: "2-digit", month: "short", year: "numeric" })}
                       {urgencia === "vencido" && <span className="ml-2 font-semibold text-red-600">Vencido</span>}
                       {urgencia === "proximo" && <span className="ml-2 font-semibold text-amber-600">Próximo</span>}
                       {t.notas && <span className="ml-2 text-slate-400">· {t.notas}</span>}
@@ -493,7 +494,7 @@ export default function DetalleExpedientePage() {
                   const puedeEliminarRegistro = puedeEliminar || r.usuarioId === session?.user?.id;
                   return (
                     <tr key={r.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-3 py-1.5 text-slate-500 whitespace-nowrap">{new Date(r.fecha).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })}</td>
+                      <td className="px-3 py-1.5 text-slate-500 whitespace-nowrap">{formatoFecha(new Date(r.fecha), { day: "2-digit", month: "short", year: "numeric" })}</td>
                       <td className="px-3 py-1.5 text-slate-700">{r.usuario?.nombre ?? "Usuario eliminado"}</td>
                       <td className="px-3 py-1.5 font-medium text-slate-900">{Number(r.horas)} h</td>
                       <td className="px-3 py-1.5 text-slate-500">{r.descripcion ?? "—"}</td>
