@@ -136,4 +136,13 @@ describe("Resumen del lunes", () => {
     expect(html).toContain("así arranca la semana de tu equipo");
     expect(html).not.toContain("así arranca tu semana");
   });
+
+  it("trae las gráficas de pipeline, salud y actividad (sin svg)", async () => {
+    comoUsuario(A, "ADMINISTRADOR");
+    const { respuesta } = await llamar(resumenSemanal, {});
+    const html = await respuesta.text();
+    expect(html).toContain("Pipeline por etapa");
+    expect(html).toContain("Salud del pipeline");
+    expect(html).not.toContain("<svg");
+  });
 });
