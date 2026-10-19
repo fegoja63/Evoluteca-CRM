@@ -18,7 +18,10 @@
  * directamente (scripts/reconstruir-db-test.mts), sin vitest ni alias "@/".
  */
 import { PrismaClient } from "@prisma/client";
-import { formatoHora } from "@/lib/fecha-bogota";
+
+// Hora en Bogotá, sin importar lib/fecha-bogota (ver arriba: Node no resuelve "@/").
+const formatoHora = (d: Date) =>
+  new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", hour: "numeric", minute: "2-digit" }).format(d);
 
 // Numero arbitrario, fijo. Menor que 2^32 para que en pg_locks quede entero
 // en `objid` y se pueda buscar quien lo tiene.

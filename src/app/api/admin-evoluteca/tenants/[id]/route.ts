@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { verificarClaveAdmin } from "@/lib/admin-evoluteca";
 import { editarTenantSchema } from "@/lib/validations/tenants";
 import { parseOrError } from "@/lib/validations/helpers";
+import { fechaDesdeBogota } from "@/lib/fecha-bogota";
 
 export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -15,7 +16,11 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
   const body = await req.json();
   const { data, error } = parseOrError(editarTenantSchema, body);
   if (error) return error;
-  const { activo, plan, emailsActivos, limiteUsuarios, limiteResumenesIA, modulos } = data;
+  const { activo, plan, emailsActivos, limiteUsuarios, limiteResumenesIA, modulos, licenciaVenceEn, licenciaAvisoEn } = data;
+  const dia = (v: string | null) => (v ? fechaDesdeBogota(v) : null);
+  // Cambiar cualquiera de las dos fechas re-arma el aviso (se vuelve a enviar
+  // el día que corresponda).
+  const cambiaLicencia = licenciaVenceEn !== undefined || licenciaAvisoEn !== undefined;
 
   // Los módulos se fusionan (no se reemplaza el objeto completo) para no
   // desactivar accidentalmente un módulo que no vino en este PATCH.
@@ -39,11 +44,14 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
       ...(limiteUsuarios !== undefined && { limiteUsuarios }),
       ...(limiteResumenesIA !== undefined && { limiteResumenesIA }),
       ...(modulosNuevos !== undefined && { modulos: modulosNuevos }),
+      ...(licenciaVenceEn !== undefined && { licenciaVenceEn: dia(licenciaVenceEn) }),
+      ...(licenciaAvisoEn !== undefined && { licenciaAvisoEn: dia(licenciaAvisoEn) }),
+      ...(cambiaLicencia && { licenciaAvisadaEn: null }),
     },
     select: {
       id: true, nombre: true, slug: true, plan: true, activo: true,
       creadoEn: true, modulos: true, emailsActivos: true, limiteUsuarios: true,
-      limiteResumenesIA: true,
+      limiteResumenesIA: true, licenciaVenceEn: true, licenciaAvisoEn: true, licenciaAvisadaEn: true,
       _count: { select: { usuarios: true, empresas: true, cotizaciones: true } },
     },
   });

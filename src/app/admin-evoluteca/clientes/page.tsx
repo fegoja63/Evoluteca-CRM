@@ -6,7 +6,7 @@ import { boton, campo, insignia, type TonoInsignia } from "@/components/ui/estil
 import type { NivelUso, SaludUso } from "@/lib/salud-uso";
 import { SkeletonTabla } from "@/components/ui/estados";
 import { IconCheck } from "@tabler/icons-react";
-import { formatoFecha } from "@/lib/fecha-bogota";
+import { aInputDia, formatoDia, formatoFecha } from "@/lib/fecha-bogota";
 
 const CLAVE_KEY = "admin-evoluteca-secret";
 
@@ -22,6 +22,9 @@ type Tenant = {
   modulos: Modulos;
   emailsActivos: boolean;
   limiteUsuarios: number | null;
+  licenciaVenceEn: string | null;
+  licenciaAvisoEn: string | null;
+  licenciaAvisadaEn: string | null;
   _count: { usuarios: number; empresas: number; cotizaciones: number };
   salud: SaludUso;
 };
@@ -104,7 +107,7 @@ export default function ClientesInternoPage() {
     cargar(claveInput);
   }
 
-  async function actualizar(id: string, cambios: Partial<{ activo: boolean; plan: string; emailsActivos: boolean; limiteUsuarios: number | null; modulos: Modulos }>) {
+  async function actualizar(id: string, cambios: Partial<{ activo: boolean; plan: string; emailsActivos: boolean; limiteUsuarios: number | null; modulos: Modulos; licenciaVenceEn: string | null; licenciaAvisoEn: string | null }>) {
     setGuardando(true);
     const res = await fetch(`/api/admin-evoluteca/tenants/${id}`, {
       method: "PATCH",
@@ -262,6 +265,9 @@ export default function ClientesInternoPage() {
                       </td>
                       <td className="px-4 py-2 text-slate-500 whitespace-nowrap">
                         {formatoFecha(new Date(t.creadoEn), { day: "2-digit", month: "short", year: "numeric" })}
+                        {t.licenciaVenceEn && (
+                          <p className="text-xs text-slate-400">vence {formatoDia(t.licenciaVenceEn, { day: "2-digit", month: "short", year: "numeric" })}</p>
+                        )}
                       </td>
                       <td className="px-4 py-2 text-right">
                         <button
@@ -338,6 +344,38 @@ export default function ClientesInternoPage() {
                                 />
                               </div>
                               <p className="mt-1 text-2xs text-slate-400">{t._count.usuarios} usuario{t._count.usuarios !== 1 ? "s" : ""} hoy</p>
+                            </div>
+                          </div>
+                          <div className="mt-4">
+                            <p className="text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Licencia</p>
+                            <div className="flex flex-wrap items-end gap-3">
+                              <label className="text-xs text-slate-500">
+                                Vence el
+                                <input
+                                  type="date"
+                                  disabled={guardando}
+                                  value={aInputDia(t.licenciaVenceEn)}
+                                  onChange={e => actualizar(t.id, { licenciaVenceEn: e.target.value || null })}
+                                  className={campo("sm", "mt-1 block")}
+                                />
+                              </label>
+                              <label className="text-xs text-slate-500">
+                                Avisarme el
+                                <input
+                                  type="date"
+                                  disabled={guardando}
+                                  value={aInputDia(t.licenciaAvisoEn)}
+                                  onChange={e => actualizar(t.id, { licenciaAvisoEn: e.target.value || null })}
+                                  className={campo("sm", "mt-1 block")}
+                                />
+                              </label>
+                              <p className="pb-2 text-2xs text-slate-400">
+                                {!t.licenciaAvisoEn
+                                  ? "Sin aviso programado."
+                                  : t.licenciaAvisadaEn
+                                    ? `Aviso enviado el ${formatoFecha(t.licenciaAvisadaEn)}.`
+                                    : "Ese día llega un correo a Evoluteca para decidir si se renueva. Vencer no suspende el acceso."}
+                              </p>
                             </div>
                           </div>
                           <div className="mt-4">
