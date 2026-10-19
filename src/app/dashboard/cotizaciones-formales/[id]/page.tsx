@@ -14,7 +14,7 @@ import { useSession } from "next-auth/react";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
-import { formatoFecha } from "@/lib/fecha-bogota";
+import { formatoFecha, formatoDia } from "@/lib/fecha-bogota";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type LineaAhorro = { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string };
@@ -77,6 +77,11 @@ function fmt(v: number) {
 function fmtFecha(s: string | null) {
   if (!s) return "—";
   return formatoFecha(new Date(s), { day: "2-digit", month: "long", year: "numeric" });
+}
+// Fechas de calendario (evento, validez): ver formatoDia.
+function fmtDia(s: string | null) {
+  if (!s) return "—";
+  return formatoDia(new Date(s), { day: "2-digit", month: "long", year: "numeric" });
 }
 
 export default function CotizacionDetailPage() {
@@ -618,8 +623,8 @@ export default function CotizacionDetailPage() {
               // los tiene — en tenants sin módulo de eventos nunca se llenan, así que
               // no aparecen filas vacías "No especificado" que confundan.
               ...(cot.sede ? [{ label: "Sede / Lugar", value: cot.sede }] : []),
-              ...(cot.fechaEvento ? [{ label: "Fecha del evento", value: fmtFecha(cot.fechaEvento) }] : []),
-              { label: "Validez hasta",   value: fmtFecha(cot.fechaValidez) },
+              ...(cot.fechaEvento ? [{ label: "Fecha del evento", value: fmtDia(cot.fechaEvento) }] : []),
+              { label: "Validez hasta",   value: fmtDia(cot.fechaValidez) },
             ] as { label: string; value: string | null; href?: string }[]).map(r => (
               <div key={r.label}>
                 <p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">{r.label}</p>

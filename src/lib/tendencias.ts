@@ -50,6 +50,7 @@ export function seriesTendencias(ops: OportunidadSerie[], etapasBase: EtapaDef[]
   const abiertas = ops.filter(o => o.etapa !== "GANADA" && o.etapa !== "PERDIDA");
   for (const o of ops) {
     const ef = fechaEfectiva(o);
+    // fecha-guardian: permitido (agrupación por mes con la convención de fechaEfectiva/Reportes; no es una conversión para mostrar)
     const b = idx.get(`${ef.getFullYear()}-${ef.getMonth() + 1}`);
     if (b) {
       if (o.etapa === "GANADA") { b.ganado += Number(o.valor ?? 0); b.ganadas++; }

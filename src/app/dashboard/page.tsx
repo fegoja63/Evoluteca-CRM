@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { filtroOwner, moduloActivo, alcanceDe, esComercial, filtroActividadAlcance } from "@/lib/permisos";
 import { SelectorAlcance } from "@/components/selector-alcance";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
-import { componentesHoyBogota, medianocheBogota, formatoFecha, formatoHora } from "@/lib/fecha-bogota";
+import { componentesHoyBogota, medianocheBogota, formatoFecha, formatoHora, formatoDia, horaBogota } from "@/lib/fecha-bogota";
 import { variacionPct, rangoMesAnteriorAlCorte, ultimosMeses } from "@/lib/tendencia";
 import { Sparkline } from "@/components/ui/sparkline";
 import { plazoVencido } from "@/lib/plazo-legal";
@@ -373,7 +373,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
     : ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION","GANADA","PERDIDA"];
 
   const nombre = session?.user?.name?.split(" ")[0] ?? "";
-  const horaColombia = new Date(hoy.toLocaleString("en-US",{timeZone:"America/Bogota"})).getHours();
+  const horaColombia = horaBogota(hoy);
   const saludo = horaColombia < 12 ? "Buenos días" : horaColombia < 19 ? "Buenas tardes" : "Buenas noches";
   const totalOp = oportunidades.length;
   const maxEtapa = Math.max(...ETAPAS_PIPELINE.map(e => oportunidades.filter(o => o.etapa === e).length), 1);
@@ -838,7 +838,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
                   {cierranEstaSemana.slice(0,2).map(o => (
                     <Link key={o.id} href={`/dashboard/pipeline/${o.id}`} className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-2.5 py-1.5 mb-1 hover:border-amber-300 transition-colors">
                       <span className="text-xs font-medium text-slate-800 truncate flex-1">{o.empresa?.nombre ?? o.titulo}</span>
-                      <span className="text-xs text-amber-600 font-semibold shrink-0">{formatoFecha(new Date(o.fechaCierre!), { day:"2-digit", month:"short" })}</span>
+                      <span className="text-xs text-amber-600 font-semibold shrink-0">{formatoDia(new Date(o.fechaCierre!), { day:"2-digit", month:"short" })}</span>
                     </Link>
                   ))}
                 </div>

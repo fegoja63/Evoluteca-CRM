@@ -10,7 +10,7 @@ import { plazoVencido, plazoProximo } from "@/lib/plazo-legal";
 import { IconAlertTriangle } from "@tabler/icons-react";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
-import { formatoFecha } from "@/lib/fecha-bogota";
+import { formatoFecha, formatoDia } from "@/lib/fecha-bogota";
 
 type Termino = {
   id: string;
@@ -401,7 +401,7 @@ export default function DetalleExpedientePage() {
                       {t.descripcion}
                     </p>
                     <p className="text-xs text-slate-500">
-                      {formatoFecha(new Date(t.fechaLimite), { day: "2-digit", month: "short", year: "numeric" })}
+                      {formatoDia(new Date(t.fechaLimite), { day: "2-digit", month: "short", year: "numeric" })}
                       {urgencia === "vencido" && <span className="ml-2 font-semibold text-red-600">Vencido</span>}
                       {urgencia === "proximo" && <span className="ml-2 font-semibold text-amber-600">Próximo</span>}
                       {t.notas && <span className="ml-2 text-slate-400">· {t.notas}</span>}

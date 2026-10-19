@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { numeroCotizacion } from "@/lib/cotizaciones";
 import ExcelJS from "exceljs";
-import { formatoFecha, fechaISO } from "@/lib/fecha-bogota";
+import { formatoFecha, fechaISO, formatoDia } from "@/lib/fecha-bogota";
 
 export async function GET() {
   const session = await auth();
@@ -52,8 +52,8 @@ export async function GET() {
       contacto:     c.contacto?.nombre ?? "",
       oportunidad:  c.oportunidad?.titulo ?? "",
       sede:         c.sede ?? "",
-      fechaEvento:  c.fechaEvento ? formatoFecha(new Date(c.fechaEvento)) : "",
-      fechaValidez: c.fechaValidez ? formatoFecha(new Date(c.fechaValidez)) : "",
+      fechaEvento:  c.fechaEvento ? formatoDia(new Date(c.fechaEvento)) : "",
+      fechaValidez: c.fechaValidez ? formatoDia(new Date(c.fechaValidez)) : "",
       total,
       creadoEn:     formatoFecha(new Date(c.creadoEn)),
     });

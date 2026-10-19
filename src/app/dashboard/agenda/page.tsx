@@ -13,7 +13,7 @@ import {
 import { tiposActividadVisibles, tipoActividadDef, type TipoActividadDef } from "@/lib/tipos-actividad";
 import { boton, tarjeta } from "@/components/ui/estilos";
 import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
-import { formatoFecha as formatearFecha, fechaISO, formatoFechaHora } from "@/lib/fecha-bogota";
+import { formatoFecha as formatearFecha, fechaISO, formatoFechaHora, aInputDatetimeLocal } from "@/lib/fecha-bogota";
 
 // Nombre visible de cada filtro de la Agenda (se usa en el botón de exportar
 // para dejar claro qué bloque se va a descargar).
@@ -107,9 +107,7 @@ function descargarIcsActividad(a: Actividad) {
 // Convierte una fecha ISO al formato que espera <input type="datetime-local">
 // (YYYY-MM-DDTHH:mm) en hora local, para precargarla al editar.
 function toLocalInput(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return aInputDatetimeLocal(iso);
 }
 
 type Actividad = {
@@ -168,7 +166,10 @@ function CalendarioActividades({
   const offsetInicio = (primerDia.getDay() + 6) % 7;
   const totalCeldas = Math.ceil((offsetInicio + ultimoDia.getDate()) / 7) * 7;
 
+  // Clave de la celda del calendario: la grilla se arma con fechas locales del
+  // navegador y las actividades se ubican con la misma regla.
   function keyDia(d: Date) {
+    // fecha-guardian: permitido (clave interna de la grilla, no se muestra ni se guarda)
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   }
 

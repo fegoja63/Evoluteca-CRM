@@ -13,7 +13,7 @@ import { IconHeartHandshake, IconRefresh, IconCalendarEvent } from "@tabler/icon
 import type { EtapaPostventa } from "@prisma/client";
 import { ETAPAS_POSTVENTA, DIAS_AVISO_RENOVACION, estadoRenovacion, renovacionPendiente } from "@/lib/postventa";
 import { boton, campo } from "@/components/ui/estilos";
-import { fechaISO } from "@/lib/fecha-bogota";
+import { aInputDia } from "@/lib/fecha-bogota";
 
 type Props = {
   op: {
@@ -25,16 +25,11 @@ type Props = {
   onCambio: () => void | Promise<void>;
 };
 
-// "2026-10-15T05:00:00.000Z" → "2026-10-15" en hora de Bogotá, para el <input type="date">.
-function aInputFecha(iso: string | null): string {
-  if (!iso) return "";
-  return fechaISO(new Date(iso));
-}
 
 export function PanelPostventa({ op, onCambio }: Props) {
   const router = useRouter();
   const [guardando, setGuardando] = useState(false);
-  const [fecha, setFecha] = useState(aInputFecha(op.fechaRenovacion));
+  const [fecha, setFecha] = useState(aInputDia(op.fechaRenovacion));
   const renovacion = op.renovaciones?.[0] ?? null;
 
   async function patch(data: Record<string, unknown>, ok: string) {
@@ -83,7 +78,7 @@ export function PanelPostventa({ op, onCambio }: Props) {
 
   const estado = estadoRenovacion(op.fechaRenovacion);
   const pendiente = renovacionPendiente({ ...op, tieneRenovacion: !!renovacion });
-  const fechaCambio = fecha !== aInputFecha(op.fechaRenovacion);
+  const fechaCambio = fecha !== aInputDia(op.fechaRenovacion);
 
   return (
     <div className={`mb-5 rounded-xl border border-slate-200 bg-white p-4 ${pendiente ? "border-l-4 border-l-amber-400" : ""}`}>

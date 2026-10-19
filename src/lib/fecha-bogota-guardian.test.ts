@@ -16,6 +16,7 @@ import { join, relative } from "path";
 
 const RAIZ = join(__dirname, "..");
 const PERMITIDO = new Set(["lib/fecha-bogota.ts"]);
+const MARCA = /fecha-guardian: permitido \(.+\)/;
 
 const REGLAS: { nombre: string; re: RegExp }[] = [
   { nombre: "toISOString() recortado a fecha/hora (es UTC, no Bogotá) → fechaISO / aInputDatetimeLocal",
@@ -44,7 +45,11 @@ describe("fechas: solo conversiones de src/lib/fecha-bogota.ts", () => {
     for (const archivo of archivos(RAIZ)) {
       const rel = relative(RAIZ, archivo).replace(/\\/g, "/");
       if (PERMITIDO.has(rel)) continue;
-      readFileSync(archivo, "utf8").split("\n").forEach((linea, i) => {
+      const lineas = readFileSync(archivo, "utf8").split("\n");
+      lineas.forEach((linea, i) => {
+        // Excepción explícita y justificada: "fecha-guardian: permitido (motivo)"
+        // en la misma línea o en la anterior.
+        if (MARCA.test(linea) || MARCA.test(lineas[i - 1] ?? "")) return;
         for (const r of REGLAS) if (r.re.test(linea)) hallazgos.push(`src/${rel}:${i + 1} — ${r.nombre}`);
       });
     }

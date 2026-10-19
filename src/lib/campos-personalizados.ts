@@ -1,4 +1,4 @@
-import { formatoFecha } from "@/lib/fecha-bogota";
+import { formatoDia } from "@/lib/fecha-bogota";
 // Lógica pura de campos personalizados: sin Prisma ni React, para poder
 // probarla sola y reusarla en el cliente y el servidor.
 
@@ -61,7 +61,7 @@ export function formatearValorCampo(tipo: TipoCampo, valor: string): string {
   if (tipo === "FECHA") {
     // Guardado como YYYY-MM-DD; se muestra en local sin correrse de día.
     const d = new Date(valor + "T00:00:00");
-    return isNaN(d.getTime()) ? valor : formatoFecha(d, { day: "2-digit", month: "short", year: "numeric" });
+    return isNaN(d.getTime()) ? valor : formatoDia(d, { day: "2-digit", month: "short", year: "numeric" });
   }
   if (tipo === "NUMERO") {
     const n = Number(valor);

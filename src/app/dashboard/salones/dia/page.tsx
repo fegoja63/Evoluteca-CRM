@@ -5,7 +5,7 @@ import Link from "next/link";
 import { IconBuildingPavilion, IconCircleCheck } from "@tabler/icons-react";
 import { campo } from "@/components/ui/estilos";
 import { SkeletonTabla } from "@/components/ui/estados";
-import { formatoFecha } from "@/lib/fecha-bogota";
+import { formatoFecha, fechaISO } from "@/lib/fecha-bogota";
 
 type Salon = { id: string; nombre: string; capacidad: number | null };
 type Cotizacion = {
@@ -19,8 +19,7 @@ type Cotizacion = {
 };
 
 function hoyISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return fechaISO(); // hoy en Bogotá
 }
 
 export default function TablaDiaSalonesPage() {

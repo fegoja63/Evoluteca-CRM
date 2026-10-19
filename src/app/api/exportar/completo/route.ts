@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
 import ExcelJS from "exceljs";
-import { formatoFecha, fechaISO } from "@/lib/fecha-bogota";
+import { fechaISO, formatoDia } from "@/lib/fecha-bogota";
 
 export async function GET() {
   const session = await auth();
@@ -51,7 +51,7 @@ export async function GET() {
 
   function fmtFecha(d: Date | null): string {
     if (!d) return "";
-    return formatoFecha(new Date(d), { day: "2-digit", month: "2-digit", year: "numeric" });
+    return formatoDia(new Date(d), { day: "2-digit", month: "2-digit", year: "numeric" });
   }
 
   // Traer oportunidades con todo relacionado

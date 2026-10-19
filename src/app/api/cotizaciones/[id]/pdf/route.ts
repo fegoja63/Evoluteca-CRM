@@ -6,7 +6,7 @@ import { MODALIDAD_LABEL, numeroCotizacion } from "@/lib/cotizaciones";
 import { seccionesVisibles } from "@/lib/cuerpo-cotizacion";
 import { paletaMarca } from "@/lib/color-marca";
 import React from "react";
-import { formatoFecha } from "@/lib/fecha-bogota";
+import { formatoFecha, formatoDia } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 
@@ -87,7 +87,7 @@ function fmtFecha(d: Date | null) {
 // donde la hora local es la correcta.
 function fmtFechaCalendario(d: Date | null) {
   if (!d) return "—";
-  return formatoFecha(new Date(d), { day: "2-digit", month: "long", year: "numeric" });
+  return formatoDia(new Date(d), { day: "2-digit", month: "long", year: "numeric" });
 }
 
 export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {

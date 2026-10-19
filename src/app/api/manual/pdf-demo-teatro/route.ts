@@ -5,7 +5,7 @@ import {
 import React from "react";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { formatoFecha } from "@/lib/fecha-bogota";
+import { formatoFecha, aInputDatetimeLocal } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 
@@ -309,7 +309,7 @@ export async function GET() {
   return new NextResponse(buffer as unknown as BodyInit, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="manual-pruebas-demo-teatro-${new Date().toLocaleString("sv-SE", { timeZone: "America/Bogota" }).slice(0, 16).replace(" ", "-").replace(":", "")}.pdf"`,
+      "Content-Disposition": `attachment; filename="manual-pruebas-demo-teatro-${aInputDatetimeLocal(new Date()).replace("T", "-").replace(":", "")}.pdf"`,
     },
   });
 }

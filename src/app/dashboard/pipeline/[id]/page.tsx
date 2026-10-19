@@ -28,7 +28,7 @@ import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
 import { mapaEtapas } from "@/lib/etapas-color";
-import { formatoFecha, fechaISO, formatoFechaHora } from "@/lib/fecha-bogota";
+import { formatoFecha, formatoFechaHora, formatoDia, aInputDia } from "@/lib/fecha-bogota";
 
 type Oportunidad = {
   id: string;
@@ -357,10 +357,10 @@ export default function OportunidadDetallePage() {
 
   function formatearValorExtra(k: string, v: string): string {
     if (k === "MES" && v.includes("T00:00")) {
-      // Medianoche UTC del día 1 del mes importado — se fuerza timeZone: "UTC"
-      // para no correr un mes atrás en timezones detrás de UTC (Colombia UTC-5).
+      // Medianoche UTC del día 1 del mes importado: es una fecha de calendario,
+      // formatoDia la lee como ese mes (en hora Bogotá caería el mes anterior).
       const d = new Date(v);
-      return formatoFecha(d, { month: "short", year: "numeric" });
+      return formatoDia(d, { month: "short", year: "numeric" });
     }
     return v;
   }
@@ -609,7 +609,7 @@ export default function OportunidadDetallePage() {
                     type="date"
                     autoFocus
                     disabled={guardandoCierre}
-                    defaultValue={op.fechaCierre ? fechaISO(new Date(op.fechaCierre)) : ""}
+                    defaultValue={op.fechaCierre ? aInputDia(op.fechaCierre) : ""}
                     onFocus={e => { try { (e.target as HTMLInputElement & { showPicker?: () => void }).showPicker?.(); } catch { /* el usuario abre el calendario con un clic */ } }}
                     onChange={e => guardarCierreRapido(e.target.value)}
                     onBlur={() => setEditandoCierre(false)}
@@ -623,7 +623,7 @@ export default function OportunidadDetallePage() {
                     className={`text-sm font-semibold hover:text-brand-600 transition-colors ${cierreVencido ? "text-red-700" : "text-slate-800"}`}
                   >
                     {op.fechaCierre
-                      ? formatoFecha(new Date(op.fechaCierre), { day:"2-digit", month:"short", year:"numeric" })
+                      ? formatoDia(new Date(op.fechaCierre), { day:"2-digit", month:"short", year:"numeric" })
                       : <span className="text-brand-600">＋ Poner fecha</span>}
                   </button>
                 )}
@@ -837,7 +837,7 @@ export default function OportunidadDetallePage() {
                         </span>
                         <span className="flex-1" />
                         <span className="text-xs text-slate-400">
-                          {c.fechaValidez ? `Válida hasta ${formatoFecha(new Date(c.fechaValidez), { day: "2-digit", month: "short", year: "numeric" })}` : `Creada ${formatoFecha(new Date(c.creadoEn), { day: "2-digit", month: "short" })}`}
+                          {c.fechaValidez ? `Válida hasta ${formatoDia(new Date(c.fechaValidez), { day: "2-digit", month: "short", year: "numeric" })}` : `Creada ${formatoFecha(new Date(c.creadoEn), { day: "2-digit", month: "short" })}`}
                         </span>
                       </Link>
                     ))}
