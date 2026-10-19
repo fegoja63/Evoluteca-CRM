@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { filtroOwner, moduloActivo, alcanceDe, esComercial, filtroActividadAlcance } from "@/lib/permisos";
 import { SelectorAlcance } from "@/components/selector-alcance";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
-import { componentesHoyBogota, medianocheBogota } from "@/lib/fecha-bogota";
+import { componentesHoyBogota, medianocheBogota, formatoFecha, formatoHora } from "@/lib/fecha-bogota";
 import { variacionPct, rangoMesAnteriorAlCorte, ultimosMeses } from "@/lib/tendencia";
 import { Sparkline } from "@/components/ui/sparkline";
 import { plazoVencido } from "@/lib/plazo-legal";
@@ -394,7 +394,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
           {/* Saludo */}
           <div>
             <p className="text-brand-300 text-xs font-medium mb-1">
-              {hoy.toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric",timeZone:"America/Bogota"})}
+              {formatoFecha(hoy, { weekday:"long", day:"numeric", month:"long", year:"numeric" })}
             </p>
             <h1 className="text-2xl font-bold tracking-tight">{saludo}, {nombre}</h1>
             <p className="mt-1 text-sm font-medium text-white/90">
@@ -544,7 +544,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
                     <p className="text-xs text-red-400 truncate">{a.oportunidad?.titulo ?? a.empresa?.nombre ?? a.contacto?.nombre ?? ""}</p>
                   </Link>
                   <span className="rounded-full bg-red-100 px-1.5 py-0.5 text-2xs font-semibold text-red-700 shrink-0">
-                    Vencida · {new Date(a.fecha).toLocaleDateString("es-CO", { day: "2-digit", month: "short", timeZone: "America/Bogota" })}
+                    Vencida · {formatoFecha(new Date(a.fecha), { day: "2-digit", month: "short" })}
                   </span>
                   <BotonHecha id={a.id} />
                 </div>
@@ -578,7 +578,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
                     <p className="text-xs font-semibold text-slate-800 truncate group-hover:underline">{a.titulo}</p>
                     <p className="text-xs text-slate-400 truncate">{a.oportunidad?.titulo ?? a.empresa?.nombre ?? a.contacto?.nombre ?? ""}</p>
                   </Link>
-                  <p className="text-xs text-slate-500 font-mono shrink-0">{new Date(a.fecha).toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit",timeZone:"America/Bogota"})}</p>
+                  <p className="text-xs text-slate-500 font-mono shrink-0">{formatoHora(new Date(a.fecha), { hour:"2-digit", minute:"2-digit" })}</p>
                   <BotonHecha id={a.id} />
                 </div>
                 );
@@ -600,7 +600,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
                       <p className="text-xs font-semibold text-slate-800 truncate">{a.titulo}</p>
                       <p className="text-xs text-slate-400 truncate">{a.empresa?.nombre ?? a.contacto?.nombre ?? ""}</p>
                     </div>
-                    <p className="text-xs text-slate-400 shrink-0">{new Date(a.fecha).toLocaleDateString("es-CO",{day:"2-digit",month:"short"})}</p>
+                    <p className="text-xs text-slate-400 shrink-0">{formatoFecha(new Date(a.fecha), { day:"2-digit", month:"short" })}</p>
                   </div>
                   );
                 })}
@@ -780,7 +780,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
                   {terminosVencidos.slice(0,3).map(t => (
                     <Link key={t.id} href={`/dashboard/expedientes/${t.expediente.id}`} className="flex items-center gap-2 rounded-lg bg-white border border-red-100 px-2.5 py-1.5 mb-1 hover:border-red-300 transition-colors">
                       <span className="text-xs font-medium text-slate-800 truncate flex-1">{t.descripcion} · {t.expediente.numeroRadicado}</span>
-                      <span className="text-xs text-red-500 shrink-0">{new Date(t.fechaLimite).toLocaleDateString("es-CO",{day:"2-digit",month:"short",timeZone:"UTC"})}</span>
+                      <span className="text-xs text-red-500 shrink-0">{formatoFecha(new Date(t.fechaLimite), { day:"2-digit", month:"short" })}</span>
                     </Link>
                   ))}
                 </div>
@@ -791,7 +791,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
                   {terminosPorVencer.slice(0,3).map(t => (
                     <Link key={t.id} href={`/dashboard/expedientes/${t.expediente.id}`} className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-2.5 py-1.5 mb-1 hover:border-amber-300 transition-colors">
                       <span className="text-xs font-medium text-slate-800 truncate flex-1">{t.descripcion} · {t.expediente.numeroRadicado}</span>
-                      <span className="text-xs text-amber-600 font-semibold shrink-0">{new Date(t.fechaLimite).toLocaleDateString("es-CO",{day:"2-digit",month:"short",timeZone:"UTC"})}</span>
+                      <span className="text-xs text-amber-600 font-semibold shrink-0">{formatoFecha(new Date(t.fechaLimite), { day:"2-digit", month:"short" })}</span>
                     </Link>
                   ))}
                 </div>
@@ -804,7 +804,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
                     return (
                       <Link key={f.id} href={`/dashboard/funciones/${f.id}`} className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-2.5 py-1.5 mb-1 hover:border-amber-300 transition-colors">
                         <span className="text-xs font-medium text-slate-800 truncate flex-1">{f.titulo}</span>
-                        <span className="text-xs text-amber-600 font-semibold shrink-0">{ocupacion}% · {new Date(f.fecha).toLocaleDateString("es-CO",{day:"2-digit",month:"short"})}</span>
+                        <span className="text-xs text-amber-600 font-semibold shrink-0">{ocupacion}% · {formatoFecha(new Date(f.fecha), { day:"2-digit", month:"short" })}</span>
                       </Link>
                     );
                   })}
@@ -816,7 +816,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
                   {actividadesVencidas.slice(0,3).map(a => (
                     <Link key={a.id} href="/dashboard/agenda" className="flex items-center gap-2 rounded-lg bg-white border border-red-100 px-2.5 py-1.5 mb-1 hover:border-red-300 transition-colors">
                       <span className="text-xs font-medium text-slate-800 truncate flex-1">{a.empresa?.nombre ?? a.titulo}</span>
-                      <span className="text-xs text-red-500 shrink-0">{new Date(a.fecha).toLocaleDateString("es-CO",{day:"2-digit",month:"short"})}</span>
+                      <span className="text-xs text-red-500 shrink-0">{formatoFecha(new Date(a.fecha), { day:"2-digit", month:"short" })}</span>
                     </Link>
                   ))}
                 </div>
@@ -838,7 +838,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
                   {cierranEstaSemana.slice(0,2).map(o => (
                     <Link key={o.id} href={`/dashboard/pipeline/${o.id}`} className="flex items-center gap-2 rounded-lg bg-white border border-amber-100 px-2.5 py-1.5 mb-1 hover:border-amber-300 transition-colors">
                       <span className="text-xs font-medium text-slate-800 truncate flex-1">{o.empresa?.nombre ?? o.titulo}</span>
-                      <span className="text-xs text-amber-600 font-semibold shrink-0">{new Date(o.fechaCierre!).toLocaleDateString("es-CO",{day:"2-digit",month:"short",timeZone:"UTC"})}</span>
+                      <span className="text-xs text-amber-600 font-semibold shrink-0">{formatoFecha(new Date(o.fechaCierre!), { day:"2-digit", month:"short" })}</span>
                     </Link>
                   ))}
                 </div>
@@ -943,7 +943,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
                       <p className="text-xs font-semibold text-slate-800 truncate">{a.titulo}</p>
                       <p className="text-xs text-slate-400 truncate">{a.empresa?.nombre ?? ""}</p>
                     </div>
-                    <p className="text-xs text-slate-400 shrink-0">{new Date(a.fecha).toLocaleDateString("es-CO",{weekday:"short",day:"2-digit"})}</p>
+                    <p className="text-xs text-slate-400 shrink-0">{formatoFecha(new Date(a.fecha), { weekday:"short", day:"2-digit" })}</p>
                   </div>
                   );
                 })}

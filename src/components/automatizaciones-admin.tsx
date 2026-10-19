@@ -11,6 +11,7 @@ import {
 } from "@/lib/automatizaciones";
 import { boton } from "@/components/ui/estilos";
 import { SkeletonLista } from "@/components/ui/estados";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 type Config = Record<string, unknown>;
 type Regla = {
@@ -267,7 +268,7 @@ export function AutomatizacionesAdmin() {
                   </p>
                   <p className="text-xs text-slate-400 mt-1">
                     Ejecutada {r.vecesEjecutada} vez(es)
-                    {r.ultimaEjecucion && ` · última: ${new Date(r.ultimaEjecucion).toLocaleDateString("es-CO")}`}
+                    {r.ultimaEjecucion && ` · última: ${formatoFecha(new Date(r.ultimaEjecucion))}`}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">

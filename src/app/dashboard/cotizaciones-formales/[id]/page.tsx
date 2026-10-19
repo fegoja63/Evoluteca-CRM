@@ -14,6 +14,7 @@ import { useSession } from "next-auth/react";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type LineaAhorro = { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string };
@@ -75,7 +76,7 @@ function fmt(v: number) {
 }
 function fmtFecha(s: string | null) {
   if (!s) return "—";
-  return new Date(s).toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric" });
+  return formatoFecha(new Date(s), { day: "2-digit", month: "long", year: "numeric" });
 }
 
 export default function CotizacionDetailPage() {

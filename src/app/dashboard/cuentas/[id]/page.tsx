@@ -35,6 +35,7 @@ import { SkeletonDetalle } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
 import { mapaEtapas } from "@/lib/etapas-color";
 import { tipoActividadDef } from "@/lib/tipos-actividad";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 type Detalle = {
   id: string;
@@ -413,7 +414,7 @@ export default function FichaClientePage() {
                                     <Icono size={15} stroke={1.75} className="shrink-0 text-slate-400" aria-label={def?.label ?? a.tipo} />
                                     <span className="min-w-0 truncate">{a.titulo}</span>
                                     <span className={`ml-auto shrink-0 text-xs ${vencida ? "font-semibold text-red-600" : "text-slate-400"}`}>
-                                      {vencida && "Vencida · "}{new Date(a.fecha).toLocaleDateString("es-CO")}
+                                      {vencida && "Vencida · "}{formatoFecha(new Date(a.fecha))}
                                     </span>
                                   </li>
                                 );

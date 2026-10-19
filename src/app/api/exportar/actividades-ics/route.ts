@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { generarIcsAgenda, esFiltroAgenda } from "@/lib/calendario-ics";
+import { fechaISO } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
     filtro,
   });
 
-  const fecha = new Date().toISOString().slice(0, 10);
+  const fecha = fechaISO(new Date());
   return new NextResponse(ics, {
     headers: {
       "Content-Type":        "text/calendar; charset=utf-8",

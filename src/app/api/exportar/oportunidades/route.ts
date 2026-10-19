@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
 import ExcelJS from "exceljs";
+import { formatoFecha, fechaISO } from "@/lib/fecha-bogota";
 
 export async function GET() {
   const session = await auth();
@@ -59,7 +60,7 @@ export async function GET() {
       email: op.contacto?.email ?? "",
       titulo: op.titulo,
       etapa: ETAPA_LABEL[op.etapa] ?? op.etapa,
-      fechaEvento: op.fechaEvento ? new Date(op.fechaEvento).toLocaleDateString("es-CO") : "",
+      fechaEvento: op.fechaEvento ? formatoFecha(new Date(op.fechaEvento)) : "",
       sede: op.sede ?? "",
       segmento: op.segmento ?? "",
       valor: op.valor ? Number(op.valor) : "",
@@ -92,7 +93,7 @@ export async function GET() {
   });
 
   const buffer = await wb.xlsx.writeBuffer();
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = fechaISO(new Date());
 
   return new NextResponse(new Uint8Array(buffer as ArrayBuffer), {
     status: 200,

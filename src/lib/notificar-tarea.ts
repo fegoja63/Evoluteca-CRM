@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { escapeHtml } from "@/lib/html";
 import { registrarErrorServidor } from "@/lib/registrar-error-servidor";
+import { formatoFechaHora } from "@/lib/fecha-bogota";
 
 const BASE_URL = process.env.NEXTAUTH_URL ?? "https://evoluteca-crm-six.vercel.app";
 const LOGO_FGJ = "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg";
@@ -53,9 +54,7 @@ export async function notificarTareaAsignada(p: Params): Promise<void> {
 
     const esc = (v: unknown) => escapeHtml(String(v ?? ""));
     const tipoLabel = TIPO_LABEL[p.actividad.tipo] ?? p.actividad.tipo;
-    const fechaFmt = new Date(p.actividad.fecha).toLocaleString("es-CO", {
-      weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
-    });
+    const fechaFmt = formatoFechaHora(new Date(p.actividad.fecha), { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
 
     const subject = `📋 Nueva tarea asignada: ${esc(p.actividad.titulo)}`;
     const html = `

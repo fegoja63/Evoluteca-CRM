@@ -5,6 +5,7 @@ import Link from "next/link";
 import { WhatsAppBtn } from "@/components/whatsapp-btn";
 import { IconConfetti } from "@tabler/icons-react";
 import { SkeletonTabla } from "@/components/ui/estados";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 type Pendiente = {
   id: string;
@@ -67,7 +68,7 @@ export default function NpsPendientesPage() {
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-slate-800 truncate">{p.espectador.nombre}</p>
                 <p className="text-xs text-slate-400">
-                  {p.funcion.titulo} · {new Date(p.funcion.fecha).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })}
+                  {p.funcion.titulo} · {formatoFecha(new Date(p.funcion.fecha), { day: "2-digit", month: "short", year: "numeric" })}
                 </p>
               </div>
               {p.espectador.telefono && (

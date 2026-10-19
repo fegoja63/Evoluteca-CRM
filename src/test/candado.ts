@@ -18,6 +18,7 @@
  * directamente (scripts/reconstruir-db-test.mts), sin vitest ni alias "@/".
  */
 import { PrismaClient } from "@prisma/client";
+import { formatoHora } from "@/lib/fecha-bogota";
 
 // Numero arbitrario, fijo. Menor que 2^32 para que en pg_locks quede entero
 // en `objid` y se pueda buscar quien lo tiene.
@@ -60,7 +61,7 @@ export async function tomarCandado(quien: string): Promise<() => Promise<void>> 
         WHERE l.locktype = 'advisory' AND l.classid = 0 AND l.objid = ${LLAVE}
         LIMIT 1`
     );
-    return fila ? `${fila.application_name || "otra corrida"} (desde ${fila.desde.toLocaleTimeString("es-CO")})` : "otra corrida";
+    return fila ? `${fila.application_name || "otra corrida"} (desde ${formatoHora(fila.desde)})` : "otra corrida";
   };
 
   const inicio = Date.now();

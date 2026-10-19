@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { moduloActivo } from "@/lib/permisos";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 
@@ -180,7 +181,7 @@ export async function GET() {
             ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#e9d5ff", marginBottom: 3 } }, item)),
           ),
           React.createElement(View, { style: { marginTop: 40 } },
-            React.createElement(Text, { style: s.portadaVer }, `Versión 1.1 · ${new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+            React.createElement(Text, { style: s.portadaVer }, `Versión 1.1 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
           ),
         ),
       ),

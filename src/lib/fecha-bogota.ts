@@ -74,15 +74,115 @@ export function fechaDesdeBogota(s: string): Date {
   return new Date(anclarBogota(s) as string);
 }
 
+// ---------------------------------------------------------------------------
+// ÚNICO lugar donde se convierten fechas a texto o a valores de formulario.
+//
+// El error de las "5 horas corridas" volvía cada vez que una pantalla armaba su
+// propia conversión: `toISOString()` da UTC, `toLocaleDateString()` usa la zona
+// del servidor (UTC en Vercel) o la del navegador, y cada archivo improvisaba.
+// Todo lo de abajo es explícito en hora de Bogotá, funciona igual en el servidor
+// y en el navegador, y un test (fecha-bogota-guardian.test.ts) impide volver a
+// escribir conversiones a mano fuera de este archivo.
+//
+// Dos familias, que NO se mezclan:
+//  - INSTANTES (actividades, funciones, creación, "ahora"): siempre en hora de
+//    Bogotá → formatoFecha, formatoFechaHora, formatoHora, fechaISO, aInputFecha.
+//  - FECHAS DE CALENDARIO (fechaCierre, fechaEvento, fechaValidez, campos tipo
+//    fecha): las cargas viejas, importaciones y `new Date("YYYY-MM-DD")` las
+//    guardaron a la medianoche UTC exacta; las nuevas llegan ancladas a Bogotá
+//    (05:00Z). → formatoDia, diaISO, aInputDia: una medianoche UTC exacta se lee
+//    como ese día (en Bogotá caería el día anterior); lo demás, en hora Bogotá.
+//    NO usar esta regla para instantes: las 7:00 p. m. de Bogotá SON la
+//    medianoche UTC, y una función a esa hora saldría al día siguiente.
+// ---------------------------------------------------------------------------
+
+export const ZONA_BOGOTA = "America/Bogota";
+
+type FechaEntrada = Date | string | number;
+const aDate = (f: FechaEntrada) => (f instanceof Date ? f : new Date(f));
+
+/** ¿Es una fecha de calendario guardada sin hora (medianoche UTC exacta)? */
+function esMedianocheUTC(d: Date): boolean {
+  return d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0 && d.getUTCMilliseconds() === 0;
+}
+const zonaDia = (d: Date) => (esMedianocheUTC(d) ? "UTC" : ZONA_BOGOTA);
+const SOLO_FECHA: Intl.DateTimeFormatOptions = { day: "2-digit", month: "2-digit", year: "numeric" };
+const isoEn = (d: Date, timeZone: string) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+
+// ── Instantes ──────────────────────────────────────────────────────────────
+
+/** Fecha (sin hora) de un instante, en hora de Bogotá: "20/10/2026" o con opciones. */
+export function formatoFecha(fecha: FechaEntrada, opciones: Intl.DateTimeFormatOptions = SOLO_FECHA): string {
+  return aDate(fecha).toLocaleDateString("es-CO", { ...opciones, timeZone: ZONA_BOGOTA });
+}
+
+/** Fecha y hora de un instante (actividad, creación, "ahora"), siempre en hora de Bogotá. */
+export function formatoFechaHora(
+  fecha: FechaEntrada,
+  opciones: Intl.DateTimeFormatOptions = { day: "2-digit", month: "2-digit", year: "numeric", hour: "numeric", minute: "2-digit" },
+): string {
+  return aDate(fecha).toLocaleString("es-CO", { ...opciones, timeZone: ZONA_BOGOTA });
+}
+
+/** Solo la hora de un instante, en hora de Bogotá ("9:00 a. m."). */
+export function formatoHora(
+  fecha: FechaEntrada,
+  opciones: Intl.DateTimeFormatOptions = { hour: "numeric", minute: "2-digit" },
+): string {
+  return aDate(fecha).toLocaleTimeString("es-CO", { ...opciones, timeZone: ZONA_BOGOTA });
+}
+
+/** "YYYY-MM-DD" de un instante en Bogotá (por defecto, HOY). Nombres de archivo, `max` de un date. */
+export function fechaISO(fecha: FechaEntrada = new Date()): string {
+  return isoEn(aDate(fecha), ZONA_BOGOTA);
+}
+
+/** <input type="date"> a partir de un instante ("" si no hay). */
+export function aInputFecha(fecha: FechaEntrada | null | undefined): string {
+  return fecha == null || fecha === "" ? "" : fechaISO(fecha);
+}
+
+// ── Fechas de calendario (cierre, evento, validez, campos tipo fecha) ──────
+
+/** Muestra una fecha de calendario: "20/10/2026" (o con opciones). Ver la regla arriba. */
+export function formatoDia(fecha: FechaEntrada, opciones: Intl.DateTimeFormatOptions = SOLO_FECHA): string {
+  const d = aDate(fecha);
+  return d.toLocaleDateString("es-CO", { ...opciones, timeZone: zonaDia(d) });
+}
+
+/** "YYYY-MM-DD" de una fecha de calendario. */
+export function diaISO(fecha: FechaEntrada): string {
+  const d = aDate(fecha);
+  return isoEn(d, zonaDia(d));
+}
+
+/** <input type="date"> a partir de una fecha de calendario guardada ("" si no hay). */
+export function aInputDia(fecha: FechaEntrada | null | undefined): string {
+  return fecha == null || fecha === "" ? "" : diaISO(fecha);
+}
+
+// ── Formularios con hora ───────────────────────────────────────────────────
+
 /**
- * Formatea un instante al valor que espera <input type="datetime-local">
- * ("YYYY-MM-DDTHH:mm") en hora local del navegador. Los usuarios están en
- * Bogotá, así que muestra la hora colombiana. Úsalo para precargar el input al
- * editar en vez de `toISOString().slice(0,16)`, que da la hora en UTC y corre
- * el reloj 5 horas.
+ * Valor para <input type="datetime-local"> ("YYYY-MM-DDTHH:mm") en hora de
+ * Bogotá. En vez de `toISOString().slice(0,16)`, que da la hora en UTC y corre
+ * el reloj 5 horas. La API lo vuelve a anclar con `anclarBogota`.
  */
-export function aInputDatetimeLocal(fecha: string | Date): string {
-  const d = typeof fecha === "string" ? new Date(fecha) : fecha;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+export function aInputDatetimeLocal(fecha: FechaEntrada): string {
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+    timeZone: ZONA_BOGOTA, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(aDate(fecha)).map(x => [x.type, x.value]));
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
+}
+
+/** Valor por defecto de un datetime-local: la próxima hora en punto, en hora de Bogotá. */
+export function ahoraParaInput(ahora: Date = new Date()): string {
+  const HORA = 3_600_000; // Bogotá está a horas enteras de UTC: redondear en UTC sirve
+  return aInputDatetimeLocal(new Date((Math.floor(ahora.getTime() / HORA) + 1) * HORA));
+}
+
+/** Hora del día (0-23) en Bogotá, p. ej. para el saludo "Buenos días / tardes / noches". */
+export function horaBogota(ahora: Date = new Date()): number {
+  return Number(aInputDatetimeLocal(ahora).slice(11, 13));
 }

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -11,6 +11,7 @@ import { guardarJson } from "@/lib/guardar";
 import { toast } from "@/lib/toast";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
+import { fechaISO, formatoFecha } from "@/lib/fecha-bogota";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
 type LineaAhorro = { id: string; area: string; gastoBaseMensual: string; ahorroEstimadoMensual: string };
@@ -84,7 +85,7 @@ export default function CotizacionesFormalesPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `cotizaciones-formales-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.download = `cotizaciones-formales-${fechaISO(new Date())}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
     setExportando(false);
@@ -311,12 +312,12 @@ export default function CotizacionesFormalesPage() {
                     </Link>
                   </td>
                   <td className="px-4 py-1 text-slate-500 text-xs whitespace-nowrap">
-                    {c.fechaEvento ? new Date(c.fechaEvento).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" }) : "—"}
+                    {c.fechaEvento ? formatoFecha(new Date(c.fechaEvento), { day:"2-digit", month:"short", year:"numeric" }) : "—"}
                   </td>
                   <td className="px-4 py-1 text-xs whitespace-nowrap">
                     {c.fechaValidez ? (
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-slate-500">{new Date(c.fechaValidez).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" })}</span>
+                        <span className="text-slate-500">{formatoFecha(new Date(c.fechaValidez), { day:"2-digit", month:"short", year:"numeric" })}</span>
                         {(() => { const b = validezBadge(c.fechaValidez, c.estado); return b ? (
                           <span className={`rounded-full px-1.5 py-0.5 text-xs font-semibold w-fit ${b.color}`}>{b.label}</span>
                         ) : null; })()}

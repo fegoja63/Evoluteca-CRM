@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { Resend } from "resend";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,7 @@ export async function GET() {
           El logo de Felipe Gómez Jaramillo debería aparecer en la esquina superior derecha del header azul.
         </p>
         <p style="margin-top:20px;font-size:11px;color:#94a3b8">
-          Enviado desde Evoluteca CRM · ${new Date().toLocaleString("es-CO", { timeZone: "America/Bogota" })}
+          Enviado desde Evoluteca CRM · ${formatoFecha(new Date())}
         </p>
       </div>
     </div>`;

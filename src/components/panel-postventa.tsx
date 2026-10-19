@@ -13,6 +13,7 @@ import { IconHeartHandshake, IconRefresh, IconCalendarEvent } from "@tabler/icon
 import type { EtapaPostventa } from "@prisma/client";
 import { ETAPAS_POSTVENTA, DIAS_AVISO_RENOVACION, estadoRenovacion, renovacionPendiente } from "@/lib/postventa";
 import { boton, campo } from "@/components/ui/estilos";
+import { fechaISO } from "@/lib/fecha-bogota";
 
 type Props = {
   op: {
@@ -27,7 +28,7 @@ type Props = {
 // "2026-10-15T05:00:00.000Z" → "2026-10-15" en hora de Bogotá, para el <input type="date">.
 function aInputFecha(iso: string | null): string {
   if (!iso) return "";
-  return new Date(iso).toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
+  return fechaISO(new Date(iso));
 }
 
 export function PanelPostventa({ op, onCambio }: Props) {

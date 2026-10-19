@@ -6,6 +6,7 @@ import { EtapaOportunidad } from "@prisma/client";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { mapaEtapas } from "@/lib/etapas-color";
 import { destinoCopia, PREFIJO_COPIA } from "@/lib/copia-resumen";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -107,7 +108,7 @@ function ventanaMesCerrado() {
   const cerrado = new Date(Date.UTC(anioAhora, mesAhora - 1, 1));
   const anioCerrado = cerrado.getUTCFullYear();
   const mesCerrado1 = cerrado.getUTCMonth() + 1; // 1-indexed (para MetaVenta)
-  const label = prevStart.toLocaleDateString("es-CO", { month: "long", year: "numeric", timeZone: "America/Bogota" });
+  const label = formatoFecha(prevStart, { month: "long", year: "numeric" });
   return { prevStart, curMesStart, anioCerrado, mesCerrado1, label };
 }
 

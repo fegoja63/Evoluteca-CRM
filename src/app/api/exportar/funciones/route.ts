@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import ExcelJS from "exceljs";
+import { formatoFechaHora, fechaISO } from "@/lib/fecha-bogota";
 
 export async function GET() {
   const session = await auth();
@@ -41,7 +42,7 @@ export async function GET() {
     const pct = f.sillasTotales > 0 ? Math.round((f.sillasVendidas / f.sillasTotales) * 100) : 0;
     const row = ws.addRow({
       titulo: f.titulo,
-      fecha: new Date(f.fecha).toLocaleString("es-CO"),
+      fecha: formatoFechaHora(new Date(f.fecha)),
       canal: CANAL[f.canal] ?? f.canal,
       sillasTotales: f.sillasTotales,
       sillasVendidas: f.sillasVendidas,
@@ -67,7 +68,7 @@ export async function GET() {
   });
 
   const buffer = await wb.xlsx.writeBuffer();
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = fechaISO(new Date());
 
   return new NextResponse(new Uint8Array(buffer as ArrayBuffer), {
     headers: {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { guardarMinutaSchema } from "@/lib/minutas";
+import { fechaISO } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
 
   const tareas = m.compromisos.filter(c => c.lado === "NOSOTROS" && c.crearTarea);
   // Sin fecha, el compromiso queda para mañana: así la tarea nace vigente.
-  const manana = new Date(Date.now() + 86_400_000).toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
+  const manana = fechaISO(new Date(Date.now() + 86_400_000));
 
   const minuta = await prisma.$transaction(async (tx) => {
     const reunion = await tx.actividad.create({

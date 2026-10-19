@@ -19,6 +19,7 @@ import {
 import type { EtapaPostventa } from "@prisma/client";
 import { ETAPAS_POSTVENTA, DIAS_AVISO_RENOVACION, estadoRenovacion, renovacionPendiente } from "@/lib/postventa";
 import { campo, tarjeta } from "@/components/ui/estilos";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 type Negocio = {
   id: string;
@@ -37,7 +38,7 @@ type Columna = "titulo" | "empresa" | "etapa" | "valor" | "fechaRenovacion";
 const fmtCOP = (v: number) =>
   new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
 const fmtFecha = (d: string) =>
-  new Date(d).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric", timeZone: "America/Bogota" });
+  formatoFecha(new Date(d), { day: "numeric", month: "short", year: "numeric" });
 const ORDEN_ETAPA: Record<EtapaPostventa, number> = { ENTREGA: 0, SEGUIMIENTO: 1, RENOVACION: 2, CERRADO: 3 };
 
 function badgeRenovacion(n: Negocio) {

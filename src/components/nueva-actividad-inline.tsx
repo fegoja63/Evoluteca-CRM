@@ -5,6 +5,7 @@ import { toast } from "@/lib/toast";
 import { tiposActividadVisibles } from "@/lib/tipos-actividad";
 import { boton, campo } from "@/components/ui/estilos";
 import { IconPlus } from "@tabler/icons-react";
+import { aInputDatetimeLocal } from "@/lib/fecha-bogota";
 
 type Props = {
   empresaId?: string;
@@ -19,7 +20,7 @@ function fechaLocalDefault() {
   const d = new Date();
   d.setMinutes(0, 0, 0);
   d.setHours(d.getHours() + 1);
-  return d.toISOString().slice(0, 16);
+  return aInputDatetimeLocal(d);
 }
 
 export function NuevaActividadInline({ empresaId, contactoId, oportunidadId, onGuardado, tipoInicial, autoAbrir }: Props) {

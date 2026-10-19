@@ -13,6 +13,7 @@ import {
 import { tiposActividadVisibles, tipoActividadDef, type TipoActividadDef } from "@/lib/tipos-actividad";
 import { boton, tarjeta } from "@/components/ui/estilos";
 import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
+import { formatoFecha as formatearFecha, fechaISO, formatoFechaHora } from "@/lib/fecha-bogota";
 
 // Nombre visible de cada filtro de la Agenda (se usa en el botón de exportar
 // para dejar claro qué bloque se va a descargar).
@@ -270,7 +271,7 @@ function CalendarioActividades({
       {diaSeleccionado && (
         <div className="bg-white rounded-2xl border border-brand-200 p-5">
           <h3 className="text-sm font-bold text-slate-900 mb-3">
-            {new Date(diaSeleccionado + "T12:00:00").toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" })}
+            {formatearFecha(new Date(diaSeleccionado + "T12:00:00"), { weekday: "long", day: "numeric", month: "long" })}
             <span className="ml-2 text-xs text-slate-400 font-normal">{actsDia.length} actividad{actsDia.length !== 1 ? "es" : ""}</span>
           </h3>
           {actsDia.length === 0 ? (
@@ -366,7 +367,7 @@ function AgendaContent() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `agenda-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.download = `agenda-${fechaISO(new Date())}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
     setExportando(false);
@@ -582,7 +583,7 @@ function AgendaContent() {
         datos: {
           titulo: a.titulo,
           tipo: tipoActividadDef(a.tipo)?.label ?? a.tipo,
-          fecha: new Date(a.fecha).toLocaleString("es-CO", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
+          fecha: formatoFechaHora(new Date(a.fecha), { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
           notas: "",
         },
       }),
@@ -606,9 +607,7 @@ function AgendaContent() {
   }
 
   function formatoFecha(fecha: string) {
-    return new Date(fecha).toLocaleString("es-ES", {
-      day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
-    });
+    return formatoFechaHora(fecha, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
   }
 
   const visibles = actividades.filter((a) => {

@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner } from "@/lib/permisos";
 import ExcelJS from "exceljs";
+import { formatoFechaHora, fechaISO } from "@/lib/fecha-bogota";
 
 export async function GET() {
   const session = await auth();
@@ -43,7 +44,7 @@ export async function GET() {
     ws.addRow({
       tipo:        a.tipo,
       titulo:      a.titulo,
-      fecha:       new Date(a.fecha).toLocaleString("es-CO"),
+      fecha:       formatoFechaHora(new Date(a.fecha)),
       estado:      a.completada ? "Completada" : "Pendiente",
       empresa:     a.empresa?.nombre ?? "",
       contacto:    a.contacto?.nombre ?? "",
@@ -65,7 +66,7 @@ export async function GET() {
   });
 
   const buffer = await wb.xlsx.writeBuffer();
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = fechaISO(new Date());
 
   return new NextResponse(new Uint8Array(buffer as ArrayBuffer), {
     status: 200,

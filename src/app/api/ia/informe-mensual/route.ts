@@ -6,7 +6,7 @@ import { permitirYRegistrar } from "@/lib/rate-limit";
 import { filtroOwner } from "@/lib/permisos";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { seriesTendencias } from "@/lib/tendencias";
-import { componentesHoyBogota } from "@/lib/fecha-bogota";
+import { componentesHoyBogota, formatoFecha } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -74,7 +74,7 @@ export async function POST() {
   const hoyCol = componentesHoyBogota(ahora);
   const rep = new Date(hoyCol.anio, hoyCol.mes - 1, 1);
   const anioRep = rep.getFullYear(), mesRep = rep.getMonth() + 1;
-  const labelRep = rep.toLocaleDateString("es-CO", { month: "long", year: "numeric" });
+  const labelRep = formatoFecha(rep, { month: "long", year: "numeric" });
   const enMesRep = (o: (typeof ops)[number]) => { const ef = fechaEfectiva(o); return ef.getFullYear() === anioRep && ef.getMonth() + 1 === mesRep; };
 
   const t = seriesTendencias(ops, etapasBase, ahora);

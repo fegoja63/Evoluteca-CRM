@@ -5,6 +5,7 @@ import { IconBuildingBank, IconGavel, IconScale, IconNote, IconPhone, IconMail, 
 import { toast } from "@/lib/toast";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonLista } from "@/components/ui/estados";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 type Evento = {
   id: string;
@@ -34,7 +35,7 @@ function fmtFecha(s: string) {
   if (dias === 0) return "Hoy";
   if (dias === 1) return "Ayer";
   if (dias < 7) return `Hace ${dias} días`;
-  return d.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
+  return formatoFecha(d, { day: "2-digit", month: "short", year: "numeric" });
 }
 
 export function BitacoraExpediente({ expedienteId, puedeEliminar }: { expedienteId: string; puedeEliminar: boolean }) {

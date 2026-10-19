@@ -5,6 +5,7 @@ import Link from "next/link";
 import { IconTrash, IconCalendar, IconTarget, IconFileText, IconMessageCircle, type Icon } from "@tabler/icons-react";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonLista } from "@/components/ui/estados";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 type ItemMeta = {
   completada?: boolean;
@@ -42,7 +43,7 @@ function fmtFecha(s: string) {
   if (dias === 0) return "Hoy";
   if (dias === 1) return "Ayer";
   if (dias < 7)  return `Hace ${dias} días`;
-  return d.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
+  return formatoFecha(d, { day: "2-digit", month: "short", year: "numeric" });
 }
 
 export function TimelineCliente({ empresaId, contactos }: { empresaId: string; contactos: { id: string; nombre: string }[] }) {

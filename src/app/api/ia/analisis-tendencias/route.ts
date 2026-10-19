@@ -6,7 +6,7 @@ import { permitirYRegistrar } from "@/lib/rate-limit";
 import { filtroOwner } from "@/lib/permisos";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { seriesTendencias } from "@/lib/tendencias";
-import { componentesHoyBogota } from "@/lib/fecha-bogota";
+import { componentesHoyBogota, formatoFecha } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -135,7 +135,7 @@ export async function POST() {
   // ── Contexto para el modelo ──
   const partes: string[] = [];
   partes.push(`ALCANCE: ${esComercial ? `datos personales de ${session.user.name ?? "el vendedor"}` : "datos de todo el equipo"}.`);
-  partes.push(`Hoy: ${ahora.toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric" })}.`);
+  partes.push(`Hoy: ${formatoFecha(ahora, { day: "2-digit", month: "long", year: "numeric" })}.`);
 
   partes.push(`\nSERIE MENSUAL (últimos 12 meses):`);
   partes.push(`mes | ganado | #ganadas | #perdidas | tasa cierre | pipeline nuevo`);

@@ -1,3 +1,4 @@
+import { formatoFecha } from "@/lib/fecha-bogota";
 type ExtrasPanelProps = {
   extras: Record<string, string> | null | undefined;
 };
@@ -7,7 +8,7 @@ function formatearValor(val: string): string {
     // Estas fechas (ej. extras.MES) vienen como medianoche UTC del día 1 del
     // mes importado desde Excel — leerlas en hora local las corre un mes atrás
     // en timezones detrás de UTC (Colombia es UTC-5). Se fuerza timeZone: "UTC".
-    return new Date(val).toLocaleDateString("es-CO", { month: "short", year: "numeric", timeZone: "UTC" });
+    return formatoFecha(new Date(val), { month: "short", year: "numeric" });
   }
   return val;
 }

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
@@ -11,6 +11,7 @@ import {
 } from "@tabler/icons-react";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
+import { fechaISO } from "@/lib/fecha-bogota";
 
 type Espectador = {
   id: string;
@@ -168,7 +169,7 @@ export default function AudienciaPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `audiencia-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.download = `audiencia-${fechaISO(new Date())}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
     setExportando(false);

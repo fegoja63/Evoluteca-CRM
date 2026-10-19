@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { filtroOwner, filtroOwnerActividad } from "@/lib/permisos";
-import { componentesHoyBogota, medianocheBogota } from "@/lib/fecha-bogota";
+import { componentesHoyBogota, medianocheBogota, formatoFecha } from "@/lib/fecha-bogota";
 import { calcularCumplimiento } from "@/lib/cumplimiento-proceso";
 
 export const dynamic = "force-dynamic";
@@ -50,8 +50,8 @@ export async function GET() {
   // Fechas legibles (ancladas a Bogotá) para que cada indicador diga de qué día
   // o mes a qué día o mes va su ventana, y no confunda con un simple "últimos 7
   // días" sin referencia.
-  const fmtDia = (dt: Date) => dt.toLocaleDateString("es-CO", { day: "numeric", month: "short", timeZone: "America/Bogota" });
-  const fmtMes = (dt: Date) => dt.toLocaleDateString("es-CO", { month: "short", year: "numeric", timeZone: "America/Bogota" });
+  const fmtDia = (dt: Date) => formatoFecha(dt, { day: "numeric", month: "short" });
+  const fmtMes = (dt: Date) => formatoFecha(dt, { month: "short", year: "numeric" });
 
   const [actividades7d, cotizaciones7d, empresas, ganadas, perdidasMes, actsCumplimiento, opsCumplimiento, usuarios] = await Promise.all([
     // 3. Actividad comercial: toques del equipo en los últimos 7 días. Se cuenta

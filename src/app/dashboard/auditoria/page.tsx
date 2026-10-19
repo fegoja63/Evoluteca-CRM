@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { IconHistory, IconChevronDown, IconChevronRight, IconLock } from "@tabler/icons-react";
 import { campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonLista } from "@/components/ui/estados";
+import { formatoFechaHora } from "@/lib/fecha-bogota";
 
 type Registro = {
   id: string;
@@ -50,13 +51,7 @@ const COLOR_ACCION: Record<string, string> = {
 const ACCIONES = Object.keys(ETIQUETA_ACCION);
 
 function fecha(iso: string) {
-  return new Date(iso).toLocaleString("es-CO", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatoFechaHora(new Date(iso), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 export default function AuditoriaPage() {

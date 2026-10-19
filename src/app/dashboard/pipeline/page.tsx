@@ -21,6 +21,7 @@ import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonKanban, SkeletonKpis, SkeletonTabla } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
 import { ETAPA_ESTILO as ESTILO_ETAPA } from "@/lib/etapas-color";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 const MOTIVOS_PERDIDA = [
   "Precio muy alto",
@@ -997,11 +998,11 @@ export default function PipelinePage() {
                         {cb
                           ? <span className={`text-xs rounded-full px-2 py-0.5 font-medium inline-flex items-center gap-1 ${cb.color}`}><IconCalendarEvent size={12} stroke={1.75} />{cb.label}</span>
                           : o.fechaCierre
-                            ? <span className="text-xs text-slate-400">{new Date(o.fechaCierre).toLocaleDateString("es-CO",{timeZone:"UTC"})}</span>
+                            ? <span className="text-xs text-slate-400">{formatoFecha(new Date(o.fechaCierre))}</span>
                             : <span className="text-slate-300">—</span>}
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-400">
-                        {new Date(o.creadoEn).toLocaleDateString("es-CO")}
+                        {formatoFecha(new Date(o.creadoEn))}
                         <span className="ml-1 text-xs rounded-full px-1 text-slate-500 bg-slate-100">{dias}d</span>
                       </td>
                       <td className="px-4 py-3 text-right">

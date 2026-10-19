@@ -6,6 +6,7 @@ import { boton, campo, insignia, type TonoInsignia } from "@/components/ui/estil
 import type { NivelUso, SaludUso } from "@/lib/salud-uso";
 import { SkeletonTabla } from "@/components/ui/estados";
 import { IconCheck } from "@tabler/icons-react";
+import { formatoFecha } from "@/lib/fecha-bogota";
 
 const CLAVE_KEY = "admin-evoluteca-secret";
 
@@ -260,7 +261,7 @@ export default function ClientesInternoPage() {
                         {t._count.usuarios} <span className="text-slate-400">/ {t.limiteUsuarios ?? "∞"}</span>
                       </td>
                       <td className="px-4 py-2 text-slate-500 whitespace-nowrap">
-                        {new Date(t.creadoEn).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })}
+                        {formatoFecha(new Date(t.creadoEn), { day: "2-digit", month: "short", year: "numeric" })}
                       </td>
                       <td className="px-4 py-2 text-right">
                         <button

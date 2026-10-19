@@ -28,6 +28,7 @@ import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
 import { mapaEtapas } from "@/lib/etapas-color";
+import { formatoFecha, fechaISO, formatoFechaHora } from "@/lib/fecha-bogota";
 
 type Oportunidad = {
   id: string;
@@ -359,7 +360,7 @@ export default function OportunidadDetallePage() {
       // Medianoche UTC del día 1 del mes importado — se fuerza timeZone: "UTC"
       // para no correr un mes atrás en timezones detrás de UTC (Colombia UTC-5).
       const d = new Date(v);
-      return d.toLocaleDateString("es-CO", { month: "short", year: "numeric", timeZone: "UTC" });
+      return formatoFecha(d, { month: "short", year: "numeric" });
     }
     return v;
   }
@@ -608,7 +609,7 @@ export default function OportunidadDetallePage() {
                     type="date"
                     autoFocus
                     disabled={guardandoCierre}
-                    defaultValue={op.fechaCierre ? new Date(op.fechaCierre).toISOString().substring(0, 10) : ""}
+                    defaultValue={op.fechaCierre ? fechaISO(new Date(op.fechaCierre)) : ""}
                     onFocus={e => { try { (e.target as HTMLInputElement & { showPicker?: () => void }).showPicker?.(); } catch { /* el usuario abre el calendario con un clic */ } }}
                     onChange={e => guardarCierreRapido(e.target.value)}
                     onBlur={() => setEditandoCierre(false)}
@@ -622,7 +623,7 @@ export default function OportunidadDetallePage() {
                     className={`text-sm font-semibold hover:text-brand-600 transition-colors ${cierreVencido ? "text-red-700" : "text-slate-800"}`}
                   >
                     {op.fechaCierre
-                      ? new Date(op.fechaCierre).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric", timeZone: "UTC" })
+                      ? formatoFecha(new Date(op.fechaCierre), { day:"2-digit", month:"short", year:"numeric" })
                       : <span className="text-brand-600">＋ Poner fecha</span>}
                   </button>
                 )}
@@ -630,7 +631,7 @@ export default function OportunidadDetallePage() {
               <div className="rounded-xl bg-slate-50 p-3.5">
                 <p className="text-xs text-slate-400 mb-1">Creada el</p>
                 <p className="text-sm font-semibold text-slate-800">
-                  {new Date(op.creadoEn).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" })}
+                  {formatoFecha(new Date(op.creadoEn), { day:"2-digit", month:"short", year:"numeric" })}
                 </p>
               </div>
             </div>
@@ -734,7 +735,7 @@ export default function OportunidadDetallePage() {
                 </div>
                 <div className="flex-1 pt-0.5">
                   <p className="text-xs font-semibold text-slate-700">Creada como Prospecto</p>
-                  <p className="text-xs text-slate-400">{new Date(op.creadoEn).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" })}</p>
+                  <p className="text-xs text-slate-400">{formatoFecha(new Date(op.creadoEn), { day: "numeric", month: "short", year: "numeric" })}</p>
                 </div>
               </div>
               {op.cambiosEtapa.map((c, i) => {
@@ -760,7 +761,7 @@ export default function OportunidadDetallePage() {
                         <span className={`text-xs rounded-full px-2 py-0.5 font-medium ${etapaNueva?.color ?? "bg-slate-100 text-slate-600"}`}>{etapaNueva?.label ?? c.etapaNueva}</span>
                       </div>
                       <p className="text-xs text-slate-400 mt-0.5">
-                        {new Date(c.creadoEn).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" })}
+                        {formatoFecha(new Date(c.creadoEn), { day: "numeric", month: "short", year: "numeric" })}
                         {c.creadoByNombre && <span> · {c.creadoByNombre}</span>}
                         <span className="ml-2 text-slate-300">({diasDesdeAnterior === 0 ? "mismo día" : `${diasDesdeAnterior}d en etapa anterior`})</span>
                       </p>
@@ -790,7 +791,7 @@ export default function OportunidadDetallePage() {
                           <div className="flex-1">
                             <p className={a.completada ? "font-medium text-slate-400 line-through" : "font-medium text-slate-800"}>{a.titulo}</p>
                             <p className="text-xs text-slate-400">
-                              {a.tipo} · {new Date(a.fecha).toLocaleDateString("es-CO", { day:"2-digit", month:"short", year:"numeric" })}
+                              {a.tipo} · {formatoFecha(new Date(a.fecha), { day:"2-digit", month:"short", year:"numeric" })}
                             </p>
                           </div>
                         </div>
@@ -836,7 +837,7 @@ export default function OportunidadDetallePage() {
                         </span>
                         <span className="flex-1" />
                         <span className="text-xs text-slate-400">
-                          {c.fechaValidez ? `Válida hasta ${new Date(c.fechaValidez).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })}` : `Creada ${new Date(c.creadoEn).toLocaleDateString("es-CO", { day: "2-digit", month: "short" })}`}
+                          {c.fechaValidez ? `Válida hasta ${formatoFecha(new Date(c.fechaValidez), { day: "2-digit", month: "short", year: "numeric" })}` : `Creada ${formatoFecha(new Date(c.creadoEn), { day: "2-digit", month: "short" })}`}
                         </span>
                       </Link>
                     ))}
@@ -859,7 +860,7 @@ export default function OportunidadDetallePage() {
                 <p className="font-medium text-slate-800">{proxima.titulo}</p>
                 <p className={`text-xs ${new Date(proxima.fecha) < new Date(new Date().toDateString()) ? "font-semibold text-red-600" : "text-slate-500"}`}>
                   {new Date(proxima.fecha) < new Date(new Date().toDateString()) ? "Vencida · " : ""}
-                  {new Date(proxima.fecha).toLocaleString("es-CO", { weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota" })}
+                  {formatoFechaHora(new Date(proxima.fecha), { weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>
             ) : (

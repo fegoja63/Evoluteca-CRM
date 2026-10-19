@@ -5,6 +5,7 @@ import { CampoPassword } from "@/components/campo-password";
 import { boton } from "@/components/ui/estilos";
 import { SkeletonTabla } from "@/components/ui/estados";
 import { IconCircleCheck } from "@tabler/icons-react";
+import { formatoFechaHora } from "@/lib/fecha-bogota";
 
 const CLAVE_KEY = "admin-evoluteca-secret";
 
@@ -76,7 +77,7 @@ export default function ErroresInternoPage() {
     if (res.ok) cargar(clave);
   }
 
-  const fmtFecha = (s: string) => new Date(s).toLocaleString("es-CO", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+  const fmtFecha = (s: string) => formatoFechaHora(new Date(s), { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 
   if (!clave) {
     return (

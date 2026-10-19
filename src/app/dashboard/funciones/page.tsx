@@ -1,11 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
 import { KpiCard } from "@/components/kpi-card";
 import { MoneyInput } from "@/components/money-input";
 import { Pager } from "@/components/pager";
-import { aInputDatetimeLocal } from "@/lib/fecha-bogota";
+import { aInputDatetimeLocal, fechaISO, formatoFechaHora } from "@/lib/fecha-bogota";
 import {
   IconTheater, IconArmchair, IconCoin, IconStar, IconDownload, IconPlus,
   IconAlertTriangle,
@@ -217,7 +217,7 @@ export default function FuncionesPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `funciones-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.download = `funciones-${fechaISO(new Date())}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
     setExportando(false);
@@ -421,7 +421,7 @@ export default function FuncionesPage() {
                   : "border-brand-200 bg-brand-50 text-brand-700"}`}>
                   {excede
                     ? `Se generarían más de 100 funciones (${fechas.length}). Acorta el rango o reduce los horarios.`
-                    : <>Se crearán <strong>{fechas.length} funciones</strong>. Primera: {fechas[0].toLocaleString("es-CO", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })} · Última: {fechas[fechas.length - 1].toLocaleString("es-CO", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</>}
+                    : <>Se crearán <strong>{fechas.length} funciones</strong>. Primera: {formatoFechaHora(fechas[0], { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })} · Última: {formatoFechaHora(fechas[fechas.length - 1], { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</>}
                 </div>
               );
             })()}
@@ -522,7 +522,7 @@ export default function FuncionesPage() {
                     )}
                   </td>
                   <td className="px-4 py-1 text-slate-500 whitespace-nowrap">
-                    {new Date(f.fecha).toLocaleString("es-CO", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    {formatoFechaHora(new Date(f.fecha), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                   </td>
                   <td className="px-4 py-1">
                     <div className="flex items-center gap-2">
