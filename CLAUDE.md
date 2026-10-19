@@ -43,6 +43,15 @@ multi-tenant (cada empresa es un `Tenant` aislado) · roles ADMINISTRADOR / GERE
 - Colores: `brand` (azul navy) para interacción y decoración, `accent` (rojo ladrillo) para la acción principal.
   Azul/violeta/ámbar/verde genéricos de Tailwind solo para **categorías o estados** (etapas, tipos de actividad, roles).
 
+## Fechas y horas (Colombia, UTC-5)
+
+- Toda conversión de fecha a texto o a valor de formulario pasa por [src/lib/fecha-bogota.ts](src/lib/fecha-bogota.ts).
+  **Instantes** (actividades, funciones, creación, "ahora"): `formatoFecha`, `formatoFechaHora`, `formatoHora`,
+  `fechaISO`, `aInputDatetimeLocal`, `ahoraParaInput`. **Fechas de calendario** (cierre, evento, validez,
+  campos tipo fecha): `formatoDia`, `diaISO`, `aInputDia`.
+- Nunca `toISOString().slice(...)`, `toLocaleDateString`, ni fechas armadas con `getFullYear()`: el servidor
+  (Vercel) corre en UTC y eso corre la hora 5 h o el día. `fecha-bogota-guardian.test.ts` lo bloquea.
+
 ## Pruebas (vitest)
 
 - Todas las carpetas y sesiones usan **la misma base de pruebas** (rama Neon `test`, `ep-gentle-tooth`).
