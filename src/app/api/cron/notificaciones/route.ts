@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { EtapaOportunidad } from "@prisma/client";
 import { plazoVencido, diasHastaPlazo } from "@/lib/plazo-legal";
 import { filtroActividadPropia } from "@/lib/permisos";
+import { enviarAvisosLicencia } from "@/lib/aviso-licencia";
 
 export const dynamic = "force-dynamic";
 // Con muchos tenants el recorrido completo puede tardar más que el límite
@@ -376,5 +377,9 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json({ enviados, errores, usuarios: usuarios.length });
+  // Avisos internos a Evoluteca de licencias por vencer (no van al cliente).
+  const licencias = await enviarAvisosLicencia(resend, ahora);
+  errores.push(...licencias.errores);
+
+  return NextResponse.json({ enviados, errores, usuarios: usuarios.length, avisosLicencia: licencias.enviados });
 }

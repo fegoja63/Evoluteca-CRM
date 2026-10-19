@@ -2,6 +2,9 @@ import { z } from "zod";
 
 const PLANES = ["arranque", "empresa", "corporativo"] as const;
 
+// Fecha de calendario de un <input type="date"> ("YYYY-MM-DD"); null la borra.
+const diaOpcional = z.union([z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"), z.null()]).optional();
+
 // z.record(z.enum(...), ...) en Zod v4 exige las 4 claves del enum presentes
 // (record exhaustivo) — un PATCH parcial como { expedientes: true } lo
 // rechaza. Se valida como objeto con las 4 claves opcionales en su lugar,
@@ -16,6 +19,9 @@ export const editarTenantSchema = z.object({
   // Tope mensual de Resúmenes con IA. null = ilimitado; 0 = desactivado;
   // entero positivo = tope. Palanca de plan controlada solo por el panel.
   limiteResumenesIA: z.union([z.number().int().min(0).max(99999), z.null()]).optional(),
+  // Vencimiento de la licencia y día del aviso interno (ver lib/aviso-licencia).
+  licenciaVenceEn: diaOpcional,
+  licenciaAvisoEn: diaOpcional,
   modulos: z.object({
     funciones: z.boolean().optional(),
     audiencia: z.boolean().optional(),

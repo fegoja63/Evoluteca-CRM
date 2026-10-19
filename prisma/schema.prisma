@@ -82,6 +82,16 @@ model Tenant {
   terminosVersion      String?
   terminosAceptadosPor String? // id del usuario titular que aceptó
 
+  // Vencimiento de la licencia contratada (fecha de calendario, anclada a
+  // Bogotá). Solo informativa: vencer NO suspende el acceso; la decisión de
+  // renovar o suspender la toma Evoluteca. Ver lib/aviso-licencia.ts.
+  licenciaVenceEn   DateTime?
+  // Día en que Evoluteca recibe el correo "¿renovamos?" (el cron diario de
+  // notificaciones lo envía una sola vez; licenciaAvisadaEn marca que salió y
+  // se limpia al cambiar cualquiera de las dos fechas).
+  licenciaAvisoEn   DateTime?
+  licenciaAvisadaEn DateTime?
+
   usuarios             Usuario[]
   empresas             Empresa[]
   contactos            Contacto[]

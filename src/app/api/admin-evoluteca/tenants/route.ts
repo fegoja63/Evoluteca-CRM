@@ -15,7 +15,7 @@ export async function GET(req: Request) {
     select: {
       id: true, nombre: true, slug: true, plan: true, activo: true,
       creadoEn: true, modulos: true, emailsActivos: true, limiteUsuarios: true,
-      limiteResumenesIA: true,
+      limiteResumenesIA: true, licenciaVenceEn: true, licenciaAvisoEn: true, licenciaAvisadaEn: true,
       usoIA: { where: { periodo }, select: { cantidad: true } },
       _count: { select: { usuarios: true, empresas: true, cotizaciones: true } },
     },
