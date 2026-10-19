@@ -31,6 +31,38 @@ function diaBogota(fecha: Date): number {
   return Date.UTC(a, m - 1, d) / 86_400_000;
 }
 
+// ── Atajos de fecha para agendar el próximo paso desde el tablero ───────────
+
+export type AtajoFecha = "hoy" | "manana" | "en3" | "lunes";
+
+/** Componentes de fecha y hora "de pared" en Bogotá. */
+function ahoraBogota(ahora: Date) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", hourCycle: "h23",
+  }).formatToParts(ahora).map(x => [x.type, x.value]));
+  return { anio: Number(p.year), mes: Number(p.month) - 1, dia: Number(p.day), hora: Number(p.hour) };
+}
+
+/**
+ * Valor "YYYY-MM-DDTHH:mm" (hora de Bogotá, sin zona) para un atajo, listo
+ * para un <input type="datetime-local"> y para la API, que lo ancla a Bogotá.
+ * "hoy" = la próxima hora en punto; null si ya es muy tarde (después de las 6 p. m.).
+ */
+export function fechaAtajo(atajo: AtajoFecha, ahora: Date = new Date()): string | null {
+  const { anio, mes, dia, hora } = ahoraBogota(ahora);
+  const dow = new Date(Date.UTC(anio, mes, dia)).getUTCDay(); // 0 = domingo
+  let dias = 0, h = 9;
+  if (atajo === "hoy") {
+    if (hora >= 18) return null;
+    h = hora + 1;
+  } else if (atajo === "manana") dias = 1;
+  else if (atajo === "en3") dias = 3;
+  else dias = ((8 - dow) % 7) || 7; // próximo lunes (si hoy es lunes, el siguiente)
+  const d = new Date(Date.UTC(anio, mes, dia + dias));
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(h)}:00`;
+}
+
 /** Texto corto para el chip: "Hoy 3:00 p. m.", "Mañana", "jue", "12 oct", "Vencida hace 3 d". */
 export function etiquetaProximoPaso(paso: { fecha: Date; vencida: boolean }, ahora: Date = new Date()): string {
   const dias = diaBogota(paso.fecha) - diaBogota(ahora);

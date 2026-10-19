@@ -105,7 +105,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.28"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.29"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -504,7 +504,7 @@ export async function GET() {
       React.createElement(LI, null, "Azul — En marcha: con contacto reciente y sin alarmas."),
       React.createElement(P, null, "Cuenta como contacto solo lo que ya ocurrió: una actividad registrada con fecha de hoy o anterior, un cambio de etapa o un correo enviado o recibido. Una tarea agendada a futuro no cuenta, para que agendar algo para dentro de un mes no esconda un negocio que nadie ha tocado. El umbral (por defecto 14 días) lo define el Administrador en Configuración › Alerta de negocios estancados — ver 9.7. Ganadas y Perdidas no muestran estado."),
       React.createElement(P, null, "Regla \"sin próximo paso, no hay oportunidad\": todo negocio activo debe tener al menos una actividad pendiente con fecha de hoy en adelante. Si no la tiene, pasa a 'Requiere atención — Sin próximo paso agendado' aunque esté caliente: un negocio sin siguiente paso es justo el que se enfría sin que nadie lo note. Una tarea vencida de días anteriores no cuenta; hay que agendar un paso nuevo."),
-      React.createElement(P, null, "Cada tarjeta activa muestra su próximo paso: en azul, la siguiente actividad pendiente con su tipo y cuándo es (\"Hoy 3:00 p. m.\", \"Mañana\", \"jue\", \"20 oct\"); en rojo, si lo único pendiente es una tarea de días anteriores (\"Vencida hace 3 d\"); y un chip gris punteado \"Sin próximo paso\" si no hay ninguna, que al hacer clic abre la ficha para agendarlo. Al pasar el cursor por el chip se ve el título de la actividad."),
+      React.createElement(P, null, "Cada tarjeta activa muestra su próximo paso: en azul, la siguiente actividad pendiente con su tipo y cuándo es (\"Hoy 3:00 p. m.\", \"Mañana\", \"jue\", \"20 oct\"); en rojo, si lo único pendiente es una tarea de días anteriores (\"Vencida hace 3 d\"); y un chip gris punteado \"Sin próximo paso\" si no hay ninguna. Al hacer clic en el chip gris (o en el rojo de una tarea vencida) se abre un formulario corto para agendar el siguiente paso sin salir del tablero: elige qué (Llamada, Reunión, Email o Tarea), ajusta el título si quieres y elige cuándo con los atajos Hoy, Mañana, En 3 días o Próx. lunes (o una fecha y hora exactas). Al guardar, la tarjeta muestra de inmediato el chip azul. Al pasar el cursor por el chip se ve el título de la actividad."),
       React.createElement(P, null, "En la barra de filtros aparecen dos chips de acceso rápido cuando aplican: el rojo \"N estancadas\" (negocios activos que superan el umbral de días sin contacto) y el ámbar \"N sin próximo paso\". Haz clic en cualquiera para ver solo esos negocios."),
       React.createElement(Tip, null, "Empieza el día con los dos chips: primero reactiva lo estancado y luego agenda el siguiente paso de lo que no lo tiene. Así ningún negocio queda en el aire."),
       React.createElement(P, null, "Etiqueta \"Quieto N d\": cuando un negocio lleva el umbral de días sin movimiento (o más), su tarjeta muestra cuántos días lleva quieto, en ámbar; desde el doble del umbral pasa a rojo, igual que el borde."),

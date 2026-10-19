@@ -6,9 +6,10 @@ import { toast } from "@/lib/toast";
 import { MoneyInput } from "@/components/money-input";
 import { ResumenPipelineIA } from "@/components/resumen-pipeline-ia";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
-import { estadoComercial } from "@/lib/estado-comercial";
+import { estadoComercial, inicioProximoPaso } from "@/lib/estado-comercial";
 import { etiquetaProximoPaso } from "@/lib/proximo-paso";
-import { tipoActividadDef } from "@/lib/tipos-actividad";
+import { tipoActividadDef, tiposActividadVisibles } from "@/lib/tipos-actividad";
+import { AgendarPasoRapido, type PasoAgendado } from "@/components/agendar-paso-rapido";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
@@ -139,6 +140,9 @@ export default function PipelinePage() {
   const searchParams = useSearchParams();
 
   const [oportunidades, setOportunidades] = useState<Oportunidad[]>([]);
+  // Negocio cuyo próximo paso se está agendando desde el tablero (chip gris o vencido).
+  const [agendandoId, setAgendandoId] = useState<string | null>(null);
+  const [modulosTenant, setModulosTenant] = useState<Record<string, boolean>>({});
   const [empresas, setEmpresas]   = useState<Empresa[]>([]);
   const [contactos, setContactos] = useState<Contacto[]>([]);
   const [vendedores, setVendedores] = useState<UsuarioVendedor[]>([]);
@@ -212,6 +216,7 @@ export default function PipelinePage() {
     const usuarios = await resUsu.json();
     setVendedores(Array.isArray(usuarios) ? usuarios.map((u: { id: string; nombre: string }) => ({ id: u.id, nombre: u.nombre })) : []);
     const config = await resConfig.json();
+    setModulosTenant((config?.modulos as Record<string, boolean>) ?? {});
     setDiasEstancamiento(Number(config?.diasEstancamiento) || 14);
     const salonesActivo = !!config?.modulos?.salones;
     setModuloSalones(salonesActivo);
@@ -1129,21 +1134,30 @@ export default function PipelinePage() {
                           const paso = o.proximoPaso;
                           const def = tipoActividadDef(paso.tipo);
                           const IconoPaso = def?.icon ?? IconCalendarEvent;
-                          return (
-                            <span title={`Próximo paso — ${def?.label ?? "Actividad"}: ${paso.titulo}`}
-                              className={`inline-flex max-w-full items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-semibold ${
-                                paso.vencida ? "bg-red-50 text-red-600" : "bg-brand-50 text-brand-700"
-                              }`}>
+                          const contenido = (
+                            <>
                               <IconoPaso size={11} stroke={1.75} className="shrink-0" />
                               <span className="truncate">{etiquetaProximoPaso({ fecha: new Date(paso.fecha), vencida: paso.vencida })}</span>
+                            </>
+                          );
+                          return paso.vencida ? (
+                            <button type="button" title={`Vencida — ${def?.label ?? "Actividad"}: ${paso.titulo}. Clic para agendar un nuevo paso`}
+                              onClick={() => { if (!draggingId) setAgendandoId(o.id); }}
+                              className="inline-flex max-w-full items-center gap-1 rounded-full bg-red-50 px-1.5 py-0.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-100">
+                              {contenido}
+                            </button>
+                          ) : (
+                            <span title={`Próximo paso — ${def?.label ?? "Actividad"}: ${paso.titulo}`}
+                              className="inline-flex max-w-full items-center gap-1 rounded-full bg-brand-50 px-1.5 py-0.5 text-xs font-semibold text-brand-700">
+                              {contenido}
                             </span>
                           );
                         })() : (
-                          <Link href={`/dashboard/pipeline/${o.id}`} title="Este negocio no tiene ninguna actividad agendada"
-                            onClick={e => { if (draggingId) e.preventDefault(); }}
-                            className="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-1.5 py-0.5 text-xs font-medium text-slate-400 transition-colors hover:border-brand-400 hover:text-brand-600">
+                          <button type="button" title="Este negocio no tiene ninguna actividad agendada. Clic para agendar el próximo paso"
+                            onClick={() => { if (!draggingId) setAgendandoId(o.id); }}
+                            className="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-1.5 py-0.5 text-xs font-medium text-slate-400 transition-colors hover:border-brand-400 hover:bg-brand-50 hover:text-brand-600">
                             <IconCalendarPlus size={11} stroke={1.75} />Sin próximo paso
-                          </Link>
+                          </button>
                         ))}
                         {(() => {
                           // "Quieto N d": días sin movimiento a partir del umbral de
@@ -1255,6 +1269,29 @@ export default function PipelinePage() {
         </div>
         </>
       )}
+
+      {/* Agendar el próximo paso sin salir del tablero */}
+      {agendandoId && (() => {
+        const op = oportunidades.find(o => o.id === agendandoId);
+        if (!op) return null;
+        return (
+          <AgendarPasoRapido
+            oportunidad={op}
+            tipos={tiposActividadVisibles(modulosTenant)}
+            teniaVencida={!!op.proximoPaso?.vencida}
+            onCerrar={() => setAgendandoId(null)}
+            onAgendado={(paso: PasoAgendado) => {
+              // La tarjeta se actualiza al instante (chip azul y estado comercial),
+              // con el mismo criterio que la API: cuenta desde el inicio de hoy en Bogotá.
+              const vencida = new Date(paso.fecha) < inicioProximoPaso();
+              setOportunidades(prev => prev.map(o => o.id === op.id
+                ? { ...o, proximoPaso: { ...paso, vencida }, tieneProximoPaso: !vencida }
+                : o));
+              setAgendandoId(null);
+            }}
+          />
+        );
+      })()}
 
       {/* Modal motivo de pérdida */}
       {modalPerdidaId && (
