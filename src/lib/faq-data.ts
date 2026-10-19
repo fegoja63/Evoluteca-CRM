@@ -105,6 +105,8 @@ export const FAQS: Faq[] = [
     respuesta: "Sí, opcionalmente. Al mover una oportunidad desde Prospecto o Calificado hacia cualquier otra etapa (excepto Perdida), el sistema ofrece registrar el número de cotización asociado — puedes dejarlo en blanco sin problema." },
 
   // ── Agenda ──
+  { categoria: "Agenda", pregunta: "¿En qué hora se muestran las fechas y horas del CRM?",
+    respuesta: "Siempre en hora de Colombia: en las pantallas, en los archivos de Excel, en los PDF y en los correos. Una reunión agendada a las 3:00 p. m. se ve a las 3:00 p. m. para todo el equipo, incluso si alguien entra desde otro país. Al crear una actividad, la hora propuesta es la próxima hora en punto, y puedes cambiarla antes de guardar." },
   { categoria: "Agenda", pregunta: "¿Qué tipos de actividad puedo registrar en la Agenda?",
     respuesta: "Llamada, Reunión, Tarea y Email. Cada actividad puede vincularse a un cliente, contacto y/o oportunidad." },
   { categoria: "Agenda", pregunta: "¿Cómo marco una actividad como completada?",
