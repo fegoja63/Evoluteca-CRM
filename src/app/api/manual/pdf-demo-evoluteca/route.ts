@@ -87,7 +87,7 @@ function PageHeader({ base }: { base: string }) {
 }
 function Footer() {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.8"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.9"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -257,7 +257,7 @@ export async function GET() {
             ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#fef3c7", marginBottom: 3 } }, item)),
           ),
           React.createElement(View, { style: { marginTop: 24 } },
-            React.createElement(Text, { style: s.portadaVer }, `Versión 2.2 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+            React.createElement(Text, { style: s.portadaVer }, `Versión 2.9 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
           ),
         ),
       ),
@@ -361,7 +361,7 @@ export async function GET() {
       React.createElement(Paso, { n: 2, titulo: "Agrégale un contacto", desc: "Dentro de la ficha, añade un contacto (nombre, cargo, email, teléfono).", esperado: "El contacto queda vinculado a la empresa y aparece también en el módulo Contactos." }),
       React.createElement(Paso, { n: 3, titulo: "Crea una oportunidad", desc: "Crea una oportunidad para ese cliente: título, valor (p. ej. 10.000.000), etapa inicial 'Prospecto' y una fecha de cierre estimada.", esperado: "La oportunidad aparece en el Pipeline, en la columna Prospecto. Los campos de dinero muestran separador de miles automático." }),
       React.createElement(Paso, { n: 4, titulo: "Avánzala por el pipeline (drag & drop)", desc: "Ve a Pipeline y arrastra tu tarjeta de 'Prospecto' hasta 'Cotización'. Suéltala en la columna.", esperado: "La tarjeta cambia de columna al instante y la etapa queda registrada en su historial." }),
-      React.createElement(Paso, { n: 5, titulo: "Registra una actividad de seguimiento", desc: "Abre tu oportunidad y pulsa '+ Actividad' (arriba a la derecha): se abre el formulario en la pestaña Actividad. Crea una llamada para mañana.", esperado: "La actividad aparece en la pestaña Actividad, en el panel derecho como 'Próxima actividad' y en la Agenda; si la pones vencida, se sumará al panel de alertas del dashboard." }),
+      React.createElement(Paso, { n: 5, titulo: "Registra una actividad de seguimiento", desc: "Abre tu oportunidad y pulsa '+ Actividad' (arriba a la derecha): se abre el formulario en la pestaña Actividad. Fíjate que la hora propuesta es la próxima hora en punto (hora de Colombia); cámbiala y crea una llamada para mañana.", esperado: "La hora que elegiste se conserva igual en la ficha y en la Agenda (sin correrse). La actividad aparece en la pestaña Actividad, en el panel derecho como 'Próxima actividad' y en la Agenda; si la pones vencida, se sumará al panel de alertas del dashboard." }),
     ),
 
     // ── CAPÍTULO 5: FLUJO END-TO-END — parte 2 (cotización → PDF → ganar) ──

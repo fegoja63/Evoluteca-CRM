@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.29"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.30"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -244,7 +244,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.26 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.30 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -597,6 +597,8 @@ export async function GET() {
       React.createElement(P, null, 'Si el contacto que buscas todavía no existe, no necesitas salir de la Agenda: junto al campo Contacto hay un botón "+ Nuevo contacto". Al pulsarlo aparece un campo para escribir el nombre; haz clic en Agregar (o presiona Enter) y el contacto se crea al instante, queda asignado a la empresa seleccionada y se selecciona automáticamente en la actividad.'),
       React.createElement(Tip, null, "Sin empresa seleccionada, los campos Contacto y Oportunidad muestran todas las opciones disponibles. El filtro solo actúa cuando eliges una empresa."),
       React.createElement(Nota, null, "Los contactos sin empresa asignada no aparecen en el campo Contacto cuando hay una empresa seleccionada. Si necesitas uno de ellos, asígnale primero su empresa desde la ficha del contacto."),
+      React.createElement(Tip, null, "La fecha y hora de una actividad nueva vienen propuestas en la próxima hora en punto (si son las 10:20 a. m., propone las 11:00 a. m.). Puedes cambiarlas antes de guardar."),
+      React.createElement(Nota, null, "Todas las fechas y horas del CRM se manejan en hora de Colombia: en las pantallas, en los archivos de Excel, en los PDF y en los correos (por ejemplo, el aviso de una tarea asignada). Así, una reunión a las 3:00 p. m. se ve a las 3:00 p. m. para todo el equipo, aunque alguien entre desde otro país."),
 
       React.createElement(H2, null, "4.3 Marcar como completada"),
       React.createElement(P, null, 'Haz clic en el círculo "Hecha" a la izquierda de la actividad: se pone verde con un check y la actividad queda completada (se muestra tachada). Marcarla como hecha no la borra. Usa el filtro "Pendientes" para enfocarte en lo que falta.'),
