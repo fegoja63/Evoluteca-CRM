@@ -166,7 +166,8 @@ export function Sidebar({ tenantNombre, onClose, soloFinanzas = false, conFinanz
       .filter(([, activo]) => activo)
       .map(([key]) => navOpcionales[key])
       .filter(Boolean),
-    ...(conFinanzas ? [ITEM_FINANZAS] : []),
+    // Las finanzas de la empresa las ven el Administrador y el Gerente (lib/finanzas/acceso).
+    ...(conFinanzas && session?.user?.rol !== "COMERCIAL" ? [ITEM_FINANZAS] : []),
     { href: "/dashboard/datos", label: "Datos", icon: IconDatabaseImport },
     { href: "/dashboard/papelera", label: "Papelera", icon: IconTrash },
     // Solo para administradores: contiene la actividad de todo el equipo. La
