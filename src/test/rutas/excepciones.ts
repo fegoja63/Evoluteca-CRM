@@ -46,6 +46,14 @@ export const RUTAS_SIN_SESION: Record<string, Exencion> = {
     guardian: "ADMIN_REGISTRO_SECRET (cabecera x-admin-secret) + limite por IP",
     motivo: "Panel interno de Evoluteca: por definicion ve todos los tenants.",
   },
+  "/api/admin-evoluteca/tenants/[id]/licencias": {
+    guardian: "ADMIN_REGISTRO_SECRET (cabecera x-admin-secret) + limite por IP",
+    motivo: "Solo Evoluteca habilita modulos de pago, previo pago: un tenant no puede darse licencias.",
+  },
+  "/api/admin-evoluteca/tenants/[id]/licencias/[licenciaId]": {
+    guardian: "ADMIN_REGISTRO_SECRET (cabecera x-admin-secret) + limite por IP",
+    motivo: "Revoca licencias de modulos de pago: exclusivo del panel interno de Evoluteca.",
+  },
   "/api/cron/notificaciones": {
     guardian: "CRON_SECRET",
     motivo: "La invoca el cron de Vercel, que no tiene sesion de usuario.",

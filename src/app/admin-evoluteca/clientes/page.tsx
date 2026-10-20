@@ -7,6 +7,7 @@ import type { NivelUso, SaludUso } from "@/lib/salud-uso";
 import { SkeletonTabla } from "@/components/ui/estados";
 import { IconCheck } from "@tabler/icons-react";
 import { aInputDia, formatoDia, formatoFecha } from "@/lib/fecha-bogota";
+import { LicenciasModulo, ESTADO_LICENCIA, type ResumenFinanzas } from "@/components/admin/licencias-modulo";
 
 const CLAVE_KEY = "admin-evoluteca-secret";
 
@@ -25,6 +26,7 @@ type Tenant = {
   licenciaVenceEn: string | null;
   licenciaAvisoEn: string | null;
   licenciaAvisadaEn: string | null;
+  licenciaFinanzas: ResumenFinanzas;
   _count: { usuarios: number; empresas: number; cotizaciones: number };
   salud: SaludUso;
 };
@@ -234,6 +236,11 @@ export default function ClientesInternoPage() {
                       <td className="px-4 py-2">
                         <p className="font-medium text-slate-900 whitespace-nowrap">{t.nombre}</p>
                         <p className="text-xs text-slate-400 whitespace-nowrap">{t.slug} · <span className="capitalize">{t.plan}</span></p>
+                        {t.licenciaFinanzas.estado !== "SIN_LICENCIA" && (
+                          <span className={insignia(ESTADO_LICENCIA[t.licenciaFinanzas.estado].tono, "mt-1")}>
+                            Finanzas{t.licenciaFinanzas.estado === "VENCIDA" ? " vencida" : ""}
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-2">
                         <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${t.activo ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
@@ -377,6 +384,14 @@ export default function ClientesInternoPage() {
                                     : "Ese día llega un correo a Evoluteca para decidir si se renueva. Vencer no suspende el acceso."}
                               </p>
                             </div>
+                          </div>
+                          <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3">
+                            <LicenciasModulo
+                              tenantId={t.id}
+                              tenantNombre={t.nombre}
+                              clave={clave}
+                              onCambio={resumen => setTenants(prev => prev.map(x => (x.id === t.id ? { ...x, licenciaFinanzas: resumen } : x)))}
+                            />
                           </div>
                           <div className="mt-4">
                             <p className="text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Módulos opcionales</p>

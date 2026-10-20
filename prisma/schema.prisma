@@ -120,8 +120,37 @@ model Tenant {
   correos              CorreoRegistrado[]
   objeciones           Objecion[]
   minutas              Minuta[]
+  licenciasModulo      LicenciaModulo[]
 
   @@map("tenants")
+}
+
+// ---- Licencias de módulos de pago (ver lib/licencias.ts) ----
+// A diferencia de Tenant.modulos (que el ADMIN del tenant puede prender desde
+// Configuración), un módulo de pago solo lo habilita Evoluteca desde el panel
+// interno, previo pago. Cada habilitación es una fila: las renovaciones suman
+// filas y revocar marca revocadaEn, así queda el historial completo.
+
+enum ProductoLicencia {
+  FINANZAS
+}
+
+model LicenciaModulo {
+  id             String           @id @default(uuid())
+  tenantId       String
+  tenant         Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  producto       ProductoLicencia
+  // Días de calendario anclados a Bogotá; la licencia cubre hasta el final del día `hasta`.
+  desde          DateTime
+  hasta          DateTime
+  // Comprobante del pago recibido (factura, transferencia…). Obligatorio.
+  referenciaPago String
+  nota           String?
+  creadaEn       DateTime         @default(now())
+  revocadaEn     DateTime?
+
+  @@index([tenantId, producto])
+  @@map("licencias_modulo")
 }
 
 // Consumo mensual de "Resúmenes con IA" por tenant. Una fila por
