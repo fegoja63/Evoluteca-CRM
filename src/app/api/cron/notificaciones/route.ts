@@ -343,8 +343,9 @@ export async function GET(req: Request) {
     en5dias: new Date(ahora.getTime() + 5 * 86_400_000),
   };
 
+  // Las cuentas solo Finanzas no usan el CRM: no reciben sus recordatorios.
   const usuarios = await prisma.usuario.findMany({
-    where: { activo: true },
+    where: { activo: true, tenant: { soloFinanzas: false } },
     select: { id: true, nombre: true, email: true, tenantId: true, rol: true },
   });
 

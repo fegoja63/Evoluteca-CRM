@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconLayoutDashboard, IconBuilding, IconChartFunnel, IconCalendar, IconFilePlus, type Icon } from "@tabler/icons-react";
+import { IconLayoutDashboard, IconBuilding, IconChartFunnel, IconCalendar, IconFilePlus, IconCoin, IconUsersGroup, IconSettings, IconLifebuoy, type Icon } from "@tabler/icons-react";
+import { INICIO_FINANZAS } from "@/lib/cuenta-finanzas";
 import { cn } from "@/lib/cn";
 
 const NAV_MOVIL: { href: string; icon: Icon; label: string }[] = [
@@ -13,12 +14,21 @@ const NAV_MOVIL: { href: string; icon: Icon; label: string }[] = [
   { href: "/dashboard/cotizaciones-formales",  icon: IconFilePlus,       label: "Cotizar" },
 ];
 
-export function MobileNav() {
+// Cuenta solo Finanzas: sin pantallas del CRM (ver lib/cuenta-finanzas).
+const NAV_MOVIL_FINANZAS: { href: string; icon: Icon; label: string }[] = [
+  { href: INICIO_FINANZAS,           icon: IconCoin,       label: "Finanzas" },
+  { href: "/dashboard/equipo",        icon: IconUsersGroup, label: "Equipo" },
+  { href: "/dashboard/configuracion", icon: IconSettings,   label: "Ajustes" },
+  { href: "/dashboard/ayuda",         icon: IconLifebuoy,   label: "Ayuda" },
+];
+
+export function MobileNav({ soloFinanzas = false }: { soloFinanzas?: boolean }) {
   const pathname = usePathname();
+  const items = soloFinanzas ? NAV_MOVIL_FINANZAS : NAV_MOVIL;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-brand-950 border-t border-white/10 flex sm:hidden">
-      {NAV_MOVIL.map(item => {
+      {items.map(item => {
         const activo = pathname === item.href ||
           (item.href !== "/dashboard" && pathname.startsWith(item.href));
         const Icono = item.icon;

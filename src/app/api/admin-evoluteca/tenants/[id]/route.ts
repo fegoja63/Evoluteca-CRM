@@ -16,7 +16,7 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
   const body = await req.json();
   const { data, error } = parseOrError(editarTenantSchema, body);
   if (error) return error;
-  const { activo, plan, emailsActivos, limiteUsuarios, limiteResumenesIA, modulos, licenciaVenceEn, licenciaAvisoEn } = data;
+  const { activo, plan, emailsActivos, soloFinanzas, limiteUsuarios, limiteResumenesIA, modulos, licenciaVenceEn, licenciaAvisoEn } = data;
   const dia = (v: string | null) => (v ? fechaDesdeBogota(v) : null);
   // Cambiar cualquiera de las dos fechas re-arma el aviso (se vuelve a enviar
   // el día que corresponda).
@@ -40,6 +40,7 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
     data: {
       ...(activo !== undefined && { activo }),
       ...(plan !== undefined && { plan }),
+      ...(soloFinanzas !== undefined && { soloFinanzas }),
       ...(emailsFinal !== undefined && { emailsActivos: emailsFinal }),
       ...(limiteUsuarios !== undefined && { limiteUsuarios }),
       ...(limiteResumenesIA !== undefined && { limiteResumenesIA }),
@@ -50,7 +51,7 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
     },
     select: {
       id: true, nombre: true, slug: true, plan: true, activo: true,
-      creadoEn: true, modulos: true, emailsActivos: true, limiteUsuarios: true,
+      creadoEn: true, modulos: true, emailsActivos: true, soloFinanzas: true, limiteUsuarios: true,
       limiteResumenesIA: true, licenciaVenceEn: true, licenciaAvisoEn: true, licenciaAvisadaEn: true,
       _count: { select: { usuarios: true, empresas: true, cotizaciones: true } },
     },

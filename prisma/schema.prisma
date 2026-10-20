@@ -42,6 +42,11 @@ model Tenant {
   activo            Boolean  @default(true)
   creadoEn          DateTime @default(now())
   modulos           Json     @default("{}")
+  // Cuenta que compró SOLO el Gerente Financiero (sin el CRM): el menú y las
+  // pantallas se reducen a Finanzas y lo administrativo, y no recibe los
+  // correos automáticos del CRM. Lo cambia solo Evoluteca desde el panel
+  // interno (ver lib/cuenta-finanzas.ts); no es una preferencia del tenant.
+  soloFinanzas      Boolean  @default(false)
   logoUrl           String?
   // Color corporativo (#rrggbb) para lo que ve el cliente final: PDF, página
   // pública y correo de la cotización. null = azul de Evoluteca (ver lib/color-marca).
