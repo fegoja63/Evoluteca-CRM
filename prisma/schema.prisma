@@ -35,51 +35,51 @@ model RateLimit {
 // Todas las tablas de negocio (empresas, contactos, oportunidades...)
 // llevan tenantId para garantizar separación de datos entre clientes.
 model Tenant {
-  id                String   @id @default(uuid())
-  nombre            String
-  slug              String   @unique
-  plan              String   @default("arranque") // arranque | empresa | corporativo
-  activo            Boolean  @default(true)
-  creadoEn          DateTime @default(now())
-  modulos           Json     @default("{}")
+  id                   String    @id @default(uuid())
+  nombre               String
+  slug                 String    @unique
+  plan                 String    @default("arranque") // arranque | empresa | corporativo
+  activo               Boolean   @default(true)
+  creadoEn             DateTime  @default(now())
+  modulos              Json      @default("{}")
   // Cuenta que compró SOLO el Gerente Financiero (sin el CRM): el menú y las
   // pantallas se reducen a Finanzas y lo administrativo, y no recibe los
   // correos automáticos del CRM. Lo cambia solo Evoluteca desde el panel
   // interno (ver lib/cuenta-finanzas.ts); no es una preferencia del tenant.
-  soloFinanzas      Boolean  @default(false)
-  logoUrl           String?
+  soloFinanzas         Boolean   @default(false)
+  logoUrl              String?
   // Color corporativo (#rrggbb) para lo que ve el cliente final: PDF, página
   // pública y correo de la cotización. null = azul de Evoluteca (ver lib/color-marca).
-  colorMarca        String?
-  emailsActivos     Boolean  @default(true)
+  colorMarca           String?
+  emailsActivos        Boolean   @default(true)
   // Correo de la empresa. Se usa como "Responder-a" en los correos de
   // cotización, para que las respuestas del cliente lleguen al buzón del tenant
   // (no a Evoluteca). El envío sigue saliendo desde el dominio verificado.
-  email             String?
+  email                String?
   // Cuerpo/condiciones que el tenant define una vez y se repiten en TODAS sus
   // cotizaciones (PDF y link público): array de { titulo, contenido }. Ej:
   // "Sobre nosotros", "Alcance", "Condiciones comerciales", "Condiciones
   // legales", "Términos y plazos". null/[] = se usan las condiciones por
   // defecto del sistema (no rompe cotizaciones de tenants que no lo configuren).
-  cuerpoCotizacion  Json?
-  apiKeyLeads       String?  @unique
+  cuerpoCotizacion     Json?
+  apiKeyLeads          String?   @unique
   // Tope de usuarios activos según el plan contratado (null = sin límite).
   // Lo controla exclusivamente el panel interno de Evoluteca, no el propio
   // tenant — es una palanca de precios, no una preferencia de cuenta.
-  limiteUsuarios    Int?
+  limiteUsuarios       Int?
   // Tope de "Resúmenes con IA" por mes (palanca de plan, controlada por el
   // panel interno). null = ilimitado; 0 = IA desactivada; N>0 = tope mensual.
   // Por defecto 100 (plan Pro). El consumo real se lleva en UsoIA.
-  limiteResumenesIA Int?     @default(100)
+  limiteResumenesIA    Int?      @default(100)
   // Días sin movimiento (sin actividad NI cambio de etapa) tras los cuales una
   // oportunidad activa se considera "estancada". Lo ajusta el ADMIN del tenant
   // en Configuración: un ciclo de venta corto (teatro) puede querer 7 días; uno
   // largo (optimización de gasto TIC) 30. Lo leen por igual la señal visual del
   // Pipeline y el correo diario del cron, para que ambos digan lo mismo.
-  diasEstancamiento Int      @default(14)
+  diasEstancamiento    Int       @default(14)
   // Metodología de ventas del tenant (CONSULTIVA, SPIN, CHALLENGER, VALOR): la usa
   // el Coach de objeciones con IA. Ver src/lib/metodologias-venta.ts.
-  metodologiaVentas String   @default("CONSULTIVA")
+  metodologiaVentas    String    @default("CONSULTIVA")
   // Aceptación del Acuerdo de Licencia a nivel de TENANT: el contrato vincula a
   // la empresa, así que lo acepta UNA sola persona (el titular) UNA sola vez, en
   // nombre de la organización. Los demás usuarios no vuelven a verlo.
@@ -126,6 +126,8 @@ model Tenant {
   objeciones           Objecion[]
   minutas              Minuta[]
   licenciasModulo      LicenciaModulo[]
+  periodosFinancieros  PeriodoFinanciero[]
+  balancesFinancieros  BalanceFinanciero[]
 
   @@map("tenants")
 }
@@ -158,6 +160,52 @@ model LicenciaModulo {
   @@map("licencias_modulo")
 }
 
+// ---- Gerente Financiero: estados financieros (ver lib/finanzas) ----
+// Montos en pesos. El estado de resultados se guarda mes a mes (una fila por
+// mes) y el balance por fecha de corte; los indicadores usan el último corte
+// y los últimos 12 meses.
+
+model PeriodoFinanciero {
+  id            String   @id @default(uuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  mes           String // "YYYY-MM"
+  ventas        Decimal  @db.Decimal(16, 2)
+  costoVentas   Decimal  @default(0) @db.Decimal(16, 2)
+  gastosAdmin   Decimal  @default(0) @db.Decimal(16, 2)
+  gastosVentas  Decimal  @default(0) @db.Decimal(16, 2)
+  depreciacion  Decimal  @default(0) @db.Decimal(16, 2)
+  intereses     Decimal  @default(0) @db.Decimal(16, 2)
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@unique([tenantId, mes])
+  @@map("finanzas_periodos")
+}
+
+model BalanceFinanciero {
+  id                     String   @id @default(uuid())
+  tenantId               String
+  tenant                 Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  // Día de calendario anclado a Bogotá.
+  corte                  DateTime
+  caja                   Decimal  @default(0) @db.Decimal(16, 2)
+  cuentasPorCobrar       Decimal  @default(0) @db.Decimal(16, 2)
+  inventario             Decimal  @default(0) @db.Decimal(16, 2)
+  otrosActivosCorrientes Decimal  @default(0) @db.Decimal(16, 2)
+  activosFijos           Decimal  @default(0) @db.Decimal(16, 2)
+  proveedores            Decimal  @default(0) @db.Decimal(16, 2)
+  obligacionesCP         Decimal  @default(0) @db.Decimal(16, 2)
+  impuestosLaborales     Decimal  @default(0) @db.Decimal(16, 2)
+  deudaLP                Decimal  @default(0) @db.Decimal(16, 2)
+  patrimonio             Decimal  @default(0) @db.Decimal(16, 2)
+  creadoEn               DateTime @default(now())
+  actualizadoEn          DateTime @updatedAt
+
+  @@unique([tenantId, corte])
+  @@map("finanzas_balances")
+}
+
 // Consumo mensual de "Resúmenes con IA" por tenant. Una fila por
 // (tenant, periodo "YYYY-MM"). Se incrementa cada vez que se genera un
 // resumen exitoso; se usa para hacer cumplir limiteResumenesIA y para
@@ -177,51 +225,51 @@ model UsoIA {
 }
 
 model Usuario {
-  id               String     @id @default(uuid())
-  nombre           String
-  email            String     @unique
-  passwordHash     String
-  rol              RolUsuario @default(COMERCIAL)
-  activo           Boolean    @default(true)
-  creadoEn         DateTime   @default(now())
-  resetToken       String?    @unique
-  resetTokenExpiry DateTime?
-  aceptoTerminosEn DateTime?
-  versionTerminos  String?
+  id                  String     @id @default(uuid())
+  nombre              String
+  email               String     @unique
+  passwordHash        String
+  rol                 RolUsuario @default(COMERCIAL)
+  activo              Boolean    @default(true)
+  creadoEn            DateTime   @default(now())
+  resetToken          String?    @unique
+  resetTokenExpiry    DateTime?
+  aceptoTerminosEn    DateTime?
+  versionTerminos     String?
   // Titular de la cuenta: el primer usuario del tenant, el único con autoridad
   // para aceptar el Acuerdo de Licencia en nombre de la empresa.
-  esTitular        Boolean    @default(false)
+  esTitular           Boolean    @default(false)
   // La clave inicial la pone el administrador (Evoluteca o el titular) y se
   // comparte por un canal externo; el usuario DEBE cambiarla en su primer
   // ingreso. Se apaga al activar la cuenta.
-  debeCambiarPassword Boolean @default(false)
+  debeCambiarPassword Boolean    @default(false)
   // Orden personalizado del menú lateral: array de hrefs en el orden que el
   // usuario eligió. Los ítems no listados aquí (nuevos módulos, etc.) se
   // agregan al final en su orden por defecto.
-  ordenMenu        Json?
+  ordenMenu           Json?
   // Token secreto y revocable para suscribir la agenda personal a un calendario
   // externo (Google/Outlook/Apple) vía /api/calendario/{token}.ics. null =
   // sin suscripción activa. El feed es de solo lectura y solo expone las
   // actividades que el usuario ya puede ver según su rol.
-  tokenCalendario  String?    @unique
+  tokenCalendario     String?    @unique
 
   // --- Verificación en dos pasos (TOTP, opcional por usuario) ---
   // Secreto compartido con la app de autenticación (Google Authenticator y
   // similares). Se guarda desde que el usuario empieza a activarla, pero no
   // cuenta hasta que confirma con un código válido: si no, un fallo a media
   // activación lo dejaría fuera de su propia cuenta.
-  totpSecret       String?
-  totpActivadoEn   DateTime?
+  totpSecret      String?
+  totpActivadoEn  DateTime?
   // Códigos de un solo uso para entrar si pierde el teléfono. Se guardan
   // hasheados con bcrypt, igual que la contraseña: en claro serían una
   // segunda contraseña escrita en la base de datos.
-  codigosRespaldo  String[]   @default([])
+  codigosRespaldo String[]  @default([])
   // Rescate cuando el usuario pierde el teléfono Y sus códigos de respaldo.
   // Un administrador INICIA el reinicio, pero quien lo confirma es el propio
   // usuario desde su correo: si el admin pudiera desactivarlo por su cuenta,
   // el segundo factor no protegería contra un administrador comprometido.
-  reset2faToken    String?    @unique
-  reset2faExpiry   DateTime?
+  reset2faToken   String?   @unique
+  reset2faExpiry  DateTime?
 
   tenantId             String
   tenant               Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -234,22 +282,22 @@ model Usuario {
 }
 
 model Empresa {
-  id          String    @id @default(uuid())
-  nombre      String
-  email       String?
-  sector      String?
-  sitioWeb    String?
-  telefono    String?
-  notas       String?
+  id                     String    @id @default(uuid())
+  nombre                 String
+  email                  String?
+  sector                 String?
+  sitioWeb               String?
+  telefono               String?
+  notas                  String?
   // Condiciones comerciales propias de este cliente (forma de pago, plazos,
   // cláusulas negociadas). Se precargan al crear una cotización para él y
   // quedan editables en cada cotización.
   condicionesComerciales String?
-  etiquetas   String[]  @default([])
-  extras      Json?
-  creadoEn    DateTime  @default(now())
-  creadoBy    String?
-  eliminadoEn DateTime?
+  etiquetas              String[]  @default([])
+  extras                 Json?
+  creadoEn               DateTime  @default(now())
+  creadoBy               String?
+  eliminadoEn            DateTime?
 
   tenantId String
   tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -287,7 +335,7 @@ model Contacto {
   segmento String? // INDIVIDUAL | GRUPO | EMPRESA | COLEGIO
 
   empresaId       String?
-  empresa         Empresa?         @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+  empresa         Empresa?           @relation(fields: [empresaId], references: [id], onDelete: SetNull)
   oportunidades   Oportunidad[]
   actividades     Actividad[]
   cotizaciones    Cotizacion[]
@@ -341,19 +389,19 @@ model Oportunidad {
   // ---- Postventa (módulo opcional) ----
   // null = el negocio no está en el tablero de Postventa. Entra en ENTREGA al
   // ganarse (si el módulo está activo) o con "Pasar a postventa" en la ficha.
-  postventaEtapa   EtapaPostventa?
+  postventaEtapa     EtapaPostventa?
   // Cuándo hay que renovar (contrato, licencia, servicio). Dispara el aviso de
   // "renovaciones próximas" 30 días antes.
-  fechaRenovacion  DateTime?
+  fechaRenovacion    DateTime?
   // Si esta oportunidad es la RENOVACIÓN de otra, apunta al negocio original.
   origenRenovacionId String?
-  origenRenovacion   Oportunidad?  @relation("RenovacionDe", fields: [origenRenovacionId], references: [id], onDelete: SetNull)
-  renovaciones       Oportunidad[] @relation("RenovacionDe")
+  origenRenovacion   Oportunidad?    @relation("RenovacionDe", fields: [origenRenovacionId], references: [id], onDelete: SetNull)
+  renovaciones       Oportunidad[]   @relation("RenovacionDe")
   minutas            Minuta[]
 
-  creadoEn      DateTime         @default(now())
-  creadoBy      String?
-  eliminadoEn   DateTime?
+  creadoEn    DateTime  @default(now())
+  creadoBy    String?
+  eliminadoEn DateTime?
 
   tenantId String
   tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -570,19 +618,19 @@ enum ModalidadCotizacion {
 }
 
 model Cotizacion {
-  id                   String              @id @default(uuid())
-  numero               Int                 @default(autoincrement())
+  id                     String              @id @default(uuid())
+  numero                 Int                 @default(autoincrement())
   // Consecutivo personalizado del cliente (alfanumérico). Cuando está presente
   // se muestra en lugar del consecutivo automático `numero`; el interno se
   // conserva para orden y búsquedas.
-  numeroManual         String?
-  estado               EstadoCotizacion    @default(BORRADOR)
-  modalidad            ModalidadCotizacion @default(FEE_FIJO)
+  numeroManual           String?
+  estado                 EstadoCotizacion    @default(BORRADOR)
+  modalidad              ModalidadCotizacion @default(FEE_FIJO)
   // Success fee (SUCCESS_FEE) y fee mensual (FEE_MENSUAL):
-  porcentajeHonorarios Decimal?            @db.Decimal(5, 2) // % del ahorro (success fee)
-  horizonteMeses       Int? // horizonte en meses (ambas)
-  feeMensual           Decimal?            @db.Decimal(14, 2) // honorario fijo mensual (fee mensual)
-  notas                String?
+  porcentajeHonorarios   Decimal?            @db.Decimal(5, 2) // % del ahorro (success fee)
+  horizonteMeses         Int? // horizonte en meses (ambas)
+  feeMensual             Decimal?            @db.Decimal(14, 2) // honorario fijo mensual (fee mensual)
+  notas                  String?
   // Condiciones comerciales de ESTA cotización. Se copian del cliente al crear
   // y pueden ajustarse por cotización; es lo que se muestra en el PDF y el
   // enlace público (separado de las notas/observaciones).
@@ -591,20 +639,20 @@ model Cotizacion {
   // cotizaciones (Tenant.cuerpoCotizacion); esta columna quedó de un intento de
   // cuerpo por cotización que se descartó. Se conserva vacía para no requerir
   // una migración destructiva; puede eliminarse en una limpieza futura.
-  cuerpoCotizacion     Json?
-  fechaEvento          DateTime?
-  sede                 String?
-  fechaValidez         DateTime?
-  tokenPublico         String?             @unique
-  motivoRechazo        String?
-  impuestoNombre       String?
-  impuestoPorcentaje   Decimal?            @db.Decimal(5, 2)
-  impuesto2Nombre      String?
-  impuesto2Porcentaje  Decimal?            @db.Decimal(5, 2)
-  horaInicio           String?
-  horaFin              String?
-  creadoEn             DateTime            @default(now())
-  eliminadoEn          DateTime?
+  cuerpoCotizacion       Json?
+  fechaEvento            DateTime?
+  sede                   String?
+  fechaValidez           DateTime?
+  tokenPublico           String?             @unique
+  motivoRechazo          String?
+  impuestoNombre         String?
+  impuestoPorcentaje     Decimal?            @db.Decimal(5, 2)
+  impuesto2Nombre        String?
+  impuesto2Porcentaje    Decimal?            @db.Decimal(5, 2)
+  horaInicio             String?
+  horaFin                String?
+  creadoEn               DateTime            @default(now())
+  eliminadoEn            DateTime?
 
   tenantId String
   tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -691,7 +739,7 @@ model ErrorLog {
 // Estas filas NO se editan ni se borran desde la aplicación: solo se
 // insertan. Es lo que las hace valer como evidencia.
 model RegistroAuditoria {
-  id            String   @id @default(uuid())
+  id            String  @id @default(uuid())
   // Quién. Se guardan copias del nombre/correo/rol además del id porque el
   // usuario puede cambiar de rol o ser dado de baja después, y el registro
   // debe seguir contando lo que era cierto EN SU MOMENTO.
@@ -1162,7 +1210,7 @@ model Automatizacion {
   nombre String
   activa Boolean @default(true)
 
-  evento EventoAutomatizacion
+  evento       EventoAutomatizacion
   // Solo para OPORTUNIDAD_CAMBIA_ETAPA: etapa destino que dispara la regla
   // (uno de los keys de EtapaOportunidad). null = cualquier cambio de etapa.
   etapaDestino String?
@@ -1171,7 +1219,7 @@ model Automatizacion {
   // Configuración de la acción, según su tipo:
   //  CREAR_TAREA:   { titulo, tipo, diasPlazo, responsable: "DUENO" | <userId> }
   //  ENVIAR_CORREO: { destinatario: "DUENO" | "GERENTES", asunto, cuerpo }
-  config Json @default("{}")
+  config Json                 @default("{}")
 
   orden           Int       @default(0)
   vecesEjecutada  Int       @default(0)
@@ -1194,18 +1242,18 @@ model Automatizacion {
 // adapta a su negocio. `loQueNoDecir` es opcional (la respuesta que conviene
 // evitar), útil como contraste didáctico.
 model Objecion {
-  id           String   @id @default(uuid())
-  categoria    String?  // agrupación libre: Precio, Competencia, Timing, Interés…
-  objecion     String   // lo que dice el cliente
-  respuesta    String   // respuesta recomendada
-  loQueNoDecir String?  // respuesta a evitar (opcional)
+  id            String   @id @default(uuid())
+  categoria     String? // agrupación libre: Precio, Competencia, Timing, Interés…
+  objecion      String // lo que dice el cliente
+  respuesta     String // respuesta recomendada
+  loQueNoDecir  String? // respuesta a evitar (opcional)
   // Motivo de pérdida al que se asocia esta objeción (texto libre que casa con
   // Oportunidad.motivoPerdida). Permite que Reportes → Motivos de pérdida
   // muestre, junto a cada motivo, la respuesta recomendada de la guía.
   motivoPerdida String?
-  orden        Int      @default(0)
-  activa       Boolean  @default(true)
-  creadoEn     DateTime @default(now())
+  orden         Int      @default(0)
+  activa        Boolean  @default(true)
+  creadoEn      DateTime @default(now())
 
   tenantId String
   tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
