@@ -64,7 +64,7 @@ export async function cargarDatosCaja(tenantId: string): Promise<DatosCaja> {
   // cuenta solo Finanzas no tiene CRM.
   const oportunidades = soloFinanzas ? [] : await prisma.oportunidad.findMany({
     where: { tenantId, eliminadoEn: null, etapa: { in: [...ETAPAS_ACTIVAS] }, valor: { gt: 0 }, fechaCierre: { not: null } },
-    select: { titulo: true, valor: true, probabilidad: true, fechaCierre: true },
+    select: { id: true, titulo: true, etapa: true, valor: true, probabilidad: true, fechaCierre: true },
   });
 
   const dias = indicadores(datos.periodos, datos.balance).find(i => i.clave === "diasCartera")?.valor ?? null;
@@ -82,7 +82,7 @@ export async function cargarDatosCaja(tenantId: string): Promise<DatosCaja> {
     supuestosGuardados: !!guardados,
     soloFinanzas,
     pipeline: oportunidades.map(o => ({
-      titulo: o.titulo, valor: Number(o.valor), probabilidad: o.probabilidad, fechaCierre: diaISO(o.fechaCierre!),
+      id: o.id, titulo: o.titulo, etapa: o.etapa, valor: Number(o.valor), probabilidad: o.probabilidad, fechaCierre: diaISO(o.fechaCierre!),
     })),
   };
 }

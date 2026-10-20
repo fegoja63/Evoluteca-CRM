@@ -5,6 +5,7 @@
  */
 import { proyectarCaja, diasDeCaja, diasEntre, salidasMensuales, type NegocioPipeline, type Proyeccion, type Supuestos } from "./caja";
 import { diaCorto, millones } from "./formato";
+import { rescateDeCaja, type Rescate } from "./simulador";
 
 export type NivelAlerta = "rojo" | "ambar" | "verde";
 
@@ -15,6 +16,8 @@ export type AlertaCaja = {
   conNegocios: Proyeccion;
   sinNegocios: Proyeccion;
   diasCaja: number | null;
+  /** Solo en rojo con pipeline: qué negocios cerrar primero para evitarlo. */
+  rescate: Rescate | null;
 };
 
 type Entrada = {
@@ -40,7 +43,7 @@ export function alertaCaja({ hoy, caja, cartera, supuestos, pipeline }: Entrada)
   if (conNegocios.primerDiaEnRojo) {
     const dias = diasEntre(hoy, conNegocios.primerDiaEnRojo);
     return {
-      nivel: "rojo", conNegocios, sinNegocios, diasCaja,
+      nivel: "rojo", conNegocios, sinNegocios, diasCaja, rescate: rescateDeCaja(base),
       titulo: dias <= 0 ? "La caja ya está en rojo" : `En ${dias} días la caja queda en rojo: el ${diaCorto(conNegocios.primerDiaEnRojo)}`,
       detalle: `${hayPipeline ? "Ya cuenta el pipeline ponderado. " : ""}El punto más bajo es ${millones(conNegocios.minimo.saldo)} el ${diaCorto(conNegocios.minimo.dia)}.${sinTxt}`,
     };
@@ -49,13 +52,13 @@ export function alertaCaja({ hoy, caja, cartera, supuestos, pipeline }: Entrada)
   const quinceDias = salidasMensuales(supuestos) / 2;
   if (quinceDias > 0 && conNegocios.minimo.saldo < quinceDias) {
     return {
-      nivel: "ambar", conNegocios, sinNegocios, diasCaja,
+      nivel: "ambar", conNegocios, sinNegocios, diasCaja, rescate: null,
       titulo: `La caja alcanza, pero queda justa el ${diaCorto(conNegocios.minimo.dia)}`,
       detalle: `El punto más bajo es ${millones(conNegocios.minimo.saldo)}: menos de 15 días de gastos.${sinTxt}`,
     };
   }
   return {
-    nivel: "verde", conNegocios, sinNegocios, diasCaja,
+    nivel: "verde", conNegocios, sinNegocios, diasCaja, rescate: null,
     titulo: "Caja positiva las próximas 13 semanas",
     detalle: `El punto más bajo es ${millones(conNegocios.minimo.saldo)} el ${diaCorto(conNegocios.minimo.dia)}.${sinTxt}`,
   };

@@ -30,7 +30,11 @@ export type Supuestos = {
   diasCobro: number;
 };
 
-export type NegocioPipeline = { titulo: string; valor: number; probabilidad: number | null; fechaCierre: string };
+/** Un negocio abierto del CRM. `id` enlaza a su ficha en el Pipeline. */
+export type NegocioPipeline = { id?: string; titulo: string; etapa?: string; valor: number; probabilidad: number | null; fechaCierre: string };
+
+/** Llave estable de un negocio (el id; el título si no hay id). */
+export const claveNegocio = (n: NegocioPipeline) => n.id ?? n.titulo;
 
 export type Evento = { dia: string; monto: number; tipo: "cobro" | "pipeline" | "pago"; concepto: string };
 
