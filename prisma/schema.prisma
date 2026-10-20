@@ -128,6 +128,7 @@ model Tenant {
   licenciasModulo      LicenciaModulo[]
   periodosFinancieros  PeriodoFinanciero[]
   balancesFinancieros  BalanceFinanciero[]
+  supuestosCaja        SupuestosCaja?
 
   @@map("tenants")
 }
@@ -204,6 +205,23 @@ model BalanceFinanciero {
 
   @@unique([tenantId, corte])
   @@map("finanzas_balances")
+}
+
+// Supuestos de la caja proyectada (ver lib/finanzas/caja.ts). Uno por tenant;
+// mientras no exista, la pantalla propone supuestos sacados de los estados.
+model SupuestosCaja {
+  tenantId               String   @id
+  tenant                 Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  nominaMensual          Decimal  @default(0) @db.Decimal(16, 2)
+  gastosFijosMensuales   Decimal  @default(0) @db.Decimal(16, 2)
+  cuotaDeudaMensual      Decimal  @default(0) @db.Decimal(16, 2)
+  proveedoresSemanales   Decimal  @default(0) @db.Decimal(16, 2)
+  impuestosMensuales     Decimal  @default(0) @db.Decimal(16, 2)
+  ventasContadoSemanales Decimal  @default(0) @db.Decimal(16, 2)
+  diasCobro              Int      @default(30)
+  actualizadoEn          DateTime @updatedAt
+
+  @@map("finanzas_supuestos_caja")
 }
 
 // Consumo mensual de "Resúmenes con IA" por tenant. Una fila por

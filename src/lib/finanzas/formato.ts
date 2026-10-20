@@ -34,3 +34,9 @@ export function valorIndicador(i: Indicador): string {
   if (i.formato === "dias") return `${Math.round(i.valor)} días`;
   return `${i.valor.toFixed(2).replace(".", ",")} veces`;
 }
+
+/** "2026-10-05" → "5 oct" (día de calendario, sin zona horaria). */
+export function diaCorto(dia: string): string {
+  const [, m, d] = dia.split("-");
+  return `${Number(d)} ${MESES[Number(m) - 1] ?? m}`;
+}
