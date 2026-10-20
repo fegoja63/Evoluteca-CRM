@@ -10,14 +10,17 @@ import { MarcoFinanzas, SinAccesoFinanzas } from "@/components/finanzas/marco-fi
 import { GraficaCaja } from "@/components/finanzas/grafica-caja";
 import { FormSupuestos } from "@/components/finanzas/form-supuestos";
 import { SimuladorCaja } from "@/components/finanzas/simulador-caja";
+import { RescateCaja } from "@/components/finanzas/rescate-caja";
 
 export const dynamic = "force-dynamic";
 
-export default async function CajaPage() {
+export default async function CajaPage({ searchParams }: { searchParams: Promise<{ forzar?: string }> }) {
   const acceso = await accesoPaginaFinanzas();
   if (acceso.bloqueo) return <SinAccesoFinanzas motivo={acceso.bloqueo} />;
 
   const d = await cargarDatosCaja(acceso.tenantId);
+  // "Simular estos cierres" llega con los negocios a marcar como cerrados.
+  const forzar = ((await searchParams).forzar ?? "").split(",").filter(Boolean);
 
   if (!d.balance) {
     return (
@@ -42,6 +45,7 @@ export default async function CajaPage() {
       <div className={cn("rounded-xl border px-4 py-3", ESTILO_ALERTA[alerta.nivel])}>
         <p className="text-base font-semibold">{alerta.titulo}</p>
         <p className="mt-1 text-sm">{alerta.detalle}</p>
+        {alerta.rescate && <RescateCaja rescate={alerta.rescate} />}
       </div>
       {antiguedad > 45 && (
         <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
@@ -70,7 +74,7 @@ export default async function CajaPage() {
         </p>
       </div>
 
-      <SimuladorCaja hoy={d.hoy} caja={d.balance.caja} cartera={d.balance.cuentasPorCobrar} supuestos={d.supuestos} pipeline={d.pipeline} />
+      <SimuladorCaja key={forzar.join(",")} hoy={d.hoy} caja={d.balance.caja} cartera={d.balance.cuentasPorCobrar} supuestos={d.supuestos} pipeline={d.pipeline} forzadosIniciales={forzar} />
 
       {pe && (
         <div className={tarjeta("p-5")}>

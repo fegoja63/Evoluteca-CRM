@@ -3,6 +3,7 @@ import { IconSparkles, IconUpload } from "@tabler/icons-react";
 import { accesoPaginaFinanzas, cargarDatosCaja } from "@/lib/finanzas/datos";
 import { alertaCaja, ESTILO_ALERTA } from "@/lib/finanzas/alerta-caja";
 import { cn } from "@/lib/cn";
+import { RescateCaja } from "@/components/finanzas/rescate-caja";
 import { estadoResultados, sumarPeriodos, ultimosMeses, indicadores } from "@/lib/finanzas/estados";
 import { millones, mesCorto, variacion, valorIndicador, TONO_SEMAFORO } from "@/lib/finanzas/formato";
 import { formatoDia } from "@/lib/fecha-bogota";
@@ -44,10 +45,11 @@ export default async function FinanzasPage() {
       ) : (
         <>
           {alerta && (
-            <Link href="/dashboard/finanzas/caja" className={cn("block rounded-xl border px-4 py-3 transition-opacity hover:opacity-90", ESTILO_ALERTA[alerta.nivel])}>
+            <div className={cn("rounded-xl border px-4 py-3", ESTILO_ALERTA[alerta.nivel])}>
               <p className="text-base font-semibold">{alerta.titulo}</p>
-              <p className="mt-1 text-sm">{alerta.detalle} <span className="font-semibold underline">Ver la caja proyectada</span></p>
-            </Link>
+              <p className="mt-1 text-sm">{alerta.detalle} <Link href="/dashboard/finanzas/caja" className="font-semibold underline">Ver la caja proyectada</Link></p>
+              {alerta.rescate && <RescateCaja rescate={alerta.rescate} />}
+            </div>
           )}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Kpi titulo={`Ventas de ${mesCorto(ultimo.mes)}`} valor={millones(ultimo.ventas)}
