@@ -219,6 +219,8 @@ model SupuestosCaja {
   impuestosMensuales     Decimal  @default(0) @db.Decimal(16, 2)
   ventasContadoSemanales Decimal  @default(0) @db.Decimal(16, 2)
   diasCobro              Int      @default(30)
+  // Cuenta sin CRM: ventas que espera por mes, [{ mes: "YYYY-MM", monto }].
+  ventasProyectadas      Json     @default("[]")
   actualizadoEn          DateTime @updatedAt
 
   @@map("finanzas_supuestos_caja")

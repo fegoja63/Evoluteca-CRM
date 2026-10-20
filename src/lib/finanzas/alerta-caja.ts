@@ -33,7 +33,8 @@ export function alertaCaja({ hoy, caja, cartera, supuestos, pipeline }: Entrada)
   const conNegocios = proyectarCaja(base);
   const sinNegocios = proyectarCaja({ ...base, conPipeline: false });
   const diasCaja = diasDeCaja(caja, supuestos);
-  const hayPipeline = pipeline.length > 0;
+  // Sin CRM, las ventas proyectadas hacen el papel de los negocios nuevos.
+  const hayPipeline = pipeline.length > 0 || (supuestos.ventasProyectadas?.length ?? 0) > 0;
 
   const sinTxt = !hayPipeline ? ""
     : sinNegocios.primerDiaEnRojo

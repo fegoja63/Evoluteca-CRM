@@ -35,7 +35,7 @@ export default async function CajaPage({ searchParams }: { searchParams: Promise
 
   const alerta = alertaCaja({ hoy: d.hoy, caja: d.balance.caja, cartera: d.balance.cuentasPorCobrar, supuestos: d.supuestos, pipeline: d.pipeline });
   const pe = puntoEquilibrio(d.periodos);
-  const conPipeline = d.pipeline.length > 0;
+  const conPipeline = d.pipeline.length > 0 || (d.supuestos.ventasProyectadas?.length ?? 0) > 0;
   const antiguedad = diasEntre(d.balance.corte, d.hoy);
   // Los negocios del pipeline que más plata traen en estas 13 semanas.
   const negocios = alerta.conNegocios.eventos.filter(e => e.tipo === "pipeline").sort((a, b) => b.monto - a.monto).slice(0, 5);
@@ -141,7 +141,7 @@ export default async function CajaPage({ searchParams }: { searchParams: Promise
 
       <div className={tarjeta("p-5 space-y-3")} id="supuestos">
         <h2 className="text-base font-semibold text-slate-800">Supuestos de la proyección</h2>
-        <FormSupuestos supuestos={d.supuestos} guardados={d.supuestosGuardados} soloLectura={acceso.soloLectura} />
+        <FormSupuestos supuestos={d.supuestos} guardados={d.supuestosGuardados} soloLectura={acceso.soloLectura} soloFinanzas={d.soloFinanzas} hoy={d.hoy} />
       </div>
     </MarcoFinanzas>
   );

@@ -28,6 +28,11 @@ export type Supuestos = {
   ventasContadoSemanales: number;
   /** Días que tardan los clientes en pagar una venta a crédito. */
   diasCobro: number;
+  /**
+   * Cuenta sin CRM: ventas nuevas que espera por mes. Se cobran el último día
+   * de ese mes más los días de cobro, y cuentan como "negocios nuevos".
+   */
+  ventasProyectadas?: { mes: string; monto: number }[];
 };
 
 /** Un negocio abierto del CRM. `id` enlaza a su ficha en el Pipeline. */
@@ -62,6 +67,7 @@ export function sumarDias(dia: string, n: number): string {
 export function diasEntre(desde: string, hasta: string): number {
   return Math.round((aFecha(hasta).getTime() - aFecha(desde).getTime()) / 86_400_000);
 }
+const NOMBRE_MES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const ultimoDiaDelMes = (d: Date) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
 
 // ── Proyección ──────────────────────────────────────────────────────────────
@@ -110,6 +116,12 @@ export function eventosDeCaja({ hoy, cartera, supuestos: s, pipeline, conPipelin
   }
 
   if (conPipeline) {
+    for (const v of s.ventasProyectadas ?? []) {
+      const [a, m] = v.mes.split("-").map(Number);
+      if (!a || !m || !v.monto) continue;
+      const finDeMes = aDia(new Date(Date.UTC(a, m, 0)));
+      agregar(sumarDias(finDeMes, plazo), v.monto, "pipeline", `Ventas proyectadas de ${NOMBRE_MES[m - 1]}`);
+    }
     for (const n of pipeline) {
       // Una fecha de cierre ya vencida se toma como "cierra hoy", y se dice:
       // conviene actualizarla en el CRM para que la proyección sea real.

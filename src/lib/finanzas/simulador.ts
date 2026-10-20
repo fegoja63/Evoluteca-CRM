@@ -53,6 +53,8 @@ export function aplicarEscenario(
       proveedoresSemanales: por(supuestos.proveedoresSemanales, e.variacionGastos),
       ventasContadoSemanales: por(supuestos.ventasContadoSemanales, e.variacionContado),
       diasCobro: supuestos.diasCobro + e.retrasoCobros,
+      // Sin CRM, "se cumple del pipeline" es el cumplimiento de las ventas proyectadas.
+      ventasProyectadas: supuestos.ventasProyectadas?.map(v => ({ ...v, monto: (v.monto * e.cumplimientoPipeline) / 100 })),
     },
     // Un negocio forzado cierra al 100 %; los demás escalan su probabilidad, sin pasar de 100 %.
     pipeline: pipeline.map(n => ({

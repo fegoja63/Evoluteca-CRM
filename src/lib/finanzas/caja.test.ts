@@ -49,6 +49,19 @@ describe("eventos de caja", () => {
   });
 });
 
+describe("ventas proyectadas (cuenta sin CRM)", () => {
+  it("entran al cierre del mes más los días de cobro, como negocios nuevos", () => {
+    const ev = eventosDeCaja({ hoy: HOY, saldoInicial: 0, cartera: 0, pipeline: [],
+      supuestos: { ...SIN_NADA, diasCobro: 15, ventasProyectadas: [{ mes: "2026-10", monto: 40 * M }, { mes: "2026-12", monto: 60 * M }] } });
+    expect(ev.filter(e => e.tipo === "pipeline").map(e => [e.concepto, e.dia, e.monto])).toEqual([
+      ["Ventas proyectadas de octubre", "2026-11-15", 40 * M],
+    ]); // diciembre + 15 días cae fuera de las 13 semanas
+    const sin = eventosDeCaja({ hoy: HOY, saldoInicial: 0, cartera: 0, pipeline: [], conPipeline: false,
+      supuestos: { ...SIN_NADA, ventasProyectadas: [{ mes: "2026-10", monto: 40 * M }] } });
+    expect(sin.some(e => e.tipo === "pipeline")).toBe(false);
+  });
+});
+
 describe("proyectarCaja", () => {
   const supuestos = { ...SIN_NADA, nominaMensual: 40 * M, gastosFijosMensuales: 10 * M, proveedoresSemanales: 10 * M };
 
