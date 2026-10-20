@@ -210,7 +210,7 @@ describe("supuestos de la caja proyectada", () => {
       where: { id: A.oportunidadDelComercial }, data: { valor: 48 * M, probabilidad: 70, fechaCierre: new Date("2026-11-05T05:00:00Z") },
     }));
     const datosA = await cargarDatosCaja(A.tenantId);
-    expect(datosA.pipeline).toEqual([{ titulo: expect.stringContaining("Oportunidad del comercial"), valor: 48 * M, probabilidad: 70, fechaCierre: "2026-11-05" }]);
+    expect(datosA.pipeline).toEqual([expect.objectContaining({ id: A.oportunidadDelComercial, titulo: expect.stringContaining("Oportunidad del comercial"), etapa: "PROSPECTO", valor: 48 * M, probabilidad: 70, fechaCierre: "2026-11-05" })]);
     expect(datosA.supuestosGuardados).toBe(false);
     expect((await cargarDatosCaja(B.tenantId)).pipeline).toEqual([]);
 
