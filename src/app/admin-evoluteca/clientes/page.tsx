@@ -22,6 +22,7 @@ type Tenant = {
   creadoEn: string;
   modulos: Modulos;
   emailsActivos: boolean;
+  soloFinanzas: boolean;
   limiteUsuarios: number | null;
   licenciaVenceEn: string | null;
   licenciaAvisoEn: string | null;
@@ -109,7 +110,7 @@ export default function ClientesInternoPage() {
     cargar(claveInput);
   }
 
-  async function actualizar(id: string, cambios: Partial<{ activo: boolean; plan: string; emailsActivos: boolean; limiteUsuarios: number | null; modulos: Modulos; licenciaVenceEn: string | null; licenciaAvisoEn: string | null }>) {
+  async function actualizar(id: string, cambios: Partial<{ activo: boolean; plan: string; emailsActivos: boolean; soloFinanzas: boolean; limiteUsuarios: number | null; modulos: Modulos; licenciaVenceEn: string | null; licenciaAvisoEn: string | null }>) {
     setGuardando(true);
     const res = await fetch(`/api/admin-evoluteca/tenants/${id}`, {
       method: "PATCH",
@@ -122,6 +123,14 @@ export default function ClientesInternoPage() {
       setTenants(prev => prev.map(t => (t.id === id ? { ...t, ...actualizado } : t)));
     }
     setGuardando(false);
+  }
+
+  // Cuenta solo Finanzas: el cliente deja de ver el CRM (los datos se conservan).
+  function toggleSoloFinanzas(t: Tenant) {
+    const mensaje = t.soloFinanzas
+      ? `¿Devolver "${t.nombre}" al CRM completo? Sus usuarios volverán a ver Clientes, Pipeline y demás, y recibirán los correos del CRM.`
+      : `¿Convertir "${t.nombre}" en cuenta solo Finanzas? Sus usuarios verán solo el Gerente Financiero y lo administrativo, y dejarán de recibir los correos del CRM. Los datos del CRM se conservan.`;
+    if (confirm(mensaje)) actualizar(t.id, { soloFinanzas: !t.soloFinanzas });
   }
 
   function toggleModulo(t: Tenant, key: string) {
@@ -236,6 +245,7 @@ export default function ClientesInternoPage() {
                       <td className="px-4 py-2">
                         <p className="font-medium text-slate-900 whitespace-nowrap">{t.nombre}</p>
                         <p className="text-xs text-slate-400 whitespace-nowrap">{t.slug} · <span className="capitalize">{t.plan}</span></p>
+                        {t.soloFinanzas && <span className={insignia("marca", "mt-1 mr-1")}>Solo Finanzas</span>}
                         {t.licenciaFinanzas.estado !== "SIN_LICENCIA" && (
                           <span className={insignia(ESTADO_LICENCIA[t.licenciaFinanzas.estado].tono, "mt-1")}>
                             Finanzas{t.licenciaFinanzas.estado === "VENCIDA" ? " vencida" : ""}
@@ -382,6 +392,23 @@ export default function ClientesInternoPage() {
                                   : t.licenciaAvisadaEn
                                     ? `Aviso enviado el ${formatoFecha(t.licenciaAvisadaEn)}.`
                                     : "Ese día llega un correo a Evoluteca para decidir si se renueva. Vencer no suspende el acceso."}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-4">
+                            <p className="text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Tipo de cuenta</p>
+                            <div className="flex flex-wrap items-center gap-3">
+                              <button
+                                disabled={guardando}
+                                onClick={() => toggleSoloFinanzas(t)}
+                                className={boton(t.soloFinanzas ? "marca" : "secundario", "sm")}
+                              >
+                                {t.soloFinanzas ? "Solo Finanzas" : "CRM completo"}
+                              </button>
+                              <p className="text-2xs text-slate-400">
+                                {t.soloFinanzas
+                                  ? "Compró solo el Gerente Financiero: no ve el CRM ni recibe sus correos. Clic para devolverla al CRM completo."
+                                  : "Clic para convertirla en cuenta solo Finanzas (Gerente Financiero sin el CRM)."}
                               </p>
                             </div>
                           </div>

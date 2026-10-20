@@ -400,8 +400,9 @@ export async function GET(req: Request) {
     return NextResponse.json({ test: true, enviado: true, to, tenant: slug });
   }
 
+  // Las cuentas solo Finanzas no usan el CRM: no reciben el resumen de ventas.
   const tenants = await prisma.tenant.findMany({
-    where: { activo: true },
+    where: { activo: true, soloFinanzas: false },
     select: { id: true, nombre: true, emailsActivos: true, logoUrl: true },
   });
 

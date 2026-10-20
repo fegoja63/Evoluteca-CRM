@@ -360,8 +360,9 @@ export async function GET(req: Request) {
     resend = new Resend(process.env.RESEND_API_KEY);
   }
 
+  // Las cuentas solo Finanzas no usan el CRM: no reciben el resumen de ventas.
   const usuarios = await prisma.usuario.findMany({
-    where: { activo: true },
+    where: { activo: true, tenant: { soloFinanzas: false } },
     select: { id: true, nombre: true, email: true, tenantId: true, rol: true },
   });
 

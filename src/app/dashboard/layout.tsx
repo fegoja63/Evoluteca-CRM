@@ -7,6 +7,9 @@ import { Sidebar } from "@/components/sidebar";
 import { MobileNav } from "@/components/mobile-nav";
 import { Fab } from "@/components/fab";
 import { Toaster } from "@/lib/toast";
+import { prisma } from "@/lib/prisma";
+import { estadoLicencia } from "@/lib/licencias";
+import { INICIO_FINANZAS, rutaPermitidaSoloFinanzas } from "@/lib/cuenta-finanzas";
 
 export default async function DashboardLayout({
   children,
@@ -32,11 +35,24 @@ export default async function DashboardLayout({
     }
   }
 
+  // Cuenta solo Finanzas (compró el Gerente Financiero sin el CRM): las
+  // pantallas del CRM la llevan al módulo. Si tiene licencia del Gerente
+  // Financiero (vigente o vencida), en una cuenta con CRM aparece en el menú.
+  const [tenant, licenciaFinanzas] = await Promise.all([
+    prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { soloFinanzas: true } }),
+    estadoLicencia(session.user.tenantId, "FINANZAS"),
+  ]);
+  const soloFinanzas = tenant?.soloFinanzas ?? false;
+  if (soloFinanzas && pathname && !rutaPermitidaSoloFinanzas(pathname)) {
+    redirect(INICIO_FINANZAS);
+  }
+  const conFinanzas = soloFinanzas || licenciaFinanzas.estado !== "SIN_LICENCIA";
+
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
       {/* Sidebar: solo desktop */}
       <div className="hidden sm:flex">
-        <Sidebar tenantNombre={session.user.tenantNombre} />
+        <Sidebar tenantNombre={session.user.tenantNombre} soloFinanzas={soloFinanzas} conFinanzas={conFinanzas} />
       </div>
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-6xl mx-auto p-4 sm:p-8 pb-20 sm:pb-8">
@@ -44,10 +60,11 @@ export default async function DashboardLayout({
         </div>
       </main>
       {/* Nav inferior + FAB: solo móvil */}
-      <MobileNav />
-      <Fab />
+      <MobileNav soloFinanzas={soloFinanzas} />
+      {/* El botón flotante y la paleta crean registros del CRM. */}
+      {!soloFinanzas && <Fab />}
       <Toaster />
-      <PaletaComandos />
+      {!soloFinanzas && <PaletaComandos />}
     </div>
   );
 }

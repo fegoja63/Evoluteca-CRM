@@ -12,9 +12,10 @@ import {
   IconUsersGroup, IconTheater, IconTicket, IconScale, IconBuildingPavilion, IconMessageChatbot,
   IconDatabaseImport, IconTrash, IconRocket, IconLifebuoy, IconSettings, IconHistory,
   IconUserCircle, IconLogout, IconSearch, IconX, IconArrowsSort, IconCheck,
-  IconGripVertical, IconArrowBackUp, IconSparkles, IconHeartHandshake, IconChevronDown, IconChevronRight, IconInbox, type Icon,
+  IconGripVertical, IconArrowBackUp, IconSparkles, IconHeartHandshake, IconChevronDown, IconChevronRight, IconInbox, IconCoin, type Icon,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/cn";
+import { INICIO_FINANZAS } from "@/lib/cuenta-finanzas";
 
 type NavItem = { href: string; label: string; icon: Icon };
 
@@ -47,9 +48,14 @@ const navOpcionales: Record<string, NavItem> = {
 // su href; los módulos opcionales (Funciones, Salones…) van juntos en
 // "Módulos" y lo administrativo (Datos, Papelera, Ayuda…) en "Más", que
 // arranca plegado. "Ordenar" sigue funcionando, pero dentro de cada grupo.
-type GrupoId = "hoy" | "ventas" | "relaciones" | "analisis" | "modulos" | "mas";
+type GrupoId = "finanzas" | "hoy" | "ventas" | "relaciones" | "analisis" | "modulos" | "mas";
+
+// El Gerente Financiero: en una cuenta con CRM va entre los módulos; en una
+// cuenta solo Finanzas es todo el menú (ver lib/cuenta-finanzas).
+const ITEM_FINANZAS: NavItem = { href: INICIO_FINANZAS, label: "Gerente Financiero", icon: IconCoin };
 
 const GRUPOS: { id: GrupoId; label: string }[] = [
+  { id: "finanzas", label: "Finanzas" },
   { id: "hoy", label: "Hoy" },
   { id: "ventas", label: "Ventas" },
   { id: "relaciones", label: "Relaciones" },
@@ -71,6 +77,7 @@ const GRUPO_DE_HREF: Record<string, GrupoId> = {
   "/dashboard/reportes": "analisis",
   "/dashboard/asistente-ia": "analisis",
   "/dashboard/equipo": "analisis",
+  [INICIO_FINANZAS]: "modulos",
 };
 
 const HREFS_OPCIONALES = new Set(Object.values(navOpcionales).map(i => i.href));
@@ -103,7 +110,16 @@ function aplicarOrden(items: NavItem[], orden: string[] | null): NavItem[] {
   return [...ordenados, ...Array.from(porHref.values())];
 }
 
-export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClose?: () => void }) {
+type PropsSidebar = {
+  tenantNombre: string;
+  onClose?: () => void;
+  /** Cuenta que compró solo el Gerente Financiero: el menú se reduce a eso. */
+  soloFinanzas?: boolean;
+  /** La cuenta tiene (o tuvo) licencia del Gerente Financiero: aparece en Módulos. */
+  conFinanzas?: boolean;
+};
+
+export function Sidebar({ tenantNombre, onClose, soloFinanzas = false, conFinanzas = false }: PropsSidebar) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [modulos, setModulos] = useState<Record<string, boolean>>({});
@@ -139,12 +155,18 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
       .then((data) => setOrdenGuardado(data.ordenMenu ?? null));
   }, []);
 
-  const navItemsBase: NavItem[] = [
+  const navItemsBase: NavItem[] = soloFinanzas ? [
+    ITEM_FINANZAS,
+    { href: "/dashboard/equipo", label: "Equipo", icon: IconUsersGroup },
+    { href: "/dashboard/ayuda", label: "Ayuda / Soporte", icon: IconLifebuoy },
+    { href: "/dashboard/configuracion", label: "Configuración", icon: IconSettings },
+  ] : [
     ...navBase,
     ...Object.entries(modulos)
       .filter(([, activo]) => activo)
       .map(([key]) => navOpcionales[key])
       .filter(Boolean),
+    ...(conFinanzas ? [ITEM_FINANZAS] : []),
     { href: "/dashboard/datos", label: "Datos", icon: IconDatabaseImport },
     { href: "/dashboard/papelera", label: "Papelera", icon: IconTrash },
     // Solo para administradores: contiene la actividad de todo el equipo. La
@@ -158,10 +180,13 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
     { href: "/dashboard/configuracion", label: "Configuración", icon: IconSettings },
   ];
 
-  const navItems = aplicarOrden(navItemsBase, ordenGuardado);
+  // El orden guardado es del menú del CRM: una cuenta solo Finanzas usa el suyo fijo.
+  const navItems = soloFinanzas ? navItemsBase : aplicarOrden(navItemsBase, ordenGuardado);
+  // En una cuenta solo Finanzas todo va en un único grupo.
+  const grupoItem = (href: string): GrupoId => (soloFinanzas ? "finanzas" : grupoDe(href));
   const esActivo = (href: string) => pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
   const grupos = GRUPOS
-    .map(g => ({ ...g, items: navItems.filter(i => grupoDe(i.href) === g.id) }))
+    .map(g => ({ ...g, items: navItems.filter(i => grupoItem(i.href) === g.id) }))
     .filter(g => g.items.length > 0);
 
   async function guardarOrden(nuevoOrden: string[] | null) {
@@ -175,7 +200,7 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
 
   function onDrop(hrefDestino: string) {
     // Solo se reordena dentro del mismo grupo.
-    if (!draggingHref || draggingHref === hrefDestino || grupoDe(draggingHref) !== grupoDe(hrefDestino)) {
+    if (!draggingHref || draggingHref === hrefDestino || grupoItem(draggingHref) !== grupoItem(hrefDestino)) {
       setDraggingHref(null); setDragOverHref(null); return;
     }
     const hrefs = navItems.map(i => i.href);
@@ -196,7 +221,7 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
       <div className="px-5 py-6 border-b border-white/10 relative">
         <div className="flex items-center justify-center gap-2">
           <img src="/Logo Evoluteca.png" alt="Evoluteca" className="h-6 w-auto object-contain" />
-          <span className="text-white font-bold text-base tracking-wide leading-none">CRM</span>
+          <span className="text-white font-bold text-base tracking-wide leading-none">{soloFinanzas ? "Finanzas" : "CRM"}</span>
         </div>
         {onClose && (
           <button onClick={onClose} className="absolute top-4 right-4 text-brand-300 hover:text-white text-xl leading-none">
@@ -215,8 +240,9 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
       </div>
 
       {/* Búsqueda global: abre la paleta de comandos (Ctrl+K / ⌘K), que busca,
-          crea registros y le pregunta a la IA. */}
-      <div className="px-3 py-2 border-b border-white/10">
+          crea registros y le pregunta a la IA. Una cuenta solo Finanzas no
+          la tiene (busca y crea registros del CRM). */}
+      {!soloFinanzas && <div className="px-3 py-2 border-b border-white/10">
         <button type="button" onClick={() => { onClose?.(); abrirPaleta(); }}
           className="relative w-full rounded-lg bg-white/5 border border-white/10 pl-8 pr-12 py-1.5 text-left text-xs text-brand-400 hover:border-brand-400 transition-colors">
           <IconSearch size={15} stroke={1.75} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-brand-400" />
@@ -225,12 +251,13 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
             {atajo}
           </kbd>
         </button>
-      </div>
+      </div>}
 
       {/* Encabezado del menú + botón de reordenar */}
       <div className="px-3 pt-3 flex items-center justify-between">
         <span className="text-2xs font-semibold uppercase tracking-wide text-brand-400 px-1">Menú</span>
-        <div className="flex items-center gap-2">
+        {/* Una cuenta solo Finanzas tiene un menú fijo de pocos ítems. */}
+        {!soloFinanzas && <div className="flex items-center gap-2">
           {reordenando && ordenGuardado && (
             <button
               onClick={() => guardarOrden(null)}
@@ -251,7 +278,7 @@ export function Sidebar({ tenantNombre, onClose }: { tenantNombre: string; onClo
             {reordenando ? <IconCheck size={13} stroke={2} /> : <IconArrowsSort size={13} stroke={1.75} />}
             {reordenando ? "Listo" : "Ordenar"}
           </button>
-        </div>
+        </div>}
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 pb-3 pt-1 flex flex-col gap-0.5">

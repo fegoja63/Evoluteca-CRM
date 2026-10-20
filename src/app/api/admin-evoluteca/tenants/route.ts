@@ -15,7 +15,7 @@ export async function GET(req: Request) {
     orderBy: { creadoEn: "desc" },
     select: {
       id: true, nombre: true, slug: true, plan: true, activo: true,
-      creadoEn: true, modulos: true, emailsActivos: true, limiteUsuarios: true,
+      creadoEn: true, modulos: true, emailsActivos: true, soloFinanzas: true, limiteUsuarios: true,
       limiteResumenesIA: true, licenciaVenceEn: true, licenciaAvisoEn: true, licenciaAvisadaEn: true,
       usoIA: { where: { periodo }, select: { cantidad: true } },
       licenciasModulo: { where: { producto: "FINANZAS" }, select: { desde: true, hasta: true, revocadaEn: true } },
