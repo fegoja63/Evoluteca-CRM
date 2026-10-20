@@ -11,10 +11,6 @@ import { MarcoFinanzas, SinAccesoFinanzas } from "@/components/finanzas/marco-fi
 
 export const dynamic = "force-dynamic";
 
-// Lo que llega en las fases siguientes del módulo.
-const PROXIMAS = [
-  { icon: IconSparkles, titulo: "Gerente con IA", texto: "Pregúntele por sus números y reciba un informe claro, en lenguaje sencillo." },
-];
 
 export default async function FinanzasPage() {
   const acceso = await accesoPaginaFinanzas();
@@ -90,18 +86,13 @@ export default async function FinanzasPage() {
         </>
       )}
 
-      <div>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Próximamente en el módulo</h2>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {PROXIMAS.map(f => (
-            <div key={f.titulo} className={tarjeta("p-4")}>
-              <f.icon size={20} stroke={1.75} className="text-brand-600" />
-              <p className="mt-2 text-sm font-semibold text-slate-800">{f.titulo}</p>
-              <p className="mt-1 text-xs text-slate-500">{f.texto}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      <Link href="/dashboard/finanzas/gerente" className={tarjeta("flex items-center gap-3 p-4 transition-colors hover:border-brand-300")}>
+        <IconSparkles size={22} stroke={1.75} className="shrink-0 text-brand-600" />
+        <span>
+          <span className="block text-sm font-semibold text-slate-800">Pregúntele al gerente con IA</span>
+          <span className="block text-xs text-slate-500">Diagnóstico del mes y respuestas sobre sus números, en lenguaje sencillo.</span>
+        </span>
+      </Link>
     </MarcoFinanzas>
   );
 }

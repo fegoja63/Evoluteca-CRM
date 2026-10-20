@@ -3,11 +3,11 @@ import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import ExcelJS from "exceljs";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { permitirYRegistrar } from "@/lib/rate-limit";
 import { fechaISO } from "@/lib/fecha-bogota";
 import { exigirAccesoFinanzas } from "@/lib/finanzas/acceso";
 import { lecturaIASchema, limpiarLecturaIA } from "@/lib/finanzas/lectura-ia";
+import { verificarCupoIA, registrarUsoIA } from "@/lib/finanzas/cupo-ia";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -97,16 +97,8 @@ export async function POST(req: Request) {
   if (!permitido) return NextResponse.json({ error: "Demasiadas lecturas seguidas. Espere un momento." }, { status: 429 });
 
   // Cupo mensual de IA compartido (mismo contador que las demás funciones de IA).
-  const periodo = fechaISO().slice(0, 7);
-  const tenant = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { limiteResumenesIA: true } });
-  const limite = tenant?.limiteResumenesIA ?? null;
-  if (limite === 0) return NextResponse.json({ error: "La lectura con IA no está incluida en su plan." }, { status: 403 });
-  if (limite != null) {
-    const uso = await prisma.usoIA.findUnique({ where: { tenantId_periodo: { tenantId, periodo } }, select: { cantidad: true } });
-    if ((uso?.cantidad ?? 0) >= limite) {
-      return NextResponse.json({ error: `Alcanzó el límite de ${limite} acciones de IA este mes. Escríbanos para ampliar su plan.` }, { status: 429 });
-    }
-  }
+  const sinCupo = await verificarCupoIA(tenantId);
+  if (sinCupo) return sinCupo;
 
   const client = new Anthropic();
   let response;
@@ -147,13 +139,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "La lectura salió incompleta. Suba menos páginas a la vez." }, { status: 502 });
   }
 
-  try {
-    await prisma.usoIA.upsert({
-      where: { tenantId_periodo: { tenantId, periodo } },
-      create: { tenantId, periodo, cantidad: 1, tokensEntrada: response.usage.input_tokens, tokensSalida: response.usage.output_tokens },
-      update: { cantidad: { increment: 1 }, tokensEntrada: { increment: response.usage.input_tokens }, tokensSalida: { increment: response.usage.output_tokens } },
-    });
-  } catch { /* el conteo no debe tumbar la respuesta */ }
+  await registrarUsoIA(tenantId, response.usage);
 
   return NextResponse.json({ ...limpiarLecturaIA(response.parsed_output), unidadDocumento: response.parsed_output.unidadDocumento });
 }
