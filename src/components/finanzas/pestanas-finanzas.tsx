@@ -14,7 +14,8 @@ const PESTANAS = [
 export function PestanasFinanzas() {
   const pathname = usePathname();
   return (
-    <nav className="flex gap-1 overflow-x-auto border-b border-slate-200" aria-label="Secciones del Gerente Financiero">
+    // En el celular las pestañas se desplazan con el dedo; sin barra visible.
+    <nav className="flex gap-1 overflow-x-auto border-b border-slate-200 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Secciones del Gerente Financiero">
       {PESTANAS.map(p => {
         const activa = pathname === p.href;
         return (
