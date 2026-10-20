@@ -7,6 +7,7 @@
 import { estadoResultados, sumarPeriodos, ultimosMeses, totalesBalance, indicadores, type Balance, type Periodo } from "./estados";
 import { puntoEquilibrio, salidasMensuales, diasEntre, type FacturaPorCobrar, type NegocioPipeline, type Supuestos } from "./caja";
 import { alertaCaja } from "./alerta-caja";
+import { analizarClientes, type ClienteRentabilidad } from "./rentabilidad";
 
 const mm = (v: number) => Math.round(v / 100_000) / 10;
 
@@ -19,6 +20,7 @@ type Entrada = {
   supuestosGuardados: boolean;
   pipeline: NegocioPipeline[];
   carteraDetalle?: FacturaPorCobrar[];
+  rentabilidadClientes?: ClienteRentabilidad[];
 };
 
 export function contextoFinanciero(d: Entrada) {
@@ -77,6 +79,10 @@ export function contextoFinanciero(d: Entrada) {
     },
     carteraPorCliente: d.carteraDetalle?.length ? d.carteraDetalle.map(f => ({
       cliente: f.cliente, monto: mm(f.monto), vence: f.vence, diasVencida: Math.max(0, diasEntre(f.vence, d.hoy)),
+    })) : null,
+    rentabilidadPorCliente12Meses: d.rentabilidadClientes?.length ? analizarClientes(d.rentabilidadClientes).map(c => ({
+      cliente: c.cliente, ventas: mm(c.ventas), margenBruto: `${Math.round(c.margen * 100)} %`, diasPago: c.diasPago,
+      compraMuchoDejaPoco: c.compraMuchoDejaPoco,
     })) : null,
     pipelineCRM: d.pipeline.length ? {
       negocios: d.pipeline.length,

@@ -58,9 +58,10 @@ export async function POST(req: Request) {
   const pregunta = parsed.data.pregunta || DIAGNOSTICO;
   const historial = parsed.data.historial ?? [];
 
-  const [datos, tenant] = await Promise.all([
+  const [datos, tenant, rentabilidad] = await Promise.all([
     cargarDatosCaja(tenantId),
     prisma.tenant.findUnique({ where: { id: tenantId }, select: { nombre: true } }),
+    prisma.rentabilidadCliente.findMany({ where: { tenantId } }),
   ]);
   if (datos.periodos.length === 0 && !datos.balance) {
     return NextResponse.json({ error: "Primero cargue sus estados financieros: el gerente necesita sus cifras para responder." }, { status: 400 });
@@ -71,7 +72,10 @@ export async function POST(req: Request) {
   const sinCupo = await verificarCupoIA(tenantId);
   if (sinCupo) return sinCupo;
 
-  const contexto = contextoFinanciero({ empresa: tenant?.nombre ?? "", ...datos });
+  const contexto = contextoFinanciero({
+    empresa: tenant?.nombre ?? "", ...datos,
+    rentabilidadClientes: rentabilidad.map(f => ({ cliente: f.cliente, ventas: Number(f.ventas), costo: Number(f.costo), diasPago: f.diasPago })),
+  });
   const messages: Anthropic.Beta.BetaMessageParam[] = [
     ...historial.flatMap(t => [
       { role: "user" as const, content: t.pregunta },

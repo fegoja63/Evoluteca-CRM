@@ -130,6 +130,7 @@ model Tenant {
   balancesFinancieros  BalanceFinanciero[]
   supuestosCaja        SupuestosCaja?
   cuentasPorCobrar     CuentaPorCobrar[]
+  rentabilidadClientes RentabilidadCliente[]
 
   @@map("tenants")
 }
@@ -206,6 +207,22 @@ model BalanceFinanciero {
 
   @@unique([tenantId, corte])
   @@map("finanzas_balances")
+}
+
+// Rentabilidad por cliente de los últimos 12 meses: ventas, costo directo y
+// en cuántos días paga. La empresa la reemplaza completa cada vez que guarda.
+model RentabilidadCliente {
+  id            String   @id @default(uuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente       String
+  ventas        Decimal  @db.Decimal(16, 2)
+  costo         Decimal  @default(0) @db.Decimal(16, 2)
+  diasPago      Int?
+  actualizadoEn DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("finanzas_rentabilidad_clientes")
 }
 
 // Cartera por cobrar detallada (opcional): cada factura con su vencimiento.

@@ -9,6 +9,7 @@ const PESTANAS = [
   { href: "/dashboard/finanzas/caja", label: "Caja proyectada" },
   { href: "/dashboard/finanzas/estados", label: "Estados financieros" },
   { href: "/dashboard/finanzas/indicadores", label: "Indicadores" },
+  { href: "/dashboard/finanzas/clientes", label: "Rentabilidad por cliente" },
   { href: "/dashboard/finanzas/gerente", label: "Gerente IA" },
   { href: "/dashboard/finanzas/cargar", label: "Cargar datos" },
 ];
