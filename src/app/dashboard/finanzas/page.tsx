@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { IconChartLine, IconAlertTriangle, IconAdjustments, IconSparkles, IconUpload } from "@tabler/icons-react";
-import { accesoPaginaFinanzas, cargarDatosFinancieros } from "@/lib/finanzas/datos";
+import { IconAdjustments, IconSparkles, IconUpload } from "@tabler/icons-react";
+import { accesoPaginaFinanzas, cargarDatosCaja } from "@/lib/finanzas/datos";
+import { alertaCaja, ESTILO_ALERTA } from "@/lib/finanzas/alerta-caja";
+import { cn } from "@/lib/cn";
 import { estadoResultados, sumarPeriodos, ultimosMeses, indicadores } from "@/lib/finanzas/estados";
 import { millones, mesCorto, variacion, valorIndicador, TONO_SEMAFORO } from "@/lib/finanzas/formato";
 import { formatoDia } from "@/lib/fecha-bogota";
@@ -11,8 +13,6 @@ export const dynamic = "force-dynamic";
 
 // Lo que llega en las fases siguientes del módulo.
 const PROXIMAS = [
-  { icon: IconChartLine, titulo: "Caja proyectada", texto: "Cuánto dinero tendrá en las próximas semanas, con lo que se espera cobrar y pagar." },
-  { icon: IconAlertTriangle, titulo: "Alerta de días de caja", texto: "Aviso a tiempo cuando la caja alcance para pocos días, y su punto de equilibrio." },
   { icon: IconAdjustments, titulo: "Simulador", texto: "Qué pasa si sube un costo, baja una venta o se demora un cobro." },
   { icon: IconSparkles, titulo: "Gerente con IA", texto: "Pregúntele por sus números y reciba un informe claro, en lenguaje sencillo." },
 ];
@@ -21,7 +21,11 @@ export default async function FinanzasPage() {
   const acceso = await accesoPaginaFinanzas();
   if (acceso.bloqueo) return <SinAccesoFinanzas motivo={acceso.bloqueo} />;
 
-  const { periodos, balance } = await cargarDatosFinancieros(acceso.tenantId);
+  const datos = await cargarDatosCaja(acceso.tenantId);
+  const { periodos, balance } = datos;
+  const alerta = balance
+    ? alertaCaja({ hoy: datos.hoy, caja: balance.caja, cartera: balance.cuentasPorCobrar, supuestos: datos.supuestos, pipeline: datos.pipeline })
+    : null;
   const meses = ultimosMeses(periodos, 12);
   const ultimo = meses.length ? estadoResultados(meses[meses.length - 1]) : null;
   const anterior = meses.length > 1 ? estadoResultados(meses[meses.length - 2]) : null;
@@ -44,6 +48,12 @@ export default async function FinanzasPage() {
         </div>
       ) : (
         <>
+          {alerta && (
+            <Link href="/dashboard/finanzas/caja" className={cn("block rounded-xl border px-4 py-3 transition-opacity hover:opacity-90", ESTILO_ALERTA[alerta.nivel])}>
+              <p className="text-base font-semibold">{alerta.titulo}</p>
+              <p className="mt-1 text-sm">{alerta.detalle} <span className="font-semibold underline">Ver la caja proyectada</span></p>
+            </Link>
+          )}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Kpi titulo={`Ventas de ${mesCorto(ultimo.mes)}`} valor={millones(ultimo.ventas)}
               detalle={anterior ? `${variacion(ultimo.ventas, anterior.ventas)} vs. ${mesCorto(anterior.mes)}` : "Primer mes cargado"} />
@@ -83,7 +93,7 @@ export default async function FinanzasPage() {
 
       <div>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Próximamente en el módulo</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2">
           {PROXIMAS.map(f => (
             <div key={f.titulo} className={tarjeta("p-4")}>
               <f.icon size={20} stroke={1.75} className="text-brand-600" />

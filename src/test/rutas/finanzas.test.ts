@@ -13,6 +13,8 @@ import { GET as listarPeriodos, PUT as guardarPeriodos, DELETE as borrarPeriodo 
 import { GET as verBalance, PUT as guardarBalance } from "@/app/api/finanzas/balance/route";
 import { POST as importar } from "@/app/api/finanzas/importar/route";
 import { GET as plantilla } from "@/app/api/finanzas/plantilla/route";
+import { PUT as guardarSupuestos } from "@/app/api/finanzas/supuestos/route";
+import { cargarDatosCaja } from "@/lib/finanzas/datos";
 
 const M = 1_000_000;
 
@@ -166,5 +168,53 @@ describe("plantilla", () => {
     expect(hoja.getRow(1).getCell(1).value).toBe("Mes");
     expect(hoja.rowCount).toBe(13);
     expect(String(hoja.getRow(13).getCell(1).value)).toMatch(/^\d{4}-\d{2}$/);
+  });
+});
+
+describe("supuestos de la caja proyectada", () => {
+  beforeEach(async () => {
+    await darLicencia(A.tenantId);
+    await sinAislamiento("limpiar supuestos de A", () => prisma.supuestosCaja.deleteMany({ where: { tenantId: { in: [A.tenantId, B.tenantId] } } }));
+  });
+
+  const SUPUESTOS = {
+    nominaMensual: 40 * M, gastosFijosMensuales: 9 * M, cuotaDeudaMensual: 7 * M, proveedoresSemanales: 18 * M,
+    impuestosMensuales: 11 * M, ventasContadoSemanales: 14 * M, diasCobro: 45,
+  };
+
+  it("los guarda y los reemplaza (uno por empresa)", async () => {
+    comoUsuario(A, "GERENTE");
+    expect((await llamar(guardarSupuestos, { body: SUPUESTOS, metodo: "PUT" })).status).toBe(200);
+    expect((await llamar(guardarSupuestos, { body: { ...SUPUESTOS, diasCobro: 30 }, metodo: "PUT" })).status).toBe(200);
+    const filas = await prisma.supuestosCaja.findMany({ where: { tenantId: A.tenantId } });
+    expect(filas).toHaveLength(1);
+    expect(filas[0].diasCobro).toBe(30);
+    expect(Number(filas[0].nominaMensual)).toBe(40 * M);
+  });
+
+  it("rechaza montos negativos y días imposibles", async () => {
+    comoUsuario(A, "GERENTE");
+    expect((await llamar(guardarSupuestos, { body: { ...SUPUESTOS, nominaMensual: -1 }, metodo: "PUT" })).status).toBe(400);
+    expect((await llamar(guardarSupuestos, { body: { ...SUPUESTOS, diasCobro: 999 }, metodo: "PUT" })).status).toBe(400);
+  });
+
+  it("un comercial no, y sin licencia nadie", async () => {
+    comoUsuario(A, "COMERCIAL");
+    expect((await llamar(guardarSupuestos, { body: SUPUESTOS, metodo: "PUT" })).status).toBe(403);
+    comoUsuario(B, "ADMINISTRADOR");
+    expect((await llamar(guardarSupuestos, { body: SUPUESTOS, metodo: "PUT" })).status).toBe(403);
+  });
+
+  it("la caja usa el pipeline del CRM de la empresa, no el de otra ni en una cuenta solo Finanzas", async () => {
+    await sinAislamiento("negocio con valor y cierre para A", () => prisma.oportunidad.update({
+      where: { id: A.oportunidadDelComercial }, data: { valor: 48 * M, probabilidad: 70, fechaCierre: new Date("2026-11-05T05:00:00Z") },
+    }));
+    const datosA = await cargarDatosCaja(A.tenantId);
+    expect(datosA.pipeline).toEqual([{ titulo: expect.stringContaining("Oportunidad del comercial"), valor: 48 * M, probabilidad: 70, fechaCierre: "2026-11-05" }]);
+    expect(datosA.supuestosGuardados).toBe(false);
+    expect((await cargarDatosCaja(B.tenantId)).pipeline).toEqual([]);
+
+    await sinAislamiento("A pasa a solo Finanzas", () => prisma.tenant.update({ where: { id: A.tenantId }, data: { soloFinanzas: true } }));
+    expect((await cargarDatosCaja(A.tenantId)).pipeline).toEqual([]);
   });
 });

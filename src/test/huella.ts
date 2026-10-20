@@ -32,13 +32,14 @@ const tabla = (modelo: (typeof MODELOS)[number]) => modelo.dbName ?? modelo.name
  * se movia y la prueba pasaba tan tranquila. Con md5 sobre las filas enteras,
  * cualquier cambio en cualquier columna mueve la firma.
  *
- * `t::text` serializa la fila completa; el ORDER BY por id la hace estable
- * entre ejecuciones.
+ * `t::text` serializa la fila completa; ordenar por esa misma fila la hace
+ * estable entre ejecuciones (no todas las tablas tienen columna "id": los
+ * supuestos de caja usan el tenant como llave).
  */
 const TROZOS = MODELOS.map(
   (m) =>
     `SELECT '${m.name}' AS clave, ` +
-    `COALESCE(md5(string_agg(t::text, '|' ORDER BY t."id")), 'vacia') AS firma ` +
+    `COALESCE(md5(string_agg(t::text, '|' ORDER BY t::text)), 'vacia') AS firma ` +
     `FROM "${tabla(m)}" t WHERE t."tenantId" = $1`
 );
 

@@ -37,3 +37,15 @@ export const balanceSchema = z.object({
 });
 
 export const UNIDADES = ["pesos", "miles", "millones"] as const;
+
+// Supuestos de la caja proyectada (montos en pesos, ver lib/finanzas/caja).
+const montoPositivo = monto.refine(v => v >= 0, "Los montos no pueden ser negativos");
+export const supuestosCajaSchema = z.object({
+  nominaMensual: montoPositivo,
+  gastosFijosMensuales: montoPositivo,
+  cuotaDeudaMensual: montoPositivo,
+  proveedoresSemanales: montoPositivo,
+  impuestosMensuales: montoPositivo,
+  ventasContadoSemanales: montoPositivo,
+  diasCobro: z.number().int("Días de cobro inválidos").min(0).max(365, "Máximo 365 días de cobro"),
+});
