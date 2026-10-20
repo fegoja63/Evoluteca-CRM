@@ -34,7 +34,7 @@ export default async function CajaPage({ searchParams }: { searchParams: Promise
     );
   }
 
-  const alerta = alertaCaja({ hoy: d.hoy, caja: d.balance.caja, cartera: d.balance.cuentasPorCobrar, supuestos: d.supuestos, pipeline: d.pipeline });
+  const alerta = alertaCaja({ hoy: d.hoy, caja: d.balance.caja, cartera: d.balance.cuentasPorCobrar, carteraDetalle: d.carteraDetalle, supuestos: d.supuestos, pipeline: d.pipeline });
   const pe = puntoEquilibrio(d.periodos);
   const conPipeline = d.pipeline.length > 0 || (d.supuestos.ventasProyectadas?.length ?? 0) > 0;
   const antiguedad = diasEntre(d.balance.corte, d.hoy);
@@ -69,13 +69,13 @@ export default async function CajaPage({ searchParams }: { searchParams: Promise
         <h2 className="text-base font-semibold text-slate-800">Saldo de caja, próximas 13 semanas</h2>
         <div className="mt-3"><GraficaCaja con={alerta.conNegocios.semanas} sin={alerta.sinNegocios.semanas} conPipeline={conPipeline} /></div>
         <p className="mt-2 text-xs text-slate-500">
-          Entradas: cartera del balance (repartida en {Math.max(7, d.supuestos.diasCobro)} días), ventas de contado, contratos vigentes
+          Entradas: {d.carteraDetalle.length ? `la cartera factura por factura (${d.carteraDetalle.length}), al vencer` : `la cartera del balance (repartida en ${Math.max(7, d.supuestos.diasCobro)} días)`}, ventas de contado, contratos vigentes
           {conPipeline ? " y los negocios del pipeline (valor × probabilidad, cobrados " + d.supuestos.diasCobro + " días después del cierre; incluyen IVA)" : ""}.
           Salidas: nómina, gastos fijos, créditos, proveedores, impuestos y prestaciones de ley estimadas. Es una proyección con supuestos, no contabilidad.
         </p>
       </div>
 
-      <SimuladorCaja key={forzar.join(",")} hoy={d.hoy} caja={d.balance.caja} cartera={d.balance.cuentasPorCobrar} supuestos={d.supuestos} pipeline={d.pipeline} forzadosIniciales={forzar} />
+      <SimuladorCaja key={forzar.join(",")} hoy={d.hoy} caja={d.balance.caja} cartera={d.balance.cuentasPorCobrar} carteraDetalle={d.carteraDetalle} supuestos={d.supuestos} pipeline={d.pipeline} forzadosIniciales={forzar} />
 
       {pe && (() => {
         // Sin CRM, lo que se espera vender este mes ocupa el lugar del pipeline.

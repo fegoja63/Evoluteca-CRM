@@ -14,6 +14,7 @@ import { GET as verBalance, PUT as guardarBalance } from "@/app/api/finanzas/bal
 import { POST as importar } from "@/app/api/finanzas/importar/route";
 import { GET as plantilla } from "@/app/api/finanzas/plantilla/route";
 import { PUT as guardarSupuestos } from "@/app/api/finanzas/supuestos/route";
+import { GET as listarCartera, POST as agregarCartera, DELETE as borrarCartera } from "@/app/api/finanzas/cartera/route";
 import { cargarDatosCaja } from "@/lib/finanzas/datos";
 
 const M = 1_000_000;
@@ -218,3 +219,39 @@ describe("supuestos de la caja proyectada", () => {
     expect((await cargarDatosCaja(A.tenantId)).pipeline).toEqual([]);
   });
 });
+
+describe("cartera por cliente", () => {
+  beforeEach(async () => {
+    await darLicencia(A.tenantId);
+    await darLicencia(B.tenantId);
+    await sinAislamiento("limpiar cartera de A y B", () => prisma.cuentaPorCobrar.deleteMany({ where: { tenantId: { in: [A.tenantId, B.tenantId] } } }));
+  });
+
+  it("agrega, lista en orden de vencimiento y borra, sin tocar la de otra empresa", async () => {
+    comoUsuario(A, "GERENTE");
+    expect((await llamar(agregarCartera, { body: { facturas: [
+      { cliente: "EPM", monto: 64 * M, vence: "2026-11-05" },
+      { cliente: "Comfama", monto: 41 * M, vence: "2026-09-11" },
+    ] } })).status).toBe(200);
+    const lista = (await llamar(listarCartera)).cuerpo as { id: string; cliente: string }[];
+    expect(lista.map(f => f.cliente)).toEqual(["Comfama", "EPM"]);
+
+    comoUsuario(B, "ADMINISTRADOR");
+    expect((await llamar(listarCartera)).cuerpo).toEqual([]);
+    expect((await llamar(borrarCartera, { query: { id: lista[0].id }, metodo: "DELETE" })).status).toBe(404);
+
+    comoUsuario(A, "GERENTE");
+    expect((await llamar(borrarCartera, { query: { id: lista[0].id }, metodo: "DELETE" })).status).toBe(200);
+    expect((await llamar(borrarCartera, { query: { todas: "1" }, metodo: "DELETE" })).status).toBe(200);
+    expect((await llamar(listarCartera)).cuerpo).toEqual([]);
+  });
+
+  it("valida las facturas y no deja a un comercial", async () => {
+    comoUsuario(A, "GERENTE");
+    expect((await llamar(agregarCartera, { body: { facturas: [{ cliente: "", monto: 1, vence: "2026-11-05" }] } })).status).toBe(400);
+    expect((await llamar(agregarCartera, { body: { facturas: [{ cliente: "X", monto: 0, vence: "2026-11-05" }] } })).status).toBe(400);
+    comoUsuario(A, "COMERCIAL");
+    expect((await llamar(listarCartera)).status).toBe(403);
+  });
+});
+

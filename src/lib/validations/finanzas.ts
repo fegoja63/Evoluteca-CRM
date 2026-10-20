@@ -55,3 +55,12 @@ export const supuestosCajaSchema = z.object({
   ventasProyectadas: z.array(z.object({ mes: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Mes inválido"), monto: montoPositivo }))
     .max(12, "Máximo 12 meses de ventas proyectadas").default([]),
 });
+
+// Cartera por cobrar factura por factura (ver lib/finanzas/caja).
+export const facturasSchema = z.object({
+  facturas: z.array(z.object({
+    cliente: z.string().trim().min(1, "Escriba el cliente").max(120, "Máximo 120 caracteres"),
+    monto: montoPositivo.refine(v => v > 0, "El monto debe ser mayor que cero"),
+    vence: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha de vencimiento inválida"),
+  })).min(1, "No hay facturas para guardar").max(500, "Máximo 500 facturas por carga"),
+});

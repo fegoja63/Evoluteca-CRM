@@ -5,7 +5,7 @@
  * Va en millones de pesos con un decimal: más corto y más fácil de leer.
  */
 import { estadoResultados, sumarPeriodos, ultimosMeses, totalesBalance, indicadores, type Balance, type Periodo } from "./estados";
-import { puntoEquilibrio, salidasMensuales, type NegocioPipeline, type Supuestos } from "./caja";
+import { puntoEquilibrio, salidasMensuales, diasEntre, type FacturaPorCobrar, type NegocioPipeline, type Supuestos } from "./caja";
 import { alertaCaja } from "./alerta-caja";
 
 const mm = (v: number) => Math.round(v / 100_000) / 10;
@@ -18,6 +18,7 @@ type Entrada = {
   supuestos: Supuestos;
   supuestosGuardados: boolean;
   pipeline: NegocioPipeline[];
+  carteraDetalle?: FacturaPorCobrar[];
 };
 
 export function contextoFinanciero(d: Entrada) {
@@ -25,7 +26,7 @@ export function contextoFinanciero(d: Entrada) {
   const total = estadoResultados(sumarPeriodos(meses));
   const pe = puntoEquilibrio(d.periodos);
   const alerta = d.balance
-    ? alertaCaja({ hoy: d.hoy, caja: d.balance.caja, cartera: d.balance.cuentasPorCobrar, supuestos: d.supuestos, pipeline: d.pipeline })
+    ? alertaCaja({ hoy: d.hoy, caja: d.balance.caja, cartera: d.balance.cuentasPorCobrar, carteraDetalle: d.carteraDetalle, supuestos: d.supuestos, pipeline: d.pipeline })
     : null;
 
   return {
@@ -74,6 +75,9 @@ export function contextoFinanciero(d: Entrada) {
       ingresosRecurrentesMensuales: mm(d.supuestos.ingresosRecurrentes ?? 0), plazoRecurrentesDias: d.supuestos.plazoRecurrentes ?? 30,
       diasCobro: d.supuestos.diasCobro, salidasFijasDeUnMes: mm(salidasMensuales(d.supuestos)),
     },
+    carteraPorCliente: d.carteraDetalle?.length ? d.carteraDetalle.map(f => ({
+      cliente: f.cliente, monto: mm(f.monto), vence: f.vence, diasVencida: Math.max(0, diasEntre(f.vence, d.hoy)),
+    })) : null,
     pipelineCRM: d.pipeline.length ? {
       negocios: d.pipeline.length,
       valorTotal: mm(d.pipeline.reduce((a, n) => a + n.valor, 0)),

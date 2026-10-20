@@ -163,3 +163,24 @@ describe("contratos vigentes", () => {
     ]);
   });
 });
+
+describe("cartera factura por factura y plazo por negocio", () => {
+  it("cobra cada factura al vencer, la vencida en 15 días, y deja de repartir el total", () => {
+    const ev = eventosDeCaja({ hoy: HOY, saldoInicial: 0, cartera: 96 * M, pipeline: [], supuestos: SIN_NADA,
+      carteraDetalle: [{ cliente: "Bancolombia", monto: 52 * M, vence: "2026-10-24" }, { cliente: "Comfama", monto: 41 * M, vence: "2026-09-11" }] });
+    expect(ev.filter(e => e.tipo === "cobro").map(e => [e.concepto, e.dia, e.monto])).toEqual([
+      ["Cobro Comfama", "2026-10-16", 41 * M],
+      ["Cobro Bancolombia", "2026-10-24", 52 * M],
+    ]);
+    const tarde = eventosDeCaja({ hoy: HOY, saldoInicial: 0, cartera: 0, pipeline: [], supuestos: SIN_NADA, retrasoCartera: 10,
+      carteraDetalle: [{ cliente: "Bancolombia", monto: 52 * M, vence: "2026-10-24" }] });
+    expect(tarde.find(e => e.concepto === "Cobro Bancolombia")?.dia).toBe("2026-11-03");
+  });
+
+  it("un negocio con su propio plazo de pago entra en esa fecha", () => {
+    const ev = eventosDeCaja({ hoy: HOY, saldoInicial: 0, cartera: 0, supuestos: { ...SIN_NADA, diasCobro: 30 },
+      pipeline: [{ titulo: "Alcaldía", valor: 60 * M, probabilidad: 100, fechaCierre: "2026-10-10", plazoPago: 60 }] });
+    expect(ev.find(e => e.tipo === "pipeline")?.dia).toBe("2026-12-09");
+  });
+});
+

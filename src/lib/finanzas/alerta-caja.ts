@@ -3,7 +3,7 @@
  * sin negocios nuevos), calcula los días de caja y arma el mensaje. La usan la
  * pantalla de Caja y el Resumen, para que digan exactamente lo mismo.
  */
-import { proyectarCaja, diasDeCaja, diasEntre, salidasMensuales, type NegocioPipeline, type Proyeccion, type Supuestos } from "./caja";
+import { proyectarCaja, diasDeCaja, diasEntre, salidasMensuales, type FacturaPorCobrar, type NegocioPipeline, type Proyeccion, type Supuestos } from "./caja";
 import { diaCorto, millones } from "./formato";
 import { rescateDeCaja, type Rescate } from "./simulador";
 
@@ -24,12 +24,13 @@ type Entrada = {
   hoy: string;
   caja: number;
   cartera: number;
+  carteraDetalle?: FacturaPorCobrar[];
   supuestos: Supuestos;
   pipeline: NegocioPipeline[];
 };
 
-export function alertaCaja({ hoy, caja, cartera, supuestos, pipeline }: Entrada): AlertaCaja {
-  const base = { hoy, saldoInicial: caja, cartera, supuestos, pipeline };
+export function alertaCaja({ hoy, caja, cartera, carteraDetalle, supuestos, pipeline }: Entrada): AlertaCaja {
+  const base = { hoy, saldoInicial: caja, cartera, carteraDetalle, supuestos, pipeline };
   const conNegocios = proyectarCaja(base);
   const sinNegocios = proyectarCaja({ ...base, conPipeline: false });
   const diasCaja = diasDeCaja(caja, supuestos);
