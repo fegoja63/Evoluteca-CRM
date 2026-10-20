@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.30"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.31"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -240,11 +240,12 @@ export async function GET() {
             "8. Dashboard — alertas, salud comercial y productividad",
             "9. Configuración, equipo y perfiles",
             "10. Inteligencia Artificial",
-            "11. Preguntas frecuentes",
+            "11. Gerente Financiero (módulo de pago)",
+            "12. Preguntas frecuentes",
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.30 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.31 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -1087,7 +1088,49 @@ export async function GET() {
 
       React.createElement(Sep, null),
 
-      React.createElement(H1, null, "11. Preguntas frecuentes"),
+      // ── CAPÍTULO 11: GERENTE FINANCIERO ──
+      React.createElement(H1, null, "11. Gerente Financiero (módulo de pago)"),
+      React.createElement(P, null, "El Gerente Financiero convierte los estados financieros de tu empresa en respuestas claras: cuánto vendes, cuánto te queda, cuánta caja tendrás en las próximas 13 semanas y qué hacer primero. Lo habilita Evoluteca por empresa, con licencia; lo ven solo el Administrador y el Gerente. Lo encuentras en el menú, sección Módulos, como \"Gerente Financiero\"."),
+      React.createElement(Nota, null, "Las finanzas de la empresa son información de dirección: los usuarios Comerciales no ven el módulo. Si la licencia vence, tus cifras no se borran: el módulo queda en solo lectura."),
+
+      React.createElement(H2, null, "11.1 Primeros pasos"),
+      React.createElement(Paso, { n: 1, titulo: "Carga tus cifras", desc: "En Cargar datos sube los estados financieros (lectura con IA), la plantilla mensual, o escríbelos a mano. Lo ideal: los últimos 12 meses del estado de resultados y el balance del último corte." }),
+      React.createElement(Paso, { n: 2, titulo: "Confirma los supuestos de caja", desc: "En Caja proyectada › Supuestos revisa nómina, gastos fijos, créditos, proveedores, impuestos, ventas de contado y días de cobro, y guárdalos." }),
+      React.createElement(Paso, { n: 3, titulo: "Revisa cada mes", desc: "Actualiza el mes que cerró y el balance; la alerta de caja, los indicadores y el diagnóstico se recalculan solos." }),
+
+      React.createElement(H2, null, "11.2 Cargar datos"),
+      React.createElement(H3, null, "Leer los estados del contador con IA"),
+      React.createElement(P, null, "Sube el PDF, una foto o el Excel tal como te lo entregó el contador (máximo 4 MB). En unos segundos la IA propone el estado de resultados y el balance, ya convertidos a pesos si el documento venía en miles o millones, y señala lo que debes revisar. Nada se guarda hasta que tú confirmas: guarda los meses y el balance por separado. Cada lectura cuenta como una acción de IA de tu plan."),
+      React.createElement(Tip, null, "Si el contador te entrega el año completo (un acumulado), el sistema puede repartirlo en meses iguales. Es un promedio aproximado, no el dato real de cada mes: úsalo para empezar y reemplázalo cuando tengas los meses."),
+      React.createElement(H3, null, "Plantilla mensual"),
+      React.createElement(P, null, "Descarga la plantilla de Excel (trae los 12 meses anteriores ya escritos), llénala con una fila por mes y súbela indicando si las cifras están en pesos, miles o millones. Antes de guardar ves lo que se leyó y las filas con problemas; si las ventas se ven sospechosamente bajas, la pantalla te pregunta si te equivocaste de unidad. Un mes que ya estaba cargado se reemplaza."),
+      React.createElement(H3, null, "Meses cargados y balance"),
+      React.createElement(P, null, "Puedes agregar, corregir o borrar un mes a mano. El balance se guarda a una fecha de corte y la pantalla te dice en vivo si cuadra (activo = pasivo + patrimonio); los indicadores usan el último corte guardado."),
+
+      React.createElement(H2, null, "11.3 Resumen"),
+      React.createElement(P, null, "Ventas del último mes contra el anterior, margen EBITDA, utilidad neta de los últimos meses, caja al corte y la alerta de caja. Debajo, \"Lo que conviene revisar\": los indicadores en amarillo o rojo con su explicación."),
+
+      React.createElement(H2, null, "11.4 Caja proyectada"),
+      React.createElement(P, null, "Proyecta el saldo de caja día a día durante 13 semanas, arrancando con la caja del último balance. Entradas: la cartera del balance, las ventas de contado y los negocios de tu Pipeline (valor × probabilidad, cobrados los días de cobro después de la fecha de cierre). Salidas: nómina por quincenas, gastos fijos, créditos, proveedores, impuestos y prestaciones de ley (prima en junio y diciembre, intereses sobre cesantías en enero, cesantías en febrero)."),
+      React.createElement(LI, null, "Alerta: roja (\"en X días la caja queda en rojo\"), ámbar (alcanza pero queda justa: menos de 15 días de gastos) o verde. Siempre compara con el escenario sin negocios nuevos."),
+      React.createElement(LI, null, "Días de caja: cuánto aguanta la caja si no entrara un peso más."),
+      React.createElement(LI, null, "Punto de equilibrio: cuánto vender al mes para cubrir los gastos fijos, con el margen de los últimos 3 meses, y si el último mes lo cubrió."),
+      React.createElement(LI, null, "Los negocios que más mueven la caja. Los marcados \"(cierre vencido)\" se cuentan como si cerraran hoy: actualiza su fecha en el Pipeline."),
+      React.createElement(Tip, null, "Mientras no guardes los supuestos, el sistema usa unos sugeridos desde tus estados (con la nómina dentro de los gastos fijos) y lo advierte. Guárdalos para que la proyección sea confiable."),
+
+      React.createElement(H2, null, "11.5 Simulador: ¿qué pasa si…?"),
+      React.createElement(P, null, "En Caja proyectada mueve las palancas — cuánto se cumple del pipeline, retraso en los cobros, nómina, gastos y proveedores, ventas de contado — y la caja se recalcula al instante: punto más bajo, primer día en rojo y caja al final contra el escenario actual. No guarda nada; \"Volver al escenario actual\" lo deja como estaba."),
+
+      React.createElement(H2, null, "11.6 Estados financieros e indicadores"),
+      React.createElement(P, null, "Estados financieros muestra la gráfica de ventas y utilidad bruta mes a mes, el estado de resultados del último mes contra el anterior y los 12 meses (con el impuesto de renta estimado al 35 %; el valor real lo define tu contador) y el balance general. Indicadores muestra diez indicadores agrupados en Liquidez, Endeudamiento, Rentabilidad y Ciclo de caja, cada uno con semáforo y lo que significa en palabras simples. Los rangos son una guía general para pymes."),
+
+      React.createElement(H2, null, "11.7 Gerente IA"),
+      React.createElement(P, null, "Con \"Diagnóstico del mes\" la IA explica qué está pasando con la caja y la rentabilidad, por qué y qué hacer primero, con una lista de acciones. También puedes hacerle preguntas (por ejemplo \"¿Puedo contratar a una persona más?\") y repreguntar. Usa únicamente las cifras que el sistema calcula con tus datos — no inventa números — y cada consulta cuenta como una acción de IA de tu plan."),
+      React.createElement(Nota, null, "El Gerente Financiero es una herramienta de análisis: no reemplaza la asesoría contable, tributaria ni financiera certificada."),
+
+      React.createElement(Sep, null),
+
+      React.createElement(H1, null, "12. Preguntas frecuentes"),
 
       React.createElement(H2, null, "¿Puedo importar el mismo archivo dos veces?"),
       React.createElement(P, null, "Sí, pero creará duplicados. Si el cliente ya existe con el mismo nombre, el sistema lo reutiliza, pero si el nombre varía (mayúsculas, espacios extra) creará uno nuevo. Limpia los datos antes de importar."),

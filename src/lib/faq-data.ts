@@ -211,4 +211,20 @@ export const FAQS: Faq[] = [
     respuesta: "Los datos se guardan solo al hacer clic en el botón de guardar. Si cierras antes, se pierde lo no guardado — guarda frecuentemente como borrador." },
   { categoria: "General", pregunta: "¿Mis datos están aislados de otras empresas que usan Evoluteca CRM?",
     respuesta: "Sí, completamente. Cada organización (tenant) solo puede ver y gestionar su propia información; los datos de diferentes empresas nunca se mezclan." },
+
+  // ── Gerente Financiero (módulo de pago) ──
+  { categoria: "Gerente Financiero", pregunta: "¿Qué es el Gerente Financiero y cómo lo activo?",
+    respuesta: "Es un módulo de pago que convierte tus estados financieros en respuestas claras: caja proyectada a 13 semanas, días de caja, punto de equilibrio, indicadores con semáforo y un gerente con IA. Lo habilita Evoluteca por empresa, con licencia; aparece en el menú, sección Módulos. Solo lo ven el Administrador y el Gerente." },
+  { categoria: "Gerente Financiero", pregunta: "¿Cómo cargo mis estados financieros?",
+    respuesta: "En Gerente Financiero › Cargar datos tienes tres caminos: subir el PDF, una foto o el Excel del contador para que la IA lea las cifras (tú las revisas antes de guardar); llenar la plantilla mensual de Excel; o escribir un mes y el balance a mano. Lo ideal son los últimos 12 meses del estado de resultados y el balance del último corte." },
+  { categoria: "Gerente Financiero", pregunta: "¿De dónde sale la caja proyectada?",
+    respuesta: "Arranca con la caja del último balance y suma, día a día, la cartera por cobrar, las ventas de contado y los negocios de tu Pipeline (valor × probabilidad, cobrados los días de cobro después del cierre). Resta nómina por quincenas, gastos fijos, créditos, proveedores, impuestos y prestaciones de ley. Los supuestos los ajustas en Caja proyectada › Supuestos." },
+  { categoria: "Gerente Financiero", pregunta: "¿Qué significa la alerta roja, ámbar o verde de la caja?",
+    respuesta: "Roja: en algún día de las próximas 13 semanas la caja queda en negativo, y te dice cuál. Ámbar: alcanza, pero el punto más bajo cubre menos de 15 días de gastos. Verde: alcanza con holgura. Siempre se compara con el escenario sin negocios nuevos, para que veas cuánto depende la caja de cerrar ventas." },
+  { categoria: "Gerente Financiero", pregunta: "¿Qué es el simulador de caja?",
+    respuesta: "En Caja proyectada puedes mover palancas — cuánto se cumple del pipeline, retraso en los cobros, nómina, gastos y proveedores, ventas de contado — y ver al instante el punto más bajo, el primer día en rojo y la caja final contra el escenario actual. No guarda nada." },
+  { categoria: "Gerente Financiero", pregunta: "¿El gerente con IA puede inventar cifras?",
+    respuesta: "No. El sistema calcula todas las cifras con tus datos (estados, indicadores, caja, punto de equilibrio, pipeline) y la IA solo las interpreta, con instrucción de no citar ninguna otra. Si falta un dato para responder, te lo dice. Cada consulta cuenta como una acción de IA de tu plan, y no reemplaza la asesoría de tu contador." },
+  { categoria: "Gerente Financiero", pregunta: "¿Qué pasa con mis cifras si se vence la licencia del Gerente Financiero?",
+    respuesta: "No se borran. El módulo queda en solo lectura: puedes consultar tus estados, indicadores y caja, pero no cargar datos nuevos ni usar las funciones de IA hasta renovarla." },
 ];
