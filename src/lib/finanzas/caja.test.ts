@@ -150,3 +150,16 @@ describe("equilibrioDelMes", () => {
     expect(r).toMatchObject({ mes: "2026-10", vendido: 30 * M, pipelineDelMes: 20 * M, falta: 50 * M });
   });
 });
+
+describe("contratos vigentes", () => {
+  it("se cobran al cierre de cada mes más su plazo, también sin negocios nuevos", () => {
+    const sup = { ...SIN_NADA, ingresosRecurrentes: 22 * M, plazoRecurrentes: 30 };
+    const ev = eventosDeCaja({ hoy: HOY, saldoInicial: 0, cartera: 0, pipeline: [], supuestos: sup, conPipeline: false });
+    const c = ev.filter(e => e.concepto.startsWith("Contratos vigentes")).map(e => [e.dia, e.concepto, e.monto]);
+    expect(c).toEqual([
+      ["2026-10-30", "Contratos vigentes (septiembre)", 22 * M],
+      ["2026-11-30", "Contratos vigentes (octubre)", 22 * M],
+      ["2026-12-30", "Contratos vigentes (noviembre)", 22 * M],
+    ]);
+  });
+});

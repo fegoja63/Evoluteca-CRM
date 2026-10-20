@@ -71,6 +71,7 @@ export function contextoFinanciero(d: Entrada) {
       cuotaCreditosMensual: mm(d.supuestos.cuotaDeudaMensual), proveedoresSemanales: mm(d.supuestos.proveedoresSemanales),
       impuestosMensuales: mm(d.supuestos.impuestosMensuales), ivaBimestral: mm(d.supuestos.ivaBimestral ?? 0), diaPagoDian: d.supuestos.diaImpuestos ?? 18,
       ventasContadoSemanales: mm(d.supuestos.ventasContadoSemanales),
+      ingresosRecurrentesMensuales: mm(d.supuestos.ingresosRecurrentes ?? 0), plazoRecurrentesDias: d.supuestos.plazoRecurrentes ?? 30,
       diasCobro: d.supuestos.diasCobro, salidasFijasDeUnMes: mm(salidasMensuales(d.supuestos)),
     },
     pipelineCRM: d.pipeline.length ? {

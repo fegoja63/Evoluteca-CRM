@@ -15,7 +15,7 @@ function proximosMeses(hoy: string): string[] {
   return [0, 1, 2].map(i => { const d = new Date(Date.UTC(a, m - 1 + i, 1)); return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`; });
 }
 
-const CAMPOS: { clave: Exclude<keyof Supuestos, "diasCobro" | "ventasProyectadas" | "diaImpuestos">; titulo: string; ayuda: string }[] = [
+const CAMPOS: { clave: Exclude<keyof Supuestos, "diasCobro" | "ventasProyectadas" | "diaImpuestos" | "plazoRecurrentes">; titulo: string; ayuda: string }[] = [
   { clave: "nominaMensual", titulo: "Nómina mensual", ayuda: "Salarios; se paga el 15 y el último día. De aquí salen la prima y las cesantías." },
   { clave: "gastosFijosMensuales", titulo: "Gastos fijos del mes (sin nómina)", ayuda: "Arriendo, servicios, software… se paga el día 1." },
   { clave: "cuotaDeudaMensual", titulo: "Cuotas de créditos al mes", ayuda: "Capital e intereses; se paga el día 5." },
@@ -23,6 +23,7 @@ const CAMPOS: { clave: Exclude<keyof Supuestos, "diasCobro" | "ventasProyectadas
   { clave: "impuestosMensuales", titulo: "Retención e impuestos del mes", ayuda: "Retención en la fuente y demás impuestos mensuales; se pagan el día de impuestos." },
   { clave: "ivaBimestral", titulo: "IVA por bimestre", ayuda: "Lo que paga de IVA cada dos meses (ene, mar, may, jul, sep, nov). 0 si no es responsable de IVA." },
   { clave: "ventasContadoSemanales", titulo: "Ventas de contado por semana", ayuda: "Lo que entra el mismo día (taquilla, mostrador)." },
+  { clave: "ingresosRecurrentes", titulo: "Contratos vigentes al mes", ayuda: "Lo que factura cada mes por contratos, abonos o convenios ya firmados." },
 ];
 
 type Props = { supuestos: Supuestos; guardados: boolean; soloLectura: boolean; soloFinanzas?: boolean; hoy?: string };
@@ -39,6 +40,7 @@ export function FormSupuestos({ supuestos, guardados, soloLectura, soloFinanzas 
   );
   const [diasCobro, setDiasCobro] = useState(String(supuestos.diasCobro));
   const [diaImpuestos, setDiaImpuestos] = useState(String(supuestos.diaImpuestos ?? 18));
+  const [plazoRecurrentes, setPlazoRecurrentes] = useState(String(supuestos.plazoRecurrentes ?? 30));
   const [guardando, setGuardando] = useState(false);
 
   async function guardar(e: React.FormEvent) {
@@ -49,6 +51,7 @@ export function FormSupuestos({ supuestos, guardados, soloLectura, soloFinanzas 
         ...Object.fromEntries(CAMPOS.map(c => [c.clave, leerMonto(valores[c.clave]) ?? 0])),
         diasCobro: Math.round(Number(diasCobro) || 0),
         diaImpuestos: Math.min(28, Math.max(1, Math.round(Number(diaImpuestos) || 18))),
+        plazoRecurrentes: Math.min(180, Math.max(0, Math.round(Number(plazoRecurrentes) || 0))),
         ventasProyectadas: meses.map(m => ({ mes: m, monto: leerMonto(ventas[m]) ?? 0 })).filter(v => v.monto > 0),
       });
       toast.success("Supuestos guardados.");
@@ -89,6 +92,12 @@ export function FormSupuestos({ supuestos, guardados, soloLectura, soloFinanzas 
           <input type="number" min={1} max={28} value={diaImpuestos} disabled={soloLectura}
             onChange={e => setDiaImpuestos(e.target.value)} className={campo("sm", "mt-1 block w-full text-right tabular-nums")} />
           <span className="mt-0.5 block text-2xs text-slate-400">Depende del último dígito del NIT (calendario tributario). Su contador se lo confirma.</span>
+        </label>
+        <label className="text-xs text-slate-500">
+          Días en que pagan los contratos
+          <input type="number" min={0} max={180} value={plazoRecurrentes} disabled={soloLectura}
+            onChange={e => setPlazoRecurrentes(e.target.value)} className={campo("sm", "mt-1 block w-full text-right tabular-nums")} />
+          <span className="mt-0.5 block text-2xs text-slate-400">Desde el cierre del mes facturado hasta que el cliente paga.</span>
         </label>
       </div>
       {soloFinanzas && (
