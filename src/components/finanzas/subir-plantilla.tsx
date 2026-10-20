@@ -9,7 +9,7 @@ import type { Unidad } from "@/lib/finanzas/plantilla";
 import type { Periodo } from "@/lib/finanzas/estados";
 import { TablaMeses, enviar } from "./comun";
 
-/** 1. Subir la plantilla mensual: se lee, se muestra y el usuario confirma. */
+/** 2. Subir la plantilla mensual: se lee, se muestra y el usuario confirma. */
 export function SubirPlantilla() {
   const router = useRouter();
   const [archivo, setArchivo] = useState<File | null>(null);
@@ -50,7 +50,7 @@ export function SubirPlantilla() {
   return (
     <section className={tarjeta("p-5 space-y-3")}>
       <div>
-        <h2 className="text-base font-semibold text-slate-800">1. Subir la plantilla mensual</h2>
+        <h2 className="text-base font-semibold text-slate-800">2. O suba la plantilla mensual</h2>
         <p className="mt-1 text-sm text-slate-500">
           Una fila por mes con el estado de resultados. Descárguela, llénela en Excel (o pídasela a su contador) y súbala.
           Si un mes ya estaba cargado, se reemplaza.

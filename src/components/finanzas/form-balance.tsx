@@ -25,7 +25,7 @@ const CAMPOS: { clave: keyof Balance; titulo: string; grupo: "Activo" | "Pasivo"
 
 type Props = { balance: (Balance & { corte: string }) | null; soloLectura: boolean };
 
-/** 3. Balance general a una fecha de corte, con el chequeo de cuadre en vivo. */
+/** 4. Balance general a una fecha de corte, con el chequeo de cuadre en vivo. */
 export function FormBalance({ balance, soloLectura }: Props) {
   const router = useRouter();
   const [corte, setCorte] = useState(balance?.corte ?? "");
@@ -58,7 +58,7 @@ export function FormBalance({ balance, soloLectura }: Props) {
   return (
     <section id="balance" className={tarjeta("p-5 space-y-3")}>
       <div>
-        <h2 className="text-base font-semibold text-slate-800">{soloLectura ? "Balance general" : "3. Balance general"}</h2>
+        <h2 className="text-base font-semibold text-slate-800">{soloLectura ? "Balance general" : "4. Balance general"}</h2>
         <p className="mt-1 text-sm text-slate-500">
           Las cifras del balance a una fecha de corte (en pesos). Los indicadores usan el último corte guardado.
         </p>

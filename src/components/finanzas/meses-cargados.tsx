@@ -12,7 +12,7 @@ import { MONTOS, TablaMeses, aTexto, enviar } from "./comun";
 
 const VACIO: Record<string, string> = Object.fromEntries(MONTOS.map(c => [c.clave, ""]));
 
-/** 2. Meses cargados: la lista, y un formulario para agregar o corregir uno. */
+/** 3. Meses cargados: la lista, y un formulario para agregar o corregir uno. */
 export function MesesCargados({ periodos, soloLectura }: { periodos: Periodo[]; soloLectura: boolean }) {
   const router = useRouter();
   const [mes, setMes] = useState("");
@@ -55,7 +55,7 @@ export function MesesCargados({ periodos, soloLectura }: { periodos: Periodo[]; 
 
   return (
     <section className={tarjeta("p-5 space-y-3")}>
-      <h2 className="text-base font-semibold text-slate-800">{soloLectura ? "Meses cargados" : "2. Meses cargados"}</h2>
+      <h2 className="text-base font-semibold text-slate-800">{soloLectura ? "Meses cargados" : "3. Meses cargados"}</h2>
       {periodos.length === 0 ? (
         <p className="text-sm text-slate-500">Todavía no hay meses cargados.</p>
       ) : (
