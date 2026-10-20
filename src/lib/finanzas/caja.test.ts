@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { proyectarCaja, eventosDeCaja, calendarioDeSalidas, diasDeCaja, puntoEquilibrio, supuestosSugeridos, sumarDias, diasEntre, SEMANAS, type Supuestos } from "./caja";
+import { proyectarCaja, eventosDeCaja, calendarioDeSalidas, equilibrioDelMes, diasDeCaja, puntoEquilibrio, supuestosSugeridos, sumarDias, diasEntre, SEMANAS, type Supuestos } from "./caja";
 import type { Periodo } from "./estados";
 
 const M = 1_000_000;
@@ -136,5 +136,17 @@ describe("punto de equilibrio y supuestos sugeridos", () => {
     expect(s.proveedoresSemanales).toBe(Math.round((((64 + 62 + 68) / 3) * M * 12) / 52));
     expect(s.diasCobro).toBe(24);
     expect(s.nominaMensual).toBe(0);
+  });
+});
+
+describe("equilibrioDelMes", () => {
+  it("suma lo ganado y el pipeline que cierra en lo que queda del mes", () => {
+    const pe = { ventasNecesarias: 100 * M, gastosFijos: 50 * M, margenContribucion: 0.5, ventasUltimoMes: 120 * M, mesUltimo: "2026-09" };
+    const r = equilibrioDelMes(pe, "2026-10-20", 30 * M, [
+      { titulo: "Este mes", valor: 40 * M, probabilidad: 50, fechaCierre: "2026-10-28" },
+      { titulo: "Vencido", valor: 90 * M, probabilidad: 90, fechaCierre: "2026-10-05" },
+      { titulo: "Próximo mes", valor: 90 * M, probabilidad: 90, fechaCierre: "2026-11-02" },
+    ]);
+    expect(r).toMatchObject({ mes: "2026-10", vendido: 30 * M, pipelineDelMes: 20 * M, falta: 50 * M });
   });
 });

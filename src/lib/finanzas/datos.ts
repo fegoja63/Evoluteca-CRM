@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { estadoLicencia, type ResumenLicencia } from "@/lib/licencias";
-import { diaISO, fechaISO } from "@/lib/fecha-bogota";
+import { diaISO, fechaISO, fechaDesdeBogota } from "@/lib/fecha-bogota";
 import { rolVeFinanzas, aPeriodo, aBalance } from "./acceso";
 import { indicadores, type Balance, type Periodo } from "./estados";
 import { supuestosSugeridos, type NegocioPipeline, type Supuestos } from "./caja";
@@ -48,6 +48,8 @@ export type DatosCaja = DatosFinancieros & {
   supuestosGuardados: boolean;
   pipeline: NegocioPipeline[];
   soloFinanzas: boolean;
+  /** Valor de los negocios ganados con cierre en el mes en curso (CRM). */
+  ganadoMes: number;
 };
 
 const ETAPAS_ACTIVAS = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"] as const;
@@ -67,6 +69,17 @@ export async function cargarDatosCaja(tenantId: string): Promise<DatosCaja> {
     select: { id: true, titulo: true, etapa: true, valor: true, probabilidad: true, fechaCierre: true },
   });
 
+  // Lo ganado en el mes en curso (Bogotá), para el punto de equilibrio del mes.
+  const hoy = fechaISO();
+  const [anio, mes] = hoy.split("-").map(Number);
+  const ganadas = soloFinanzas ? null : await prisma.oportunidad.aggregate({
+    where: {
+      tenantId, eliminadoEn: null, etapa: "GANADA",
+      fechaCierre: { gte: fechaDesdeBogota(`${hoy.slice(0, 7)}-01`), lt: fechaDesdeBogota(`${mes === 12 ? anio + 1 : anio}-${String(mes === 12 ? 1 : mes + 1).padStart(2, "0")}-01`) },
+    },
+    _sum: { valor: true },
+  });
+
   const dias = indicadores(datos.periodos, datos.balance).find(i => i.clave === "diasCartera")?.valor ?? null;
   const supuestos: Supuestos = guardados ? {
     nominaMensual: Number(guardados.nominaMensual), gastosFijosMensuales: Number(guardados.gastosFijosMensuales),
@@ -79,7 +92,8 @@ export async function cargarDatosCaja(tenantId: string): Promise<DatosCaja> {
 
   return {
     ...datos,
-    hoy: fechaISO(),
+    hoy,
+    ganadoMes: Number(ganadas?._sum.valor ?? 0),
     supuestos,
     supuestosGuardados: !!guardados,
     soloFinanzas,
