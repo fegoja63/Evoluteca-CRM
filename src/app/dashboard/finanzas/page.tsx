@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { IconAdjustments, IconSparkles, IconUpload } from "@tabler/icons-react";
+import { IconSparkles, IconUpload } from "@tabler/icons-react";
 import { accesoPaginaFinanzas, cargarDatosCaja } from "@/lib/finanzas/datos";
 import { alertaCaja, ESTILO_ALERTA } from "@/lib/finanzas/alerta-caja";
 import { cn } from "@/lib/cn";
@@ -13,7 +13,6 @@ export const dynamic = "force-dynamic";
 
 // Lo que llega en las fases siguientes del módulo.
 const PROXIMAS = [
-  { icon: IconAdjustments, titulo: "Simulador", texto: "Qué pasa si sube un costo, baja una venta o se demora un cobro." },
   { icon: IconSparkles, titulo: "Gerente con IA", texto: "Pregúntele por sus números y reciba un informe claro, en lenguaje sencillo." },
 ];
 

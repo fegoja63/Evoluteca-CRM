@@ -9,7 +9,16 @@ const M = { arriba: 12, abajo: 26, izq: 64, der: 12 };
  * Saldo de caja al cierre de cada semana: escenario actual (con pipeline) y
  * "sin negocios nuevos". SVG dibujado en el servidor, sin librerías.
  */
-export function GraficaCaja({ con, sin, conPipeline }: { con: Semana[]; sin: Semana[]; conPipeline: boolean }) {
+type Props = {
+  con: Semana[];
+  sin: Semana[];
+  /** false = no se dibuja la línea de comparación. */
+  conPipeline: boolean;
+  /** Etiquetas de las dos líneas (el simulador compara simulado vs. actual). */
+  etiquetas?: { principal: string; comparacion: string };
+};
+
+export function GraficaCaja({ con, sin, conPipeline, etiquetas }: Props) {
   const valores = [...con.map(s => s.saldo), ...sin.map(s => s.saldo), 0];
   const max = Math.max(...valores);
   const min = Math.min(...valores);
@@ -22,8 +31,8 @@ export function GraficaCaja({ con, sin, conPipeline }: { con: Semana[]; sin: Sem
   return (
     <div>
       <div className="flex flex-wrap gap-4 text-xs text-slate-500">
-        <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 bg-brand-600" />{conPipeline ? "Con pipeline (escenario actual)" : "Escenario actual"}</span>
-        {conPipeline && <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 border-t-2 border-dashed border-slate-400" />Sin negocios nuevos</span>}
+        <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 bg-brand-600" />{etiquetas?.principal ?? (conPipeline ? "Con pipeline (escenario actual)" : "Escenario actual")}</span>
+        {conPipeline && <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 border-t-2 border-dashed border-slate-400" />{etiquetas?.comparacion ?? "Sin negocios nuevos"}</span>}
         <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 bg-red-500" />Cero</span>
       </div>
       <svg viewBox={`0 0 ${ANCHO} ${ALTO}`} className="mt-2 h-auto w-full" role="img" aria-label="Saldo de caja proyectado al cierre de cada semana">
