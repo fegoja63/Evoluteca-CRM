@@ -9,6 +9,7 @@ import { cn } from "@/lib/cn";
 import { MarcoFinanzas, SinAccesoFinanzas } from "@/components/finanzas/marco-finanzas";
 import { GraficaCaja } from "@/components/finanzas/grafica-caja";
 import { FormSupuestos } from "@/components/finanzas/form-supuestos";
+import { SimuladorCaja } from "@/components/finanzas/simulador-caja";
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +69,8 @@ export default async function CajaPage() {
           Salidas: nómina, gastos fijos, créditos, proveedores, impuestos y prestaciones de ley estimadas. Es una proyección con supuestos, no contabilidad.
         </p>
       </div>
+
+      <SimuladorCaja hoy={d.hoy} caja={d.balance.caja} cartera={d.balance.cuentasPorCobrar} supuestos={d.supuestos} pipeline={d.pipeline} />
 
       {pe && (
         <div className={tarjeta("p-5")}>
