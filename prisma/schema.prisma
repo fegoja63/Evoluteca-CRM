@@ -217,6 +217,10 @@ model SupuestosCaja {
   cuotaDeudaMensual      Decimal  @default(0) @db.Decimal(16, 2)
   proveedoresSemanales   Decimal  @default(0) @db.Decimal(16, 2)
   impuestosMensuales     Decimal  @default(0) @db.Decimal(16, 2)
+  // IVA del bimestre (se paga en ene, mar, may, jul, sep y nov) y día del mes
+  // en que se paga a la DIAN (depende del último dígito del NIT).
+  ivaBimestral           Decimal  @default(0) @db.Decimal(16, 2)
+  diaImpuestos           Int      @default(18)
   ventasContadoSemanales Decimal  @default(0) @db.Decimal(16, 2)
   diasCobro              Int      @default(30)
   // Cuenta sin CRM: ventas que espera por mes, [{ mes: "YYYY-MM", monto }].

@@ -15,12 +15,13 @@ function proximosMeses(hoy: string): string[] {
   return [0, 1, 2].map(i => { const d = new Date(Date.UTC(a, m - 1 + i, 1)); return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`; });
 }
 
-const CAMPOS: { clave: Exclude<keyof Supuestos, "diasCobro" | "ventasProyectadas">; titulo: string; ayuda: string }[] = [
+const CAMPOS: { clave: Exclude<keyof Supuestos, "diasCobro" | "ventasProyectadas" | "diaImpuestos">; titulo: string; ayuda: string }[] = [
   { clave: "nominaMensual", titulo: "Nómina mensual", ayuda: "Salarios; se paga el 15 y el último día. De aquí salen la prima y las cesantías." },
   { clave: "gastosFijosMensuales", titulo: "Gastos fijos del mes (sin nómina)", ayuda: "Arriendo, servicios, software… se paga el día 1." },
   { clave: "cuotaDeudaMensual", titulo: "Cuotas de créditos al mes", ayuda: "Capital e intereses; se paga el día 5." },
   { clave: "proveedoresSemanales", titulo: "Pagos a proveedores por semana", ayuda: "Se paga cada viernes." },
-  { clave: "impuestosMensuales", titulo: "Impuestos del mes", ayuda: "Retención, IVA y demás; se paga el día 18 (promedio)." },
+  { clave: "impuestosMensuales", titulo: "Retención e impuestos del mes", ayuda: "Retención en la fuente y demás impuestos mensuales; se pagan el día de impuestos." },
+  { clave: "ivaBimestral", titulo: "IVA por bimestre", ayuda: "Lo que paga de IVA cada dos meses (ene, mar, may, jul, sep, nov). 0 si no es responsable de IVA." },
   { clave: "ventasContadoSemanales", titulo: "Ventas de contado por semana", ayuda: "Lo que entra el mismo día (taquilla, mostrador)." },
 ];
 
@@ -34,9 +35,10 @@ export function FormSupuestos({ supuestos, guardados, soloLectura, soloFinanzas 
   );
   const router = useRouter();
   const [valores, setValores] = useState<Record<string, string>>(
-    Object.fromEntries(CAMPOS.map(c => [c.clave, aTexto(supuestos[c.clave])])),
+    Object.fromEntries(CAMPOS.map(c => [c.clave, aTexto(supuestos[c.clave] ?? 0)])),
   );
   const [diasCobro, setDiasCobro] = useState(String(supuestos.diasCobro));
+  const [diaImpuestos, setDiaImpuestos] = useState(String(supuestos.diaImpuestos ?? 18));
   const [guardando, setGuardando] = useState(false);
 
   async function guardar(e: React.FormEvent) {
@@ -46,6 +48,7 @@ export function FormSupuestos({ supuestos, guardados, soloLectura, soloFinanzas 
       await enviar("/api/finanzas/supuestos", "PUT", {
         ...Object.fromEntries(CAMPOS.map(c => [c.clave, leerMonto(valores[c.clave]) ?? 0])),
         diasCobro: Math.round(Number(diasCobro) || 0),
+        diaImpuestos: Math.min(28, Math.max(1, Math.round(Number(diaImpuestos) || 18))),
         ventasProyectadas: meses.map(m => ({ mes: m, monto: leerMonto(ventas[m]) ?? 0 })).filter(v => v.monto > 0),
       });
       toast.success("Supuestos guardados.");
@@ -80,6 +83,12 @@ export function FormSupuestos({ supuestos, guardados, soloLectura, soloFinanzas 
           <input type="number" min={0} max={365} value={diasCobro} disabled={soloLectura}
             onChange={e => setDiasCobro(e.target.value)} className={campo("sm", "mt-1 block w-full text-right tabular-nums")} />
           <span className="mt-0.5 block text-2xs text-slate-400">Se usa para la cartera y para cuándo entra el dinero de un negocio cerrado.</span>
+        </label>
+        <label className="text-xs text-slate-500">
+          Día del mes en que paga a la DIAN
+          <input type="number" min={1} max={28} value={diaImpuestos} disabled={soloLectura}
+            onChange={e => setDiaImpuestos(e.target.value)} className={campo("sm", "mt-1 block w-full text-right tabular-nums")} />
+          <span className="mt-0.5 block text-2xs text-slate-400">Depende del último dígito del NIT (calendario tributario). Su contador se lo confirma.</span>
         </label>
       </div>
       {soloFinanzas && (

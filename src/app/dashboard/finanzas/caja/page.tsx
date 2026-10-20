@@ -11,6 +11,7 @@ import { GraficaCaja } from "@/components/finanzas/grafica-caja";
 import { FormSupuestos } from "@/components/finanzas/form-supuestos";
 import { SimuladorCaja } from "@/components/finanzas/simulador-caja";
 import { RescateCaja } from "@/components/finanzas/rescate-caja";
+import { CalendarioSalidas } from "@/components/finanzas/calendario-salidas";
 
 export const dynamic = "force-dynamic";
 
@@ -110,6 +111,8 @@ export default async function CajaPage({ searchParams }: { searchParams: Promise
           </ul>
         </div>
       )}
+
+      <CalendarioSalidas eventos={alerta.conNegocios.eventos} nominaMensual={d.supuestos.nominaMensual} />
 
       <details className={tarjeta("p-5")}>
         <summary className="cursor-pointer text-base font-semibold text-slate-800">Detalle semana a semana</summary>
