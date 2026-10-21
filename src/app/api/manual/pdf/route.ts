@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.31"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.32"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -245,7 +245,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.31 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.32 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -1095,8 +1095,8 @@ export async function GET() {
 
       React.createElement(H2, null, "11.1 Primeros pasos"),
       React.createElement(Paso, { n: 1, titulo: "Carga tus cifras", desc: "En Cargar datos sube los estados financieros (lectura con IA), la plantilla mensual, o escríbelos a mano. Lo ideal: los últimos 12 meses del estado de resultados y el balance del último corte." }),
-      React.createElement(Paso, { n: 2, titulo: "Confirma los supuestos de caja", desc: "En Caja proyectada › Supuestos revisa nómina, gastos fijos, créditos, proveedores, impuestos, ventas de contado y días de cobro, y guárdalos." }),
-      React.createElement(Paso, { n: 3, titulo: "Revisa cada mes", desc: "Actualiza el mes que cerró y el balance; la alerta de caja, los indicadores y el diagnóstico se recalculan solos." }),
+      React.createElement(Paso, { n: 2, titulo: "Confirma los supuestos de caja", desc: "En Caja proyectada › Supuestos revisa nómina, gastos fijos, créditos, proveedores, impuestos e IVA, día de pago a la DIAN, ventas de contado, contratos vigentes y días de cobro, y guárdalos." }),
+      React.createElement(Paso, { n: 3, titulo: "Revisa cada mes", desc: "Actualiza el mes que cerró y el balance; la alerta de caja, los indicadores y el diagnóstico se recalculan solos. Si quieres más precisión, carga también la cartera por cliente y la rentabilidad por cliente." }),
 
       React.createElement(H2, null, "11.2 Cargar datos"),
       React.createElement(H3, null, "Leer los estados del contador con IA"),
@@ -1106,26 +1106,40 @@ export async function GET() {
       React.createElement(P, null, "Descarga la plantilla de Excel (trae los 12 meses anteriores ya escritos), llénala con una fila por mes y súbela indicando si las cifras están en pesos, miles o millones. Antes de guardar ves lo que se leyó y las filas con problemas; si las ventas se ven sospechosamente bajas, la pantalla te pregunta si te equivocaste de unidad. Un mes que ya estaba cargado se reemplaza."),
       React.createElement(H3, null, "Meses cargados y balance"),
       React.createElement(P, null, "Puedes agregar, corregir o borrar un mes a mano. El balance se guarda a una fecha de corte y la pantalla te dice en vivo si cuadra (activo = pasivo + patrimonio); los indicadores usan el último corte guardado."),
+      React.createElement(H3, null, "Cartera por cliente (opcional)"),
+      React.createElement(P, null, "Registra cada factura que te deben con su cliente, monto y fecha de vencimiento. Con la cartera cargada, la caja proyectada cobra cada factura en su fecha (una ya vencida, en 15 días) en lugar de repartir el total del balance, y la pantalla te avisa si la suma no cuadra con las cuentas por cobrar del balance. \"Borrar toda la cartera\" vuelve a usar el total del balance."),
 
       React.createElement(H2, null, "11.3 Resumen"),
-      React.createElement(P, null, "Ventas del último mes contra el anterior, margen EBITDA, utilidad neta de los últimos meses, caja al corte y la alerta de caja. Debajo, \"Lo que conviene revisar\": los indicadores en amarillo o rojo con su explicación."),
+      React.createElement(P, null, "Ventas del último mes contra el anterior, margen EBITDA, utilidad neta y \"Caja hoy\", que te dice cuántos días alcanza la caja y hasta qué fecha (en rojo si se acaba en las próximas 13 semanas). Arriba, la alerta de caja; debajo, \"Lo que conviene revisar\" con los indicadores en amarillo o rojo, y el panel \"Diagnóstico del mes\" para pedirle al gerente con IA un análisis con un clic."),
 
       React.createElement(H2, null, "11.4 Caja proyectada"),
-      React.createElement(P, null, "Proyecta el saldo de caja día a día durante 13 semanas, arrancando con la caja del último balance. Entradas: la cartera del balance, las ventas de contado y los negocios de tu Pipeline (valor × probabilidad, cobrados los días de cobro después de la fecha de cierre). Salidas: nómina por quincenas, gastos fijos, créditos, proveedores, impuestos y prestaciones de ley (prima en junio y diciembre, intereses sobre cesantías en enero, cesantías en febrero)."),
-      React.createElement(LI, null, "Alerta: roja (\"en X días la caja queda en rojo\"), ámbar (alcanza pero queda justa: menos de 15 días de gastos) o verde. Siempre compara con el escenario sin negocios nuevos."),
-      React.createElement(LI, null, "Días de caja: cuánto aguanta la caja si no entrara un peso más."),
-      React.createElement(LI, null, "Punto de equilibrio: cuánto vender al mes para cubrir los gastos fijos, con el margen de los últimos 3 meses, y si el último mes lo cubrió."),
-      React.createElement(LI, null, "Los negocios que más mueven la caja. Los marcados \"(cierre vencido)\" se cuentan como si cerraran hoy: actualiza su fecha en el Pipeline."),
-      React.createElement(Tip, null, "Mientras no guardes los supuestos, el sistema usa unos sugeridos desde tus estados (con la nómina dentro de los gastos fijos) y lo advierte. Guárdalos para que la proyección sea confiable."),
+      React.createElement(P, null, "Proyecta el saldo de caja día a día durante 13 semanas, arrancando con la caja del último balance. La gráfica muestra el escenario actual y el escenario sin negocios nuevos; pasa el mouse o toca una semana para ver los saldos."),
+      React.createElement(H3, null, "Entradas"),
+      React.createElement(LI, null, "Cartera: factura por factura si la cargaste; si no, el total del balance repartido en los días de cobro."),
+      React.createElement(LI, null, "Ventas de contado de cada semana y contratos vigentes (lo que facturas cada mes por contratos, abonos o convenios), cobrados al cierre del mes más sus días de pago."),
+      React.createElement(LI, null, "Negocios del Pipeline: valor × probabilidad, cobrados los días de cobro después de la fecha de cierre (o los días propios de ese negocio). Los marcados \"(cierre vencido)\" se cuentan como si cerraran hoy: actualiza su fecha en el Pipeline."),
+      React.createElement(LI, null, "Sin CRM (cuenta solo Finanzas): las ventas que esperas en este mes y los dos siguientes, que escribes en los supuestos."),
+      React.createElement(H3, null, "Salidas"),
+      React.createElement(P, null, "Nómina por quincenas (15 y fin de mes), gastos fijos (día 1), cuotas de créditos (día 5), proveedores (cada viernes), retención e impuestos del mes y el IVA de cada bimestre (en enero, marzo, mayo, julio, septiembre y noviembre) el día de pago a la DIAN que indiques, y prestaciones de ley estimadas sobre la nómina (prima en junio y diciembre, intereses sobre cesantías en enero, cesantías en febrero)."),
+      React.createElement(H3, null, "Alerta y rescate"),
+      React.createElement(P, null, "La alerta es roja (\"en X días la caja queda en rojo\"), ámbar (alcanza pero queda justa: menos de 15 días de gastos) o verde. Cuando es roja, el sistema busca qué negocios del Pipeline, cerrados en su fecha, evitan el hueco o lo achican, y te los muestra: cada nombre abre la oportunidad y \"Simular estos cierres\" los marca en el simulador."),
+      React.createElement(H3, null, "Calendario de salidas y punto de equilibrio del mes"),
+      React.createElement(P, null, "El calendario lista con fecha y monto las obligaciones de las 13 semanas que no son semanales: retención, IVA, prima, cesantías, intereses y cuotas. El punto de equilibrio del mes compara lo que necesitas vender para cubrir los gastos fijos con lo ganado este mes más el pipeline que cierra en lo que queda del mes, y te dice cuánto falta o si ya está cubierto. También ves los días de caja y los negocios que más mueven la caja."),
+      React.createElement(Tip, null, "Mientras no guardes los supuestos, el sistema usa unos sugeridos desde tus estados (con la nómina dentro de los gastos fijos) y lo advierte. Guárdalos para que la proyección sea confiable. El día de pago a la DIAN depende del último dígito del NIT: tu contador te lo confirma."),
 
       React.createElement(H2, null, "11.5 Simulador: ¿qué pasa si…?"),
-      React.createElement(P, null, "En Caja proyectada mueve las palancas — cuánto se cumple del pipeline, retraso en los cobros, nómina, gastos y proveedores, ventas de contado — y la caja se recalcula al instante: punto más bajo, primer día en rojo y caja al final contra el escenario actual. No guarda nada; \"Volver al escenario actual\" lo deja como estaba."),
+      React.createElement(P, null, "En Caja proyectada mueve las palancas — cuánto se cumple del pipeline (o de las ventas proyectadas), retraso en los cobros, personas nuevas en nómina con su costo mensual, variación de la nómina actual, de los gastos y proveedores y de las ventas de contado — y la caja se recalcula al instante: punto más bajo, primer día en rojo y caja al final contra el escenario actual."),
+      React.createElement(P, null, "En \"Forzar cierres y días de pago\" marca \"Cerrar\" en los negocios que quieras dar por ganados en su fecha y cambia cuántos días tarda cada cliente en pagar. No se guarda nada; \"Volver al escenario actual\" lo deja como estaba."),
 
       React.createElement(H2, null, "11.6 Estados financieros e indicadores"),
-      React.createElement(P, null, "Estados financieros muestra la gráfica de ventas y utilidad bruta mes a mes, el estado de resultados del último mes contra el anterior y los 12 meses (con el impuesto de renta estimado al 35 %; el valor real lo define tu contador) y el balance general. Indicadores muestra diez indicadores agrupados en Liquidez, Endeudamiento, Rentabilidad y Ciclo de caja, cada uno con semáforo y lo que significa en palabras simples. Los rangos son una guía general para pymes."),
+      React.createElement(P, null, "Estados financieros muestra la gráfica de ventas y costo de ventas mes a mes con la línea del margen EBITDA, el estado de resultados del último mes contra el anterior y los 12 meses (con el impuesto de renta estimado al 35 %; el valor real lo define tu contador) y el balance general. Indicadores muestra diez indicadores agrupados en Liquidez, Endeudamiento, Rentabilidad y Ciclo de caja, cada uno con semáforo y lo que significa en palabras simples. Los rangos son una guía general para pymes."),
 
-      React.createElement(H2, null, "11.7 Gerente IA"),
-      React.createElement(P, null, "Con \"Diagnóstico del mes\" la IA explica qué está pasando con la caja y la rentabilidad, por qué y qué hacer primero, con una lista de acciones. También puedes hacerle preguntas (por ejemplo \"¿Puedo contratar a una persona más?\") y repreguntar. Usa únicamente las cifras que el sistema calcula con tus datos — no inventa números — y cada consulta cuenta como una acción de IA de tu plan."),
+      React.createElement(H2, null, "11.7 Rentabilidad por cliente"),
+      React.createElement(P, null, "Quién te compra más no siempre es quién te deja más. Escribe por cada cliente sus ventas, el costo directo de lo que le vendiste y en cuántos días te paga (últimos 12 meses). Verás el margen bruto ponderado, los días de pago promedio, la gráfica de margen por cliente (en rojo los de margen bajo, con la línea del 35 % sano) y la tabla con la marca \"Le compra mucho, le deja poco\" y quién paga tarde (más de 60 días)."),
+      React.createElement(Tip, null, "Con el CRM, \"Traer ventas del CRM\" carga lo que le ganaste a cada cliente en los últimos 12 meses: solo te falta completar el costo."),
+
+      React.createElement(H2, null, "11.8 Gerente IA"),
+      React.createElement(P, null, "Con \"Diagnóstico del mes\" la IA explica qué está pasando con la caja y la rentabilidad, por qué y qué hacer primero, con una lista de acciones. También puedes hacerle preguntas (por ejemplo \"¿Puedo contratar a una persona más?\") y repreguntar. Usa únicamente las cifras que el sistema calcula con tus datos — estados, caja, cartera, rentabilidad por cliente y pipeline —, no inventa números, y cada consulta cuenta como una acción de IA de tu plan."),
       React.createElement(Nota, null, "El Gerente Financiero es una herramienta de análisis: no reemplaza la asesoría contable, tributaria ni financiera certificada."),
 
       React.createElement(Sep, null),
