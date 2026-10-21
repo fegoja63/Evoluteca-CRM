@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { IconSparkles, IconUpload } from "@tabler/icons-react";
+import { IconUpload } from "@tabler/icons-react";
 import { accesoPaginaFinanzas, cargarDatosCaja } from "@/lib/finanzas/datos";
 import { alertaCaja, ESTILO_ALERTA } from "@/lib/finanzas/alerta-caja";
 import { cn } from "@/lib/cn";
+import { diasEntre } from "@/lib/finanzas/caja";
+import { diaCorto } from "@/lib/finanzas/formato";
+import { GerenteIA } from "@/components/finanzas/gerente-ia";
 import { RescateCaja } from "@/components/finanzas/rescate-caja";
 import { estadoResultados, sumarPeriodos, ultimosMeses, indicadores } from "@/lib/finanzas/estados";
 import { millones, mesCorto, variacion, valorIndicador, TONO_SEMAFORO } from "@/lib/finanzas/formato";
-import { formatoDia } from "@/lib/fecha-bogota";
 import { boton, insignia, tarjeta } from "@/components/ui/estilos";
 import { MarcoFinanzas, SinAccesoFinanzas } from "@/components/finanzas/marco-finanzas";
 
@@ -58,8 +60,11 @@ export default async function FinanzasPage() {
               detalle={anio.ventas ? `${meses.length} meses: ${Math.round((anio.ebitda / anio.ventas) * 100)}%` : ""} />
             <Kpi titulo={`Utilidad neta, ${meses.length} meses`} valor={millones(anio.utilidadNeta)}
               detalle={anio.ventas ? `Margen neto ${Math.round((anio.utilidadNeta / anio.ventas) * 100)}%` : ""} />
-            <Kpi titulo="Caja al corte" valor={balance ? millones(balance.caja) : "—"}
-              detalle={balance ? `Balance al ${formatoDia(balance.corte)}` : "Cargue el balance"} />
+            <Kpi titulo="Caja hoy" valor={balance ? millones(balance.caja) : "—"}
+              detalle={!balance || !alerta ? "Cargue el balance"
+                : alerta.conNegocios.primerDiaEnRojo ? `Alcanza ${diasEntre(datos.hoy, alerta.conNegocios.primerDiaEnRojo)} días, hasta el ${diaCorto(alerta.conNegocios.primerDiaEnRojo)}`
+                : "Alcanza las 13 semanas"}
+              rojo={!!alerta?.conNegocios.primerDiaEnRojo} />
           </div>
 
           <div className={tarjeta("p-5")}>
@@ -88,23 +93,17 @@ export default async function FinanzasPage() {
         </>
       )}
 
-      <Link href="/dashboard/finanzas/gerente" className={tarjeta("flex items-center gap-3 p-4 transition-colors hover:border-brand-300")}>
-        <IconSparkles size={22} stroke={1.75} className="shrink-0 text-brand-600" />
-        <span>
-          <span className="block text-sm font-semibold text-slate-800">Pregúntele al gerente con IA</span>
-          <span className="block text-xs text-slate-500">Diagnóstico del mes y respuestas sobre sus números, en lenguaje sencillo.</span>
-        </span>
-      </Link>
+      {ultimo && <GerenteIA soloLectura={acceso.soloLectura} compacto />}
     </MarcoFinanzas>
   );
 }
 
-function Kpi({ titulo, valor, detalle }: { titulo: string; valor: string; detalle: string }) {
+function Kpi({ titulo, valor, detalle, rojo }: { titulo: string; valor: string; detalle: string; rojo?: boolean }) {
   return (
     <div className={tarjeta("p-4")}>
       <p className="text-xs text-slate-500">{titulo}</p>
       <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900">{valor}</p>
-      <p className="mt-0.5 text-xs text-slate-500">{detalle}</p>
+      <p className={rojo ? "mt-0.5 text-xs font-semibold text-red-600" : "mt-0.5 text-xs text-slate-500"}>{detalle}</p>
     </div>
   );
 }

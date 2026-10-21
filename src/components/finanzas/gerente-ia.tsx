@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { IconSparkles, IconSend } from "@tabler/icons-react";
 import { toast } from "@/lib/toast";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
@@ -15,7 +16,8 @@ const SUGERIDAS = [
 ];
 
 /** El gerente financiero con IA: diagnóstico del mes y preguntas sobre los números. */
-export function GerenteIA({ soloLectura }: { soloLectura: boolean }) {
+/** `compacto` = el panel del Resumen: solo el diagnóstico del mes, con enlace al gerente completo. */
+export function GerenteIA({ soloLectura, compacto = false }: { soloLectura: boolean; compacto?: boolean }) {
   const [respuestas, setRespuestas] = useState<Respuesta[]>([]);
   const [pregunta, setPregunta] = useState("");
   const [pensando, setPensando] = useState(false);
@@ -35,6 +37,35 @@ export function GerenteIA({ soloLectura }: { soloLectura: boolean }) {
     if (!res.ok) { toast.error(data.error ?? "No se pudo responder. Inténtelo de nuevo."); return; }
     setRespuestas(prev => [...prev, data]);
     setPregunta("");
+  }
+
+  if (compacto) {
+    const r = respuestas.at(-1);
+    return (
+      <div className={tarjeta("p-5 space-y-3")}>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800"><IconSparkles size={18} className="text-brand-600" />Diagnóstico del mes</h2>
+            <p className="mt-1 text-xs text-slate-500">El gerente con IA lee sus estados, la caja y el pipeline, y le dice qué está pasando, por qué y qué hacer.</p>
+          </div>
+          {!soloLectura && (
+            <button type="button" onClick={() => preguntar()} disabled={pensando} className={boton("primario", "sm")}>
+              {pensando ? "Analizando…" : r ? "Actualizar" : "Generar con IA"}
+            </button>
+          )}
+        </div>
+        {r && (
+          <>
+            <h3 className="text-sm font-semibold text-slate-900">{r.titulo}</h3>
+            {r.parrafos.slice(0, 2).map((p, j) => <p key={j} className="text-sm leading-relaxed text-slate-700">{p}</p>)}
+            {r.acciones.length > 0 && (
+              <ol className="list-decimal space-y-1 pl-5 text-sm text-slate-700">{r.acciones.map((a, j) => <li key={j}>{a}</li>)}</ol>
+            )}
+          </>
+        )}
+        <Link href="/dashboard/finanzas/gerente" className="inline-block text-sm font-medium text-brand-700 hover:underline">Hacerle una pregunta al gerente →</Link>
+      </div>
+    );
   }
 
   if (soloLectura) {

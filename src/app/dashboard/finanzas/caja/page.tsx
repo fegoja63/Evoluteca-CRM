@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { accesoPaginaFinanzas, cargarDatosCaja } from "@/lib/finanzas/datos";
 import { alertaCaja, ESTILO_ALERTA } from "@/lib/finanzas/alerta-caja";
-import { puntoEquilibrio, diasEntre } from "@/lib/finanzas/caja";
+import { puntoEquilibrio, diasEntre, equilibrioDelMes } from "@/lib/finanzas/caja";
 import { millones, mesCorto, diaCorto } from "@/lib/finanzas/formato";
 import { formatoDia } from "@/lib/fecha-bogota";
-import { boton, tarjeta } from "@/components/ui/estilos";
+import { boton, insignia, tarjeta } from "@/components/ui/estilos";
 import { cn } from "@/lib/cn";
 import { MarcoFinanzas, SinAccesoFinanzas } from "@/components/finanzas/marco-finanzas";
 import { GraficaCaja } from "@/components/finanzas/grafica-caja";
@@ -77,22 +77,38 @@ export default async function CajaPage({ searchParams }: { searchParams: Promise
 
       <SimuladorCaja key={forzar.join(",")} hoy={d.hoy} caja={d.balance.caja} cartera={d.balance.cuentasPorCobrar} supuestos={d.supuestos} pipeline={d.pipeline} forzadosIniciales={forzar} />
 
-      {pe && (
-        <div className={tarjeta("p-5")}>
-          <h2 className="text-base font-semibold text-slate-800">Punto de equilibrio</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Con un margen de contribución de {Math.round(pe.margenContribucion * 100)}% y gastos fijos de {millones(pe.gastosFijos)} al mes
-            (promedio de los últimos 3 meses), necesita vender <strong>{millones(pe.ventasNecesarias)}</strong> al mes para no perder plata.
-          </p>
-          <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-100">
-            <div className={cn("h-full rounded-full", pe.ventasUltimoMes >= pe.ventasNecesarias ? "bg-emerald-500" : "bg-amber-500")}
-              style={{ width: `${Math.min(100, (pe.ventasUltimoMes / pe.ventasNecesarias) * 100)}%` }} />
+      {pe && (() => {
+        // Sin CRM, lo que se espera vender este mes ocupa el lugar del pipeline.
+        const em = equilibrioDelMes(pe, d.hoy, d.ganadoMes, d.pipeline);
+        const proyectadoMes = d.supuestos.ventasProyectadas?.find(v => v.mes === em.mes)?.monto ?? 0;
+        const porEntrar = d.soloFinanzas ? proyectadoMes : em.pipelineDelMes;
+        const falta = Math.max(0, em.necesario - em.vendido - porEntrar);
+        const pct = (v: number) => `${Math.min(100, (v / em.necesario) * 100)}%`;
+        return (
+          <div className={tarjeta("p-5")}>
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <h2 className="text-base font-semibold text-slate-800">Punto de equilibrio de {mesCorto(em.mes)}</h2>
+              <span className={insignia(falta > 0 ? "alerta" : "exito")}>{falta > 0 ? `Faltan ${millones(falta)}` : "Cubierto"}</span>
+            </div>
+            <p className="mt-2 text-2xl font-bold tabular-nums text-slate-900">
+              {millones(em.necesario)} <span className="text-sm font-normal text-slate-500">en ventas para cubrir gastos fijos de {millones(pe.gastosFijos)}</span>
+            </p>
+            <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-slate-100" role="img"
+              aria-label={`Vendido ${millones(em.vendido)}, por entrar ${millones(porEntrar)}, de ${millones(em.necesario)}`}>
+              <div className="h-full bg-brand-600" style={{ width: pct(em.vendido) }} />
+              <div className="h-full bg-brand-300" style={{ width: pct(Math.min(porEntrar, Math.max(0, em.necesario - em.vendido))) }} />
+            </div>
+            <div className="mt-2 flex flex-wrap gap-4 text-xs text-slate-500">
+              {!d.soloFinanzas && <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-brand-600" />Ganado este mes: {millones(em.vendido)}</span>}
+              <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-brand-300" />
+                {d.soloFinanzas ? `Ventas proyectadas del mes: ${millones(porEntrar)}` : `Pipeline del mes ponderado: ${millones(porEntrar)}`}</span>
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Margen de contribución de los últimos 3 meses: {Math.round(pe.margenContribucion * 100)}%. En {mesCorto(pe.mesUltimo)} vendió {millones(pe.ventasUltimoMes)} ({Math.round((pe.ventasUltimoMes / pe.ventasNecesarias) * 100)}% del punto de equilibrio).
+            </p>
           </div>
-          <p className="mt-1 text-xs text-slate-500">
-            {mesCorto(pe.mesUltimo)}: {Math.round((pe.ventasUltimoMes / pe.ventasNecesarias) * 100)}% del punto de equilibrio.
-          </p>
-        </div>
-      )}
+        );
+      })()}
 
       {negocios.length > 0 && (
         <div className={tarjeta("p-5")}>

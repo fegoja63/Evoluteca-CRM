@@ -236,3 +236,25 @@ export function supuestosSugeridos(periodos: Periodo[], diasCartera: number | nu
     diasCobro: diasCartera ? Math.round(diasCartera) : 30,
   };
 }
+
+export type EquilibrioDelMes = {
+  mes: string;
+  necesario: number;
+  /** Lo ya vendido en el mes (ganado en el CRM, o lo proyectado sin CRM). */
+  vendido: number;
+  /** Pipeline ponderado con cierre en lo que queda del mes. */
+  pipelineDelMes: number;
+  falta: number;
+};
+
+/**
+ * El punto de equilibrio aplicado al mes en curso: cuánto lleva vendido, cuánto
+ * más puede entrar del pipeline que cierra este mes y cuánto falta.
+ */
+export function equilibrioDelMes(pe: PuntoEquilibrio, hoy: string, vendido: number, pipeline: NegocioPipeline[]): EquilibrioDelMes {
+  const mes = hoy.slice(0, 7);
+  const pipelineDelMes = pipeline
+    .filter(n => n.fechaCierre >= hoy && n.fechaCierre.startsWith(mes))
+    .reduce((a, n) => a + n.valor * ((n.probabilidad ?? 50) / 100), 0);
+  return { mes, necesario: pe.ventasNecesarias, vendido, pipelineDelMes, falta: Math.max(0, pe.ventasNecesarias - vendido - pipelineDelMes) };
+}

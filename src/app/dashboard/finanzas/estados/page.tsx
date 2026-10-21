@@ -6,6 +6,7 @@ import { formatoDia } from "@/lib/fecha-bogota";
 import { boton, tarjeta } from "@/components/ui/estilos";
 import { cn } from "@/lib/cn";
 import { MarcoFinanzas, SinAccesoFinanzas } from "@/components/finanzas/marco-finanzas";
+import { GraficaEstados } from "@/components/finanzas/grafica-estados";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,6 @@ export default async function EstadosPage() {
   const u = meses[meses.length - 1];
   const a = meses[meses.length - 2];
   const total = estadoResultados(sumarPeriodos(meses));
-  const maxVentas = Math.max(1, ...meses.map(m => m.ventas));
 
   if (!u && !balance) {
     return (
@@ -51,22 +51,8 @@ export default async function EstadosPage() {
       {u && (
         <>
           <div className={tarjeta("p-5")}>
-            <h2 className="text-base font-semibold text-slate-800">Ventas y utilidad bruta, mes a mes</h2>
-            <div className="mt-2 flex gap-4 text-xs text-slate-500">
-              <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-brand-600" />Ventas</span>
-              <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" />Utilidad bruta</span>
-            </div>
-            <div className="mt-4 flex h-44 items-end gap-1.5 sm:gap-2" role="img" aria-label="Ventas y utilidad bruta de cada mes">
-              {meses.map(m => (
-                <div key={m.mes} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
-                  <div className="flex h-full w-full items-end justify-center gap-0.5">
-                    <div className="w-1/2 rounded-t bg-brand-600" style={{ height: `${(m.ventas / maxVentas) * 100}%` }} title={`Ventas ${millones(m.ventas)}`} />
-                    <div className="w-1/2 rounded-t bg-emerald-500" style={{ height: `${(Math.max(0, m.utilidadBruta) / maxVentas) * 100}%` }} title={`Utilidad bruta ${millones(m.utilidadBruta)}`} />
-                  </div>
-                  <span className="truncate text-2xs text-slate-500">{mesCorto(m.mes)}</span>
-                </div>
-              ))}
-            </div>
+            <h2 className="text-base font-semibold text-slate-800">Ventas, costo y margen EBITDA, mes a mes</h2>
+            <div className="mt-2"><GraficaEstados meses={meses} /></div>
           </div>
 
           <div>
