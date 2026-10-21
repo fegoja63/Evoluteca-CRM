@@ -7,8 +7,15 @@ import { boton, campo } from "@/components/ui/estilos";
 import { leerMonto } from "@/lib/finanzas/plantilla";
 import type { Supuestos } from "@/lib/finanzas/caja";
 import { aTexto, enviar } from "./comun";
+import { mesCorto } from "@/lib/finanzas/formato";
 
-const CAMPOS: { clave: Exclude<keyof Supuestos, "diasCobro">; titulo: string; ayuda: string }[] = [
+/** Este mes y los dos siguientes, "YYYY-MM". */
+function proximosMeses(hoy: string): string[] {
+  const [a, m] = hoy.split("-").map(Number);
+  return [0, 1, 2].map(i => { const d = new Date(Date.UTC(a, m - 1 + i, 1)); return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`; });
+}
+
+const CAMPOS: { clave: Exclude<keyof Supuestos, "diasCobro" | "ventasProyectadas">; titulo: string; ayuda: string }[] = [
   { clave: "nominaMensual", titulo: "Nómina mensual", ayuda: "Salarios; se paga el 15 y el último día. De aquí salen la prima y las cesantías." },
   { clave: "gastosFijosMensuales", titulo: "Gastos fijos del mes (sin nómina)", ayuda: "Arriendo, servicios, software… se paga el día 1." },
   { clave: "cuotaDeudaMensual", titulo: "Cuotas de créditos al mes", ayuda: "Capital e intereses; se paga el día 5." },
@@ -17,8 +24,14 @@ const CAMPOS: { clave: Exclude<keyof Supuestos, "diasCobro">; titulo: string; ay
   { clave: "ventasContadoSemanales", titulo: "Ventas de contado por semana", ayuda: "Lo que entra el mismo día (taquilla, mostrador)." },
 ];
 
+type Props = { supuestos: Supuestos; guardados: boolean; soloLectura: boolean; soloFinanzas?: boolean; hoy?: string };
+
 /** Supuestos de la caja proyectada: el cliente los ajusta a su operación. */
-export function FormSupuestos({ supuestos, guardados, soloLectura }: { supuestos: Supuestos; guardados: boolean; soloLectura: boolean }) {
+export function FormSupuestos({ supuestos, guardados, soloLectura, soloFinanzas = false, hoy = "" }: Props) {
+  const meses = soloFinanzas && hoy ? proximosMeses(hoy) : [];
+  const [ventas, setVentas] = useState<Record<string, string>>(
+    Object.fromEntries(meses.map(m => [m, aTexto(supuestos.ventasProyectadas?.find(v => v.mes === m)?.monto ?? 0)])),
+  );
   const router = useRouter();
   const [valores, setValores] = useState<Record<string, string>>(
     Object.fromEntries(CAMPOS.map(c => [c.clave, aTexto(supuestos[c.clave])])),
@@ -33,6 +46,7 @@ export function FormSupuestos({ supuestos, guardados, soloLectura }: { supuestos
       await enviar("/api/finanzas/supuestos", "PUT", {
         ...Object.fromEntries(CAMPOS.map(c => [c.clave, leerMonto(valores[c.clave]) ?? 0])),
         diasCobro: Math.round(Number(diasCobro) || 0),
+        ventasProyectadas: meses.map(m => ({ mes: m, monto: leerMonto(ventas[m]) ?? 0 })).filter(v => v.monto > 0),
       });
       toast.success("Supuestos guardados.");
       router.refresh();
@@ -68,6 +82,25 @@ export function FormSupuestos({ supuestos, guardados, soloLectura }: { supuestos
           <span className="mt-0.5 block text-2xs text-slate-400">Se usa para la cartera y para cuándo entra el dinero de un negocio cerrado.</span>
         </label>
       </div>
+      {soloFinanzas && (
+        <div className="space-y-2 rounded-xl border border-slate-200 p-3">
+          <p className="text-sm font-medium text-slate-700">Ventas que espera (sin CRM)</p>
+          <p className="text-xs text-slate-500">Lo que espera vender a crédito; entra a la caja al cierre de cada mes más los días de cobro.</p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {meses.map((m, i) => (
+              <label key={m} className="text-xs text-slate-500">
+                {i === 0 ? `Lo que falta vender en ${mesCorto(m)}` : `Ventas de ${mesCorto(m)}`}
+                <input inputMode="decimal" value={ventas[m]} placeholder="0" disabled={soloLectura}
+                  onChange={e => setVentas(v => ({ ...v, [m]: e.target.value }))}
+                  className={campo("sm", "mt-1 block w-full text-right tabular-nums")} />
+              </label>
+            ))}
+          </div>
+          <p className="rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-800">
+            Con el CRM de Evoluteca estas cifras salen solas de sus oportunidades, con su probabilidad y fecha de cierre, y la alerta le dice qué negocio cerrar primero.
+          </p>
+        </div>
+      )}
       {!soloLectura && (
         <button type="submit" disabled={guardando} className={boton("marca", "sm")}>{guardando ? "Guardando…" : "Guardar supuestos"}</button>
       )}

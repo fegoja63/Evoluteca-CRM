@@ -30,9 +30,12 @@ export function SimuladorCaja({ hoy, caja, cartera, supuestos, pipeline, forzado
   const [e, setE] = useState<Escenario>({ ...ESCENARIO_BASE, forzados: forzadosIniciales });
   const [costoTexto, setCostoTexto] = useState(Math.round(ESCENARIO_BASE.costoPersona).toLocaleString("es-CO"));
   const hayPipeline = pipeline.length > 0;
+  const hayVentasProyectadas = (supuestos.ventasProyectadas?.length ?? 0) > 0;
 
   const controles: Control[] = [
-    ...(hayPipeline ? [{ clave: "cumplimientoPipeline" as const, titulo: "Se cumple del pipeline", min: 0, max: 150, paso: 10, formato: (v: number) => `${v}%` }] : []),
+    ...(hayPipeline || hayVentasProyectadas
+      ? [{ clave: "cumplimientoPipeline" as const, titulo: hayPipeline ? "Se cumple del pipeline" : "Se cumplen las ventas proyectadas", min: 0, max: 150, paso: 10, formato: (v: number) => `${v}%` }]
+      : []),
     { clave: "retrasoCobros", titulo: "Retraso en los cobros", min: 0, max: 60, paso: 5, formato: v => `${v} días` },
     { clave: "personasNuevas", titulo: "Personas nuevas en nómina", min: 0, max: 5, paso: 1, formato: v => String(v) },
     { clave: "variacionNomina", titulo: "Nómina actual", min: -20, max: 50, paso: 5, formato: signo },
