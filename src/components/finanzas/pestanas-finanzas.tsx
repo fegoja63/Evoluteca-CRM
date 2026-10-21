@@ -18,14 +18,16 @@ export function PestanasFinanzas() {
   const pathname = usePathname();
   return (
     // En el celular las pestañas se desplazan con el dedo; sin barra visible.
-    <nav className="flex gap-1 overflow-x-auto border-b border-slate-200 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Secciones del Gerente Financiero">
+    <nav className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Secciones del Gerente Financiero">
       {PESTANAS.map(p => {
         const activa = pathname === p.href;
         return (
-          <Link key={p.href} href={p.href}
+          <Link key={p.href} href={p.href} aria-current={activa ? "page" : undefined}
             className={cn(
-              "whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors",
-              activa ? "border-accent-600 text-slate-900" : "border-transparent text-slate-500 hover:text-slate-800",
+              "whitespace-nowrap rounded-lg border px-3.5 py-2 text-sm font-medium shadow-sm transition-colors",
+              activa
+                ? "border-brand-700 bg-brand-700 text-white"
+                : "border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-800",
             )}>
             {p.label}
           </Link>
