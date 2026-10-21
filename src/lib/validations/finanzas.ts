@@ -64,3 +64,13 @@ export const facturasSchema = z.object({
     vence: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha de vencimiento inválida"),
   })).min(1, "No hay facturas para guardar").max(500, "Máximo 500 facturas por carga"),
 });
+
+// Rentabilidad por cliente (ver lib/finanzas/rentabilidad): se reemplaza completa.
+export const rentabilidadSchema = z.object({
+  clientes: z.array(z.object({
+    cliente: z.string().trim().min(1, "Escriba el cliente").max(120, "Máximo 120 caracteres"),
+    ventas: montoPositivo,
+    costo: montoPositivo.default(0),
+    diasPago: z.number().int().min(0).max(365).nullable().default(null),
+  })).max(300, "Máximo 300 clientes"),
+});

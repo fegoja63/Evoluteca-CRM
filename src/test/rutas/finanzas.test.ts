@@ -15,6 +15,7 @@ import { POST as importar } from "@/app/api/finanzas/importar/route";
 import { GET as plantilla } from "@/app/api/finanzas/plantilla/route";
 import { PUT as guardarSupuestos } from "@/app/api/finanzas/supuestos/route";
 import { GET as listarCartera, POST as agregarCartera, DELETE as borrarCartera } from "@/app/api/finanzas/cartera/route";
+import { GET as listarRentabilidad, PUT as guardarRentabilidad } from "@/app/api/finanzas/rentabilidad/route";
 import { cargarDatosCaja } from "@/lib/finanzas/datos";
 
 const M = 1_000_000;
@@ -255,3 +256,31 @@ describe("cartera por cliente", () => {
   });
 });
 
+
+describe("rentabilidad por cliente", () => {
+  beforeEach(async () => {
+    await darLicencia(A.tenantId);
+    await darLicencia(B.tenantId);
+    await sinAislamiento("limpiar rentabilidad de A y B", () => prisma.rentabilidadCliente.deleteMany({ where: { tenantId: { in: [A.tenantId, B.tenantId] } } }));
+  });
+
+  it("guarda reemplazando la lista completa, y cada empresa ve la suya", async () => {
+    comoUsuario(A, "ADMINISTRADOR");
+    await llamar(guardarRentabilidad, { metodo: "PUT", body: { clientes: [
+      { cliente: "EPM", ventas: 280 * M, costo: 151 * M, diasPago: 41 },
+      { cliente: "Comfama", ventas: 190 * M, costo: 160 * M, diasPago: null },
+    ] } });
+    await llamar(guardarRentabilidad, { metodo: "PUT", body: { clientes: [{ cliente: "EPM", ventas: 300 * M, costo: 150 * M }] } });
+    expect((await llamar(listarRentabilidad)).cuerpo).toEqual([{ cliente: "EPM", ventas: 300 * M, costo: 150 * M, diasPago: null }]);
+
+    comoUsuario(B, "ADMINISTRADOR");
+    expect((await llamar(listarRentabilidad)).cuerpo).toEqual([]);
+  });
+
+  it("valida y no deja a un comercial", async () => {
+    comoUsuario(A, "ADMINISTRADOR");
+    expect((await llamar(guardarRentabilidad, { metodo: "PUT", body: { clientes: [{ cliente: "", ventas: 1 }] } })).status).toBe(400);
+    comoUsuario(A, "COMERCIAL");
+    expect((await llamar(listarRentabilidad)).status).toBe(403);
+  });
+});
