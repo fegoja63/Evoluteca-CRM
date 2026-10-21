@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { proyectarCaja, eventosDeCaja, diasDeCaja, puntoEquilibrio, supuestosSugeridos, sumarDias, diasEntre, SEMANAS, type Supuestos } from "./caja";
+import { proyectarCaja, eventosDeCaja, calendarioDeSalidas, diasDeCaja, puntoEquilibrio, supuestosSugeridos, sumarDias, diasEntre, SEMANAS, type Supuestos } from "./caja";
 import type { Periodo } from "./estados";
 
 const M = 1_000_000;
@@ -46,6 +46,25 @@ describe("eventos de caja", () => {
       ["Atrasado (cierre vencido)", "2026-10-31", 5 * M],
       ["Bancolombia", "2026-12-05", 48 * M * 0.7],
     ]);
+  });
+});
+
+describe("impuestos y calendario de salidas", () => {
+  it("paga la retención cada mes y el IVA en los meses impares, el día de la DIAN", () => {
+    const ev = eventosDeCaja({ hoy: HOY, saldoInicial: 0, cartera: 0, pipeline: [],
+      supuestos: { ...SIN_NADA, impuestosMensuales: 5 * M, ivaBimestral: 22 * M, diaImpuestos: 12, nominaMensual: 40 * M, cuotaDeudaMensual: 6 * M } });
+    const cal = calendarioDeSalidas(ev);
+    const de = (c: string) => cal.filter(e => e.concepto.startsWith(c)).map(e => [e.dia, e.concepto, e.monto]);
+    expect(de("Retención")).toEqual([
+      ["2026-10-12", "Retención e impuestos (septiembre)", -5 * M],
+      ["2026-11-12", "Retención e impuestos (octubre)", -5 * M],
+      ["2026-12-12", "Retención e impuestos (noviembre)", -5 * M],
+    ]);
+    expect(de("IVA")).toEqual([["2026-11-12", "IVA bimestre septiembre–octubre", -22 * M]]);
+    // El calendario no repite la nómina ni los proveedores, pero sí prima y créditos.
+    expect(cal.some(e => e.concepto.startsWith("Nómina"))).toBe(false);
+    expect(cal.some(e => e.concepto.startsWith("Prima"))).toBe(true);
+    expect(cal.some(e => e.concepto === "Cuota de créditos")).toBe(true);
   });
 });
 

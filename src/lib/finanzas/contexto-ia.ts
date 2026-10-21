@@ -69,7 +69,8 @@ export function contextoFinanciero(d: Entrada) {
       origen: d.supuestosGuardados ? "confirmados por la empresa" : "sugeridos automáticamente desde los estados (la nómina va dentro de gastos fijos)",
       nominaMensual: mm(d.supuestos.nominaMensual), gastosFijosMensuales: mm(d.supuestos.gastosFijosMensuales),
       cuotaCreditosMensual: mm(d.supuestos.cuotaDeudaMensual), proveedoresSemanales: mm(d.supuestos.proveedoresSemanales),
-      impuestosMensuales: mm(d.supuestos.impuestosMensuales), ventasContadoSemanales: mm(d.supuestos.ventasContadoSemanales),
+      impuestosMensuales: mm(d.supuestos.impuestosMensuales), ivaBimestral: mm(d.supuestos.ivaBimestral ?? 0), diaPagoDian: d.supuestos.diaImpuestos ?? 18,
+      ventasContadoSemanales: mm(d.supuestos.ventasContadoSemanales),
       diasCobro: d.supuestos.diasCobro, salidasFijasDeUnMes: mm(salidasMensuales(d.supuestos)),
     },
     pipelineCRM: d.pipeline.length ? {

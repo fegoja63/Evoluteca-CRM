@@ -22,8 +22,12 @@ export type Supuestos = {
   cuotaDeudaMensual: number;
   /** Pagos a proveedores: cada viernes. */
   proveedoresSemanales: number;
-  /** Retención, IVA y demás impuestos del mes: día 18. */
+  /** Retención en la fuente y demás impuestos de cada mes: el día de impuestos. */
   impuestosMensuales: number;
+  /** IVA de cada bimestre: se paga en ene, mar, may, jul, sep y nov, el día de impuestos. */
+  ivaBimestral?: number;
+  /** Día del mes en que se paga a la DIAN (depende del NIT). Por defecto 18. */
+  diaImpuestos?: number;
   /** Ventas que entran de contado (taquilla, mostrador): repartidas por día. */
   ventasContadoSemanales: number;
   /** Días que tardan los clientes en pagar una venta a crédito. */
@@ -105,7 +109,12 @@ export function eventosDeCaja({ hoy, cartera, supuestos: s, pipeline, conPipelin
     if (fecha === 15 || fecha === ultimo) agregar(dia, -s.nominaMensual / 2, "pago", "Nómina (quincena)");
     if (fecha === 1) agregar(dia, -s.gastosFijosMensuales, "pago", "Gastos fijos (arriendo, servicios…)");
     if (fecha === 5) agregar(dia, -s.cuotaDeudaMensual, "pago", "Cuota de créditos");
-    if (fecha === 18) agregar(dia, -s.impuestosMensuales, "pago", "Impuestos del mes");
+    const diaDian = Math.min(Math.max(1, Math.round(s.diaImpuestos ?? 18)), 28);
+    if (fecha === diaDian) agregar(dia, -s.impuestosMensuales, "pago", `Retención e impuestos (${NOMBRE_MES[(mes + 10) % 12]})`);
+    // IVA bimestral: en marzo se declara enero–febrero, y así cada dos meses.
+    if (fecha === diaDian && mes % 2 === 1 && s.ivaBimestral) {
+      agregar(dia, -s.ivaBimestral, "pago", `IVA bimestre ${NOMBRE_MES[(mes + 9) % 12]}–${NOMBRE_MES[(mes + 10) % 12]}`);
+    }
     if (d.getUTCDay() === 5) agregar(dia, -s.proveedoresSemanales, "pago", "Pago a proveedores");
 
     // Prestaciones de ley (estimadas sobre la nómina mensual).
@@ -161,7 +170,14 @@ export function proyectarCaja(entrada: Entrada): Proyeccion {
 
 /** Salidas fijas de un mes promedio (para los días de caja). */
 export function salidasMensuales(s: Supuestos): number {
-  return s.nominaMensual + s.gastosFijosMensuales + s.cuotaDeudaMensual + s.impuestosMensuales + (s.proveedoresSemanales * 52) / 12;
+  return s.nominaMensual + s.gastosFijosMensuales + s.cuotaDeudaMensual + s.impuestosMensuales
+    + (s.ivaBimestral ?? 0) / 2 + (s.proveedoresSemanales * 52) / 12;
+}
+
+/** Pagos que no son de todas las semanas: impuestos, prestaciones y créditos (para el calendario). */
+export function calendarioDeSalidas(eventos: Evento[]): Evento[] {
+  const recurrentes = ["Nómina (quincena)", "Pago a proveedores", "Gastos fijos (arriendo, servicios…)"];
+  return eventos.filter(e => e.tipo === "pago" && !recurrentes.includes(e.concepto));
 }
 
 /** Cuántos días alcanza la caja si no entrara un peso más. null sin salidas. */

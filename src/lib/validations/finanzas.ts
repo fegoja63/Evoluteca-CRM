@@ -47,6 +47,8 @@ export const supuestosCajaSchema = z.object({
   proveedoresSemanales: montoPositivo,
   impuestosMensuales: montoPositivo,
   ventasContadoSemanales: montoPositivo,
+  ivaBimestral: montoPositivo.default(0),
+  diaImpuestos: z.number().int().min(1, "Día de impuestos inválido").max(28, "Use un día entre 1 y 28").default(18),
   diasCobro: z.number().int("Días de cobro inválidos").min(0).max(365, "Máximo 365 días de cobro"),
   ventasProyectadas: z.array(z.object({ mes: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Mes inválido"), monto: montoPositivo }))
     .max(12, "Máximo 12 meses de ventas proyectadas").default([]),
