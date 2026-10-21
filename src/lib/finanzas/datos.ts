@@ -87,6 +87,7 @@ export async function cargarDatosCaja(tenantId: string): Promise<DatosCaja> {
     impuestosMensuales: Number(guardados.impuestosMensuales), ventasContadoSemanales: Number(guardados.ventasContadoSemanales),
     diasCobro: guardados.diasCobro,
     ivaBimestral: Number(guardados.ivaBimestral), diaImpuestos: guardados.diaImpuestos,
+    ingresosRecurrentes: Number(guardados.ingresosRecurrentes), plazoRecurrentes: guardados.plazoRecurrentes,
     ventasProyectadas: Array.isArray(guardados.ventasProyectadas) ? (guardados.ventasProyectadas as { mes: string; monto: number }[]) : [],
   } : supuestosSugeridos(datos.periodos, dias);
 

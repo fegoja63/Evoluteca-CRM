@@ -30,6 +30,9 @@ export type Supuestos = {
   diaImpuestos?: number;
   /** Ventas que entran de contado (taquilla, mostrador): repartidas por día. */
   ventasContadoSemanales: number;
+  /** Contratos vigentes que facturan cada mes y su plazo de pago en días. */
+  ingresosRecurrentes?: number;
+  plazoRecurrentes?: number;
   /** Días que tardan los clientes en pagar una venta a crédito. */
   diasCobro: number;
   /**
@@ -122,6 +125,17 @@ export function eventosDeCaja({ hoy, cartera, supuestos: s, pipeline, conPipelin
     if (mes === 12 && fecha === 20) agregar(dia, -s.nominaMensual / 2, "pago", "Prima de servicios (diciembre)");
     if (mes === 1 && fecha === 31) agregar(dia, -s.nominaMensual * 0.12, "pago", "Intereses sobre cesantías");
     if (mes === 2 && fecha === 14) agregar(dia, -s.nominaMensual, "pago", "Consignación de cesantías");
+  }
+
+  // Contratos vigentes: dinero ya pactado, por eso no es "negocio nuevo".
+  // Se facturan al cierre de cada mes (desde el anterior) y se cobran con su plazo.
+  if (s.ingresosRecurrentes) {
+    const [a0, m0] = hoy.split("-").map(Number);
+    for (let k = -3; k <= 4; k++) {
+      const cierre = aDia(new Date(Date.UTC(a0, m0 - 1 + k + 1, 0)));
+      agregar(sumarDias(cierre, Math.max(0, Math.round(s.plazoRecurrentes ?? 30))), s.ingresosRecurrentes, "cobro",
+        `Contratos vigentes (${NOMBRE_MES[(m0 - 1 + k + 12 * 4) % 12]})`);
+    }
   }
 
   if (conPipeline) {

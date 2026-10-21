@@ -222,6 +222,10 @@ model SupuestosCaja {
   ivaBimestral           Decimal  @default(0) @db.Decimal(16, 2)
   diaImpuestos           Int      @default(18)
   ventasContadoSemanales Decimal  @default(0) @db.Decimal(16, 2)
+  // Contratos vigentes que facturan cada mes: se cobran al cierre del mes
+  // más su plazo de pago (días).
+  ingresosRecurrentes    Decimal  @default(0) @db.Decimal(16, 2)
+  plazoRecurrentes       Int      @default(30)
   diasCobro              Int      @default(30)
   // Cuenta sin CRM: ventas que espera por mes, [{ mes: "YYYY-MM", monto }].
   ventasProyectadas      Json     @default("[]")

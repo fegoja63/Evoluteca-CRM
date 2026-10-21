@@ -69,7 +69,7 @@ export default async function CajaPage({ searchParams }: { searchParams: Promise
         <h2 className="text-base font-semibold text-slate-800">Saldo de caja, próximas 13 semanas</h2>
         <div className="mt-3"><GraficaCaja con={alerta.conNegocios.semanas} sin={alerta.sinNegocios.semanas} conPipeline={conPipeline} /></div>
         <p className="mt-2 text-xs text-slate-500">
-          Entradas: cartera del balance (repartida en {Math.max(7, d.supuestos.diasCobro)} días), ventas de contado
+          Entradas: cartera del balance (repartida en {Math.max(7, d.supuestos.diasCobro)} días), ventas de contado, contratos vigentes
           {conPipeline ? " y los negocios del pipeline (valor × probabilidad, cobrados " + d.supuestos.diasCobro + " días después del cierre; incluyen IVA)" : ""}.
           Salidas: nómina, gastos fijos, créditos, proveedores, impuestos y prestaciones de ley estimadas. Es una proyección con supuestos, no contabilidad.
         </p>
