@@ -129,6 +129,7 @@ model Tenant {
   periodosFinancieros  PeriodoFinanciero[]
   balancesFinancieros  BalanceFinanciero[]
   supuestosCaja        SupuestosCaja?
+  cuentasPorCobrar     CuentaPorCobrar[]
 
   @@map("tenants")
 }
@@ -205,6 +206,23 @@ model BalanceFinanciero {
 
   @@unique([tenantId, corte])
   @@map("finanzas_balances")
+}
+
+// Cartera por cobrar detallada (opcional): cada factura con su vencimiento.
+// Si la empresa la carga, la caja cobra cada una en su fecha en lugar de
+// repartir el total del balance.
+model CuentaPorCobrar {
+  id       String   @id @default(uuid())
+  tenantId String
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente  String
+  monto    Decimal  @db.Decimal(16, 2)
+  // Día de calendario anclado a Bogotá.
+  vence    DateTime
+  creadoEn DateTime @default(now())
+
+  @@index([tenantId, vence])
+  @@map("finanzas_cuentas_por_cobrar")
 }
 
 // Supuestos de la caja proyectada (ver lib/finanzas/caja.ts). Uno por tenant;

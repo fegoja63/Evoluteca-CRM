@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { cn } from "@/lib/cn";
-import { proyectarCaja, diasEntre, claveNegocio, type NegocioPipeline, type Supuestos } from "@/lib/finanzas/caja";
+import { proyectarCaja, diasEntre, claveNegocio, type FacturaPorCobrar, type NegocioPipeline, type Supuestos } from "@/lib/finanzas/caja";
 import { aplicarEscenario, esBase, ESCENARIO_BASE, type Escenario } from "@/lib/finanzas/simulador";
 import { leerMonto } from "@/lib/finanzas/plantilla";
 import { diaCorto, millones } from "@/lib/finanzas/formato";
@@ -14,6 +14,7 @@ type Props = {
   hoy: string;
   caja: number;
   cartera: number;
+  carteraDetalle?: FacturaPorCobrar[];
   supuestos: Supuestos;
   pipeline: NegocioPipeline[];
   /** Negocios que llegan ya marcados como cerrados (desde "Simular estos cierres"). */
@@ -26,7 +27,7 @@ const signo = (v: number) => `${v > 0 ? "+" : ""}${v}%`;
 const MAX_NEGOCIOS = 8;
 
 /** "¿Qué pasa si…?": mueve las palancas y la caja se recalcula al instante. */
-export function SimuladorCaja({ hoy, caja, cartera, supuestos, pipeline, forzadosIniciales = [] }: Props) {
+export function SimuladorCaja({ hoy, caja, cartera, carteraDetalle = [], supuestos, pipeline, forzadosIniciales = [] }: Props) {
   const [e, setE] = useState<Escenario>({ ...ESCENARIO_BASE, forzados: forzadosIniciales });
   const [costoTexto, setCostoTexto] = useState(Math.round(ESCENARIO_BASE.costoPersona).toLocaleString("es-CO"));
   const hayPipeline = pipeline.length > 0;
@@ -52,12 +53,12 @@ export function SimuladorCaja({ hoy, caja, cartera, supuestos, pipeline, forzado
   }, [pipeline, e.forzados]);
 
   const { base, sim } = useMemo(() => {
-    const entrada = { hoy, saldoInicial: caja, cartera };
+    const entrada = { hoy, saldoInicial: caja, cartera, carteraDetalle };
     return {
       base: proyectarCaja({ ...entrada, supuestos, pipeline }),
-      sim: proyectarCaja({ ...entrada, ...aplicarEscenario(supuestos, pipeline, e) }),
+      sim: proyectarCaja({ ...entrada, retrasoCartera: e.retrasoCobros, ...aplicarEscenario(supuestos, pipeline, e) }),
     };
-  }, [hoy, caja, cartera, supuestos, pipeline, e]);
+  }, [hoy, caja, cartera, carteraDetalle, supuestos, pipeline, e]);
 
   function alternarForzado(clave: string) {
     setE(prev => ({ ...prev, forzados: prev.forzados.includes(clave) ? prev.forzados.filter(k => k !== clave) : [...prev.forzados, clave] }));
@@ -108,7 +109,7 @@ export function SimuladorCaja({ hoy, caja, cartera, supuestos, pipeline, forzado
       {hayPipeline && (
         <details className="rounded-xl border border-slate-200 p-3" open={e.forzados.length > 0}>
           <summary className="cursor-pointer text-sm font-medium text-slate-700">
-            Forzar cierres: ¿y si estos negocios se cierran en su fecha?
+            Forzar cierres y días de pago: ¿y si estos negocios se cierran en su fecha?
           </summary>
           <ul className="mt-2 divide-y divide-slate-100">
             {negocios.map(n => {
@@ -123,6 +124,13 @@ export function SimuladorCaja({ hoy, caja, cartera, supuestos, pipeline, forzado
                   <span className="tabular-nums text-xs text-slate-500">
                     {millones(n.valor)} · {n.probabilidad ?? 50}% · cierre {diaCorto(n.fechaCierre)}{n.fechaCierre < hoy ? " (vencido)" : ""}
                   </span>
+                  <label className="flex items-center gap-1 text-2xs text-slate-500">
+                    paga a
+                    <input type="number" min={0} max={180} value={e.plazos[k] ?? supuestos.diasCobro} aria-label={`Días de pago de ${n.titulo}`}
+                      onChange={ev => { const v = Number(ev.target.value); setE(prev => ({ ...prev, plazos: { ...prev.plazos, [k]: Number.isFinite(v) ? Math.max(0, Math.min(180, v)) : prev.plazos[k] } })); }}
+                      className={campo("sm", "w-14 py-0.5 text-right text-xs tabular-nums")} />
+                    días
+                  </label>
                 </li>
               );
             })}

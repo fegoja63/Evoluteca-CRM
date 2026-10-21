@@ -22,7 +22,7 @@ export default async function FinanzasPage() {
   const datos = await cargarDatosCaja(acceso.tenantId);
   const { periodos, balance } = datos;
   const alerta = balance
-    ? alertaCaja({ hoy: datos.hoy, caja: balance.caja, cartera: balance.cuentasPorCobrar, supuestos: datos.supuestos, pipeline: datos.pipeline })
+    ? alertaCaja({ hoy: datos.hoy, caja: balance.caja, cartera: balance.cuentasPorCobrar, carteraDetalle: datos.carteraDetalle, supuestos: datos.supuestos, pipeline: datos.pipeline })
     : null;
   const meses = ultimosMeses(periodos, 12);
   const ultimo = meses.length ? estadoResultados(meses[meses.length - 1]) : null;

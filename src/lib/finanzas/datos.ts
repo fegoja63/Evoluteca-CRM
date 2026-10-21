@@ -10,7 +10,7 @@ import { estadoLicencia, type ResumenLicencia } from "@/lib/licencias";
 import { diaISO, fechaISO, fechaDesdeBogota } from "@/lib/fecha-bogota";
 import { rolVeFinanzas, aPeriodo, aBalance } from "./acceso";
 import { indicadores, type Balance, type Periodo } from "./estados";
-import { supuestosSugeridos, type NegocioPipeline, type Supuestos } from "./caja";
+import { supuestosSugeridos, type FacturaPorCobrar, type NegocioPipeline, type Supuestos } from "./caja";
 
 export type AccesoPagina =
   | { bloqueo: "rol" | "licencia"; licencia: ResumenLicencia }
@@ -50,15 +50,18 @@ export type DatosCaja = DatosFinancieros & {
   soloFinanzas: boolean;
   /** Valor de los negocios ganados con cierre en el mes en curso (CRM). */
   ganadoMes: number;
+  /** Cartera factura por factura, si la empresa la cargó. */
+  carteraDetalle: FacturaPorCobrar[];
 };
 
 const ETAPAS_ACTIVAS = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"] as const;
 
 export async function cargarDatosCaja(tenantId: string): Promise<DatosCaja> {
-  const [datos, guardados, tenant] = await Promise.all([
+  const [datos, guardados, tenant, facturas] = await Promise.all([
     cargarDatosFinancieros(tenantId),
     prisma.supuestosCaja.findUnique({ where: { tenantId } }),
     prisma.tenant.findUnique({ where: { id: tenantId }, select: { soloFinanzas: true } }),
+    prisma.cuentaPorCobrar.findMany({ where: { tenantId }, orderBy: { vence: "asc" } }),
   ]);
   const soloFinanzas = tenant?.soloFinanzas ?? false;
 
@@ -95,6 +98,7 @@ export async function cargarDatosCaja(tenantId: string): Promise<DatosCaja> {
     ...datos,
     hoy,
     ganadoMes: Number(ganadas?._sum.valor ?? 0),
+    carteraDetalle: facturas.map(f => ({ cliente: f.cliente, monto: Number(f.monto), vence: diaISO(f.vence) })),
     supuestos,
     supuestosGuardados: !!guardados,
     soloFinanzas,

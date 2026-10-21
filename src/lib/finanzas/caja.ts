@@ -43,7 +43,14 @@ export type Supuestos = {
 };
 
 /** Un negocio abierto del CRM. `id` enlaza a su ficha en el Pipeline. */
-export type NegocioPipeline = { id?: string; titulo: string; etapa?: string; valor: number; probabilidad: number | null; fechaCierre: string };
+export type NegocioPipeline = {
+  id?: string; titulo: string; etapa?: string; valor: number; probabilidad: number | null; fechaCierre: string;
+  /** Días que tarda este cliente en pagar (si no, los días de cobro generales). */
+  plazoPago?: number;
+};
+
+/** Una factura por cobrar con su vencimiento ("YYYY-MM-DD"). */
+export type FacturaPorCobrar = { cliente: string; monto: number; vence: string };
 
 /** Llave estable de un negocio (el id; el título si no hay id). */
 export const claveNegocio = (n: NegocioPipeline) => n.id ?? n.titulo;
@@ -84,6 +91,10 @@ type Entrada = {
   saldoInicial: number;
   /** Cuentas por cobrar del último balance: se cobran parejo en los próximos `diasCobro` días. */
   cartera: number;
+  /** Si la empresa cargó la cartera factura por factura, se cobra cada una en su fecha (en lugar de `cartera`). */
+  carteraDetalle?: FacturaPorCobrar[];
+  /** Días de retraso extra sobre el vencimiento de cada factura (simulador). */
+  retrasoCartera?: number;
   supuestos: Supuestos;
   pipeline: NegocioPipeline[];
   /** false = escenario "sin negocios nuevos". */
@@ -91,7 +102,7 @@ type Entrada = {
 };
 
 /** Los eventos de caja (entradas y salidas) día a día durante 13 semanas. */
-export function eventosDeCaja({ hoy, cartera, supuestos: s, pipeline, conPipeline = true }: Entrada): Evento[] {
+export function eventosDeCaja({ hoy, cartera, carteraDetalle = [], retrasoCartera = 0, supuestos: s, pipeline, conPipeline = true }: Entrada): Evento[] {
   const fin = sumarDias(hoy, SEMANAS * 7 - 1);
   const ev: Evento[] = [];
   const agregar = (dia: string, monto: number, tipo: Evento["tipo"], concepto: string) => {
@@ -107,7 +118,7 @@ export function eventosDeCaja({ hoy, cartera, supuestos: s, pipeline, conPipelin
     const ultimo = ultimoDiaDelMes(d);
 
     if (s.ventasContadoSemanales) agregar(dia, s.ventasContadoSemanales / 7, "cobro", "Ventas de contado");
-    if (i < plazo && cartera) agregar(dia, cartera / plazo, "cobro", "Cartera por cobrar");
+    if (i < plazo && cartera && carteraDetalle.length === 0) agregar(dia, cartera / plazo, "cobro", "Cartera por cobrar");
 
     if (fecha === 15 || fecha === ultimo) agregar(dia, -s.nominaMensual / 2, "pago", "Nómina (quincena)");
     if (fecha === 1) agregar(dia, -s.gastosFijosMensuales, "pago", "Gastos fijos (arriendo, servicios…)");
@@ -125,6 +136,12 @@ export function eventosDeCaja({ hoy, cartera, supuestos: s, pipeline, conPipelin
     if (mes === 12 && fecha === 20) agregar(dia, -s.nominaMensual / 2, "pago", "Prima de servicios (diciembre)");
     if (mes === 1 && fecha === 31) agregar(dia, -s.nominaMensual * 0.12, "pago", "Intereses sobre cesantías");
     if (mes === 2 && fecha === 14) agregar(dia, -s.nominaMensual, "pago", "Consignación de cesantías");
+  }
+
+  // Cartera factura por factura: se cobra al vencer; una vencida, en 15 días.
+  for (const f of carteraDetalle) {
+    const cobro = f.vence < hoy ? sumarDias(hoy, 15) : f.vence;
+    agregar(sumarDias(cobro, Math.max(0, retrasoCartera)), f.monto, "cobro", `Cobro ${f.cliente}`);
   }
 
   // Contratos vigentes: dinero ya pactado, por eso no es "negocio nuevo".
@@ -150,7 +167,8 @@ export function eventosDeCaja({ hoy, cartera, supuestos: s, pipeline, conPipelin
       // conviene actualizarla en el CRM para que la proyección sea real.
       const vencido = n.fechaCierre < hoy;
       const cierre = vencido ? hoy : n.fechaCierre;
-      agregar(sumarDias(cierre, plazo), n.valor * ((n.probabilidad ?? 50) / 100), "pipeline", vencido ? `${n.titulo} (cierre vencido)` : n.titulo);
+      const dias = n.plazoPago !== undefined ? Math.max(0, Math.round(n.plazoPago)) : plazo;
+      agregar(sumarDias(cierre, dias), n.valor * ((n.probabilidad ?? 50) / 100), "pipeline", vencido ? `${n.titulo} (cierre vencido)` : n.titulo);
     }
   }
   return ev.sort((a, b) => a.dia.localeCompare(b.dia) || b.monto - a.monto);

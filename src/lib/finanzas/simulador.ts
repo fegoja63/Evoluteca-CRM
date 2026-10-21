@@ -3,7 +3,7 @@
  * la proyección y les aplica un escenario. Puro, para usarlo en el navegador
  * (los controles recalculan al instante) y probarlo sin base de datos.
  */
-import { proyectarCaja, claveNegocio, type NegocioPipeline, type Proyeccion, type Supuestos } from "./caja";
+import { proyectarCaja, claveNegocio, type FacturaPorCobrar, type NegocioPipeline, type Proyeccion, type Supuestos } from "./caja";
 
 export type Escenario = {
   /** % de lo que dice el CRM que se cumple del pipeline (100 = tal cual). */
@@ -21,6 +21,8 @@ export type Escenario = {
   variacionContado: number;
   /** Negocios que se suponen cerrados al 100 % en su fecha (claveNegocio). */
   forzados: string[];
+  /** Días de pago por negocio (claveNegocio → días), si difieren de los generales. */
+  plazos: Record<string, number>;
 };
 
 /** Costo mensual por persona de partida (salario + prestaciones y seguridad social). */
@@ -28,12 +30,12 @@ export const COSTO_PERSONA_DEFECTO = 4_500_000;
 
 export const ESCENARIO_BASE: Escenario = {
   cumplimientoPipeline: 100, retrasoCobros: 0, variacionNomina: 0, personasNuevas: 0,
-  costoPersona: COSTO_PERSONA_DEFECTO, variacionGastos: 0, variacionContado: 0, forzados: [],
+  costoPersona: COSTO_PERSONA_DEFECTO, variacionGastos: 0, variacionContado: 0, forzados: [], plazos: {},
 };
 
 export function esBase(e: Escenario): boolean {
   return e.cumplimientoPipeline === 100 && e.retrasoCobros === 0 && e.variacionNomina === 0 && e.personasNuevas === 0
-    && e.variacionGastos === 0 && e.variacionContado === 0 && e.forzados.length === 0;
+    && e.variacionGastos === 0 && e.variacionContado === 0 && e.forzados.length === 0 && Object.keys(e.plazos).length === 0;
 }
 
 const por = (v: number, pct: number) => v * (1 + pct / 100);
@@ -59,12 +61,13 @@ export function aplicarEscenario(
     // Un negocio forzado cierra al 100 %; los demás escalan su probabilidad, sin pasar de 100 %.
     pipeline: pipeline.map(n => ({
       ...n,
+      ...(e.plazos[claveNegocio(n)] !== undefined ? { plazoPago: e.plazos[claveNegocio(n)] } : {}),
       probabilidad: forzados.has(claveNegocio(n)) ? 100 : Math.min(100, ((n.probabilidad ?? 50) * e.cumplimientoPipeline) / 100),
     })),
   };
 }
 
-type BaseProyeccion = { hoy: string; saldoInicial: number; cartera: number; supuestos: Supuestos; pipeline: NegocioPipeline[] };
+type BaseProyeccion = { hoy: string; saldoInicial: number; cartera: number; carteraDetalle?: FacturaPorCobrar[]; supuestos: Supuestos; pipeline: NegocioPipeline[] };
 
 export type Rescate = {
   /** Los negocios que conviene cerrar primero, en orden. */
@@ -82,7 +85,7 @@ export type Rescate = {
  */
 export function rescateDeCaja(base: BaseProyeccion, escenario: Escenario = ESCENARIO_BASE): Rescate | null {
   const proyectar = (forzados: string[]) =>
-    proyectarCaja({ ...base, ...aplicarEscenario(base.supuestos, base.pipeline, { ...escenario, forzados }) });
+    proyectarCaja({ ...base, retrasoCartera: escenario.retrasoCobros, ...aplicarEscenario(base.supuestos, base.pipeline, { ...escenario, forzados }) });
   let actual = proyectar(escenario.forzados);
   if (!actual.primerDiaEnRojo || base.pipeline.length === 0) return null;
 
