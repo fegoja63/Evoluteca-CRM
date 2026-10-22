@@ -76,6 +76,15 @@ describe("Coach de objeciones", () => {
     const lineasGuia = contenido.split("GUÍA DE OBJECIONES DEL EQUIPO")[1].split("\n").filter(l => l.startsWith("- \""));
     expect(lineasGuia).toHaveLength(deA);
   });
+
+  it("le pasa el mapa de decisores de la oportunidad", async () => {
+    await prisma.participanteOportunidad.update({ where: { id: A.participante, tenantId: A.tenantId }, data: { rol: "DECIDE", postura: "A_FAVOR" } });
+    const p = await pedirCoach("Lo tengo que consultar");
+    const contacto = await prisma.contacto.findFirstOrThrow({ where: { id: A.contacto, tenantId: A.tenantId } });
+    expect(p.messages[0].content).toContain("PERSONAS EN LA DECISIÓN");
+    expect(p.messages[0].content).toContain(`- ${contacto.nombre}`);
+    expect(p.messages[0].content).toContain("Decide, a favor");
+  });
 });
 
 describe("Metodología en Configuración", () => {

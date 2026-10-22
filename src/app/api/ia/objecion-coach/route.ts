@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { permitirYRegistrar } from "@/lib/rate-limit";
 import { METODOLOGIAS, metodologiaDe } from "@/lib/metodologias-venta";
 import { formatoFecha } from "@/lib/fecha-bogota";
+import { mapaATexto } from "@/lib/decisores";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -55,6 +56,11 @@ export async function POST(req: Request) {
       empresa: { select: { nombre: true, sector: true } },
       contacto: { select: { nombre: true, cargo: true } },
       actividades: { orderBy: { fecha: "desc" }, take: 3, select: { tipo: true, titulo: true, fecha: true } },
+      participantes: {
+        where: { tenantId: session.user.tenantId, contacto: { eliminadoEn: null } },
+        orderBy: { creadoEn: "asc" },
+        select: { rol: true, postura: true, contacto: { select: { nombre: true, cargo: true } } },
+      },
     },
   });
   if (!op) return NextResponse.json({ error: "Oportunidad no encontrada" }, { status: 404 });
@@ -82,6 +88,9 @@ export async function POST(req: Request) {
   partes.push(`- Antigüedad: creado hace ${dias(op.creadoEn)} días`);
   if (op.actividades.length) partes.push(`- Últimas gestiones: ${op.actividades.map(a => `${a.titulo} (${fecha(a.fecha)})`).join("; ")}`);
   if (op.notas) partes.push(`- Notas del vendedor: ${op.notas.slice(0, 400)}`);
+  partes.push(`
+PERSONAS EN LA DECISIÓN (mapa de decisores):
+${mapaATexto(op.participantes)}`);
   if (guia.length) {
     partes.push(`\nGUÍA DE OBJECIONES DEL EQUIPO (objeción → respuesta recomendada):`);
     for (const g of guia) partes.push(`- "${g.objecion.slice(0, 200)}" → "${g.respuesta.slice(0, 400)}"`);
@@ -93,7 +102,7 @@ Principio rector: no se trata de "ganar" la objeción, sino de entender la PRIOR
 
 Metodología del equipo: ${metodologia.enfoque}
 
-Casi toda objeción revela algo que falta calificar del negocio. Identifica cuál es: Presupuesto, Quién decide, Prioridad o momento, Necesidad o dolor, o Competencia o alternativa actual. Si de verdad no falta nada, di "Ninguno".
+Si el mapa de decisores no tiene a nadie que "Decide", o quien objeta solo influye, tenlo en cuenta al decidir qué falta calificar. Casi toda objeción revela algo que falta calificar del negocio. Identifica cuál es: Presupuesto, Quién decide, Prioridad o momento, Necesidad o dolor, o Competencia o alternativa actual. Si de verdad no falta nada, di "Ninguno".
 
 Si te dan una GUÍA DE OBJECIONES DEL EQUIPO y una de sus entradas corresponde a esta objeción, aunque el cliente lo diga con otras palabras, parte de esa respuesta y adáptala a este cliente (no la copies literal). Si ninguna corresponde, ignora la guía.
 

@@ -53,6 +53,7 @@ function ids(letra: "a" | "b") {
     correo: `cor-${letra}-1`,
     minuta: `min-${letra}-1`,
     objecion: `obj-${letra}-1`,
+    participante: `par-${letra}-1`,
   } as const;
 }
 
@@ -325,6 +326,16 @@ function operacionesDeModulos(m: Molde, nombre: string) {
         categoria: "Precio",
         objecion: `Objecion de ${nombre}`,
         respuesta: "Respuesta recomendada",
+      },
+    }),
+
+    prisma.participanteOportunidad.create({
+      data: {
+        id: m.participante,
+        tenantId: m.tenantId,
+        oportunidadId: m.oportunidadDelComercial,
+        contactoId: m.contacto,
+        rol: "INFLUYE",
       },
     }),
   ];

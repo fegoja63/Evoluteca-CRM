@@ -97,40 +97,41 @@ model Tenant {
   licenciaAvisoEn   DateTime?
   licenciaAvisadaEn DateTime?
 
-  usuarios             Usuario[]
-  empresas             Empresa[]
-  contactos            Contacto[]
-  oportunidades        Oportunidad[]
-  actividades          Actividad[]
-  cotizaciones         Cotizacion[]
-  funciones            Funcion[]
-  espectadores         Espectador[]
-  productos            Producto[]
-  plantillasCotizacion PlantillaCotizacion[]
-  metasVenta           MetaVenta[]
-  metasVendedor        MetaVendedor[]
-  eventosTimeline      EventoTimeline[]
-  expedientes          Expediente[]
-  terminosExpediente   TerminoExpediente[]
-  eventosExpediente    EventoExpediente[]
-  registrosHoras       RegistroHoras[]
-  asistencias          Asistencia[]
-  salones              Salon[]
-  adjuntos             Adjunto[]
-  etapasPipeline       EtapaPipeline[]
-  usoIA                UsoIA[]
-  registrosAuditoria   RegistroAuditoria[]
-  camposPersonalizados CampoPersonalizado[]
-  automatizaciones     Automatizacion[]
-  correos              CorreoRegistrado[]
-  objeciones           Objecion[]
-  minutas              Minuta[]
-  licenciasModulo      LicenciaModulo[]
-  periodosFinancieros  PeriodoFinanciero[]
-  balancesFinancieros  BalanceFinanciero[]
-  supuestosCaja        SupuestosCaja?
-  cuentasPorCobrar     CuentaPorCobrar[]
-  rentabilidadClientes RentabilidadCliente[]
+  usuarios                 Usuario[]
+  empresas                 Empresa[]
+  contactos                Contacto[]
+  oportunidades            Oportunidad[]
+  actividades              Actividad[]
+  cotizaciones             Cotizacion[]
+  funciones                Funcion[]
+  espectadores             Espectador[]
+  productos                Producto[]
+  plantillasCotizacion     PlantillaCotizacion[]
+  metasVenta               MetaVenta[]
+  metasVendedor            MetaVendedor[]
+  eventosTimeline          EventoTimeline[]
+  expedientes              Expediente[]
+  terminosExpediente       TerminoExpediente[]
+  eventosExpediente        EventoExpediente[]
+  registrosHoras           RegistroHoras[]
+  asistencias              Asistencia[]
+  salones                  Salon[]
+  adjuntos                 Adjunto[]
+  etapasPipeline           EtapaPipeline[]
+  usoIA                    UsoIA[]
+  registrosAuditoria       RegistroAuditoria[]
+  camposPersonalizados     CampoPersonalizado[]
+  automatizaciones         Automatizacion[]
+  correos                  CorreoRegistrado[]
+  objeciones               Objecion[]
+  minutas                  Minuta[]
+  participantesOportunidad ParticipanteOportunidad[]
+  licenciasModulo          LicenciaModulo[]
+  periodosFinancieros      PeriodoFinanciero[]
+  balancesFinancieros      BalanceFinanciero[]
+  supuestosCaja            SupuestosCaja?
+  cuentasPorCobrar         CuentaPorCobrar[]
+  rentabilidadClientes     RentabilidadCliente[]
 
   @@map("tenants")
 }
@@ -398,13 +399,14 @@ model Contacto {
   segmento String? // INDIVIDUAL | GRUPO | EMPRESA | COLEGIO
 
   empresaId       String?
-  empresa         Empresa?           @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+  empresa         Empresa?                  @relation(fields: [empresaId], references: [id], onDelete: SetNull)
   oportunidades   Oportunidad[]
   actividades     Actividad[]
   cotizaciones    Cotizacion[]
   eventosTimeline EventoTimeline[]
   adjuntos        Adjunto[]
   correos         CorreoRegistrado[]
+  participaciones ParticipanteOportunidad[]
 
   @@index([tenantId])
   @@index([tenantId, creadoEn])
@@ -458,9 +460,10 @@ model Oportunidad {
   fechaRenovacion    DateTime?
   // Si esta oportunidad es la RENOVACIÓN de otra, apunta al negocio original.
   origenRenovacionId String?
-  origenRenovacion   Oportunidad?    @relation("RenovacionDe", fields: [origenRenovacionId], references: [id], onDelete: SetNull)
-  renovaciones       Oportunidad[]   @relation("RenovacionDe")
+  origenRenovacion   Oportunidad?              @relation("RenovacionDe", fields: [origenRenovacionId], references: [id], onDelete: SetNull)
+  renovaciones       Oportunidad[]             @relation("RenovacionDe")
   minutas            Minuta[]
+  participantes      ParticipanteOportunidad[]
 
   creadoEn    DateTime  @default(now())
   creadoBy    String?
@@ -617,6 +620,46 @@ model Actividad {
   @@index([tenantId, fecha])
   @@index([tenantId, responsableId])
   @@map("actividades")
+}
+
+// ---- Mapa de decisores ----
+//
+// Las personas del cliente que participan en la decisión de compra de una
+// oportunidad, con su papel y su postura. Complementa al contacto principal
+// (Oportunidad.contactoId), que se conserva.
+enum RolDecision {
+  DECIDE
+  INFLUYE
+  USA
+  FRENA
+}
+
+enum PosturaDecision {
+  A_FAVOR
+  NEUTRAL
+  EN_CONTRA
+  SIN_CONTACTAR
+}
+
+model ParticipanteOportunidad {
+  id       String          @id @default(uuid())
+  rol      RolDecision     @default(INFLUYE)
+  postura  PosturaDecision @default(SIN_CONTACTAR)
+  creadoEn DateTime        @default(now())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  oportunidadId String
+  oportunidad   Oportunidad @relation(fields: [oportunidadId], references: [id], onDelete: Cascade)
+
+  contactoId String
+  contacto   Contacto @relation(fields: [contactoId], references: [id], onDelete: Cascade)
+
+  @@unique([oportunidadId, contactoId])
+  @@index([tenantId])
+  @@index([tenantId, oportunidadId])
+  @@map("participantes_oportunidad")
 }
 
 // ---- Minutas de reunión (generadas con IA y revisadas por el usuario) ----
