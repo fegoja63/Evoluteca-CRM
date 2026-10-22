@@ -106,7 +106,10 @@ export default async function AsistenteIAPage() {
 
   // ── Herramientas (las de módulo opcional, solo si el cliente las tiene) ────
   const coachActivo = moduloActivo(tenant?.modulos, "objeciones");
-  const finanzasActiva = !!licenciaFinanzas && licenciaFinanzas.estado !== "SIN_LICENCIA";
+  // Gerente financiero: solo con el módulo Finanzas habilitado (licencia VIGENTE) y
+  // para los roles que ven Finanzas. Con la licencia vencida queda en solo lectura
+  // (no se puede consultar a la IA), así que tampoco se ofrece aquí.
+  const finanzasActiva = licenciaFinanzas?.estado === "VIGENTE";
 
   const principales: Funcion[] = [
     { titulo: "Resumen de cliente", desc: "Una cuenta en 6 secciones accionables.", icon: IconBuilding,
