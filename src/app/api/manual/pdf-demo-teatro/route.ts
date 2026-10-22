@@ -77,7 +77,7 @@ function PageHeader({ base }: { base: string }) {
 }
 function Footer() {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo v1.3"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo v1.4"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -195,7 +195,7 @@ export async function GET() {
             ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#fef3c7", marginBottom: 3 } }, item)),
           ),
           React.createElement(View, { style: { marginTop: 40 } },
-            React.createElement(Text, { style: s.portadaVer }, `Versión 1.1 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+            React.createElement(Text, { style: s.portadaVer }, `Versión 1.4 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
           ),
         ),
       ),
@@ -230,13 +230,15 @@ export async function GET() {
       React.createElement(Paso, { n: 5, titulo: "Agenda", desc: "Revisa la Agenda: hay actividades vencidas (para que veas cómo se ven las alertas rojas) y próximas, vinculadas a los negocios del pipeline." }),
       React.createElement(Paso, { n: 6, titulo: "Reportes", desc: "Ve a Reportes para ver el embudo de conversión, top de clientes y el cumplimiento de la meta mensual y anual ya configuradas en esta cuenta." }),
       React.createElement(Tip, null, "Todo lo anterior funciona exactamente igual sin importar el tipo de negocio. Es la base que ya tendrías funcionando desde el primer día, incluso antes de activar nada específico de teatros."),
-      React.createElement(H2, null, "Asistente IA — 6 funciones de inteligencia artificial"),
+      React.createElement(H2, null, "Asistente IA — 8 funciones de inteligencia artificial"),
       React.createElement(P, null, "El CRM reúne sus funciones de IA en la pestaña 'Asistente IA' del menú lateral. Todas usan solo los datos reales de tu cuenta —no inventan ni consultan nada externo— y comparten un mismo cupo mensual, visible como 'Acciones de IA · este mes'. Pruébalas también en esta cuenta de teatro:"),
       React.createElement(LI, null, "Resumen de cliente: en la ficha de cualquier cliente, un informe de 6 secciones (panorama, señales, contactos clave y próximas acciones)."),
       React.createElement(LI, null, "Brief del pipeline: en Pipeline, un resumen ejecutivo de tus oportunidades abiertas (calientes, en riesgo, avance de la meta y prioridades de la semana)."),
       React.createElement(LI, null, "Análisis de tendencias: en Reportes, la IA explica qué cambió, por qué, la proyección y qué hacer, acompañado de gráficas."),
       React.createElement(LI, null, "Pregúntale a tus datos: escribe una pregunta en lenguaje natural y obtén el dato con su gráfica al instante."),
       React.createElement(LI, null, "Redactor de correos: en la ficha de una cotización, redacta el correo de envío, seguimiento o cierre con el contexto de esa cotización."),
+      React.createElement(LI, null, "Revisor de propuestas: antes de enviar una cotización, revisa margen, descuentos, vigencia y si responde a lo que el cliente ya dijo, con un veredicto y observaciones."),
+      React.createElement(LI, null, "Oportunidades de crecimiento: en la ficha de un cliente que ya compró, sugiere qué más ofrecerle según su historial y con un clic crea la oportunidad."),
       React.createElement(LI, null, "Informe ejecutivo mensual: el cierre del mes anterior con sus tendencias, listo para la junta."),
       React.createElement(Nota, null, "Estos asistentes son parte del CRM general — funcionan igual en un teatro que en cualquier empresa de servicios. Todos comparten el mismo cupo mensual y solo usan los datos reales de tu CRM."),
     ),

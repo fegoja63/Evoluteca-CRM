@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.32"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.33"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -245,7 +245,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.32 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.33 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -438,6 +438,15 @@ export async function GET() {
       React.createElement(P, null, "En cada minuta guardada, el botón \"Copiar para enviar\" copia un texto listo para pegar en un correo o WhatsApp al cliente. Ese texto no incluye los riesgos, que son solo para el equipo. Si eliminas una minuta, la reunión y las tareas que creó se conservan."),
       React.createElement(Nota, null, "Cada minuta generada usa una acción del cupo mensual de IA de tu plan, el mismo que usa el Resumen con IA. La IA solo usa lo que dicen tus notas y no inventa datos: si algo no aparece, lo deja vacío para que lo completes."),
 
+      React.createElement(H2, null, "2.10.2 Oportunidades de crecimiento con IA"),
+      React.createElement(P, null, "En la ficha de un cliente que ya te compró (con al menos un negocio ganado), la pestaña Resumen muestra la tarjeta \"Oportunidades de crecimiento\": qué más ofrecerle a ese cliente. Pulsa \"Sugerir con IA\" y en segundos verás:"),
+      React.createElement(LI, null, "Señales de momento — una renovación en los próximos 120 días, una recompra que ya debería haber llegado según el ritmo con que suele comprar, o un cliente que no compra hace un año o más"),
+      React.createElement(LI, null, "Hasta 3 sugerencias — cada una con su tipo (Subir de nivel, Complementario, Volver a comprar o Renovación), la razón basada en el historial del cliente y, cuando hay con qué calcularlo, un valor estimado"),
+      React.createElement(P, null, "Para sugerir, la IA usa lo que el cliente ya compró (incluidos los ítems de sus cotizaciones aceptadas), sus oportunidades abiertas (para no repetirlas), los negocios que perdiste con él y su motivo, tu Catálogo de servicios (ver 5.9) y lo que más compran otros clientes de su mismo sector. Funciona aunque no tengas catálogo cargado."),
+      React.createElement(P, null, "El botón \"Crear oportunidad con esto\" crea la oportunidad en Prospecto, a nombre del cliente, con la razón de la sugerencia en las notas, y te lleva a su ficha para agendar el primer paso."),
+      React.createElement(Nota, null, "Nada se crea hasta que pulses el botón. Cada consulta usa una acción del cupo mensual de IA. Si no hay suficiente historial, la IA lo dice en vez de inventar una sugerencia."),
+      React.createElement(Tip, null, "El cliente que ya compró es el más fácil de volver a vender. Revísalo cuando se acerque su renovación o antes de una reunión de seguimiento."),
+
       React.createElement(H2, null, "2.11 Editar y eliminar desde las listas"),
       React.createElement(P, null, "No necesitas abrir la ficha completa para corregir o eliminar un registro. En las listas de Clientes, Contactos y Cotizaciones, cada fila tiene dos botones de acción rápida:"),
       React.createElement(LI, null, "Editar (ícono de lápiz) — abre una ventana para modificar los datos del registro sin salir del listado. Al guardar, la lista se actualiza al instante."),
@@ -535,7 +544,7 @@ export async function GET() {
       React.createElement(LI, null, "Actividad — las actividades del negocio con el formulario para crear una nueva, y los correos enviados y recibidos (ver 2.12)."),
       React.createElement(LI, null, "Cotizaciones — las cotizaciones formales ligadas, con su número, estado y validez, y el botón \"Nueva cotización\"."),
       React.createElement(LI, null, "Archivos — los adjuntos del negocio (ver 3.10)."),
-      React.createElement(P, null, "Panel derecho: la próxima actividad (en rojo si está vencida) con el enlace \"+ Agendar actividad\", el cliente, el contacto, un resumen de las cotizaciones y, si el módulo está activo, el Coach de objeciones con IA (ver 9.2.1). En el celular estas partes se apilan una debajo de otra."),
+      React.createElement(P, null, "Panel derecho: la próxima actividad (en rojo si está vencida) con el enlace \"+ Agendar actividad\", el cliente, el contacto, las personas en la decisión (ver 3.13), un resumen de las cotizaciones y, si el módulo está activo, el Coach de objeciones con IA (ver 9.2.1). En el celular estas partes se apilan una debajo de otra."),
       React.createElement(Tip, null, "\"+ Actividad\" del encabezado y \"+ Agendar actividad\" del panel derecho abren directamente el formulario en la pestaña Actividad."),
 
       React.createElement(H2, null, "3.7 Vista tabla del pipeline"),
@@ -574,6 +583,15 @@ export async function GET() {
       React.createElement(LI, null, "Prioridades de la semana — 2 o 3 acciones concretas para estos datos"),
       React.createElement(Nota, null, "Respeta los permisos por rol: un COMERCIAL ve solo su propio pipeline y su meta; el Gerente y el Administrador ven todo el equipo. Usa los nombres de etapa personalizados de tu organización. Comparte el mismo cupo mensual de IA con el Resumen con IA de cliente (ver 2.10)."),
       React.createElement(Tip, null, "Genéralo antes del stand-up o la reunión semanal para llegar con el panorama, los riesgos y las prioridades ya listos, sin armarlos a mano."),
+
+      React.createElement(H2, null, "3.13 Personas en la decisión (mapa de decisores)"),
+      React.createElement(P, null, "En una venta empresarial compran varias personas: quien firma, quien recomienda, quien va a usar lo que vendes y, a veces, alguien que frena. En la ficha de la oportunidad (panel derecho), la tarjeta \"Personas en esta decisión\" te deja registrarlas:"),
+      React.createElement(Paso, { n: 1, titulo: "Agregar", desc: "Pulsa \"+ Agregar persona\" y elige un contacto del cliente. El CRM sugiere su papel según el cargo (por ejemplo, un Gerente o Director aparece como \"Decide\"); lo cambias con un clic." }),
+      React.createElement(Paso, { n: 2, titulo: "Papel", desc: "Decide (aprueba la compra o firma), Influye (recomienda o evalúa: compras, finanzas, área técnica), Usa (va a usar lo que se venda) o Frena (se opone o puede bloquear la compra)." }),
+      React.createElement(Paso, { n: 3, titulo: "Postura", desc: "A favor, Neutral, En contra o Sin contactar. Actualízala a medida que hablas con cada persona." }),
+      React.createElement(P, null, "Si el negocio está abierto y nadie está marcado como \"Decide\", la tarjeta avisa: \"No has identificado quién decide\". Quitar a alguien del mapa no borra el contacto, y el contacto principal de la oportunidad se mantiene como siempre."),
+      React.createElement(Nota, null, "Si el módulo Manejo de objeciones está activo, el Coach de objeciones con IA (ver 9.2.1) tiene en cuenta el mapa: sabe con quién estás hablando y si ya identificaste a quien decide. Un usuario Comercial solo ve y edita el mapa de sus propias oportunidades."),
+      React.createElement(Tip, null, "Si solo hablas con una persona, el negocio depende de ella. Antes de enviar la propuesta, procura tener a quien decide identificado y, idealmente, a favor."),
     ),
 
     // ── CAPÍTULO 4: AGENDA ──
@@ -752,6 +770,14 @@ export async function GET() {
       React.createElement(P, null, "Este cuerpo es COMÚN a todas tus cotizaciones: se ve igual en todas. Lo editas desde una cotización (al crearla o desde su detalle), en la sección \"Cuerpo y condiciones\": ajusta las secciones (agregar, quitar, reordenar, cambiar el texto) y haz clic en \"Guardar para todas las cotizaciones\". Desde ese momento queda fijo para todas —las actuales y las futuras— hasta que lo vuelvas a cambiar."),
       React.createElement(Nota, null, "Solo un Administrador puede modificar el cuerpo y condiciones (afecta a todas las cotizaciones de la empresa). Para el resto de usuarios se muestra en modo de solo lectura."),
       React.createElement(Tip, null, "Como es el mismo para todas, defínelo una vez (datos de tu empresa, alcance y condiciones estándar) y todas tus cotizaciones saldrán consistentes sin volver a escribirlo."),
+
+      React.createElement(H2, null, "5.15 Revisar la propuesta antes de enviar"),
+      React.createElement(P, null, "En la ficha de cada cotización, la tarjeta \"Revisar propuesta antes de enviar\" hace la revisión que haría un director comercial. Pulsa \"Revisar propuesta\" y obtienes dos partes:"),
+      React.createElement(LI, null, "Chequeos automáticos — total en cero o ítems sin precio; descuento frente al precio de lista del Catálogo (ver 5.9), que se marca como alerta desde el 15%; margen contra el costo registrado en la oportunidad y contra el promedio de tus propuestas aceptadas (avisa si queda 10 puntos por debajo y alerta si la propuesta pierde dinero); vigencia faltante o vencida; y cliente sin correo"),
+      React.createElement(LI, null, "Lectura comercial con IA — un veredicto (Lista para enviar, Conviene ajustar antes de enviar o No la envíe todavía), una frase con la conclusión y hasta 4 observaciones: objeciones o compromisos que el cliente ya mencionó en minutas y gestiones y que la propuesta no responde, si se ve el valor o solo precios, y riesgos de enviarla ahora"),
+      React.createElement(P, null, "La lectura usa la metodología de ventas de tu equipo (ver 9.10). Los chequeos automáticos funcionan aunque la IA no esté disponible o se haya agotado el cupo del mes."),
+      React.createElement(Nota, null, "La revisión solo aconseja: no cambia la cotización ni guarda nada. Cada revisión usa una acción del cupo mensual de IA. Para que el margen aparezca, registra el costo en la oportunidad."),
+      React.createElement(Tip, null, "Revísala justo antes de enviarla, y después usa el Redactor de correos con IA (ver 10.6) para el correo de envío."),
     ),
 
     // ── CAPÍTULO 6: IMPORTACIÓN ──
@@ -957,7 +983,7 @@ export async function GET() {
       React.createElement(H2, null, "9.2.1 Módulo Manejo de objeciones"),
       React.createElement(P, null, "Al activarlo aparece la pestaña \"Objeciones\" y se habilitan tres cosas:"),
       React.createElement(LI, null, "Guía de objeciones: biblioteca editable con las objeciones del cliente, la respuesta recomendada y lo que conviene evitar. Se precarga con 15 objeciones probadas y las adaptas; Administrador y Gerente editan, todos consultan."),
-      React.createElement(LI, null, "Coach con IA en el negocio: en la ficha de la oportunidad (panel derecho), eliges una objeción de la guía o escribes la del cliente y la IA responde en cuatro partes: la respuesta sugerida, por qué funciona, qué falta calificar del negocio (Presupuesto, Quién decide, Prioridad o momento, Necesidad o dolor, o Competencia) y una pregunta para destrabarlo. Usa cliente, sector, etapa, valor, últimas gestiones y la metodología de ventas del equipo (ver 9.10). Reconoce la objeción de la guía aunque el cliente la diga con otras palabras, y en ese caso avisa en qué entrada se basó. Comparte el cupo mensual de IA."),
+      React.createElement(LI, null, "Coach con IA en el negocio: en la ficha de la oportunidad (panel derecho), eliges una objeción de la guía o escribes la del cliente y la IA responde en cuatro partes: la respuesta sugerida, por qué funciona, qué falta calificar del negocio (Presupuesto, Quién decide, Prioridad o momento, Necesidad o dolor, o Competencia) y una pregunta para destrabarlo. Usa cliente, sector, etapa, valor, últimas gestiones, las personas en la decisión (ver 3.13) y la metodología de ventas del equipo (ver 9.10). Reconoce la objeción de la guía aunque el cliente la diga con otras palabras, y en ese caso avisa en qué entrada se basó. Comparte el cupo mensual de IA."),
       React.createElement(LI, null, "Enlace con Motivos de pérdida: cada objeción puede asociarse a un motivo; en Reportes, ese motivo muestra un botón \"Cómo responder\" con la respuesta de la guía."),
       React.createElement(Nota, null, "La idea no es pelear la objeción, sino entender la prioridad, el contexto y el valor percibido del cliente — y de paso alinear al equipo y acortar la curva de los vendedores nuevos. Casi toda objeción revela algo que falta calificar; la pregunta para destrabar ayuda a convertirla en información del negocio."),
 
@@ -1082,7 +1108,13 @@ export async function GET() {
       React.createElement(H2, null, "10.7 Informe ejecutivo mensual"),
       React.createElement(P, null, "Genera el cierre del mes anterior con sus tendencias, redactado y listo para presentar en la junta directiva o en la reunión de equipo, sin armarlo manualmente."),
 
-      React.createElement(H2, null, "10.8 Cupo mensual y privacidad"),
+      React.createElement(H2, null, "10.8 Revisor de propuestas"),
+      React.createElement(P, null, "Antes de enviar una cotización, revisa margen, descuentos, vigencia y si la propuesta responde a lo que el cliente ya dijo, con un veredicto y observaciones concretas. Disponible desde el Asistente IA y en la ficha de cada cotización (ver 5.15)."),
+
+      React.createElement(H2, null, "10.9 Oportunidades de crecimiento"),
+      React.createElement(P, null, "Para un cliente que ya compró, sugiere qué más ofrecerle según su historial, tu catálogo y lo que compran clientes de su sector, y con un clic crea la oportunidad. Disponible desde el Asistente IA y en la ficha de cada cliente con negocios ganados (ver 2.10.2)."),
+
+      React.createElement(H2, null, "10.10 Cupo mensual y privacidad"),
       React.createElement(P, null, "Todas las funciones descuentan del mismo cupo mensual de IA. Según tu plan puede ser ilimitado o tener un tope; cada panel muestra cuánto llevas usado (por ejemplo \"12 / 100 este mes\"). La IA solo usa los datos que ya están en tu CRM y no los comparte con nadie más."),
       React.createElement(Tip, null, "La IA es un asistente, no un reemplazo: acelera el borrador y el análisis, pero la decisión — y la revisión final de cada correo o informe — siguen siendo tuyas."),
 
@@ -1165,7 +1197,7 @@ export async function GET() {
       React.createElement(P, null, "Los datos se guardan solo al hacer clic en el botón de guardar. Si cierras antes, se perderán los datos no guardados. Guarda frecuentemente como borrador."),
 
       React.createElement(H2, null, "¿Qué funciones de IA tiene el CRM y qué datos usan?"),
-      React.createElement(P, null, "El CRM reúne seis funciones de IA en la pestaña 'Asistente IA' del menú (ver capítulo 10): Resumen de cliente, Brief del pipeline, Análisis de tendencias, Pregúntale a tus datos, Redactor de correos e Informe ejecutivo mensual. Todas usan únicamente los datos reales dentro de tu CRM — no consultan información externa ni comparten tus datos con otras organizaciones — y descuentan del mismo cupo mensual, visible en cada panel (por ejemplo \"12 / 100 este mes\"); según tu plan puede ser ilimitado o tener un tope."),
+      React.createElement(P, null, "El CRM reúne ocho funciones de IA en la pestaña 'Asistente IA' del menú (ver capítulo 10): Resumen de cliente, Brief del pipeline, Análisis de tendencias, Pregúntale a tus datos, Redactor de correos, Revisor de propuestas, Oportunidades de crecimiento e Informe ejecutivo mensual. Todas usan únicamente los datos reales dentro de tu CRM — no consultan información externa ni comparten tus datos con otras organizaciones — y descuentan del mismo cupo mensual, visible en cada panel (por ejemplo \"12 / 100 este mes\"); según tu plan puede ser ilimitado o tener un tope."),
 
       React.createElement(Sep, null),
 
