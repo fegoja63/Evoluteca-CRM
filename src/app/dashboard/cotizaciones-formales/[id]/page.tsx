@@ -8,6 +8,7 @@ import Link from "next/link";
 import { IconLink, IconMail, IconCheck, IconBrandWhatsapp, IconStar, IconDownload, IconCopy, IconArrowLeft, IconPencil } from "@tabler/icons-react";
 import { LineasEditor, type Linea } from "@/components/lineas-editor";
 import { RedactorEmailIA } from "@/components/redactor-email-ia";
+import { RevisorPropuestaIA } from "@/components/revisor-propuesta-ia";
 import { EditorSeccionesCotizacion } from "@/components/editor-secciones-cotizacion";
 import { normalizarCuerpo, type SeccionCuerpo } from "@/lib/cuerpo-cotizacion";
 import { useSession } from "next-auth/react";
@@ -560,6 +561,11 @@ export default function CotizacionDetailPage() {
           )}
         </div>
       )}
+
+      {/* Revisor de propuestas: antes de enviar */}
+      <div className="mb-5">
+        <RevisorPropuestaIA cotizacionId={cot.id} />
+      </div>
 
       {/* Redactor de correos con IA */}
       <div className="mb-5">
