@@ -16,6 +16,7 @@ import { CorreosPanel } from "@/components/correos-panel";
 import { CoachObjecionesIA } from "@/components/coach-objeciones-ia";
 import { PanelPostventa } from "@/components/panel-postventa";
 import { MinutasIA } from "@/components/minutas-ia";
+import { MapaDecisores } from "@/components/mapa-decisores";
 import type { EtapaPostventa } from "@prisma/client";
 import { esClaveCampoPersonalizado } from "@/lib/campos-personalizados";
 import { estadoComercial, ultimoMovimientoDe, tieneProximoPasoDe } from "@/lib/estado-comercial";
@@ -897,6 +898,9 @@ export default function OportunidadDetallePage() {
               </div>
             ) : <p className="text-sm text-slate-400">Sin contacto asignado</p>}
           </div>
+
+          {/* Mapa de decisores */}
+          <MapaDecisores oportunidadId={op.id} empresaId={op.empresa?.id ?? null} etapa={op.etapa} />
 
           {/* Cotizaciones (resumen) */}
           <div className={tarjeta("p-5")}>
