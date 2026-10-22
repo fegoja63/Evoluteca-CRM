@@ -10,6 +10,7 @@ import { prisma } from "../prisma-vigilado";
 
 // La API de Claude se simula: no gasta cupo ni depende de la red.
 type Peticion = { model: string; system: string; messages: { content: string }[] };
+type Respuesta = { chequeos: unknown[]; ia: Record<string, unknown> | null; iaMensaje: string | null };
 const parse = vi.hoisted(() => vi.fn());
 vi.mock("@anthropic-ai/sdk", () => {
   class APIError extends Error {}
@@ -40,7 +41,8 @@ beforeEach(async () => {
 describe("Revisor de propuestas", () => {
   it("devuelve los chequeos y la lectura de la IA, con la metodología del tenant", async () => {
     await prisma.tenant.update({ where: { id: A.tenantId }, data: { metodologiaVentas: "SPIN" } });
-    const { status, cuerpo } = await llamar(revisar, { body: { cotizacionId: A.cotizacion } });
+    const { status, cuerpo: c } = await llamar(revisar, { body: { cotizacionId: A.cotizacion } });
+    const cuerpo = c as Respuesta;
     expect(status).toBe(200);
     expect(cuerpo.ia).toMatchObject({ veredicto: "AJUSTAR", resumen: "Conviene mostrar el ahorro." });
     expect(Array.isArray(cuerpo.chequeos)).toBe(true);
@@ -54,14 +56,16 @@ describe("Revisor de propuestas", () => {
   it("detecta el descuento frente al catálogo del propio tenant", async () => {
     const prod = await prisma.producto.findFirstOrThrow({ where: { id: A.producto, tenantId: A.tenantId } });
     await prisma.itemCotizacion.update({ where: { id: A.itemCotizacion }, data: { descripcion: prod.nombre } });
-    const { cuerpo } = await llamar(revisar, { body: { cotizacionId: A.cotizacion } });
+    const { cuerpo: c } = await llamar(revisar, { body: { cotizacionId: A.cotizacion } });
+    const cuerpo = c as Respuesta;
     // Semilla: lista $1.000, propuesta $500.
     expect(cuerpo.chequeos).toContainEqual(expect.objectContaining({ nivel: "alerta", titulo: `Descuento de 50% en "${prod.nombre}"` }));
   });
 
   it("sin clave de IA igual devuelve los chequeos y no llama a la IA", async () => {
     vi.stubEnv("ANTHROPIC_API_KEY", "");
-    const { status, cuerpo } = await llamar(revisar, { body: { cotizacionId: A.cotizacion } });
+    const { status, cuerpo: c } = await llamar(revisar, { body: { cotizacionId: A.cotizacion } });
+    const cuerpo = c as Respuesta;
     expect(status).toBe(200);
     expect(cuerpo.ia).toBeNull();
     expect(cuerpo.iaMensaje).toBeTruthy();
@@ -70,7 +74,8 @@ describe("Revisor de propuestas", () => {
 
   it("si la IA no está en el plan, devuelve los chequeos con el aviso", async () => {
     await prisma.tenant.update({ where: { id: A.tenantId }, data: { limiteResumenesIA: 0 } });
-    const { status, cuerpo } = await llamar(revisar, { body: { cotizacionId: A.cotizacion } });
+    const { status, cuerpo: c } = await llamar(revisar, { body: { cotizacionId: A.cotizacion } });
+    const cuerpo = c as Respuesta;
     expect(status).toBe(200);
     expect(cuerpo.ia).toBeNull();
     expect(cuerpo.iaMensaje).toContain("no están incluidas en su plan");

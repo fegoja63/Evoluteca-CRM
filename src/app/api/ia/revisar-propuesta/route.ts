@@ -24,6 +24,29 @@ export const maxDuration = 120;
 const fmt = (v: unknown) =>
   new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(Number(v || 0));
 
+type Dec = { toString(): string };
+type CotizacionBD = {
+  modalidad: string;
+  items: { descripcion: string; cantidad: number; precioUnit: Dec }[];
+  lineasAhorro: { gastoBaseMensual: Dec; ahorroEstimadoMensual: Dec }[];
+  porcentajeHonorarios: Dec | null;
+  horizonteMeses: number | null;
+  feeMensual: Dec | null;
+};
+
+// Los montos llegan de la base como Decimal; las funciones de cálculo los
+// reciben como texto.
+function paraValor(c: CotizacionBD) {
+  return {
+    modalidad: c.modalidad,
+    items: c.items.map(it => ({ descripcion: it.descripcion, cantidad: it.cantidad, precioUnit: it.precioUnit.toString() })),
+    lineasAhorro: c.lineasAhorro.map(l => ({ gastoBaseMensual: l.gastoBaseMensual.toString(), ahorroEstimadoMensual: l.ahorroEstimadoMensual.toString() })),
+    porcentajeHonorarios: c.porcentajeHonorarios?.toString() ?? null,
+    horizonteMeses: c.horizonteMeses,
+    feeMensual: c.feeMensual?.toString() ?? null,
+  };
+}
+
 const ETAPA_LABEL: Record<string, string> = {
   PROSPECTO: "Prospecto", CALIFICADO: "Calificado", PROPUESTA: "Propuesta/Cotización",
   NEGOCIACION: "Negociación", GANADA: "Ganada", PERDIDA: "Perdida",
@@ -87,15 +110,10 @@ export async function POST(req: Request) {
     prisma.producto.findMany({ where: { tenantId, activo: true }, select: { nombre: true, precioBase: true } }),
     prisma.tenant.findUnique({ where: { id: tenantId }, select: { metodologiaVentas: true } }),
   ]);
-  const promedio = margenPromedio(aceptadas.map(a => margenDe(valorCotizacion(a), a.oportunidad?.costo?.toString())));
+  const promedio = margenPromedio(aceptadas.map(a => margenDe(valorCotizacion(paraValor(a)), a.oportunidad?.costo?.toString())));
 
   const chequeos: Chequeo[] = chequearPropuesta({
-    modalidad: cot.modalidad,
-    items: cot.items.map(it => ({ descripcion: it.descripcion, cantidad: it.cantidad, precioUnit: it.precioUnit.toString() })),
-    lineasAhorro: cot.lineasAhorro,
-    porcentajeHonorarios: cot.porcentajeHonorarios?.toString(),
-    horizonteMeses: cot.horizonteMeses,
-    feeMensual: cot.feeMensual?.toString(),
+    ...paraValor(cot),
     fechaValidez: cot.fechaValidez,
     emailDestino: cot.contacto?.email || cot.empresa?.email,
     costo: cot.oportunidad?.costo?.toString(),
@@ -109,11 +127,7 @@ export async function POST(req: Request) {
   const sinCupo = await verificarCupoIA(tenantId);
   if (sinCupo) return sinIA((await sinCupo.json()).error);
 
-  const valor = valorCotizacion({
-    modalidad: cot.modalidad, items: cot.items.map(it => ({ cantidad: it.cantidad, precioUnit: it.precioUnit.toString() })),
-    lineasAhorro: cot.lineasAhorro, porcentajeHonorarios: cot.porcentajeHonorarios?.toString(),
-    horizonteMeses: cot.horizonteMeses, feeMensual: cot.feeMensual?.toString(),
-  });
+  const valor = valorCotizacion(paraValor(cot));
   const op = cot.oportunidad;
   const d: string[] = [];
   d.push(`PROPUESTA ${numeroCotizacion(cot)} · ${MODALIDAD_LABEL[cot.modalidad] ?? cot.modalidad} · valor neto ${fmt(valor)}`);
