@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.33"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.34"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -245,7 +245,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.33 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.34 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -1088,7 +1088,8 @@ export async function GET() {
       React.createElement(P, null, "El CRM reúne todas sus funciones de IA en una sola pestaña: 'Asistente IA', en el menú lateral (debajo de Reportes). Todas trabajan únicamente con los datos reales dentro de tu CRM — no consultan información externa ni comparten tus datos con otras organizaciones — y comparten un mismo cupo mensual de uso."),
 
       React.createElement(H2, null, "10.1 El Asistente IA: todo en un lugar"),
-      React.createElement(P, null, "La pestaña Asistente IA es la vitrina y el lanzador de las funciones de IA. Muestra una tarjeta por cada función y, arriba a la derecha, el medidor 'Acciones de IA · este mes' con lo que llevas consumido. Las funciones ligadas a un registro (como el Resumen de cliente o el Redactor de correos) también viven en su propia pantalla; las globales nacen desde aquí."),
+      React.createElement(P, null, "La pestaña Asistente IA es la vitrina y el lanzador de las funciones de IA. Arriba, el medidor 'Acciones de IA' muestra las que quedan este mes y la fecha en que se renuevan. Destacada, 'Pregúntale a tus datos' se usa ahí mismo: escribe tu pregunta o toca una de las preguntas de ejemplo. Debajo están las herramientas principales (cada tarjeta dice en qué pantalla vive la función y lleva a ella) y, en una fila más compacta, 'Más herramientas de IA'. El Coach de objeciones aparece con la marca 'Solo en Evoluteca' (si el módulo no está activo, la tarjeta lleva a activarlo) y el Gerente financiero solo aparece si tu empresa tiene el módulo Finanzas."),
+      React.createElement(P, null, "Al final, 'Sugerido para hoy' muestra hasta tres cosas detectadas en tu pipeline, cada una con su botón: los negocios sin próximo paso (abre el Pipeline filtrado para agendarlos), la cotización enviada que vence primero en los próximos 7 días (abre la cotización para hacer el seguimiento) y la reunión de mañana (abre la ficha del cliente para preparar su resumen). Estas sugerencias salen de reglas sobre tus datos y no gastan acciones de IA."),
 
       React.createElement(H2, null, "10.2 Resumen de cliente"),
       React.createElement(P, null, "Genera un informe accionable de seis secciones sobre una cuenta: panorama, relación y actividad, oportunidades y cotizaciones, señales, contactos clave y próximas acciones. Disponible desde el Asistente IA y desde la ficha de cada cliente (ver 2.10)."),
