@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   IconSparkles, IconBuilding, IconChartFunnel, IconTrendingUp, IconPlant2,
-  IconMail, IconMessageChatbot, IconReportAnalytics, type Icon,
+  IconMail, IconMessageChatbot, IconReportAnalytics, IconShieldCheck, type Icon,
 } from "@tabler/icons-react";
 
 type Uso = { limite: number | null; usados: number; iaConfigurada: boolean };
@@ -58,6 +58,14 @@ const DISPONIBLES: Funcion[] = [
     titulo: "Redactor de correos",
     desc: "Redacta el correo de envío, el seguimiento y el cierre de una cotización, con tu tono.",
     icon: IconMail,
+    href: "/dashboard/cotizaciones-formales",
+    cta: "Elegir cotización",
+    contexto: "También en cada cotización",
+  },
+  {
+    titulo: "Revisor de propuestas",
+    desc: "Antes de enviar una cotización revisa margen, descuentos, vigencia y si responde a lo que el cliente ya dijo.",
+    icon: IconShieldCheck,
     href: "/dashboard/cotizaciones-formales",
     cta: "Elegir cotización",
     contexto: "También en cada cotización",
