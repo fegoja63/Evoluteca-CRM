@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prueba paso a paso — Eventos, Audiencia y Salones · Evoluteca CRM</title>
+<meta name="description" content="Lista para tachar: prueba paso a paso los módulos de Funciones/Eventos, Audiencia y Alquiler de Salones de Evoluteca CRM.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Work+Sans:wght@400;500;600;700;800&display=swap">
+
+<!--
+  Página autónoma con la misma estética y mecánica que la sección
+  "Prueba el CRM paso a paso" (#prueba-dummies) de evoluteca.com/crm/evoluteca-crm.html.
+  Para pegarla DENTRO de esa página basta copiar el <style> del bloque #prueba-modulos,
+  la <section id="prueba-modulos"> y su <script>: las variables de :root ya existen allá
+  y todas las clases usan el prefijo pm- (no chocan con las pd- de la guía general).
+-->
+
+<style>
+  :root{
+    --ink:#16232B;
+    --ink-soft:#5B6B74;
+    --bg:#FAF9F5;
+    --surface:#FFFFFF;
+    --border:#E4E2DA;
+    --navy:#0B1C26;
+    --green:#5E9A34;
+    --green-light:#93C04B;
+    --green-soft:#EEF4E4;
+    --red-wine:#9C343C;
+    --teal:#3F93A6;
+    --blue:#4C86C4;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Work Sans",system-ui,sans-serif;}
+  h1,h2,h3{font-family:"Manrope",system-ui,sans-serif;margin:0;letter-spacing:-0.01em;}
+  p{margin:0;}
+  a{color:var(--green);text-decoration:none;}
+  a:hover{color:var(--red-wine);}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 40px;}
+  .eyebrow{font-size:13px;font-weight:700;letter-spacing:0.08em;color:var(--green);text-transform:uppercase;}
+  @media (max-width:640px){ .wrap{padding:0 16px;} }
+</style>
+</head>
+<body>
+
+<!-- ============ PRUÉBALO PASO A PASO — EVENTOS, AUDIENCIA Y SALONES ============ -->
+<style>
+  #prueba-modulos .pm-inner{max-width:840px;margin:0 auto;}
+  #prueba-modulos .pm-head{text-align:center;margin-bottom:26px;}
+  #prueba-modulos .pm-head h2{font-size:34px;font-weight:800;margin:10px 0 12px;}
+  #prueba-modulos .pm-head h2 em{font-style:normal;color:var(--green);}
+  #prueba-modulos .pm-head p{color:var(--ink-soft);font-size:17px;max-width:62ch;margin:0 auto;line-height:1.6;}
+  #prueba-modulos .pm-head p b{color:var(--green);font-weight:600;}
+  #prueba-modulos .pm-mods{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:18px 0 0;}
+  #prueba-modulos .pm-mod{font-family:"Manrope",sans-serif;font-size:13px;font-weight:700;padding:5px 12px;border-radius:99px;background:var(--bg);border:1px solid var(--border);color:var(--ink);}
+  #prueba-modulos .pm-mod i{font-style:normal;margin-right:5px;}
+  #prueba-modulos .pm-progress{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;background:var(--bg);padding:12px 16px;border:1px solid var(--border);border-radius:12px;margin:0 0 22px;}
+  #prueba-modulos .pm-track{flex:1;height:9px;border-radius:99px;background:var(--green-soft);overflow:hidden;}
+  #prueba-modulos .pm-fill{height:100%;width:0;background:linear-gradient(90deg,var(--green-light),var(--green));border-radius:99px;transition:width .4s cubic-bezier(.4,0,.2,1);}
+  #prueba-modulos .pm-count{font-family:"Manrope",sans-serif;font-weight:700;font-size:14px;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums;}
+  #prueba-modulos .pm-count b{color:var(--green);}
+  #prueba-modulos .pm-reset{font-family:"Work Sans",sans-serif;font-size:12.5px;font-weight:600;color:var(--ink-soft);background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;white-space:nowrap;}
+  #prueba-modulos .pm-reset:hover{border-color:var(--green);color:var(--green);}
+  #prueba-modulos .pm-creds{background:var(--navy);color:#E7EEF0;border-radius:16px;padding:22px 24px;margin:0 0 18px;}
+  #prueba-modulos .pm-creds h3{font-size:12.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#6f9a7a;margin:0 0 5px;}
+  #prueba-modulos .pm-creds .pm-url{font-family:"Manrope",sans-serif;font-size:18px;font-weight:700;color:#fff;margin:0 0 16px;word-break:break-all;}
+  #prueba-modulos .pm-creds .pm-url a{color:#93d46a;}
+  #prueba-modulos .pm-roles{display:grid;gap:1px;background:#12303c;border-radius:12px;overflow:hidden;}
+  #prueba-modulos .pm-role{display:grid;grid-template-columns:104px 1fr;gap:12px;align-items:baseline;background:#081720;padding:11px 15px;}
+  #prueba-modulos .pm-tag{font-family:"Manrope",sans-serif;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#fff;padding:3px 9px;border-radius:99px;justify-self:start;}
+  #prueba-modulos .pm-role .pm-who{font-size:14px;color:#b9c7c4;}
+  #prueba-modulos .pm-role .pm-who b{color:#fff;font-weight:600;}
+  #prueba-modulos .pm-role .pm-mail{font-family:ui-monospace,Menlo,Consolas,monospace;color:#8fb39a;font-size:12.5px;display:block;margin-top:1px;}
+  #prueba-modulos .pm-pass{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:15px;padding-top:15px;border-top:1px solid #12303c;font-size:13px;color:#9db3aa;}
+  #prueba-modulos .pm-tip{display:flex;gap:12px;align-items:flex-start;background:var(--green-soft);border:1px solid #cfe3ba;border-radius:14px;padding:15px 18px;margin:0 0 8px;font-size:14.5px;color:var(--ink);line-height:1.5;}
+  #prueba-modulos .pm-tip b{color:var(--green);}
+  #prueba-modulos .pm-part{margin-top:46px;display:flex;align-items:center;gap:12px;}
+  #prueba-modulos .pm-part span{font-family:"Manrope",sans-serif;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:5px 12px;border-radius:99px;white-space:nowrap;}
+  #prueba-modulos .pm-part::after{content:"";flex:1;height:1px;background:var(--border);}
+  #prueba-modulos .pm-station{margin-top:30px;}
+  #prueba-modulos .pm-sthead{display:flex;align-items:baseline;gap:15px;padding-bottom:12px;border-bottom:2px solid var(--border);}
+  #prueba-modulos .pm-num{font-family:"Manrope",sans-serif;font-weight:800;font-size:28px;color:var(--green);line-height:1;font-variant-numeric:tabular-nums;}
+  #prueba-modulos .pm-sthead h3{font-family:"Manrope",sans-serif;font-weight:800;font-size:23px;color:var(--ink);}
+  #prueba-modulos .pm-sthead .pm-sub{font-size:13.5px;color:#93a0a7;margin:3px 0 0;}
+  #prueba-modulos .pm-test{display:grid;grid-template-columns:28px 1fr;gap:14px;background:var(--surface);border:1px solid var(--border);border-left:3px solid #d8d3c4;border-radius:14px;padding:15px 17px;margin-top:12px;transition:border-color .2s,background .2s;}
+  #prueba-modulos .pm-test:has(input:checked){border-left-color:var(--green);background:var(--green-soft);}
+  #prueba-modulos .pm-test:has(input:checked) .pm-do{color:var(--ink-soft);}
+  #prueba-modulos .pm-test:has(input:checked) .pm-do .pm-strong{text-decoration:line-through;text-decoration-color:#b7c2c8;}
+  #prueba-modulos .pm-cw{position:relative;}
+  #prueba-modulos .pm-cw input{position:absolute;opacity:0;width:0;height:0;}
+  #prueba-modulos .pm-cw label{display:grid;place-items:center;width:25px;height:25px;border-radius:7px;border:2px solid #d8d3c4;background:var(--surface);cursor:pointer;transition:all .15s;}
+  #prueba-modulos .pm-cw label:hover{border-color:var(--green);}
+  #prueba-modulos .pm-cw label svg{width:14px;height:14px;opacity:0;transform:scale(.5);transition:all .15s;}
+  #prueba-modulos .pm-cw input:checked + label{background:var(--green);border-color:var(--green);}
+  #prueba-modulos .pm-cw input:checked + label svg{opacity:1;transform:scale(1);}
+  #prueba-modulos .pm-cw input:focus-visible + label{outline:2px solid var(--green);outline-offset:2px;}
+  #prueba-modulos .pm-do{font-size:15.5px;color:var(--ink);margin:0;line-height:1.55;}
+  #prueba-modulos .pm-do .pm-strong{font-weight:400;}
+  #prueba-modulos .pm-do b{font-weight:600;}
+  #prueba-modulos .pm-opt{font-family:"Manrope",sans-serif;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);background:var(--bg);border:1px solid var(--border);padding:1px 7px;border-radius:99px;margin-right:6px;}
+  #prueba-modulos .pm-expect{display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:13.5px;line-height:1.5;color:#3f6b23;background:rgba(238,244,228,.7);border-radius:9px;padding:8px 11px;}
+  #prueba-modulos .pm-test:has(input:checked) .pm-expect{background:transparent;padding:0;}
+  #prueba-modulos .pm-expect .pm-lbl{font-family:"Manrope",sans-serif;font-weight:700;flex:none;color:var(--green);}
+  #prueba-modulos .pm-path{font-family:"Manrope",sans-serif;font-size:13px;color:var(--green);font-weight:700;background:var(--green-soft);padding:1px 8px;border-radius:6px;white-space:nowrap;}
+  #prueba-modulos kbd{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:var(--bg);border:1px solid #d8d3c4;border-radius:6px;padding:1px 7px;color:var(--ink);}
+  #prueba-modulos .pm-note{display:flex;gap:12px;align-items:flex-start;background:#fbf1db;border:1px solid #ecd9ac;border-radius:12px;padding:14px 16px;margin-top:14px;font-size:14px;line-height:1.5;color:var(--ink);}
+  #prueba-modulos .pm-note b{color:#b5701a;}
+  #prueba-modulos .pm-sheet{margin-top:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface);}
+  #prueba-modulos .pm-sheet table{width:100%;border-collapse:collapse;font-size:13px;}
+  #prueba-modulos .pm-sheet th{font-family:"Manrope",sans-serif;text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);background:var(--bg);padding:7px 10px;}
+  #prueba-modulos .pm-sheet td{padding:7px 10px;border-top:1px solid var(--border);font-variant-numeric:tabular-nums;}
+  #prueba-modulos .pm-sheet .pm-scroll{overflow-x:auto;}
+  #prueba-modulos .pm-copy{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-top:1px solid var(--border);background:var(--bg);font-size:12.5px;color:var(--ink-soft);}
+  #prueba-modulos .pm-copy button{font-family:"Work Sans",sans-serif;font-size:12.5px;font-weight:600;color:#fff;background:var(--green);border:0;border-radius:7px;padding:6px 11px;cursor:pointer;white-space:nowrap;}
+  #prueba-modulos .pm-copy button:hover{background:var(--red-wine);}
+  #prueba-modulos .pm-finish{margin-top:40px;text-align:center;background:var(--navy);color:#e7eef0;border-radius:18px;padding:38px 28px;}
+  #prueba-modulos .pm-finish .pm-medal{font-size:40px;}
+  #prueba-modulos .pm-finish h3{font-family:"Manrope",sans-serif;font-weight:800;font-size:25px;color:#fff;margin:6px 0 8px;}
+  #prueba-modulos .pm-finish p{color:#9db3aa;font-size:15px;max-width:52ch;margin:0 auto;line-height:1.55;}
+  @media (max-width:640px){
+    #prueba-modulos .pm-head h2{font-size:27px;}
+    #prueba-modulos .pm-head p{font-size:15.5px;}
+    #prueba-modulos .pm-role{grid-template-columns:1fr;gap:3px;}
+    #prueba-modulos .pm-test{padding:13px 13px;gap:11px;}
+    #prueba-modulos .pm-sthead h3{font-size:20px;}
+    #prueba-modulos .pm-path{white-space:normal;}
+    #prueba-modulos .pm-progress{gap:10px;padding:10px 12px;}
+  }
+</style>
+
+<section id="prueba-modulos" style="padding:72px 0 88px;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="wrap">
+    <div class="pm-inner">
+      <div class="pm-head">
+        <span class="eyebrow">Pruébalo tú mismo · teatros, auditorios y salones de eventos</span>
+        <h2>Eventos, Audiencia y Salones <em>paso a paso</em></h2>
+        <p>Una lista para tachar de los módulos para quienes <b>venden funciones</b>, <b>cuidan a su público</b> y <b>alquilan espacios</b>. Sigue cada paso en orden, mira que pase lo que dice <b>“Deberías ver”</b> y marca la casilla. No hace falta saber nada de tecnología.</p>
+        <div class="pm-mods">
+          <span class="pm-mod"><i>🎭</i>Funciones / Eventos</span>
+          <span class="pm-mod"><i>🎟️</i>Audiencia</span>
+          <span class="pm-mod"><i>🏛️</i>Salones (alquiler)</span>
+        </div>
+      </div>
+
+      <div class="pm-progress">
+        <div class="pm-track"><div class="pm-fill" id="pm-fill"></div></div>
+        <div class="pm-count"><b id="pm-done">0</b> / <span id="pm-total">0</span> pruebas</div>
+        <button class="pm-reset" id="pm-reset" type="button">Reiniciar</button>
+      </div>
+
+      <div class="pm-creds">
+        <h3>Cuenta de pruebas del teatro — entra aquí</h3>
+        <p class="pm-url"><a href="https://crm.evoluteca.com/login" target="_blank" rel="noopener noreferrer">crm.evoluteca.com/login</a></p>
+        <div class="pm-roles">
+          <div class="pm-role"><span class="pm-tag" style="background:var(--red-wine);">Admin</span><span class="pm-who"><b>María Fernanda Ospina</b><span class="pm-mail">admin@demo-teatro.com</span></span></div>
+          <div class="pm-role"><span class="pm-tag" style="background:var(--blue);">Gerente</span><span class="pm-who"><b>Julián Cárdenas</b><span class="pm-mail">gerente@demo-teatro.com</span></span></div>
+          <div class="pm-role"><span class="pm-tag" style="background:var(--green);">Comercial</span><span class="pm-who"><b>Natalia Reyes</b><span class="pm-mail">comercial@demo-teatro.com</span></span></div>
+        </div>
+        <div class="pm-pass"><span>🔑 <b>Pide tu contraseña</b> escribiendo a <a href="mailto:felipe.gomez@evoluteca.com?subject=Contrase%C3%B1a%20cuenta%20de%20prueba%20Demo%20Teatro%20-%20Evoluteca%20CRM" style="color:inherit;font-weight:800;text-decoration:underline;">felipe.gomez@evoluteca.com</a></span> <span style="margin-left:auto;font-size:12px;">Es una cuenta de práctica: crea y borra lo que quieras.</span></div>
+      </div>
+
+      <div class="pm-tip"><span>💡</span><p style="margin:0;">Entra como <b>Admin (María Fernanda)</b>. Todo lo que crees lleva la palabra <b>“Prueba”</b> en el nombre, para encontrarlo fácil y borrarlo al final (estación 12). Tu avance se guarda solo en este navegador.</p></div>
+
+      <div id="pm-list"></div>
+
+      <div class="pm-finish">
+        <div class="pm-medal">🏅</div>
+        <h3 id="pm-ftitle">Recorre las estaciones de arriba</h3>
+        <p id="pm-ftext">A medida que marques pruebas, la barra se llena. Al llegar al 100% habrás confirmado de punta a punta la venta de funciones, el seguimiento del público y el alquiler de salones.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  // Planilla de ejemplo para la prueba de importar asistentes (estación 5).
+  var PLANILLA=[
+    ['Nombre','Email','Teléfono'],
+    ['Andrea Prueba Rojas','andrea.prueba@ejemplo.com','3001112233'],
+    ['Camilo Prueba Díaz','camilo.prueba@ejemplo.com','3002223344'],
+    ['Lucía Prueba Mora','','3003334455'],
+    ['Andrea Prueba Rojas','andrea.prueba@ejemplo.com','3001112233']
+  ];
+  var tabla='<div class="pm-sheet"><div class="pm-scroll"><table><thead><tr>'+PLANILLA[0].map(function(c){return '<th>'+c+'</th>';}).join('')+'</tr></thead><tbody>'+
+    PLANILLA.slice(1).map(function(f){return '<tr>'+f.map(function(c){return '<td>'+(c||'—')+'</td>';}).join('')+'</tr>';}).join('')+
+    '</tbody></table></div><div class="pm-copy"><span>La última fila está repetida a propósito.</span><button type="button" data-pm-copy>Copiar para Excel</button></div></div>';
+
+  var PARTS={
+    "1":{label:"Funciones / Eventos",color:"var(--green)"},
+    "6":{label:"Audiencia",color:"var(--blue)"},
+    "8":{label:"Alquiler de salones",color:"var(--teal)"},
+    "12":{label:"Cierre",color:"var(--red-wine)"}
+  };
+
+  var STATIONS=[
+    {n:"1",title:"Entrar y ver los módulos",sub:"Los tres módulos especiales del teatro",tests:[
+      {do:'Abre <span class="pm-path">crm.evoluteca.com/login</span>, escribe <b>admin@demo-teatro.com</b> y la contraseña que te enviamos. Toca <b>Entrar</b>.',expect:'Entras al <b>Dashboard</b> y abajo del menú izquierdo aparece <b>María Fernanda Ospina · Administrador</b>.'},
+      {do:'Mira el menú de la izquierda.',expect:'Además de Clientes, Pipeline, Cotizaciones… aparecen <b>Funciones</b> 🎭, <b>Audiencia</b> 🎟️ y <b>Salones</b> 🏛️.'},
+      {do:'<span class="pm-opt">Solo mirar</span>Ve a <span class="pm-path">Configuración</span> y busca <b>Módulos opcionales</b>. <b>No cambies nada.</b>',expect:'Los interruptores <b>Funciones / Eventos</b>, <b>Audiencia</b> y <b>Salones</b> están encendidos. Así cada empresa enciende solo lo que usa: un CRM que no vende funciones ni alquila salones no los ve.'}]},
+
+    {n:"2",title:"Funciones: el tablero",sub:"Cómo va cada obra, concierto o evento",tests:[
+      {do:'Ve a <span class="pm-path">Funciones</span>. Mira las tarjetas de arriba.',expect:'Cuatro cifras calculadas solas: <b>Total funciones</b>, <b>Ocupación promedio</b>, <b>Ingresos registrados</b> y <b>Respuestas NPS</b>.'},
+      {do:'Baja a la tabla de funciones y fíjate en la columna <b>Ocupación</b>.',expect:'Cada función con sus sillas vendidas sobre las totales y su porcentaje: de un vistazo sabes qué obra llena la sala y cuál no.'}]},
+
+    {n:"3",title:"Crear una función y la alerta de sala vacía",sub:"El CRM te avisa antes de que sea tarde",tests:[
+      {do:'Toca <b>Nueva función</b> (modo <b>Función única</b>). Título <b>Función de Prueba</b>, fecha y hora <b>dentro de 3 días</b>, <b>Sillas totales 200</b>, <b>Sillas vendidas 50</b>, canal <b>Taquilla</b> y un ingreso estimado. <b>Guardar</b>.',expect:'La función aparece en la lista con <b>25%</b> de ocupación y una insignia <b>“urgente”</b> junto al título.'},
+      {do:'Vuelve al <span class="pm-path">Dashboard</span> y busca el panel de alertas.',expect:'Un aviso ámbar: <b>“función con ocupación baja (5 días)”</b> con el nombre, el porcentaje y la fecha. Regla fija: menos del 60% vendido a 5 días o menos de la función.'},
+      {do:'Abre <b>Función de Prueba</b>, cambia <b>Sillas vendidas</b> a <b>150</b> y <b>Guardar</b>. Regresa a <span class="pm-path">Funciones</span>.',expect:'La ocupación sube a <b>75%</b> y la insignia “urgente” desaparece. La alerta se actualiza sola, sin configurar nada.'}]},
+
+    {n:"4",title:"Una temporada completa de una vez",sub:"Dos meses de funciones en un clic",tests:[
+      {do:'Toca <b>Nueva función</b> y cambia al modo <b>Temporada</b>. Título <b>Temporada de Prueba</b>, <b>Desde</b> hoy, <b>Hasta</b> dentro de 4 semanas, días <b>sábado y domingo</b>, horario <b>20:00</b>.',expect:'Abajo el CRM calcula <b>“Se crearán N funciones”</b> con la fecha de la primera y la última, antes de crear nada.'},
+      {do:'Toca <b>+ Agregar horario</b> y pon <b>16:00</b>.',expect:'El número de funciones a crear se <b>duplica</b> (matiné y noche cada día).'},
+      {do:'Pon sillas totales, canal e ingreso estimado y toca <b>Generar temporada</b>.',expect:'Todas las funciones aparecen en la lista, cada una independiente: puedes editar la ocupación, los asistentes y el NPS de cada fecha por separado.'}]},
+
+    {n:"5",title:"Quién vino: asistentes y NPS",sub:"No solo cuántas sillas, sino quiénes",tests:[
+      {do:'Abre <b>Función de Prueba</b> y baja a la sección <b>Asistentes</b>. En <b>Espectador existente</b> elige a cualquier persona de la lista y toca <b>+ Registrar asistencia</b>.',expect:'Aparece como etiqueta con su nombre y la insignia <b>“recurrente”</b> si ya había venido a otra función.'},
+      {do:'Ahora escribe un <b>nombre nuevo</b>: <b>Espectador de Prueba</b>, con un teléfono, y regístralo.',expect:'Queda con la insignia <b>“nuevo”</b>: primera vez que viene. El contador <b>Asistentes registrados</b> sube.'},
+      {do:'Intenta registrar <b>otra vez</b> a la misma persona en la misma función.',expect:'El CRM <b>no lo permite</b> y muestra un mensaje: nadie queda contado dos veces.'},
+      {do:'<span class="pm-opt">Opcional</span>Toca <b>Importar lista (Excel)</b>. Copia esta planilla a un Excel nuevo, guárdalo como <b>.xlsx</b>, súbelo e indica qué columna es el nombre, el email y el teléfono.'+tabla,expect:'Un resumen: <b>asistencias registradas</b>, <b>espectadores nuevos</b> y <b>1 duplicado saltado</b> (la fila repetida). Así se carga el público de una obra sin digitar uno por uno.'},
+      {do:'En la sección <b>Encuesta NPS</b> de la misma función registra una respuesta: puntuación <b>9</b> y un comentario.',expect:'Queda clasificada como <b>Promotor</b> y el <b>Score NPS</b> de la función se recalcula.'}]},
+
+    {n:"6",title:"Audiencia: tu público",sub:"Quién vuelve, quién se está enfriando",tests:[
+      {do:'Ve a <span class="pm-path">Audiencia</span>. Mira las tarjetas de arriba.',expect:'<b>Total espectadores</b> y la <b>Tasa de recompra</b>: de quienes vinieron en los últimos 90 días, qué porcentaje vino a 2 o más funciones. Es el termómetro de fidelización.'},
+      {do:'Usa los filtros de recencia: <b>Activo (0-3m)</b>, <b>Tibio (3-12m)</b> y <b>Frío (+12m)</b>.',expect:'La lista se reduce a cada grupo. <b>Frío</b> = tu lista de reactivación lista, en vez de escribirle a toda la base por igual.'},
+      {do:'Busca <kbd>Prueba</kbd> en <b>Buscar espectador…</b> y abre <b>Espectador de Prueba</b>.',expect:'Su ficha con <b>Funciones asistidas</b> e <b>Historial de asistencias</b>: ahí está la Función de Prueba con su fecha.'},
+      {do:'En esa ficha toca <b>Editar</b> y asígnale la membresía <b>Mecenas</b>. <b>Guardar</b>.',expect:'Aparece la insignia de su nivel del club de fidelización (Espectador · Fanático · Mecenas), también en la tabla de Audiencia.'}]},
+
+    {n:"7",title:"La cola de encuestas por WhatsApp",sub:"A quién le falta preguntar “¿qué tal la función?”",tests:[
+      {do:'En <span class="pm-path">Audiencia</span> toca <b>Cola de NPS</b> (si hay pendientes, trae un contador ámbar).',expect:'La lista de asistentes de funciones que terminaron hace 24 h o más, con teléfono y sin encuesta enviada. Si está vacía, también está bien: significa que no hay nadie pendiente.'},
+      {do:'Si hay alguien en la cola, toca su botón <b>Abrir WhatsApp</b>. Puedes cerrar WhatsApp sin enviar.',expect:'Se abre WhatsApp con el mensaje de la encuesta <b>ya redactado</b>, y esa persona sale de la cola marcada como contactada. Un clic por persona.'}]},
+
+    {n:"8",title:"Salones: el catálogo de espacios",sub:"Lo que alquilas para eventos",tests:[
+      {do:'Ve a <span class="pm-path">Salones</span>.',expect:'Una tarjeta por espacio con su capacidad, por ejemplo <b>Sala Principal</b> y <b>Sala VIP / Foyer</b>.'},
+      {do:'Toca <b>Nuevo salón</b>: nombre <b>Salón de Prueba</b>, capacidad <b>50</b>, una descripción. Toca <b>Agregar salón</b>.',expect:'La tarjeta aparece de inmediato en el catálogo.'},
+      {do:'Pasa el cursor sobre la tarjeta y toca <b>Editar</b>. Cambia la capacidad a <b>60</b> y guarda.',expect:'La capacidad se actualiza en la tarjeta.'}]},
+
+    {n:"9",title:"Cotizar un alquiler sin choques de fecha",sub:"El CRM sabe qué salón está ocupado",tests:[
+      {do:'Ve a <span class="pm-path">Cotizaciones</span> → <b>Nueva</b>. Elige un cliente (ej. <b>Colegio San Marcos</b>). En <b>Detalles del evento</b> elige <b>Salón de Prueba</b>, una <b>Fecha del evento</b> dentro de 2 semanas y <b>Horario 08:00 a 12:00</b>. Agrega del catálogo <b>Alquiler sala — medio día</b> y guarda.',expect:'La cotización queda creada con el salón, la fecha y el horario del evento.'},
+      {do:'Abre esa cotización y toca <b>Marcar aceptada</b>.',expect:'Su estado pasa a <b>Aceptada</b>: ahora es una <b>reserva confirmada</b> del salón.'},
+      {do:'Crea <b>otra</b> cotización para <b>otro cliente</b>, con el <b>mismo salón y la misma fecha</b>, horario <b>10:00 a 14:00</b>.',expect:'Aviso rojo <b>“Ya reservado ese día”</b> con el nombre del cliente que ya tiene el salón: los horarios se cruzan.'},
+      {do:'Sin salir, cambia el horario a <b>18:00 a 22:00</b>. Guarda la cotización.',expect:'El aviso rojo desaparece: mismo salón, mismo día, <b>sin cruce</b> (evento de mañana y evento de noche). El aviso nunca bloquea guardar; la decisión es del equipo comercial.'},
+      {do:'<span class="pm-opt">Opcional</span>Ve a <span class="pm-path">Pipeline</span> → <b>Nueva oportunidad</b> y mira la sección <b>Salón (módulo Salones)</b>. Elige el Salón de Prueba y la misma fecha.',expect:'El mismo selector y el mismo aviso de disponibilidad, para cuando aún negocias la fecha y no hay cotización formal.'}]},
+
+    {n:"10",title:"Calendario de reservas",sub:"Reprogramar arrastrando",tests:[
+      {do:'Ve a <span class="pm-path">Salones</span> → <b>Calendario</b>. Elige <b>Salón de Prueba</b> y, con las flechas, ve al mes de tu evento.',expect:'El día de la reserva resaltado con el <b>nombre del cliente y la hora de inicio</b>. Solo se pintan las cotizaciones aceptadas.'},
+      {do:'Baja debajo del calendario.',expect:'Un panel ámbar <b>“Cotizaciones con fecha este mes, aún no aceptadas”</b> con tu segunda cotización (la de 18:00): interesados que todavía no son reserva.'},
+      {do:'Arrastra la reserva (el nombre del cliente) a <b>otro día</b> del mes y suéltala.',expect:'La reserva se mueve y la <b>fecha del evento de la cotización se actualiza sola</b>. Si el nuevo día ya tuviera otra reserva aceptada, el CRM te pregunta antes de moverla.'}]},
+
+    {n:"11",title:"Alquileres por día y visitas al espacio",sub:"“¿Tienen algún salón libre el sábado?”",tests:[
+      {do:'Ve a <span class="pm-path">Salones</span> → <b>Ver por día</b> y elige la fecha a la que moviste la reserva.',expect:'Una fila por salón: el <b>Salón de Prueba</b> muestra la reserva con su horario y cliente; los demás dicen <b>“Disponible todo el día”</b> en verde.'},
+      {do:'Toca la reserva en la tabla.',expect:'Te lleva directo al detalle de esa cotización.'},
+      {do:'Ve a <span class="pm-path">Agenda</span> y crea una actividad nueva. Abre el selector de <b>tipo</b>.',expect:'Además de Llamada, Reunión, Tarea y Email aparecen <b>Visita comercial</b> (mostrar el espacio al cliente) y <b>Visita técnica</b> (montaje, sonido, producción).'},
+      {do:'Crea una <b>Visita técnica</b> para mañana, ligada al cliente de tu reserva.',expect:'La visita queda en la Agenda y en la línea de tiempo del cliente, junto al resto de su historia comercial.'}]},
+
+    {n:"12",title:"Dejar todo como estaba",sub:"Limpieza de lo que creaste",tests:[
+      {do:'En <span class="pm-path">Salones</span>, sobre la tarjeta <b>Salón de Prueba</b>, toca <b>Quitar</b> y confirma.',expect:'El salón sale del catálogo y del selector de nuevas cotizaciones, pero <b>las cotizaciones que ya lo tenían no pierden su historial</b>.'},
+      {do:'En <span class="pm-path">Funciones</span> elimina <b>Función de Prueba</b> y las funciones de <b>Temporada de Prueba</b>.',expect:'Desaparecen de la lista. Sus asistencias se borran con ellas, pero <b>los espectadores siguen en Audiencia</b> (solo pierden esa función de su historial).'}]}
+  ];
+
+  var CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+  var list=document.getElementById('pm-list');
+  if(!list) return;
+  var idx=0;
+  STATIONS.forEach(function(st){
+    if(PARTS[st.n]){
+      var p=document.createElement('div'); p.className='pm-part';
+      p.innerHTML='<span style="background:'+PARTS[st.n].color+';">'+PARTS[st.n].label+'</span>';
+      list.appendChild(p);
+    }
+    var sec=document.createElement('div'); sec.className='pm-station';
+    var h='<div class="pm-sthead"><span class="pm-num">'+st.n+'</span><div><h3>'+st.title+'</h3><p class="pm-sub">'+st.sub+'</p></div></div>';
+    st.tests.forEach(function(t){
+      var id='pm-chk-'+(idx++);
+      h+='<div class="pm-test"><div class="pm-cw"><input type="checkbox" id="'+id+'" data-pm><label for="'+id+'" aria-label="Marcar prueba como hecha">'+CHECK+'</label></div><div><div class="pm-do"><span class="pm-strong">'+t.do+'</span></div><div class="pm-expect"><span class="pm-lbl">✓ Deberías ver:</span><span>'+t.expect+'</span></div></div></div>';
+    });
+    if(st.n==="9"){ h+='<div class="pm-note"><span>🏛️</span><span><b>Este es el punto más impresionante para mostrarle a alguien:</b> se acabaron las dobles reservas. El CRM avisa del choque mientras cotizas, pero deja usar el mismo salón en la mañana y en la noche.</span></div>'; }
+    if(st.n==="12"){ h+='<div class="pm-note"><span>⚠️</span><span><b>Ojo:</b> eliminar una función no se puede deshacer. Borra solo lo que lleve “Prueba” en el nombre.</span></div>'; }
+    sec.innerHTML=h; list.appendChild(sec);
+  });
+
+  // Copiar la planilla con tabulaciones: al pegar en Excel cae en columnas.
+  [].forEach.call(list.querySelectorAll('[data-pm-copy]'), function(btn){
+    btn.addEventListener('click', function(){
+      var tsv=PLANILLA.map(function(f){return f.join('\t');}).join('\n');
+      var ok=function(){ btn.textContent='¡Copiado! Pégalo en Excel'; setTimeout(function(){ btn.textContent='Copiar para Excel'; },2500); };
+      try{ navigator.clipboard.writeText(tsv).then(ok, function(){ btn.textContent='No se pudo copiar'; }); }catch(e){ btn.textContent='No se pudo copiar'; }
+    });
+  });
+
+  var KEY='evoluteca-landing-prueba-modulos-v1';
+  var boxes=[].slice.call(list.querySelectorAll('[data-pm]'));
+  var fill=document.getElementById('pm-fill'), doneEl=document.getElementById('pm-done'), totalEl=document.getElementById('pm-total');
+  var ft=document.getElementById('pm-ftitle'), fx=document.getElementById('pm-ftext');
+  totalEl.textContent=boxes.length;
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(boxes.filter(function(b){return b.checked;}).map(function(b){return b.id;}))); }catch(e){} }
+  function load(){ try{ var s=JSON.parse(localStorage.getItem(KEY)||'[]'); boxes.forEach(function(b){ if(s.indexOf(b.id)>=0) b.checked=true; }); }catch(e){} }
+  function refresh(){
+    var done=boxes.filter(function(b){return b.checked;}).length;
+    var pct=boxes.length?Math.round(done/boxes.length*100):0;
+    fill.style.width=pct+'%'; doneEl.textContent=done;
+    if(done===0){ ft.textContent='Recorre las estaciones de arriba'; fx.textContent='A medida que marques pruebas, la barra se llena. Al llegar al 100% habrás confirmado de punta a punta la venta de funciones, el seguimiento del público y el alquiler de salones.'; }
+    else if(done<boxes.length){ ft.textContent='Vas en '+pct+'% — ¡sigue!'; fx.textContent='Llevas '+done+' de '+boxes.length+' pruebas. Cada casilla que marcas es una función del CRM confirmada.'; }
+    else { ft.textContent='¡Listo! Probaste eventos, audiencia y salones 🎉'; fx.textContent='Marcaste las '+STATIONS.length+' estaciones completas: funciones y temporadas, alertas de sala vacía, asistentes y NPS, retención del público y el alquiler de salones sin dobles reservas.'; }
+  }
+  boxes.forEach(function(b){ b.addEventListener('change', function(){ save(); refresh(); }); });
+  var rb=document.getElementById('pm-reset');
+  if(rb) rb.addEventListener('click', function(){ if(confirm('¿Desmarcar todas las pruebas y empezar de cero?')){ boxes.forEach(function(b){b.checked=false;}); save(); refresh(); } });
+  load(); refresh();
+})();
+</script>
+
+</body>
+</html>
