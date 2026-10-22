@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  IconSparkles, IconBuilding, IconChartFunnel, IconTrendingUp,
+  IconSparkles, IconBuilding, IconChartFunnel, IconTrendingUp, IconPlant2,
   IconMail, IconMessageChatbot, IconReportAnalytics, IconShieldCheck, type Icon,
 } from "@tabler/icons-react";
 
@@ -69,6 +69,14 @@ const DISPONIBLES: Funcion[] = [
     href: "/dashboard/cotizaciones-formales",
     cta: "Elegir cotización",
     contexto: "También en cada cotización",
+  },
+  {
+    titulo: "Oportunidades de crecimiento",
+    desc: "Para un cliente que ya compró, sugiere qué más ofrecerle según su historial y lo que compran clientes de su sector.",
+    icon: IconPlant2,
+    href: "/dashboard/cuentas",
+    cta: "Elegir cliente",
+    contexto: "En la ficha de cada cliente con negocios ganados",
   },
   {
     titulo: "Informe ejecutivo mensual",
