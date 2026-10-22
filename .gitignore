@@ -51,3 +51,7 @@ next-env.d.ts
 # credenciales, solo los nombres de las variables.
 .env*
 !.env.example
+
+# Permisos personales de Claude Code en cada computador: no se comparten.
+# (Si se versiona, la carpeta principal queda "sucia" y no se sincroniza.)
+.claude/settings.local.json

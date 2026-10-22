@@ -1,0 +1,3 @@
+# Archivos ignorados por git que Claude Code copia a cada worktree nuevo.
+# Los permisos personales viajan a las sesiones sin quedar versionados.
+.claude/settings.local.json
