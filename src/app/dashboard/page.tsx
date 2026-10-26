@@ -385,25 +385,28 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
   return (
     <div className="space-y-5">
 
-      {/* ══ HERO ═══════════════════════════════════════════════════════════ */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-800 via-brand-900 to-brand-950 px-8 py-6 text-white shadow-xl">
+      {/* ══ HERO ═══════════════════════════════════════════════════════════
+          En pantallas anchas queda fijo arriba al hacer scroll; la franja del
+          color de la página tapa lo que pasa por detrás. En el celular no se
+          fija: ocuparía media pantalla. */}
+      <div className="sm:sticky sm:top-0 sm:z-20 sm:-mt-8 sm:bg-slate-50 sm:pt-4">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-800 via-brand-900 to-brand-950 px-6 py-4 text-white shadow-xl sm:py-3">
         <div className="pointer-events-none absolute -top-12 -right-12 w-56 h-56 rounded-full bg-white/5" />
         <div className="pointer-events-none absolute bottom-0 right-40 w-36 h-36 rounded-full bg-white/5" />
 
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           {/* Saludo */}
           <div>
-            <p className="text-brand-300 text-xs font-medium mb-1">
-              {formatoFecha(hoy, { weekday:"long", day:"numeric", month:"long", year:"numeric" })}
-            </p>
-            <h1 className="text-2xl font-bold tracking-tight">{saludo}, {nombre}</h1>
-            <p className="mt-1 text-sm font-medium text-white/90">
+            <h1 className="text-xl font-bold tracking-tight">{saludo}, {nombre}</h1>
+            <p className="mt-0.5 text-sm font-medium text-white/90">
               {alcance === "equipo"
                 ? (cosasHoy === 0 ? "El equipo no tiene nada pendiente para hoy" : `El equipo tiene ${cosasHoy} ${cosasHoy === 1 ? "cosa" : "cosas"} para hoy`)
                 : (cosasHoy === 0 ? "No tienes nada pendiente para hoy" : `Tienes ${cosasHoy} ${cosasHoy === 1 ? "cosa" : "cosas"} para hoy`)}
               {nVencidas > 0 && <span className="text-red-300"> · {nVencidas} vencida{nVencidas !== 1 ? "s" : ""}</span>}
             </p>
-            <p className="text-brand-300 mt-0.5 text-xs">{session?.user?.tenantNombre} · {session?.user?.rol ? session.user.rol.charAt(0)+session.user.rol.slice(1).toLowerCase() : ""}</p>
+            <p className="text-brand-300 mt-0.5 text-xs">
+              {formatoFecha(hoy, { weekday:"long", day:"numeric", month:"long" })} · {session?.user?.tenantNombre} · {session?.user?.rol ? session.user.rol.charAt(0)+session.user.rol.slice(1).toLowerCase() : ""}
+            </p>
           </div>
 
           {/* Mega-KPIs del mes. En el celular pasan a varias filas en vez de
@@ -412,15 +415,15 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
             {metaValor > 0 && (
               <>
                 <div className="text-center">
-                  <div className="relative w-16 h-16">
-                    <svg viewBox="0 0 100 100" className="w-16 h-16 -rotate-90">
+                  <div className="relative mx-auto h-12 w-12">
+                    <svg viewBox="0 0 100 100" className="h-12 w-12 -rotate-90">
                       <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="12" />
                       <circle cx="50" cy="50" r="40" fill="none" stroke={metaColor} strokeWidth="12"
                         strokeDasharray={`${gaugeDash(metaPctGauge)} ${gaugeCircum}`} strokeLinecap="round" />
                     </svg>
-                    <span className="absolute inset-0 flex items-center justify-center text-sm font-extrabold text-white">{metaPct}%</span>
+                    <span className="absolute inset-0 flex items-center justify-center text-xs font-extrabold text-white">{metaPct}%</span>
                   </div>
-                  <p className="text-brand-300 text-xs mt-1">Meta del mes</p>
+                  <p className="text-brand-300 text-xs mt-0.5">Meta del mes</p>
                 </div>
                 <div className="hidden w-px bg-white/20 self-stretch sm:block" />
               </>
@@ -428,15 +431,15 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
             {metaAnioValor > 0 && (
               <>
                 <div className="text-center">
-                  <div className="relative w-16 h-16">
-                    <svg viewBox="0 0 100 100" className="w-16 h-16 -rotate-90">
+                  <div className="relative mx-auto h-12 w-12">
+                    <svg viewBox="0 0 100 100" className="h-12 w-12 -rotate-90">
                       <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="12" />
                       <circle cx="50" cy="50" r="40" fill="none" stroke={metaAnioColor} strokeWidth="12"
                         strokeDasharray={`${gaugeDash(metaAnioPctGauge)} ${gaugeCircum}`} strokeLinecap="round" />
                     </svg>
-                    <span className="absolute inset-0 flex items-center justify-center text-sm font-extrabold text-white">{metaAnioPct}%</span>
+                    <span className="absolute inset-0 flex items-center justify-center text-xs font-extrabold text-white">{metaAnioPct}%</span>
                   </div>
-                  <p className="text-brand-300 text-xs mt-1">Meta del año</p>
+                  <p className="text-brand-300 text-xs mt-0.5">Meta del año</p>
                 </div>
                 <div className="hidden w-px bg-white/20 self-stretch sm:block" />
               </>
@@ -455,10 +458,10 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
                 </>
               ) : (
                 <>
-              <p className="text-2xl font-bold">{fmt(valorGanadoMes)}</p>
+              <p className="text-xl font-bold">{fmt(valorGanadoMes)}</p>
               <p className="text-brand-300 text-xs mt-0.5">Ganado este mes</p>
               {(variacionGanadoMes !== null || serieGanado6m.some(v => v > 0)) && (
-                <div className="mt-1.5 flex items-center justify-center gap-2">
+                <div className="mt-1 flex items-center justify-center gap-2">
                   <Sparkline valores={serieGanado6m} ancho={64} alto={20} className="text-brand-300"
                     etiqueta="Ganado en los últimos 6 meses" />
                   {variacionGanadoMes !== null && (
@@ -474,16 +477,17 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
             </div>
             <div className="hidden w-px bg-white/20 self-stretch sm:block" />
             <div className="text-center">
-              <p className="text-2xl font-bold">{fmt(valorPipeline)}</p>
+              <p className="text-xl font-bold">{fmt(valorPipeline)}</p>
               <p className="text-brand-300 text-xs mt-0.5">Pipeline activo</p>
             </div>
             <div className="hidden w-px bg-white/20 self-stretch sm:block" />
             <div className="text-center">
-              <p className="text-2xl font-bold">{tasaCierre}%</p>
+              <p className="text-xl font-bold">{tasaCierre}%</p>
               <p className="text-brand-300 text-xs mt-0.5">Tasa de cierre</p>
             </div>
           </div>
         </div>
+      </div>
       </div>
 
       {/* ══ CONTADORES: lo que pide acción hoy ═════════════════════════════ */}
