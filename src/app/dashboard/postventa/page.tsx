@@ -162,22 +162,23 @@ export default function PostventaPage() {
 
   return (
     <div>
-      {/* ── HEADER: barra oscura como la del Pipeline ── */}
-      <div className="bg-gradient-to-br from-brand-800 via-brand-900 to-brand-950 px-6 sm:px-8 py-4 mb-6 rounded-2xl">
+      {/* ── HEADER: barra oscura como la del Pipeline (fija arriba en pantallas anchas) ── */}
+      <div className="mb-6 sm:sticky sm:top-0 sm:z-20 sm:-mt-8 sm:bg-slate-50 sm:pt-4">
+      <div className="bg-gradient-to-br from-brand-800 via-brand-900 to-brand-950 px-6 py-3 rounded-2xl shadow-xl">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <IconHeartHandshake size={24} stroke={1.75} className="text-brand-300" />Postventa
+            <h1 className="text-xl font-bold text-white flex items-center gap-2">
+              <IconHeartHandshake size={22} stroke={1.75} className="text-brand-300" />Postventa
             </h1>
             <span className="hidden sm:block h-6 w-px bg-white/20" />
             <span className="text-brand-300 text-sm">Entregar, acompañar y renovar lo que ya ganaste</span>
           </div>
           {!esComercial && vendedores.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 bg-white/10 border border-white/20 rounded-2xl px-4 py-2">
+            <div className="flex flex-wrap items-center gap-2 bg-white/10 border border-white/20 rounded-xl px-3 py-1">
               <div>
-                <p className="text-brand-300 text-xs mb-1">Vendedor</p>
+                <p className="text-brand-300 text-2xs">Vendedor</p>
                 <select value={filtroVendedor} onChange={e => setFiltroVendedor(e.target.value)}
-                  className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1.5 outline-none cursor-pointer">
+                  className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1 outline-none cursor-pointer">
                   <option value="">Todos</option>
                   {vendedores.map(v => <option key={v.id} value={v.id}>{v.nombre}</option>)}
                 </select>
@@ -185,6 +186,7 @@ export default function PostventaPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
 
       {/* ── INDICADORES ── */}

@@ -623,29 +623,31 @@ export default function ReportesPage() {
   return (
     <div className="min-h-screen bg-slate-50 pb-8">
 
-      {/* ── HEADER ── */}
-      <div className="bg-gradient-to-br from-brand-800 via-brand-900 to-brand-950 px-8 py-8 mb-8 rounded-2xl">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+      {/* ── HEADER ── En pantallas anchas queda fijo arriba al hacer scroll,
+          con los filtros a mano; en el celular no se fija (ocuparía media pantalla). */}
+      <div className="mb-6 sm:sticky sm:top-0 sm:z-20 sm:-mt-8 sm:bg-slate-50 sm:pt-4">
+      <div className="bg-gradient-to-br from-brand-800 via-brand-900 to-brand-950 px-6 py-4 rounded-2xl shadow-xl sm:py-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
           <div>
-            <p className="text-brand-300 text-xs font-semibold uppercase tracking-widest mb-1">
-              {formatoFecha(new Date(), { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+            <h1 className="text-xl font-bold text-white">Reporte comercial</h1>
+            <p className="text-brand-300 text-xs mt-0.5">
+              Período: <span className="text-white font-medium">{periodoLabel}</span>
+              {" · "}{formatoFecha(new Date(), { weekday: "long", day: "numeric", month: "long" })}
             </p>
-            <h1 className="text-3xl font-bold text-white mb-1">Reporte comercial</h1>
-            <p className="text-brand-300 text-sm">Período: <span className="text-white font-medium">{periodoLabel}</span></p>
           </div>
 
           {/* ── FILTROS ── */}
-          <div className="flex flex-wrap items-center gap-2 bg-white/10 border border-white/20 rounded-2xl px-4 py-1.5 self-start">
+          <div className="flex flex-wrap items-center gap-2 bg-white/10 border border-white/20 rounded-xl px-3 py-1 sm:self-center">
             <div>
-              <p className="text-brand-300 text-xs mb-1">Año</p>
+              <p className="text-brand-300 text-2xs">Año</p>
               <select value={anio} onChange={e => { setAnio(e.target.value); setMes(""); cargar(e.target.value, ""); }}
-                className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1.5 outline-none cursor-pointer">
+                className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1 outline-none cursor-pointer">
                 <option value="">Todos</option>
                 {r.aniosDisponibles.map(a => <option key={a} value={String(a)}>{a}</option>)}
               </select>
             </div>
             <div>
-              <p className="text-brand-300 text-xs mb-1">Mes</p>
+              <p className="text-brand-300 text-2xs">Mes</p>
               <select value={mes} onChange={e => {
                 const newMes = e.target.value;
                 setMes(newMes);
@@ -657,16 +659,16 @@ export default function ReportesPage() {
                 }
                 cargar(efectivoAnio, newMes);
               }}
-                className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1.5 outline-none cursor-pointer">
+                className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1 outline-none cursor-pointer">
                 <option value="">Todos</option>
                 {MESES.map((m, i) => <option key={i+1} value={String(i+1)}>{m}</option>)}
               </select>
             </div>
             {vendedores.length > 0 && (
               <div>
-                <p className="text-brand-300 text-xs mb-1">Vendedor</p>
+                <p className="text-brand-300 text-2xs">Vendedor</p>
                 <select value={vendedor} onChange={e => { setVendedor(e.target.value); cargar(anio, mes, e.target.value); }}
-                  className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1.5 outline-none cursor-pointer">
+                  className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1 outline-none cursor-pointer">
                   <option value="">Todos</option>
                   {vendedores.map(v => <option key={v.id} value={v.id}>{v.nombre}</option>)}
                 </select>
@@ -674,9 +676,9 @@ export default function ReportesPage() {
             )}
             {r.segmentosDisponibles.length > 0 && (
               <div>
-                <p className="text-brand-300 text-xs mb-1">Segmento</p>
+                <p className="text-brand-300 text-2xs">Segmento</p>
                 <select value={segmento} onChange={e => { setSegmento(e.target.value); cargar(anio, mes, vendedor, e.target.value, sede); }}
-                  className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1.5 outline-none cursor-pointer">
+                  className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1 outline-none cursor-pointer">
                   <option value="">Todos</option>
                   {r.segmentosDisponibles.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -684,9 +686,9 @@ export default function ReportesPage() {
             )}
             {r.sedesDisponibles.length > 0 && (
               <div>
-                <p className="text-brand-300 text-xs mb-1">Sede</p>
+                <p className="text-brand-300 text-2xs">Sede</p>
                 <select value={sede} onChange={e => { setSede(e.target.value); cargar(anio, mes, vendedor, segmento, e.target.value); }}
-                  className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1.5 outline-none cursor-pointer">
+                  className="rounded-lg border border-white/30 bg-white text-slate-900 text-sm px-2 py-1 outline-none cursor-pointer">
                   <option value="">Todas</option>
                   {r.sedesDisponibles.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -694,7 +696,7 @@ export default function ReportesPage() {
             )}
             {(anio || mes || vendedor || segmento || sede) && (
               <button onClick={() => { setAnio(""); setMes(""); setVendedor(""); setSegmento(""); setSede(""); cargar("", "", "", "", ""); }}
-                className="mt-4 text-brand-300 hover:text-white text-xs underline">
+                className="mt-3 text-brand-300 hover:text-white text-xs underline">
                 Limpiar
               </button>
             )}
@@ -702,7 +704,7 @@ export default function ReportesPage() {
         </div>
 
         {/* KPIs hero */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { label: "Clientes",       valor: r.totalEmpresas,       icon: IconBuilding,     sub: `${r.totalContactos} contactos`, destacado: false },
             { label: "En negociación", valor: r.cantidadActiva,      icon: IconRefresh,      sub: fmtK(r.valorActivo) + " potencial", destacado: false },
@@ -711,17 +713,18 @@ export default function ReportesPage() {
           ].map(k => {
             const Icono: Icon = k.icon;
             return (
-              <div key={k.label} className="rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Icono size={18} stroke={1.75} className="text-brand-200" />
-                  <span className="text-xs text-brand-200 font-medium uppercase tracking-wide">{k.label}</span>
+              <div key={k.label} className="rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 px-3 py-2">
+                <div className="flex items-center gap-1.5">
+                  <Icono size={14} stroke={1.75} className="text-brand-200" />
+                  <span className="text-2xs text-brand-200 font-medium uppercase tracking-wide">{k.label}</span>
                 </div>
-                <p className={`text-2xl font-bold ${k.destacado ? "text-accent-400" : "text-white"}`}>{k.valor}</p>
-                <p className="text-xs text-brand-300 mt-1">{k.sub}</p>
+                <p className={`text-lg font-bold leading-tight ${k.destacado ? "text-accent-400" : "text-white"}`}>{k.valor}</p>
+                <p className="text-2xs text-brand-300">{k.sub}</p>
               </div>
             );
           })}
         </div>
+      </div>
       </div>
 
       <PanelLunes />
