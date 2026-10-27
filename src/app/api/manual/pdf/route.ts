@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.34"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.35"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -245,7 +245,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.34 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.35 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -436,6 +436,9 @@ export async function GET() {
       React.createElement(LI, null, "Próximos pasos, y riesgos u objeciones del cliente (nota interna)"),
       React.createElement(P, null, "Antes de guardar puedes corregir todo: nada se guarda sin tu revisión. Al pulsar \"Guardar minuta\" quedan registradas la minuta, la reunión como actividad completada y el evento en la línea de tiempo del cliente. Además, cada compromiso de nuestro equipo marcado con \"Crear tarea\" queda como tarea pendiente a tu nombre; sin fecha, queda para mañana. Así el negocio sale de la reunión con su próximo paso agendado."),
       React.createElement(P, null, "En cada minuta guardada, el botón \"Copiar para enviar\" copia un texto listo para pegar en un correo o WhatsApp al cliente. Ese texto no incluye los riesgos, que son solo para el equipo. Si eliminas una minuta, la reunión y las tareas que creó se conservan."),
+      React.createElement(H3, null, "Correo de seguimiento"),
+      React.createElement(P, null, "Cada minuta guardada tiene también el botón \"Correo de seguimiento\" (en la que acabas de guardar aparece resaltado). La IA redacta el correo para el cliente: resume lo que se habló y acordó, refuerza el valor para su negocio y confirma el próximo paso con su fecha (o propone acordarla), en máximo 120 palabras, de usted y con tu firma. Tampoco menciona los riesgos internos."),
+      React.createElement(P, null, "El borrador se abre editable, con el correo del contacto de la oportunidad ya puesto y un contador de palabras. Puedes corregirlo y pulsar \"Enviar desde el CRM\" (queda registrado en Correos, ver 2.12) o \"Copiar\" para pegarlo en tu correo o WhatsApp. Nada se envía hasta que pulses Enviar. Cada borrador usa una acción del cupo de IA."),
       React.createElement(Nota, null, "Cada minuta generada usa una acción del cupo mensual de IA de tu plan, el mismo que usa el Resumen con IA. La IA solo usa lo que dicen tus notas y no inventa datos: si algo no aparece, lo deja vacío para que lo completes."),
 
       React.createElement(H2, null, "2.10.2 Oportunidades de crecimiento con IA"),
@@ -540,7 +543,7 @@ export async function GET() {
       React.createElement(P, null, "Haz clic en el título de una oportunidad para abrir su ficha. Está organizada en tres partes:"),
       React.createElement(P, null, "Encabezado: el nombre del negocio con su cliente y contacto; los botones Llamar y Correo (si el contacto o el cliente tienen teléfono o email), \"+ Actividad\", Editar y Eliminar; la etapa como una barra de pasos (Prospecto › Calificado › Cotización › Negociación, más Ganada y Perdida) en la que un clic mueve el negocio a esa etapa; y 5 datos clave: valor cotizado, probabilidad, ponderado (valor × probabilidad), cierre estimado (en rojo si ya venció; un clic permite cambiarlo) y fecha de creación. Debajo aparece su estado comercial (ver 3.3) con el porqué, la acción recomendada y el botón \"Actuar ahora\", que crea esa actividad para hoy ya vinculada a la oportunidad, el cliente y el contacto."),
       React.createElement(P, null, "Centro, en pestañas:"),
-      React.createElement(LI, null, "Resumen — notas internas, minutas de reunión con IA (ver 2.10.1), campos personalizados, datos adicionales y la línea de tiempo con el historial de etapas (ver 3.8)."),
+      React.createElement(LI, null, "Resumen — en los negocios abiertos, el Plan para ganar con IA (ver 3.14); notas internas, minutas de reunión con IA (ver 2.10.1), campos personalizados, datos adicionales y la línea de tiempo con el historial de etapas (ver 3.8)."),
       React.createElement(LI, null, "Actividad — las actividades del negocio con el formulario para crear una nueva, y los correos enviados y recibidos (ver 2.12)."),
       React.createElement(LI, null, "Cotizaciones — las cotizaciones formales ligadas, con su número, estado y validez, y el botón \"Nueva cotización\"."),
       React.createElement(LI, null, "Archivos — los adjuntos del negocio (ver 3.10)."),
@@ -592,6 +595,16 @@ export async function GET() {
       React.createElement(P, null, "Si el negocio está abierto y nadie está marcado como \"Decide\", la tarjeta avisa: \"No has identificado quién decide\". Quitar a alguien del mapa no borra el contacto, y el contacto principal de la oportunidad se mantiene como siempre."),
       React.createElement(Nota, null, "Si el módulo Manejo de objeciones está activo, el Coach de objeciones con IA (ver 9.2.1) tiene en cuenta el mapa: sabe con quién estás hablando y si ya identificaste a quien decide. Un usuario Comercial solo ve y edita el mapa de sus propias oportunidades."),
       React.createElement(Tip, null, "Si solo hablas con una persona, el negocio depende de ella. Antes de enviar la propuesta, procura tener a quien decide identificado y, idealmente, a favor."),
+
+      React.createElement(H2, null, "3.14 Plan para ganar con IA"),
+      React.createElement(P, null, "En la ficha de cada oportunidad abierta, la pestaña Resumen muestra la tarjeta \"Plan para ganar\". Pulsa \"Armar plan con IA\" y, sin pegar nada, la IA lee lo que el CRM ya sabe del negocio: etapa, valor, probabilidad y cierre, notas, personas en la decisión (ver 3.13), minutas, actividades (incluidas las vencidas), cotizaciones, correos, lo ganado y perdido con ese cliente, la metodología de ventas del equipo y la guía de objeciones. En segundos entrega:"),
+      React.createElement(LI, null, "Calificación — alta, media o baja en ajuste con lo que vendes, potencial de ingresos, urgencia del cliente, acceso a quien decide y probabilidad de cierre, cada una con su porqué. Si no hay datos para un criterio, dice \"Sin datos\" en vez de suponer."),
+      React.createElement(LI, null, "Riesgos — hasta 3, con la señal que lo indica y la pregunta para hacerle al cliente que lo aclare."),
+      React.createElement(LI, null, "Estrategia — la propuesta de valor para ese cliente y qué decirle a cada persona del mapa de decisores según su papel y postura."),
+      React.createElement(LI, null, "Próximos pasos — de 1 a 4, cada uno con el botón \"Agendar\", que abre el agendador con el tipo y el título ya escritos: solo eliges cuándo."),
+      React.createElement(LI, null, "Qué falta saber — los datos que conviene registrar en el CRM para afinar el plan."),
+      React.createElement(Nota, null, "No guarda ni cambia nada del negocio: solo aconseja. Cada plan usa una acción del cupo mensual de IA. No aparece en negocios Ganados ni Perdidos."),
+      React.createElement(Tip, null, "Ármalo cuando un negocio se estanque o antes de una reunión importante, y agenda de una vez el primer paso. Mientras más minutas y personas en la decisión tenga el negocio, más preciso es el plan."),
     ),
 
     // ── CAPÍTULO 4: AGENDA ──
@@ -676,6 +689,15 @@ export async function GET() {
       React.createElement(LI, null, "Hecha — la marca como completada y pasa a la siguiente."),
       React.createElement(P, null, "La sugerencia sale de reglas, no de la IA (es instantánea y no gasta cupo): si el negocio ya está cerrado, sugiere marcarla como hecha si ya no aplica; si está vencida, hacerla hoy o reprogramarla con una fecha realista; si no, la acción del estado comercial del negocio (ver 3.3)."),
       React.createElement(Tip, null, "Empieza el día en la Bandeja Hoy y despáchala de arriba abajo: cuando queda vacía, el CRM te propone ver los negocios sin próximo paso para agendarles el siguiente."),
+
+      React.createElement(H2, null, "4.10 Preparar reunión con IA"),
+      React.createElement(P, null, "Cada reunión o visita pendiente tiene el botón \"Preparar\": en la Agenda (si está ligada a un cliente o a una oportunidad) y en la pestaña Actividad de la ficha de la oportunidad. Al pulsarlo, la IA prepara la reunión con lo que el CRM sabe del negocio (o del cliente, si la reunión no tiene oportunidad):"),
+      React.createElement(LI, null, "Objetivo — qué debe quedar logrado al salir."),
+      React.createElement(LI, null, "Agenda — máximo 3 puntos, alineados con las prioridades del cliente."),
+      React.createElement(LI, null, "Quiénes deben estar — las personas del cliente que conviene invitar y por qué; si falta alguien clave (por ejemplo, quien aprueba el presupuesto), lo nombra por su cargo."),
+      React.createElement(LI, null, "Preguntas pendientes y qué preparar o llevar."),
+      React.createElement(LI, null, "Invitación para el cliente — asunto y texto de usted, con el objetivo y la agenda, y el botón \"Copiar\". Si la reunión ya está vencida, la invitación propone reprogramarla y pide su disponibilidad."),
+      React.createElement(Nota, null, "No guarda nada. Cada preparación usa una acción del cupo mensual de IA. Retoma los compromisos y riesgos de las minutas anteriores del negocio, si las hay."),
     ),
 
     // ── CAPÍTULO 5: COTIZACIONES ──
@@ -1115,7 +1137,16 @@ export async function GET() {
       React.createElement(H2, null, "10.9 Oportunidades de crecimiento"),
       React.createElement(P, null, "Para un cliente que ya compró, sugiere qué más ofrecerle según su historial, tu catálogo y lo que compran clientes de su sector, y con un clic crea la oportunidad. Disponible desde el Asistente IA y en la ficha de cada cliente con negocios ganados (ver 2.10.2)."),
 
-      React.createElement(H2, null, "10.10 Cupo mensual y privacidad"),
+      React.createElement(H2, null, "10.10 Plan para ganar"),
+      React.createElement(P, null, "En la ficha de una oportunidad abierta, califica el negocio, señala los riesgos con la pregunta para aclararlos, propone qué decirle a cada decisor y los próximos pasos, que agendas con un clic (ver 3.14)."),
+
+      React.createElement(H2, null, "10.11 Preparar reunión"),
+      React.createElement(P, null, "Desde la Agenda o la ficha de la oportunidad, arma el objetivo, la agenda, quiénes deben estar, las preguntas pendientes, qué llevar y la invitación lista para copiar (ver 4.10)."),
+
+      React.createElement(H2, null, "10.12 Correo de seguimiento"),
+      React.createElement(P, null, "Desde una minuta guardada, redacta el correo de seguimiento de máximo 120 palabras que confirma el próximo paso; lo revisas y lo envías desde el CRM o lo copias (ver 2.10.1)."),
+
+      React.createElement(H2, null, "10.13 Cupo mensual y privacidad"),
       React.createElement(P, null, "Todas las funciones descuentan del mismo cupo mensual de IA. Según tu plan puede ser ilimitado o tener un tope; cada panel muestra cuánto llevas usado (por ejemplo \"12 / 100 este mes\"). La IA solo usa los datos que ya están en tu CRM y no los comparte con nadie más."),
       React.createElement(Tip, null, "La IA es un asistente, no un reemplazo: acelera el borrador y el análisis, pero la decisión — y la revisión final de cada correo o informe — siguen siendo tuyas."),
 

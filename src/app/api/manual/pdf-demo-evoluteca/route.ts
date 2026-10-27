@@ -87,7 +87,7 @@ function PageHeader({ base }: { base: string }) {
 }
 function Footer() {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.10"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.11"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -257,7 +257,7 @@ export async function GET() {
             ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#fef3c7", marginBottom: 3 } }, item)),
           ),
           React.createElement(View, { style: { marginTop: 24 } },
-            React.createElement(Text, { style: s.portadaVer }, `Versión 2.10 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+            React.createElement(Text, { style: s.portadaVer }, `Versión 2.11 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
           ),
         ),
       ),
@@ -490,6 +490,10 @@ export async function GET() {
       React.createElement(Paso, { n: 7, titulo: "Revisor de propuestas", desc: "Abre una cotización en Borrador y, en la tarjeta 'Revisar propuesta antes de enviar', pulsa 'Revisar propuesta'.", esperado: "Chequeos automáticos (margen, descuentos frente al catálogo, vigencia, correo) y un veredicto de la IA —Lista, Conviene ajustar o No la envíe todavía— con observaciones concretas." }),
       React.createElement(Paso, { n: 8, titulo: "Oportunidades de crecimiento", desc: "Abre un cliente que ya tenga negocios ganados, ve a la pestaña Resumen y en 'Oportunidades de crecimiento' pulsa 'Sugerir con IA'.", esperado: "Hasta 3 sugerencias de qué más venderle (con su razón y valor estimado) y el botón 'Crear oportunidad con esto', que la deja en Prospecto." }),
       React.createElement(Paso, { n: 9, titulo: "Informe ejecutivo mensual", desc: "Entra a 'Informe ejecutivo mensual' (desde el Asistente IA) y genéralo.", esperado: "El cierre del mes anterior con sus tendencias, redactado y listo para presentar en la junta." }),
+      React.createElement(P, null, "Además de la vitrina, tres asistentes viven donde se trabaja el negocio:"),
+      React.createElement(Paso, { n: 10, titulo: "Plan para ganar", desc: "Abre una oportunidad en Cotización o Negociación y, en la pestaña Resumen, pulsa 'Armar plan con IA'.", esperado: "Calificación alta/media/baja por criterio con su porqué, hasta 3 riesgos con la pregunta para aclararlos, qué decirle a cada decisor y próximos pasos con botón 'Agendar' (abre el agendador ya lleno)." }),
+      React.createElement(Paso, { n: 11, titulo: "Preparar reunión", desc: "En la Agenda, en una reunión pendiente ligada a un cliente, pulsa 'Preparar'.", esperado: "Objetivo, agenda de máximo 3 puntos, quiénes deben estar, preguntas pendientes, qué llevar y la invitación para el cliente con botón 'Copiar'." }),
+      React.createElement(Paso, { n: 12, titulo: "Correo de seguimiento", desc: "Guarda una minuta con IA y, en la minuta, pulsa 'Correo de seguimiento'.", esperado: "Un borrador de máximo 120 palabras que confirma el próximo paso, sin los riesgos internos, con el destinatario puesto y los botones 'Enviar desde el CRM' y 'Copiar'. No lo envíes a direcciones reales del demo." }),
       React.createElement(Nota, null, "Todas las funciones de IA descuentan del mismo cupo mensual (según tu plan puede ser ilimitado o con tope). Cada panel muestra cuánto llevas consumido, para que el uso sea siempre transparente."),
       React.createElement(Wow, { titulo: "Por qué importa" }, "La IA no reemplaza al vendedor: le ahorra lo tedioso. Prepara el contexto de una cuenta, el estado del pipeline, la lectura de tus reportes, la respuesta a una pregunta y hasta el correo de una cotización —en segundos y solo con los datos que ya viven en tu CRM."),
 
@@ -518,6 +522,7 @@ export async function GET() {
       React.createElement(Check, null, "Probé la papelera (borrar y restaurar)."),
       React.createElement(Check, null, "Exploré Reportes: embudo, metas, top clientes y motivos de pérdida."),
       React.createElement(Check, null, "Abrí el Asistente IA y probé varias funciones (resumen de cliente, brief del pipeline, análisis de tendencias, pregúntale a tus datos, redactor de correos, revisor de propuestas, oportunidades de crecimiento e informe mensual)."),
+      React.createElement(Check, null, "Armé el Plan para ganar de una oportunidad y agendé uno de sus pasos; preparé una reunión desde la Agenda y redacté el correo de seguimiento de una minuta."),
       React.createElement(Check, null, "Abrí el CRM en el celular."),
 
       React.createElement(H1, null, "Preguntas frecuentes"),
