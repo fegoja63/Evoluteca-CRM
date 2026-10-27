@@ -22,6 +22,9 @@ type Props = {
   tipos: TipoActividadDef[];
   /** true si el negocio tenía una tarea vencida (cambia el texto del encabezado). */
   teniaVencida?: boolean;
+  /** Paso propuesto (p. ej. por el Plan para ganar): tipo y título ya escritos. */
+  tipoInicial?: string;
+  tituloInicial?: string;
   onCerrar: () => void;
   onAgendado: (paso: PasoAgendado) => void;
 };
@@ -42,10 +45,12 @@ const TITULO_POR_TIPO: Record<string, string> = {
   VISITA_TECNICA: "Visita técnica",
 };
 
-export function AgendarPasoRapido({ oportunidad, tipos, teniaVencida, onCerrar, onAgendado }: Props) {
-  const [tipo, setTipo] = useState(tipos.find(t => t.key === "LLAMADA")?.key ?? tipos[0]?.key ?? "TAREA");
-  const [titulo, setTitulo] = useState(TITULO_POR_TIPO[tipo] ?? "Seguimiento");
-  const [tituloEditado, setTituloEditado] = useState(false);
+export function AgendarPasoRapido({ oportunidad, tipos, teniaVencida, tipoInicial, tituloInicial, onCerrar, onAgendado }: Props) {
+  const [tipo, setTipo] = useState(
+    tipos.find(t => t.key === tipoInicial)?.key ?? tipos.find(t => t.key === "LLAMADA")?.key ?? tipos[0]?.key ?? "TAREA",
+  );
+  const [titulo, setTitulo] = useState(tituloInicial ?? TITULO_POR_TIPO[tipo] ?? "Seguimiento");
+  const [tituloEditado, setTituloEditado] = useState(!!tituloInicial);
   const [fecha, setFecha] = useState(() => fechaAtajo("manana") ?? "");
   const [guardando, setGuardando] = useState(false);
   const primerBoton = useRef<HTMLButtonElement>(null);

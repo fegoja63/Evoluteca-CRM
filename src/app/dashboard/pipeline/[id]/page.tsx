@@ -17,6 +17,8 @@ import { CoachObjecionesIA } from "@/components/coach-objeciones-ia";
 import { PanelPostventa } from "@/components/panel-postventa";
 import { MinutasIA } from "@/components/minutas-ia";
 import { MapaDecisores } from "@/components/mapa-decisores";
+import { PlanGanarIA } from "@/components/plan-ganar-ia";
+import { tiposActividadVisibles } from "@/lib/tipos-actividad";
 import type { EtapaPostventa } from "@prisma/client";
 import { esClaveCampoPersonalizado } from "@/lib/campos-personalizados";
 import { estadoComercial, ultimoMovimientoDe, tieneProximoPasoDe } from "@/lib/estado-comercial";
@@ -107,6 +109,7 @@ export default function OportunidadDetallePage() {
   const [moduloSalones, setModuloSalones] = useState(false);
   const [moduloObjeciones, setModuloObjeciones] = useState(false);
   const [moduloPostventa, setModuloPostventa] = useState(false);
+  const [modulos, setModulos] = useState<unknown>(null);
   const [disponibilidad, setDisponibilidad] = useState<Disponibilidad | null>(null);
   const disponibilidadClaveRef = useRef("");
   // Edición rápida de la fecha de cierre desde el recuadro (sin abrir Editar).
@@ -226,6 +229,7 @@ export default function OportunidadDetallePage() {
       setModuloSalones(salonesActivo);
       setModuloObjeciones(!!config?.modulos?.objeciones);
       setModuloPostventa(!!config?.modulos?.postventa);
+      setModulos(config?.modulos ?? null);
       setDiasEstancamiento(Number(config?.diasEstancamiento) || 14);
       if (salonesActivo) {
         fetch("/api/salones").then(r => r.json()).then(s => setSalones(Array.isArray(s) ? s : []));
@@ -706,6 +710,10 @@ export default function OportunidadDetallePage() {
                     cargar();
                   }}
                 />
+                {/* Estrategia con IA para negocios abiertos: calificación, riesgos y próximos pasos. */}
+                {op.etapa !== "GANADA" && op.etapa !== "PERDIDA" && (
+                  <PlanGanarIA oportunidad={op} tipos={tiposActividadVisibles(modulos)} onAgendado={cargar} />
+                )}
                 {/* Análisis con IA: minutas de reunión (resumen, acuerdos y próximos pasos). */}
                 <MinutasIA oportunidadId={op.id} empresaNombre={op.empresa?.nombre ?? null} onGuardada={cargar} />
                 <CamposPersonalizadosVista entidad="OPORTUNIDAD" extras={op.extras} />
