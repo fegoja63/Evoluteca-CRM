@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.35"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.36"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -245,7 +245,7 @@ export async function GET() {
           ].map(item => React.createElement(Text, { key: item, style: { fontSize: 10, color: "#cbd5e1", marginBottom: 3 } }, item)),
         ),
         React.createElement(View, { style: { marginTop: 40 } },
-          React.createElement(Text, { style: s.portadaVer }, `Versión 1.35 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
+          React.createElement(Text, { style: s.portadaVer }, `Versión 1.36 · ${formatoFecha(new Date(), { month: "long", year: "numeric" })} · crm.evoluteca.com`),
         ),
         ), // cierre portadaAzul
       ),   // cierre portada
@@ -450,6 +450,16 @@ export async function GET() {
       React.createElement(Nota, null, "Nada se crea hasta que pulses el botón. Cada consulta usa una acción del cupo mensual de IA. Si no hay suficiente historial, la IA lo dice en vez de inventar una sugerencia."),
       React.createElement(Tip, null, "El cliente que ya compró es el más fácil de volver a vender. Revísalo cuando se acerque su renovación o antes de una reunión de seguimiento."),
 
+      React.createElement(H2, null, "2.10.3 Análisis del negocio del cliente con IA"),
+      React.createElement(P, null, "En la ficha del cliente, pestaña Resumen, la tarjeta \"Análisis del negocio del cliente\" resume lo que le importa a ese cliente a partir de su propio material. Pulsa \"Analizar con IA\" y sube un documento — informe anual, presentación corporativa, informe de sostenibilidad (PDF, foto o archivo de texto, hasta 4 MB) —, pega noticias recientes, lo que dijo sobre sus planes o datos de su industria, o ambas cosas. La IA entrega:"),
+      React.createElement(LI, null, "Situación actual, principales desafíos y objetivos."),
+      React.createElement(LI, null, "El plazo de esos objetivos y cómo mide el éxito (indicadores y metas), solo si el material lo dice; si no, quedan vacíos."),
+      React.createElement(LI, null, "Dónde podemos ayudar — dónde encaja lo que vendes (tu Catálogo y los negocios que has ganado) frente a esos desafíos u objetivos."),
+      React.createElement(LI, null, "Preguntas para validar con el cliente lo que el material no aclara."),
+      React.createElement(P, null, "El análisis queda guardado en el cliente, uno por cliente: \"Analizar de nuevo\" lo reemplaza y \"Borrar análisis\" lo quita. Desde ese momento, el Plan para ganar (ver 3.14) y Preparar reunión (ver 4.10) lo tienen en cuenta solos, sin que nadie vuelva a pegar nada."),
+      React.createElement(Nota, null, "Cada análisis usa una acción del cupo mensual de IA. La IA solo usa el material que subes y no inventa cifras ni fechas. El documento no se guarda: solo el resumen."),
+      React.createElement(Tip, null, "Hazlo antes de la primera reunión con un cliente grande: llegas sabiendo qué le preocupa a su junta y con preguntas que demuestran que hiciste la tarea."),
+
       React.createElement(H2, null, "2.11 Editar y eliminar desde las listas"),
       React.createElement(P, null, "No necesitas abrir la ficha completa para corregir o eliminar un registro. En las listas de Clientes, Contactos y Cotizaciones, cada fila tiene dos botones de acción rápida:"),
       React.createElement(LI, null, "Editar (ícono de lápiz) — abre una ventana para modificar los datos del registro sin salir del listado. Al guardar, la lista se actualiza al instante."),
@@ -597,7 +607,7 @@ export async function GET() {
       React.createElement(Tip, null, "Si solo hablas con una persona, el negocio depende de ella. Antes de enviar la propuesta, procura tener a quien decide identificado y, idealmente, a favor."),
 
       React.createElement(H2, null, "3.14 Plan para ganar con IA"),
-      React.createElement(P, null, "En la ficha de cada oportunidad abierta, la pestaña Resumen muestra la tarjeta \"Plan para ganar\". Pulsa \"Armar plan con IA\" y, sin pegar nada, la IA lee lo que el CRM ya sabe del negocio: etapa, valor, probabilidad y cierre, notas, personas en la decisión (ver 3.13), minutas, actividades (incluidas las vencidas), cotizaciones, correos, lo ganado y perdido con ese cliente, la metodología de ventas del equipo y la guía de objeciones. En segundos entrega:"),
+      React.createElement(P, null, "En la ficha de cada oportunidad abierta, la pestaña Resumen muestra la tarjeta \"Plan para ganar\". Pulsa \"Armar plan con IA\" y, sin pegar nada, la IA lee lo que el CRM ya sabe del negocio: etapa, valor, probabilidad y cierre, notas, personas en la decisión (ver 3.13), minutas, actividades (incluidas las vencidas), cotizaciones, correos, lo ganado y perdido con ese cliente, el análisis del negocio del cliente si lo hiciste (ver 2.10.3), la metodología de ventas del equipo y la guía de objeciones. En segundos entrega:"),
       React.createElement(LI, null, "Calificación — alta, media o baja en ajuste con lo que vendes, potencial de ingresos, urgencia del cliente, acceso a quien decide y probabilidad de cierre, cada una con su porqué. Si no hay datos para un criterio, dice \"Sin datos\" en vez de suponer."),
       React.createElement(LI, null, "Riesgos — hasta 3, con la señal que lo indica y la pregunta para hacerle al cliente que lo aclare."),
       React.createElement(LI, null, "Estrategia — la propuesta de valor para ese cliente y qué decirle a cada persona del mapa de decisores según su papel y postura."),
@@ -697,7 +707,7 @@ export async function GET() {
       React.createElement(LI, null, "Quiénes deben estar — las personas del cliente que conviene invitar y por qué; si falta alguien clave (por ejemplo, quien aprueba el presupuesto), lo nombra por su cargo."),
       React.createElement(LI, null, "Preguntas pendientes y qué preparar o llevar."),
       React.createElement(LI, null, "Invitación para el cliente — asunto y texto de usted, con el objetivo y la agenda, y el botón \"Copiar\". Si la reunión ya está vencida, la invitación propone reprogramarla y pide su disponibilidad."),
-      React.createElement(Nota, null, "No guarda nada. Cada preparación usa una acción del cupo mensual de IA. Retoma los compromisos y riesgos de las minutas anteriores del negocio, si las hay."),
+      React.createElement(Nota, null, "No guarda nada. Cada preparación usa una acción del cupo mensual de IA. Retoma los compromisos y riesgos de las minutas anteriores del negocio y el análisis del negocio del cliente (ver 2.10.3), si los hay."),
     ),
 
     // ── CAPÍTULO 5: COTIZACIONES ──
@@ -1146,7 +1156,10 @@ export async function GET() {
       React.createElement(H2, null, "10.12 Correo de seguimiento"),
       React.createElement(P, null, "Desde una minuta guardada, redacta el correo de seguimiento de máximo 120 palabras que confirma el próximo paso; lo revisas y lo envías desde el CRM o lo copias (ver 2.10.1)."),
 
-      React.createElement(H2, null, "10.13 Cupo mensual y privacidad"),
+      React.createElement(H2, null, "10.13 Análisis del negocio del cliente"),
+      React.createElement(P, null, "En la ficha del cliente, resume su informe anual, su presentación o noticias en situación, desafíos, objetivos, plazo, cómo mide el éxito, dónde podemos ayudar y qué validar. Queda guardado y lo usan el Plan para ganar y Preparar reunión (ver 2.10.3)."),
+
+      React.createElement(H2, null, "10.14 Cupo mensual y privacidad"),
       React.createElement(P, null, "Todas las funciones descuentan del mismo cupo mensual de IA. Según tu plan puede ser ilimitado o tener un tope; cada panel muestra cuánto llevas usado (por ejemplo \"12 / 100 este mes\"). La IA solo usa los datos que ya están en tu CRM y no los comparte con nadie más."),
       React.createElement(Tip, null, "La IA es un asistente, no un reemplazo: acelera el borrador y el análisis, pero la decisión — y la revisión final de cada correo o informe — siguen siendo tuyas."),
 
