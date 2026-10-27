@@ -15,6 +15,7 @@ import {
 } from "@tabler/icons-react";
 import { minutaATexto, MAX_TEXTO_MINUTA, MIN_TEXTO_MINUTA, type MinutaIA } from "@/lib/minutas";
 import { boton } from "@/components/ui/estilos";
+import { CorreoSeguimientoMinuta } from "@/components/correo-seguimiento-minuta";
 import { fechaISO, formatoFecha } from "@/lib/fecha-bogota";
 
 type Asistente = MinutaIA["asistentes"][number];
@@ -77,6 +78,8 @@ export function MinutasIA({ oportunidadId, empresaId, empresaNombre, onGuardada 
   const [generando, setGenerando] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [abierta, setAbierta] = useState<string | null>(null);
+  // La recién guardada resalta "Correo de seguimiento", el paso natural después de la reunión.
+  const [recien, setRecien] = useState<string | null>(null);
 
   const query = oportunidadId ? `oportunidadId=${oportunidadId}` : `empresaId=${empresaId}`;
 
@@ -131,6 +134,7 @@ export function MinutasIA({ oportunidadId, empresaId, empresaNombre, onGuardada 
     toast.success(d.tareasCreadas ? `Minuta guardada · ${d.tareasCreadas} tarea${d.tareasCreadas !== 1 ? "s" : ""} creada${d.tareasCreadas !== 1 ? "s" : ""}` : "Minuta guardada");
     setBorrador(null); setNotas(""); setFecha(hoyBogota()); setModo("lista");
     setAbierta(d.id ?? null);
+    setRecien(d.id ?? null);
     await cargar();
     await onGuardada?.();
   }
@@ -339,7 +343,8 @@ export function MinutasIA({ oportunidadId, empresaId, empresaNombre, onGuardada 
                           <ul className="list-disc pl-5 text-xs text-amber-900">{m.riesgos.map((x, i) => <li key={i}>{x}</li>)}</ul>
                         </div>
                       )}
-                      <div className="flex items-center gap-3 pt-1">
+                      <div className="flex flex-wrap items-center gap-3 pt-1">
+                        <CorreoSeguimientoMinuta minutaId={m.id} destacado={recien === m.id} onEnviado={onGuardada} />
                         <button onClick={() => copiar(m)} className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:underline">
                           <IconCopy size={13} stroke={2} />Copiar para enviar
                         </button>

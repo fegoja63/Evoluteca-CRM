@@ -51,6 +51,7 @@ const PARAMS_DEL_CLIENTE_A: Record<string, Record<string, string>> = {
   "/api/ia/expansion/[id]": { id: A.empresa },
   "/api/ia/plan-ganar/[id]": { id: A.oportunidadDelComercial },
   "/api/ia/preparar-reunion/[id]": { id: A.actividad },
+  "/api/ia/seguimiento-minuta/[id]": { id: A.minuta },
   "/api/ia/resumen-cliente/[id]": { id: A.empresa },
   "/api/minutas/[id]": { id: A.minuta },
   "/api/objeciones/[id]": { id: A.objecion },
