@@ -25,6 +25,7 @@ import { guardarJson } from "@/lib/guardar";
 import { WhatsAppBtn } from "@/components/whatsapp-btn";
 import { ResumenIA } from "@/components/resumen-ia";
 import { CrecimientoClienteIA } from "@/components/crecimiento-cliente-ia";
+import { AnalisisClienteIA } from "@/components/analisis-cliente-ia";
 import { MinutasIA } from "@/components/minutas-ia";
 import { CorreosPanel } from "@/components/correos-panel";
 import {
@@ -446,6 +447,7 @@ export default function FichaClientePage() {
                   }}
                 />
                 <ResumenIA empresaId={empresa.id} />
+                <AnalisisClienteIA empresaId={empresa.id} />
                 {empresa.oportunidades.some(o => o.etapa === "GANADA") && <CrecimientoClienteIA empresaId={empresa.id} />}
                 {empresa.condicionesComerciales && (
                   <div className={tarjeta("p-5")}>

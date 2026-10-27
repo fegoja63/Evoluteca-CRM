@@ -132,6 +132,7 @@ model Tenant {
   supuestosCaja            SupuestosCaja?
   cuentasPorCobrar         CuentaPorCobrar[]
   rentabilidadClientes     RentabilidadCliente[]
+  analisisClientes         AnalisisCliente[]
 
   @@map("tenants")
 }
@@ -375,6 +376,7 @@ model Empresa {
   adjuntos        Adjunto[]
   correos         CorreoRegistrado[]
   minutas         Minuta[]
+  analisis        AnalisisCliente?
 
   @@index([tenantId])
   @@index([tenantId, creadoEn])
@@ -1384,4 +1386,32 @@ model Salon {
 
   @@index([tenantId])
   @@map("salones")
+}
+
+// Análisis del negocio de un cliente hecho por la IA a partir de documentos
+// que sube el vendedor (informe anual, presentación, noticias). Uno por
+// cliente: "Analizar de nuevo" lo reemplaza. Lo leen el Plan para ganar y
+// Preparar reunión (ver src/lib/contexto-oportunidad.ts).
+model AnalisisCliente {
+  id            String   @id @default(uuid())
+  // Qué se leyó: nombres de archivo y/o "texto pegado".
+  fuentes       String
+  situacion     String
+  desafios      String[] @default([])
+  objetivos     String[] @default([])
+  plazo         String?
+  exito         String?
+  dondeAyudar   String[] @default([])
+  preguntas     String[] @default([])
+  creadoBy      String?
+  actualizadoEn DateTime @updatedAt
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  empresaId String  @unique
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("analisis_cliente")
 }

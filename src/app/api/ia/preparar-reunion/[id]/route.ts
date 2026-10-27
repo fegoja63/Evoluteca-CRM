@@ -7,6 +7,7 @@ import { permitirYRegistrar } from "@/lib/rate-limit";
 import { verificarCupoIA, registrarUsoIA } from "@/lib/finanzas/cupo-ia";
 import { formatoFecha, formatoFechaHora } from "@/lib/fecha-bogota";
 import { contextoOportunidad } from "@/lib/contexto-oportunidad";
+import { analisisATexto } from "@/lib/analisis-cliente";
 import { esPreparable, prepararReunionSchema, limpiarPrepararReunion } from "@/lib/preparar-reunion";
 
 export const dynamic = "force-dynamic";
@@ -81,6 +82,7 @@ export async function POST(_req: Request, props: { params: Promise<{ id: string 
           where: { tenantId }, orderBy: { fecha: "desc" }, take: 10,
           select: { tipo: true, titulo: true, fecha: true, completada: true },
         },
+        analisis: true,
       },
     });
     if (!empresa) return NextResponse.json({ error: "Asocie la reunión a un cliente o a una oportunidad para prepararla." }, { status: 400 });
@@ -97,6 +99,8 @@ export async function POST(_req: Request, props: { params: Promise<{ id: string 
       d.push(`\nACTIVIDADES CON ESTE CLIENTE:`);
       for (const a of empresa.actividades) d.push(`- ${formatoFecha(a.fecha)} · ${a.tipo} · ${a.titulo.slice(0, 150)}${a.completada ? " (hecha)" : ""}`);
     }
+    // El análisis es del mismo tenant: la empresa ya se filtró por tenantId.
+    if (empresa.analisis) d.push(...analisisATexto(empresa.analisis));
   } else {
     return NextResponse.json({ error: "Asocie la reunión a un cliente o a una oportunidad para prepararla." }, { status: 400 });
   }
