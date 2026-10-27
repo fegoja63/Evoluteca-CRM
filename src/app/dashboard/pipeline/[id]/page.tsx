@@ -18,6 +18,8 @@ import { PanelPostventa } from "@/components/panel-postventa";
 import { MinutasIA } from "@/components/minutas-ia";
 import { MapaDecisores } from "@/components/mapa-decisores";
 import { PlanGanarIA } from "@/components/plan-ganar-ia";
+import { PrepararReunionIA } from "@/components/preparar-reunion-ia";
+import { esPreparable } from "@/lib/preparar-reunion";
 import { tiposActividadVisibles } from "@/lib/tipos-actividad";
 import type { EtapaPostventa } from "@prisma/client";
 import { esClaveCampoPersonalizado } from "@/lib/campos-personalizados";
@@ -803,6 +805,7 @@ export default function OportunidadDetallePage() {
                               {a.tipo} · {formatoFecha(new Date(a.fecha), { day:"2-digit", month:"short", year:"numeric" })}
                             </p>
                           </div>
+                          {!a.completada && esPreparable(a.tipo) && <PrepararReunionIA actividadId={a.id} titulo={a.titulo} />}
                         </div>
                       ))}
                     </div>

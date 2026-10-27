@@ -12,6 +12,8 @@ import {
   IconAlertTriangle, IconPencil, IconUsers, IconCalendarPlus, IconX, IconUser, IconCheck, IconDots } from "@tabler/icons-react";
 import { tiposActividadVisibles, tipoActividadDef, type TipoActividadDef } from "@/lib/tipos-actividad";
 import { boton, tarjeta } from "@/components/ui/estilos";
+import { PrepararReunionIA } from "@/components/preparar-reunion-ia";
+import { esPreparable } from "@/lib/preparar-reunion";
 import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
 import { formatoFecha as formatearFecha, fechaISO, formatoFechaHora, aInputDatetimeLocal } from "@/lib/fecha-bogota";
 
@@ -684,6 +686,10 @@ function AgendaContent() {
             {a.oportunidad && ` · ${a.oportunidad.titulo}`}
           </p>
         </div>
+        {/* Reuniones y visitas pendientes con cliente u oportunidad: preparación con IA. */}
+        {!a.completada && esPreparable(a.tipo) && (a.empresa || a.oportunidad) && (
+          <PrepararReunionIA actividadId={a.id} titulo={a.titulo} />
+        )}
         <select
           value={a.estado}
           onChange={(e) => cambiarEstado(a.id, e.target.value)}
