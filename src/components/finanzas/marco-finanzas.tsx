@@ -9,6 +9,9 @@ import { PestanasFinanzas } from "./pestanas-finanzas";
 export function MarcoFinanzas({ licencia, children }: { licencia: ResumenLicencia; children: React.ReactNode }) {
   return (
     <div className="space-y-6">
+      {/* Título y pestañas quedan fijos arriba al hacer scroll en pantallas
+          anchas, como en Dashboard y Reportes; en el celular no se fijan. */}
+      <div className="space-y-4 sm:sticky sm:top-0 sm:z-20 sm:-mt-8 sm:bg-slate-50 sm:pt-4 sm:pb-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900">
@@ -23,6 +26,7 @@ export function MarcoFinanzas({ licencia, children }: { licencia: ResumenLicenci
         {licencia.estado === "VENCIDA" && <span className={insignia("alerta")}>Licencia vencida · solo lectura</span>}
       </div>
       <PestanasFinanzas />
+      </div>
       {licencia.estado === "VENCIDA" && licencia.hasta && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           La licencia venció el {formatoDia(licencia.hasta)}. Puede consultar su información, pero no modificarla.{" "}
