@@ -141,22 +141,27 @@ export default async function AsistenteIAPage() {
 
   return (
     <div className="flex flex-col gap-5">
+      {/* En pantallas anchas el encabezado queda fijo arriba al hacer scroll,
+          como en Dashboard y Reportes; la franja del color de la página tapa
+          lo que pasa por detrás. En el celular no se fija (ocuparía media pantalla). */}
+      <div className="sm:sticky sm:top-0 sm:z-20 sm:-mt-8 sm:bg-slate-50 sm:pt-4">
       <header
-        className="relative overflow-hidden rounded-3xl bg-brand-950 px-6 py-6 sm:px-7 text-white flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between"
+        className="relative overflow-hidden rounded-3xl bg-brand-950 px-6 py-4 sm:px-7 sm:py-3 text-white shadow-xl flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
         style={{ backgroundImage: "radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px)", backgroundSize: "22px 22px" }}
       >
         <div className="pointer-events-none absolute -right-24 -top-36 h-80 w-80 rounded-full border border-accent-400/30" aria-hidden />
         <div className="relative flex items-center gap-4">
-          <div className="w-14 h-14 shrink-0 rounded-2xl bg-accent-600 flex items-center justify-center">
-            <IconSparkles size={28} stroke={1.75} className="text-white" />
+          <div className="w-11 h-11 shrink-0 rounded-2xl bg-accent-600 flex items-center justify-center">
+            <IconSparkles size={24} stroke={1.75} className="text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight leading-none">Asistente IA</h1>
-            <p className="text-brand-200 text-sm mt-1.5">Todo lo que la IA puede hacer por tu equipo, en un solo lugar.</p>
+            <h1 className="text-2xl font-extrabold tracking-tight leading-none">Asistente IA</h1>
+            <p className="text-brand-200 text-sm mt-1">Todo lo que la IA puede hacer por tu equipo, en un solo lugar.</p>
           </div>
         </div>
         <UsoMeter mes={MESES[mes]} renovacion={`1 de ${MESES[(mes + 1) % 12]}${mes === 11 ? ` de ${anio + 1}` : ""}`} />
       </header>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Preguntar ejemplos={EJEMPLOS} />

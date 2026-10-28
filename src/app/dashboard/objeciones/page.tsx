@@ -77,8 +77,10 @@ export default function ObjecionesPage() {
 
   return (
     <div className="max-w-4xl">
-      {/* Encabezado */}
-      <div className="mb-6 rounded-2xl bg-gradient-to-br from-brand-800 via-brand-900 to-brand-950 px-6 py-5 text-white">
+      {/* Encabezado. En pantallas anchas queda fijo arriba al hacer scroll,
+          como en Dashboard y Reportes; en el celular no se fija. */}
+      <div className="mb-6 sm:sticky sm:top-0 sm:z-20 sm:-mt-8 sm:bg-slate-50 sm:pt-4">
+      <div className="rounded-2xl bg-gradient-to-br from-brand-800 via-brand-900 to-brand-950 px-6 py-4 text-white shadow-xl sm:py-3">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold flex items-center gap-2"><IconMessageChatbot size={22} stroke={1.75} /> Manejo de objeciones</h1>
@@ -92,6 +94,7 @@ export default function ObjecionesPage() {
             </button>
           )}
         </div>
+      </div>
       </div>
 
       {error && <p className="mb-4 text-sm text-red-500 px-1">{error}</p>}
