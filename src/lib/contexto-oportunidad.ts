@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { formatoDia, formatoFecha } from "@/lib/fecha-bogota";
 import { mapaATexto } from "@/lib/decisores";
 import { METODOLOGIAS, metodologiaDe } from "@/lib/metodologias-venta";
+import { analisisATexto } from "@/lib/analisis-cliente";
 import type { EtapaOportunidad } from "@prisma/client";
 
 const fmt = (v: unknown) =>
@@ -65,7 +66,7 @@ export async function contextoOportunidad(
   });
   if (!op) return null;
 
-  const [tenant, guia, historial] = await Promise.all([
+  const [tenant, guia, historial, analisis] = await Promise.all([
     prisma.tenant.findUnique({ where: { id: tenantId }, select: { metodologiaVentas: true } }),
     prisma.objecion.findMany({
       where: { tenantId, activa: true }, orderBy: { orden: "asc" }, take: 25,
@@ -78,6 +79,9 @@ export async function contextoOportunidad(
           select: { titulo: true, etapa: true, valor: true, motivoPerdida: true },
         })
       : Promise.resolve([]),
+    op.empresaId
+      ? prisma.analisisCliente.findFirst({ where: { tenantId, empresaId: op.empresaId } })
+      : Promise.resolve(null),
   ]);
   const metodologia = METODOLOGIAS[metodologiaDe(tenant?.metodologiaVentas)];
 
@@ -133,6 +137,8 @@ export async function contextoOportunidad(
     d.push(`\nHISTORIAL CON ESTE CLIENTE:`);
     for (const h of historial) d.push(`- ${h.titulo.slice(0, 150)} · ${h.etapa === "GANADA" ? "ganada" : "perdida"}${h.valor ? ` · ${fmt(h.valor)}` : ""}${h.motivoPerdida ? ` · motivo: ${h.motivoPerdida.slice(0, 150)}` : ""}`);
   }
+
+  if (analisis) d.push(...analisisATexto(analisis));
 
   d.push(`\nMETODOLOGÍA DE VENTAS DEL EQUIPO: ${metodologia.label} — ${metodologia.enfoque}`);
   if (guia.length) {
