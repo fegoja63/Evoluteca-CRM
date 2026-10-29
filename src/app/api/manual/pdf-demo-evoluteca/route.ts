@@ -87,7 +87,7 @@ function PageHeader({ base }: { base: string }) {
 }
 function Footer() {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.12"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.13"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -346,6 +346,7 @@ export async function GET() {
       React.createElement(Paso, { n: 15, titulo: "Captura externa de leads (API)", desc: "En Configuración > Captura externa de leads verás la clave ya generada. Es la que usaría un formulario web o una automatización de WhatsApp/Ads para crear leads solos.", esperado: "Una clave (API key) y la dirección del servicio; cada lead entrante crea automáticamente cliente, contacto y oportunidad en el Pipeline." }),
       React.createElement(Paso, { n: 16, titulo: "Notificaciones automáticas por email", desc: "En Configuración revisa el bloque de notificaciones: recordatorios de actividades y avisos de cotizaciones sin respuesta que el sistema envía solo.", esperado: "Interruptores para activar/desactivar los correos automáticos." }),
       React.createElement(Paso, { n: 17, titulo: "Papelera y restaurar", desc: "Ve a Papelera. Todo lo que se elimina cae aquí primero y se puede restaurar. Borra un registro de prueba y luego recupéralo.", esperado: "El elemento borrado aparece en Papelera con la opción de restaurarlo — nada se pierde por error." }),
+      React.createElement(Paso, { n: 18, titulo: "Metodología de ventas", desc: "En Configuración › Metodología de ventas elige el enfoque con el que responde el Coach de objeciones: Consultiva (por defecto), SPIN Selling, Challenger o Venta de valor. Cada opción explica cuándo conviene.", esperado: "La opción elegida queda marcada y aplica de inmediato a todo el equipo; solo el administrador puede cambiarla. Pruébala en el Coach (capítulo 9, paso 14)." }),
       React.createElement(Wow, { titulo: "Por qué importa" }, "El pipeline configurable hace que el CRM hable el idioma de tu empresa. La captura externa de leads elimina la digitación manual. Y la papelera te da una red de seguridad frente a borrados accidentales."),
     ),
 
@@ -472,7 +473,17 @@ export async function GET() {
       React.createElement(LI, null, "Clientes: pestañas Todos, Mis clientes y 'Sin vendedor'; la columna Datos muestra qué tan completa está cada ficha, y '+ Asignar' le pone vendedor desde la misma lista."),
       React.createElement(LI, null, "Cotizaciones: los filtros 'Vencidas' y 'Vencen en 7 días' junto al buscador muestran solo las que hay que renovar o cerrar."),
       React.createElement(LI, null, "Datos > Importar desde Excel: carga masiva que crea clientes, contactos y oportunidades vinculados de un archivo."),
+      React.createElement(LI, null, "Objeciones: la pestaña Objeciones trae la guía del equipo (objeción, respuesta recomendada y lo que conviene evitar). En la ficha de una oportunidad, panel derecho, el Coach de objeciones con IA la usa para responder (capítulo 9, paso 14)."),
       React.createElement(Tip, null, "En Datos puedes probar la importación con un Excel pequeño. El sistema evita duplicar si vuelves a importar el mismo archivo."),
+
+      React.createElement(H2, null, "8.6 Gerente financiero (módulo de pago)"),
+      React.createElement(P, null, "Esta cuenta tiene el módulo activo con datos de ejemplo: 12 meses de estado de resultados (octubre 2025 a septiembre 2026) y el balance al 30 de septiembre de 2026. Lo ven el administrador y el gerente, en el grupo Finanzas del menú."),
+      React.createElement(LI, null, "Resumen: ventas del último mes contra el anterior, margen EBITDA, utilidad neta y cuántos días alcanza la caja, con la alerta de caja arriba."),
+      React.createElement(LI, null, "Caja proyectada: el saldo día a día durante 13 semanas, con y sin negocios nuevos del Pipeline, el calendario de obligaciones y el simulador '¿qué pasa si…?' (cobros más lentos, contratar a alguien, vender menos)."),
+      React.createElement(LI, null, "Estados financieros e indicadores: ventas, costos y margen mes a mes, y los indicadores con su lectura."),
+      React.createElement(LI, null, "Rentabilidad por cliente: quién te deja más margen, no solo quién te compra más."),
+      React.createElement(LI, null, "Gerente IA: pulsa 'Diagnóstico del mes' o hazle una pregunta (por ejemplo '¿Puedo contratar a una persona más?'). Las cifras las calcula el sistema; la IA las explica y propone qué hacer primero."),
+      React.createElement(Nota, null, "Es un módulo de pago que Evoluteca habilita por licencia. El detalle de cada pantalla está en el capítulo 11 del Manual de Usuario."),
     ),
 
     // ── CAPÍTULO 9: IA + CAPÍTULO 10: MÓVIL ──
@@ -490,11 +501,12 @@ export async function GET() {
       React.createElement(Paso, { n: 7, titulo: "Revisor de propuestas", desc: "Abre una cotización en Borrador y, en la tarjeta 'Revisar propuesta antes de enviar', pulsa 'Revisar propuesta'.", esperado: "Chequeos automáticos (margen, descuentos frente al catálogo, vigencia, correo) y un veredicto de la IA —Lista, Conviene ajustar o No la envíe todavía— con observaciones concretas." }),
       React.createElement(Paso, { n: 8, titulo: "Oportunidades de crecimiento", desc: "Abre un cliente que ya tenga negocios ganados, ve a la pestaña Resumen y en 'Oportunidades de crecimiento' pulsa 'Sugerir con IA'.", esperado: "Hasta 3 sugerencias de qué más venderle (con su razón y valor estimado) y el botón 'Crear oportunidad con esto', que la deja en Prospecto." }),
       React.createElement(Paso, { n: 9, titulo: "Informe ejecutivo mensual", desc: "Entra a 'Informe ejecutivo mensual' (desde el Asistente IA) y genéralo.", esperado: "El cierre del mes anterior con sus tendencias, redactado y listo para presentar en la junta." }),
-      React.createElement(P, null, "Además de la vitrina, cuatro asistentes viven donde se trabaja el negocio:"),
+      React.createElement(P, null, "Además de la vitrina, cinco asistentes viven donde se trabaja el negocio:"),
       React.createElement(Paso, { n: 10, titulo: "Plan para ganar", desc: "Abre una oportunidad en Cotización o Negociación y, en la pestaña Resumen, pulsa 'Armar plan con IA'.", esperado: "Calificación alta/media/baja por criterio con su porqué, hasta 3 riesgos con la pregunta para aclararlos, qué decirle a cada decisor y próximos pasos con botón 'Agendar' (abre el agendador ya lleno)." }),
       React.createElement(Paso, { n: 11, titulo: "Preparar reunión", desc: "En la Agenda, en una reunión pendiente ligada a un cliente, pulsa 'Preparar'.", esperado: "Objetivo, agenda de máximo 3 puntos, quiénes deben estar, preguntas pendientes, qué llevar y la invitación para el cliente con botón 'Copiar'." }),
       React.createElement(Paso, { n: 12, titulo: "Correo de seguimiento", desc: "Guarda una minuta con IA y, en la minuta, pulsa 'Correo de seguimiento'.", esperado: "Un borrador de máximo 120 palabras que confirma el próximo paso, sin los riesgos internos, con el destinatario puesto y los botones 'Enviar desde el CRM' y 'Copiar'. No lo envíes a direcciones reales del demo." }),
       React.createElement(Paso, { n: 13, titulo: "Análisis del negocio del cliente", desc: "Abre un cliente, pestaña Resumen, y en 'Análisis del negocio del cliente' pulsa 'Analizar con IA'. Sube un PDF de su informe anual o presentación, o pega una noticia inventada sobre sus planes.", esperado: "Situación, desafíos, objetivos, plazo, cómo mide el éxito, dónde podemos ayudar y preguntas para validar. Queda guardado: arma después el Plan para ganar de una oportunidad de ese cliente y verás que lo tiene en cuenta." }),
+      React.createElement(Paso, { n: 14, titulo: "Coach de objeciones", desc: "Abre una oportunidad y, en el panel derecho, escribe en el Coach de objeciones lo que te dijo el cliente (por ejemplo 'Me parece muy caro para lo que necesitamos') o elige una objeción de la guía.", esperado: "Cuatro partes: la respuesta sugerida, por qué funciona, qué falta calificar del negocio (Presupuesto, Quién decide, Prioridad o momento, Necesidad o dolor o Competencia) y una pregunta para destrabarlo, con el enfoque de la metodología elegida en Configuración. Si la objeción se parece a una de la guía, lo dice." }),
       React.createElement(Nota, null, "Todas las funciones de IA descuentan del mismo cupo mensual (según tu plan puede ser ilimitado o con tope). Cada panel muestra cuánto llevas consumido, para que el uso sea siempre transparente."),
       React.createElement(Wow, { titulo: "Por qué importa" }, "La IA no reemplaza al vendedor: le ahorra lo tedioso. Prepara el contexto de una cuenta, el estado del pipeline, la lectura de tus reportes, la respuesta a una pregunta y hasta el correo de una cotización —en segundos y solo con los datos que ya viven en tu CRM."),
 
@@ -524,6 +536,8 @@ export async function GET() {
       React.createElement(Check, null, "Exploré Reportes: embudo, metas, top clientes y motivos de pérdida."),
       React.createElement(Check, null, "Abrí el Asistente IA y probé varias funciones (resumen de cliente, brief del pipeline, análisis de tendencias, pregúntale a tus datos, redactor de correos, revisor de propuestas, oportunidades de crecimiento e informe mensual)."),
       React.createElement(Check, null, "Armé el Plan para ganar de una oportunidad y agendé uno de sus pasos; preparé una reunión desde la Agenda y redacté el correo de seguimiento de una minuta, y analicé el negocio de un cliente con un documento."),
+      React.createElement(Check, null, "Elegí una metodología de ventas y probé el Coach de objeciones en una oportunidad."),
+      React.createElement(Check, null, "Recorrí el Gerente financiero: resumen, caja proyectada con el simulador y el diagnóstico del Gerente IA."),
       React.createElement(Check, null, "Abrí el CRM en el celular."),
 
       React.createElement(H1, null, "Preguntas frecuentes"),
