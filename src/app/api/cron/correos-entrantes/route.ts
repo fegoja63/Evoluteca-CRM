@@ -9,6 +9,11 @@ import { escapeHtml } from "@/lib/html";
 export const dynamic = "force-dynamic";
 // La conexión IMAP + parseo de varios mensajes puede tardar; se pide margen.
 export const maxDuration = 120;
+// Presupuesto para recorrer el buzón: bastante por debajo de maxDuration para
+// terminar limpio (soltar el lock, cerrar sesión, responder). Lo que no alcance
+// queda sin leer y lo toma la próxima corrida. El 2026-10-29 una corrida pasó
+// de 120 s y Vercel la cortó (504) a mitad del lote.
+const PRESUPUESTO_MS = 90_000;
 
 const BASE_URL = process.env.NEXTAUTH_URL ?? "https://evoluteca-crm-six.vercel.app";
 const MAX_CUERPO = 50_000; // evita filas gigantes ante correos con historial largo
@@ -55,11 +60,18 @@ export async function GET(req: Request) {
     secure: true,
     auth: { user: ingestBase, pass: imapPass },
     logger: false,
+    // Si Gmail no responde, mejor fallar rápido y reintentar en la próxima
+    // corrida que consumir todo el tiempo de la función.
+    connectionTimeout: 20_000,
+    greetingTimeout: 15_000,
+    socketTimeout: 60_000,
   });
+  const inicio = Date.now();
 
   let procesados = 0;
   let vinculados = 0;
   let reenviados = 0;
+  let pendientes = 0;
   const incidencias: string[] = [];
 
   try {
@@ -73,7 +85,11 @@ export async function GET(req: Request) {
     // Solo lo no leído; cada mensaje procesado se marca leído para no repetirlo.
     const uids = (await client.search({ seen: false }, { uid: true })) || [];
 
-    for (const uid of uids) {
+    for (const [i, uid] of uids.entries()) {
+      if (Date.now() - inicio > PRESUPUESTO_MS) {
+        pendientes = uids.length - i; // siguen sin leer: los toma la próxima corrida
+        break;
+      }
       procesados++;
       try {
         const msg = await client.fetchOne(String(uid), { source: true }, { uid: true });
@@ -98,6 +114,21 @@ export async function GET(req: Request) {
           incidencias.push(`uid ${uid}: token ${token} sin correo original`);
           await client.messageFlagsAdd(String(uid), ["\\Seen"], { uid: true });
           continue;
+        }
+
+        // Evita duplicar si una corrida anterior lo guardó pero no alcanzó a
+        // marcarlo leído (p. ej. Vercel la cortó por tiempo): no se guarda ni se
+        // reenvía otra vez, solo se marca leído.
+        if (parsed.messageId) {
+          const yaRegistrado = await prisma.correoRegistrado.findFirst({
+            where: { tenantId: original.tenantId, direccion: "RECIBIDO", proveedorMessageId: parsed.messageId },
+            select: { id: true },
+          });
+          if (yaRegistrado) {
+            incidencias.push(`uid ${uid}: ya estaba registrado (no se duplicó)`);
+            await client.messageFlagsAdd(String(uid), ["\\Seen"], { uid: true });
+            continue;
+          }
         }
 
         const de = parsed.from?.value[0]?.address ?? "desconocido";
@@ -162,5 +193,5 @@ export async function GET(req: Request) {
     await client.logout().catch(() => {});
   }
 
-  return NextResponse.json({ procesados, vinculados, reenviados, incidencias });
+  return NextResponse.json({ procesados, vinculados, reenviados, pendientes, incidencias });
 }
