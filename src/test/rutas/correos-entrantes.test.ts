@@ -2,7 +2,9 @@
  * Cron de correos entrantes (/api/cron/correos-entrantes): una respuesta ya
  * registrada no se duplica ni se reenvía otra vez, y el lote respeta un
  * presupuesto de tiempo (lo que no alcanza queda sin leer para la próxima
- * corrida). El buzón (IMAP) y Resend se simulan; el correo se parsea de verdad.
+ * corrida). Si Gmail deja de responder en cualquier paso, la función responde
+ * igual antes del corte de Vercel. El buzón (IMAP) y Resend se simulan; el
+ * correo se parsea de verdad.
  */
 import { describe, it, expect, beforeAll, beforeEach, vi, afterEach } from "vitest";
 import { A, sembrar, sembrarSiHizoFalta } from "../sembrar";
@@ -12,18 +14,32 @@ const imap = vi.hoisted(() => ({
   uids: [] as number[],
   fuentes: new Map<number, string>(),
   leidos: [] as string[],
+  // Paso en el que Gmail "se cuelga" (la promesa nunca responde).
+  colgar: null as null | "connect" | "search" | number,
+  cerrada: false,
+  logout: false,
 }));
+const nunca = () => new Promise<never>(() => {});
 vi.mock("imapflow", () => {
   class ImapFlow {
-    async connect() {}
+    async connect() { if (imap.colgar === "connect") return nunca(); }
     async getMailboxLock() { return { release() {} }; }
-    async search() { return imap.uids; }
-    async fetchOne(uid: string) { return { source: Buffer.from(imap.fuentes.get(Number(uid)) ?? "") }; }
+    async search() { if (imap.colgar === "search") return nunca(); return imap.uids; }
+    async fetchOne(uid: string) {
+      if (imap.colgar === Number(uid)) return nunca();
+      return { source: Buffer.from(imap.fuentes.get(Number(uid)) ?? "") };
+    }
     async messageFlagsAdd(uid: string) { imap.leidos.push(uid); }
-    async logout() {}
+    async logout() { imap.logout = true; }
+    close() { imap.cerrada = true; }
   }
   return { ImapFlow };
 });
+// Topes cortos para que las pruebas de "Gmail colgado" tarden milisegundos.
+vi.mock("@/lib/correo-inbound", async (original) => ({
+  ...(await original<typeof import("@/lib/correo-inbound")>()),
+  TOPES_CORREO: { lote: 60_000, conexion: 50, buzon: 50, descarga: 50, aviso: 50, marcarLeido: 50, cierre: 50 },
+}));
 const enviar = vi.hoisted(() => vi.fn(async () => ({ error: null })));
 vi.mock("resend", () => {
   class Resend { emails = { send: enviar }; }
@@ -62,6 +78,7 @@ beforeEach(async () => {
   vi.stubEnv("INGEST_IMAP_PASSWORD", "clave");
   vi.stubEnv("RESEND_API_KEY", "re_prueba");
   imap.uids = []; imap.fuentes.clear(); imap.leidos = [];
+  imap.colgar = null; imap.cerrada = false; imap.logout = false;
   enviar.mockClear();
   // El correo ENVIADO sembrado de A pasa a ser el original del hilo.
   await prisma.correoRegistrado.update({ where: { id: A.correo, tenantId: A.tenantId }, data: { tokenHilo: TOKEN } });
@@ -111,6 +128,36 @@ describe("correos entrantes", () => {
     expect(status).toBe(200);
     expect(cuerpo).toMatchObject({ procesados: 1, pendientes: 2 });
     expect(imap.leidos).toEqual(["1"]);
+  });
+
+  it("si Gmail no responde al conectar, devuelve 502 enseguida y cierra la conexión", async () => {
+    imap.colgar = "connect";
+    const { status, cuerpo } = await llamarConSecreto();
+    expect(status).toBe(502);
+    expect(JSON.stringify(cuerpo)).toContain("conexión: sin respuesta");
+    expect(imap.cerrada).toBe(true);
+  });
+
+  it("si la búsqueda en el buzón no responde, devuelve 502 y cierra la conexión", async () => {
+    imap.colgar = "search";
+    const { status, cuerpo } = await llamarConSecreto();
+    expect(status).toBe(502);
+    expect(JSON.stringify(cuerpo)).toContain("buscar no leídos: sin respuesta");
+    expect(imap.cerrada).toBe(true);
+  });
+
+  it("si una descarga se cuelga, corta el lote: lo hecho queda, el resto sin leer y no espera el cierre de sesión", async () => {
+    imap.uids = [1, 2, 3];
+    for (const uid of imap.uids) imap.fuentes.set(uid, respuestaCruda(`resp-${uid}@cliente`));
+    imap.colgar = 2;
+
+    const { status, cuerpo } = await llamarConSecreto();
+    expect(status).toBe(200);
+    expect(cuerpo).toMatchObject({ procesados: 2, vinculados: 1, pendientes: 1 });
+    expect(JSON.stringify(cuerpo)).toContain("descargar mensaje: sin respuesta");
+    expect(imap.leidos).toEqual(["1"]);
+    expect(imap.cerrada).toBe(true);
+    expect(imap.logout).toBe(false);
   });
 });
 

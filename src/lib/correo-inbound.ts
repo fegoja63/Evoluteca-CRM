@@ -62,3 +62,39 @@ export function extraerToken(direcciones: string[], ingestBase: string): string 
   }
   return null;
 }
+
+/**
+ * Topes de tiempo del cron de correos entrantes (ms). Vercel corta la función a
+ * los 120 s (maxDuration) y responde 504; el 2026-10-29 y el 2026-11-05 Gmail
+ * respondió lento y pasó. Cada paso que espera a Gmail o a Resend tiene su
+ * propio tope, y solo se empieza un mensaje nuevo dentro del presupuesto del
+ * lote, así que la suma queda por debajo de 120 s:
+ *   conexión 30 + buzón 15 (dentro del lote de 60) + último mensaje
+ *   (descarga 15 + aviso 10 + marcar leído 5) + cierre 5 ≈ 95 s.
+ * Lo que no alcanza queda sin leer y lo toma la próxima corrida.
+ */
+export const TOPES_CORREO = {
+  lote: 60_000,
+  conexion: 30_000,
+  buzon: 15_000,
+  descarga: 15_000,
+  aviso: 10_000,
+  marcarLeido: 5_000,
+  cierre: 5_000,
+};
+
+/** Error de un paso que no respondió a tiempo. */
+export class TopeExcedido extends Error {}
+
+/** Espera la promesa hasta `ms`; si no llega, falla con TopeExcedido. */
+export function conTope<T>(promesa: Promise<T>, ms: number, paso: string): Promise<T> {
+  // Si el tope gana, la operación original puede fallar después (p. ej. al
+  // cerrar la conexión): se atiende aquí para que no quede como rechazo no
+  // manejado, que en Node puede tumbar el proceso.
+  promesa.catch(() => {});
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const limite = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new TopeExcedido(`${paso}: sin respuesta en ${Math.round(ms / 1000)} s`)), ms);
+  });
+  return Promise.race([promesa, limite]).finally(() => clearTimeout(timer));
+}
