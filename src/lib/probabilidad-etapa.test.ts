@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { probabilidadDeEtapa, esEtapaCerrada, PROBABILIDAD_ETAPA_DEFECTO } from "./probabilidad-etapa";
 
 describe("probabilidadDeEtapa", () => {
-  it("usa los valores de fábrica 10 · 20 · 50 · 75", () => {
-    expect(["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"].map(e => probabilidadDeEtapa(e))).toEqual([10, 20, 50, 75]);
+  it("usa los valores de fábrica 10 · 20 · 25 · 75", () => {
+    expect(["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION"].map(e => probabilidadDeEtapa(e))).toEqual([10, 20, 25, 75]);
   });
 
   it("usa la configurada por el tenant si la hay (incluido 0)", () => {

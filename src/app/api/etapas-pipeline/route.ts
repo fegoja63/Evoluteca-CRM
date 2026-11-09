@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { esEtapaCerrada, probabilidadDeEtapa } from "@/lib/probabilidad-etapa";
+import { esEtapaCerrada, probabilidadDeEtapa, PROBABILIDAD_ETAPA_DEFECTO, type EtapaOportunidad } from "@/lib/probabilidad-etapa";
 
 // Los 6 valores que puede tener Oportunidad.etapa (enum EtapaOportunidad) no
 // cambian nunca — lo único configurable por tenant es el nombre visible y el
@@ -73,7 +73,9 @@ export async function PATCH(request: Request) {
       data: {
         nombre: e.nombre.trim(),
         orden: e.orden,
-        ...(e.probabilidad !== undefined && !esEtapaCerrada(keyDe.get(e.id) ?? "") ? { probabilidad: e.probabilidad } : {}),
+        ...(e.probabilidad !== undefined && !esEtapaCerrada(keyDe.get(e.id) ?? "")
+          ? { probabilidad: guardable(keyDe.get(e.id) ?? "", e.probabilidad) }
+          : {}),
       },
     }))
   );
@@ -84,4 +86,11 @@ export async function PATCH(request: Request) {
 
 function conProbabilidad<T extends { key: string; probabilidad: number | null }>(etapas: T[]) {
   return etapas.map(e => ({ ...e, probabilidad: probabilidadDeEtapa(e.key, e.probabilidad) }));
+}
+
+// La pantalla manda el % de todas las etapas en cada guardado (aunque solo se
+// haya renombrado una). Si es el de fábrica se guarda null, para que la etapa
+// siga al de fábrica si este cambia en el futuro, en vez de quedar congelada.
+function guardable(key: string, probabilidad: number): number | null {
+  return PROBABILIDAD_ETAPA_DEFECTO[key as EtapaOportunidad] === probabilidad ? null : probabilidad;
 }

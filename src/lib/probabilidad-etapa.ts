@@ -14,7 +14,7 @@ export type EtapaOportunidad = "PROSPECTO" | "CALIFICADO" | "PROPUESTA" | "NEGOC
 export const PROBABILIDAD_ETAPA_DEFECTO: Record<EtapaOportunidad, number> = {
   PROSPECTO: 10,
   CALIFICADO: 20,
-  PROPUESTA: 50,
+  PROPUESTA: 25,
   NEGOCIACION: 75,
   GANADA: 100,
   PERDIDA: 0,
