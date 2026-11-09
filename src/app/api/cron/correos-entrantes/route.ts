@@ -3,17 +3,17 @@ import { ImapFlow } from "imapflow";
 import { simpleParser, type ParsedMail } from "mailparser";
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
-import { extraerToken } from "@/lib/correo-inbound";
+import { extraerToken, conTope, TopeExcedido, TOPES_CORREO } from "@/lib/correo-inbound";
 import { escapeHtml } from "@/lib/html";
 
 export const dynamic = "force-dynamic";
 // La conexión IMAP + parseo de varios mensajes puede tardar; se pide margen.
 export const maxDuration = 120;
-// Presupuesto para recorrer el buzón: bastante por debajo de maxDuration para
-// terminar limpio (soltar el lock, cerrar sesión, responder). Lo que no alcance
-// queda sin leer y lo toma la próxima corrida. El 2026-10-29 una corrida pasó
-// de 120 s y Vercel la cortó (504) a mitad del lote.
-const PRESUPUESTO_MS = 90_000;
+// Cada paso que espera a Gmail o a Resend tiene su tope y solo se empieza un
+// mensaje dentro del presupuesto del lote (ver TOPES_CORREO): así la función
+// siempre responde antes de maxDuration. El 2026-10-29 y el 2026-11-05 Gmail
+// respondió lento y Vercel la cortó (504); antes el presupuesto solo se miraba
+// entre mensajes y la conexión, la búsqueda o una descarga podían colgarse.
 
 const BASE_URL = process.env.NEXTAUTH_URL ?? "https://evoluteca-crm-six.vercel.app";
 const MAX_CUERPO = 50_000; // evita filas gigantes ante correos con historial largo
@@ -74,25 +74,39 @@ export async function GET(req: Request) {
   let pendientes = 0;
   const incidencias: string[] = [];
 
+  // Cierre forzado cuando Gmail dejó de responder: no se espera el logout.
+  const cerrar = () => { try { client.close(); } catch { /* ya cerrada */ } };
+  const marcarLeido = (uid: number) =>
+    conTope(client.messageFlagsAdd(String(uid), ["\\Seen"], { uid: true }), TOPES_CORREO.marcarLeido, "marcar leído");
+
   try {
-    await client.connect();
+    await conTope(client.connect(), TOPES_CORREO.conexion, "conexión");
   } catch (e) {
+    cerrar();
     return NextResponse.json({ error: `No se pudo conectar al buzón de ingest: ${e instanceof Error ? e.message : String(e)}` }, { status: 502 });
   }
 
-  const lock = await client.getMailboxLock("INBOX");
+  let lock: Awaited<ReturnType<typeof client.getMailboxLock>>;
+  let uids: number[];
   try {
+    lock = await conTope(client.getMailboxLock("INBOX"), TOPES_CORREO.buzon, "abrir buzón");
     // Solo lo no leído; cada mensaje procesado se marca leído para no repetirlo.
-    const uids = (await client.search({ seen: false }, { uid: true })) || [];
+    uids = (await conTope(client.search({ seen: false }, { uid: true }), TOPES_CORREO.buzon, "buscar no leídos")) || [];
+  } catch (e) {
+    cerrar();
+    return NextResponse.json({ error: `El buzón de ingest no respondió: ${e instanceof Error ? e.message : String(e)}` }, { status: 502 });
+  }
 
+  let colgado = false;
+  try {
     for (const [i, uid] of uids.entries()) {
-      if (Date.now() - inicio > PRESUPUESTO_MS) {
+      if (Date.now() - inicio > TOPES_CORREO.lote) {
         pendientes = uids.length - i; // siguen sin leer: los toma la próxima corrida
         break;
       }
       procesados++;
       try {
-        const msg = await client.fetchOne(String(uid), { source: true }, { uid: true });
+        const msg = await conTope(client.fetchOne(String(uid), { source: true }, { uid: true }), TOPES_CORREO.descarga, "descargar mensaje");
         if (!msg || !msg.source) { incidencias.push(`uid ${uid}: sin contenido`); continue; }
 
         const parsed = await simpleParser(msg.source);
@@ -100,7 +114,7 @@ export async function GET(req: Request) {
 
         if (!token) {
           incidencias.push(`uid ${uid}: sin token de hilo reconocible`);
-          await client.messageFlagsAdd(String(uid), ["\\Seen"], { uid: true });
+          await marcarLeido(uid);
           continue;
         }
 
@@ -112,7 +126,7 @@ export async function GET(req: Request) {
         });
         if (!original) {
           incidencias.push(`uid ${uid}: token ${token} sin correo original`);
-          await client.messageFlagsAdd(String(uid), ["\\Seen"], { uid: true });
+          await marcarLeido(uid);
           continue;
         }
 
@@ -126,7 +140,7 @@ export async function GET(req: Request) {
           });
           if (yaRegistrado) {
             incidencias.push(`uid ${uid}: ya estaba registrado (no se duplicó)`);
-            await client.messageFlagsAdd(String(uid), ["\\Seen"], { uid: true });
+            await marcarLeido(uid);
             continue;
           }
         }
@@ -163,7 +177,7 @@ export async function GET(req: Request) {
               : original.contactoId
                 ? `${BASE_URL}/dashboard/contactos/${original.contactoId}`
                 : `${BASE_URL}/dashboard`;
-            const { error: errFwd } = await resend.emails.send({
+            const { error: errFwd } = await conTope(resend.emails.send({
               from: "Evoluteca CRM <noreply@evoluteca.com>",
               replyTo: de,
               to: vendedor.email,
@@ -175,22 +189,30 @@ export async function GET(req: Request) {
                 <p style="margin-top:14px;font-size:11px;color:#94a3b8">Puedes responder directamente a este correo: llegará a ${escapeHtml(de)}.</p>
               </div>`,
               text: `Nueva respuesta de ${de}:\n\n${cuerpo}\n\nAbrir en el CRM: ${enlace}`,
-            });
+            }), TOPES_CORREO.aviso, "aviso al vendedor");
             if (errFwd) incidencias.push(`uid ${uid}: reenvío falló — ${errFwd.message}`);
             else reenviados++;
           }
         }
 
-        await client.messageFlagsAdd(String(uid), ["\\Seen"], { uid: true });
+        await marcarLeido(uid);
       } catch (e) {
         // Un mensaje corrupto no debe abortar el lote; se deja sin leer para
         // reintentarlo en la próxima corrida.
         incidencias.push(`uid ${uid}: error — ${e instanceof Error ? e.message : String(e)}`);
+        // Si Gmail o Resend dejaron de responder, seguir solo acumula esperas:
+        // se corta el lote y el resto queda sin leer para la próxima corrida.
+        if (e instanceof TopeExcedido) {
+          colgado = true;
+          pendientes = uids.length - i - 1;
+          break;
+        }
       }
     }
   } finally {
     lock.release();
-    await client.logout().catch(() => {});
+    if (colgado) cerrar();
+    else await conTope(client.logout(), TOPES_CORREO.cierre, "cerrar sesión").catch(cerrar);
   }
 
   return NextResponse.json({ procesados, vinculados, reenviados, pendientes, incidencias });

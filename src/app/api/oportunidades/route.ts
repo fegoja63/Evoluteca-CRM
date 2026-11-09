@@ -5,6 +5,7 @@ import { filtroOwner } from "@/lib/permisos";
 import { crearOportunidadSchema } from "@/lib/validations/oportunidades";
 import { parseOrError } from "@/lib/validations/helpers";
 import { dispararAutomatizaciones } from "@/lib/automatizaciones-motor";
+import { esEtapaCerrada, probabilidadDeEtapa, probabilidadPara } from "@/lib/probabilidad-etapa";
 import { elegirProximoPaso, type ActividadPendiente } from "@/lib/proximo-paso";
 
 export async function GET(request: Request) {
@@ -125,15 +126,22 @@ export async function POST(request: Request) {
     if (!contacto) return NextResponse.json({ error: "Contacto no encontrado" }, { status: 400 });
   }
 
+  // Probabilidad: la que mande el formulario o, si no, la de su etapa (Ganada
+  // siempre 100 y Perdida 0).
+  const etapaInicial = etapa || "PROSPECTO";
+  const probabilidadInicial = esEtapaCerrada(etapaInicial)
+    ? probabilidadDeEtapa(etapaInicial)
+    : probabilidad ?? await probabilidadPara(prisma, tenantId, etapaInicial);
+
   const oportunidad = await prisma.oportunidad.create({
     data: {
       titulo: titulo.trim(),
       valor: valor ?? null,
-      etapa: etapa || "PROSPECTO",
+      etapa: etapaInicial,
       notas: notas?.trim() || null,
       empresaId: empresaId || null,
       contactoId: contactoId || null,
-      probabilidad: probabilidad ?? 50,
+      probabilidad: probabilidadInicial,
       fechaCierre: fechaCierre || null,
       salonId: salonId || null,
       sede: sede?.trim() || null,

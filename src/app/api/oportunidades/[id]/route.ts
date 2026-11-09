@@ -7,6 +7,7 @@ import { puedeEliminar, moduloActivo } from "@/lib/permisos";
 import { datosPostventaAlGanar, MODULO_POSTVENTA } from "@/lib/postventa";
 import { operacionAuditoria } from "@/lib/auditoria";
 import { construirExtrasConCampos } from "@/lib/campos-servidor";
+import { esEtapaCerrada, probabilidadDeEtapa, probabilidadPara } from "@/lib/probabilidad-etapa";
 import { dispararAutomatizaciones } from "@/lib/automatizaciones-motor";
 
 export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
@@ -115,6 +116,17 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
   }
 
   const cambioDeEtapa = etapa !== undefined && etapa !== oportunidad.etapa;
+
+  // Probabilidad por etapa: al cambiar de etapa el negocio toma la probabilidad
+  // de la etapa nueva, salvo que la petición traiga otra distinta a la guardada
+  // (el vendedor la afinó a mano en el mismo guardado). Ganada es siempre 100 y
+  // Perdida 0, se mande lo que se mande.
+  const etapaResultante = etapa ?? oportunidad.etapa;
+  if (esEtapaCerrada(etapaResultante)) {
+    if (cambioDeEtapa || probabilidad !== undefined) data.probabilidad = probabilidadDeEtapa(etapaResultante);
+  } else if (cambioDeEtapa && (probabilidad === undefined || probabilidad === oportunidad.probabilidad)) {
+    data.probabilidad = await probabilidadPara(prisma, session.user.tenantId, etapaResultante);
+  }
 
   // Al CERRAR un negocio se fija su fecha de cierre real = el día en que se cierra
   // (hoy), no el día en que se pensaba cerrar. Los reportes ubican el negocio en

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { capturarLeadSchema } from "@/lib/validations/leads";
 import { parseOrError } from "@/lib/validations/helpers";
 import { permitirYRegistrar, obtenerIp } from "@/lib/rate-limit";
+import { probabilidadPara } from "@/lib/probabilidad-etapa";
 import { dispararAutomatizaciones } from "@/lib/automatizaciones-motor";
 
 // Endpoint público para que formularios externos (landing pages, WhatsApp
@@ -108,6 +109,7 @@ export async function POST(request: Request) {
       titulo: parsed.oportunidadTitulo?.trim() || `Lead — ${parsed.empresaNombre.trim()}`,
       valor: parsed.oportunidadValor ?? null,
       etapa: "PROSPECTO",
+      probabilidad: await probabilidadPara(prisma, tenantId, "PROSPECTO"),
       origenLead: parsed.origenLead?.trim() || "Captura externa",
       notas: parsed.notas?.trim() || null,
       empresaId,

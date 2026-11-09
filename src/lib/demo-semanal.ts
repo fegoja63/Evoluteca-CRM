@@ -19,6 +19,7 @@
 
 import type { PrismaClient, TipoActividad, EtapaPostventa } from "@prisma/client";
 import { componentesHoyBogota } from "@/lib/fecha-bogota";
+import { PROBABILIDAD_ETAPA_DEFECTO } from "@/lib/probabilidad-etapa";
 import { fechaEfectiva } from "@/lib/fecha-efectiva";
 
 export const TAG_DEMO = "[demo-auto]";
@@ -492,7 +493,7 @@ export async function refrescarDemoSemanal(
   for (const o of OPORTUNIDADES_PAPELERA) {
     const emp = rnd(empresas);
     await prisma.oportunidad.create({
-      data: { ...o, probabilidad: 30, notas: notaPapelera, tenantId: T, empresaId: emp.id,
+      data: { ...o, probabilidad: PROBABILIDAD_ETAPA_DEFECTO[o.etapa], notas: notaPapelera, tenantId: T, empresaId: emp.id,
         contactoId: emp.contactos.length ? rnd(emp.contactos).id : null,
         creadoBy: vendedorPapelera(), creadoEn: fechaLaboral(-rndInt(20, 60)), eliminadoEn: eliminadoHace() },
     });

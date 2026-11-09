@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import ExcelJS from "exceljs";
 import { excedeTope } from "@/lib/importar-limite";
+import { probabilidadesDelTenant } from "@/lib/probabilidad-etapa";
 import { normalizarEmail } from "@/lib/duplicados";
 
 type MapeoCompleto = {
@@ -226,6 +227,8 @@ export async function POST(request: Request) {
   }
 
   // ── PASO 3: Oportunidades en lote ────────────────────────────
+  // Cada negocio importado toma la probabilidad de su etapa.
+  const probabilidades = await probabilidadesDelTenant(prisma, tenantId);
   const oportunidadesData = filas
     .filter((f) => get(f, "tituloOportunidad"))
     .map((fila) => {
@@ -243,6 +246,7 @@ export async function POST(request: Request) {
       return {
         titulo: get(fila, "tituloOportunidad")!,
         etapa,
+        probabilidad: probabilidades[etapa],
         valor,
         costo,
         fechaEvento,

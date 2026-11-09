@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filtroOwner, moduloActivo } from "@/lib/permisos";
 import { MODULO_POSTVENTA } from "@/lib/postventa";
+import { probabilidadPara } from "@/lib/probabilidad-etapa";
 import { dispararAutomatizaciones } from "@/lib/automatizaciones-motor";
 
 // Crea la OPORTUNIDAD DE RENOVACIÓN de un negocio ganado: un negocio nuevo en
@@ -47,7 +48,7 @@ export async function POST(_req: Request, props: { params: Promise<{ id: string 
         titulo,
         valor: original.valor,
         etapa: "CALIFICADO",
-        probabilidad: 60,
+        probabilidad: await probabilidadPara(tx, tenantId, "CALIFICADO"),
         fechaCierre: original.fechaRenovacion,
         recurrente: true,
         origenRenovacionId: original.id,

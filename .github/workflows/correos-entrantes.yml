@@ -36,11 +36,19 @@ jobs:
             echo "Falta el secret CRON_SECRET en el repositorio." >&2
             exit 1
           fi
-          codigo=$(curl -sS -o respuesta.json -w "%{http_code}" \
-            -H "Authorization: Bearer $CRON_SECRET" \
-            "$CRM_URL/api/cron/correos-entrantes")
-          echo "HTTP $codigo"
-          cat respuesta.json || true
-          echo ""
-          # 2xx = OK; cualquier otro código marca el run como fallido.
-          [ "$codigo" -ge 200 ] && [ "$codigo" -lt 300 ]
+          llamar() {
+            codigo=$(curl -sS -o respuesta.json -w "%{http_code}" --max-time 150 \
+              -H "Authorization: Bearer $CRON_SECRET" \
+              "$CRM_URL/api/cron/correos-entrantes" || true)
+            echo "HTTP $codigo"
+            cat respuesta.json 2>/dev/null || true
+            echo ""
+            [ "$codigo" -ge 200 ] && [ "$codigo" -lt 300 ]
+          }
+          # Un tropiezo pasajero de Gmail o Vercel no debe disparar la alerta:
+          # se reintenta una vez al minuto. Si falla dos veces seguidas, el run
+          # queda fallido (y GitHub avisa) porque ya no parece pasajero.
+          if llamar; then exit 0; fi
+          echo "Falló el primer intento; se reintenta en 60 s." >&2
+          sleep 60
+          llamar

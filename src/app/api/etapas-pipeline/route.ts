@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { esEtapaCerrada, probabilidadDeEtapa, PROBABILIDAD_ETAPA_DEFECTO, type EtapaOportunidad } from "@/lib/probabilidad-etapa";
 
 // Los 6 valores que puede tener Oportunidad.etapa (enum EtapaOportunidad) no
 // cambian nunca — lo único configurable por tenant es el nombre visible y el
 // orden. Si el tenant no tiene fila (primera vez), se sembra con estos
-// valores por defecto.
+// valores por defecto. Cada etapa tiene además su probabilidad de cierre
+// (null en la base = la de fábrica de src/lib/probabilidad-etapa.ts); se
+// devuelve ya resuelta para que la pantalla no tenga que conocer los valores.
 const DEFAULTS: { key: string; nombre: string; orden: number }[] = [
   { key: "PROSPECTO",   nombre: "Prospecto",   orden: 1 },
   { key: "CALIFICADO",  nombre: "Calificado",  orden: 2 },
@@ -30,7 +33,7 @@ export async function GET() {
     etapas = await prisma.etapaPipeline.findMany({ where: { tenantId }, orderBy: { orden: "asc" } });
   }
 
-  return NextResponse.json(etapas);
+  return NextResponse.json(conProbabilidad(etapas));
 }
 
 // Recibe la lista completa reordenada/renombrada y la reemplaza — más simple
@@ -50,19 +53,44 @@ export async function PATCH(request: Request) {
     if (typeof e.id !== "string" || typeof e.nombre !== "string" || !e.nombre.trim() || typeof e.orden !== "number") {
       return NextResponse.json({ error: "Cada etapa necesita id, nombre y orden" }, { status: 400 });
     }
+    if (e.probabilidad !== undefined && (!Number.isInteger(e.probabilidad) || e.probabilidad < 0 || e.probabilidad > 100)) {
+      return NextResponse.json({ error: "La probabilidad debe ser un número entero de 0 a 100" }, { status: 400 });
+    }
   }
 
   const tenantId = session.user.tenantId;
-  const propias = await prisma.etapaPipeline.findMany({ where: { tenantId }, select: { id: true } });
+  const propias = await prisma.etapaPipeline.findMany({ where: { tenantId }, select: { id: true, key: true } });
   const idsPropios = new Set(propias.map(e => e.id));
   if (!etapas.every(e => idsPropios.has(e.id))) {
     return NextResponse.json({ error: "Alguna etapa no pertenece a tu cuenta" }, { status: 403 });
   }
 
+  // Ganada y Perdida tienen probabilidad fija (100/0): no se guarda la suya.
+  const keyDe = new Map(propias.map(e => [e.id, e.key]));
   await prisma.$transaction(
-    etapas.map(e => prisma.etapaPipeline.update({ where: { id: e.id }, data: { nombre: e.nombre.trim(), orden: e.orden } }))
+    etapas.map(e => prisma.etapaPipeline.update({
+      where: { id: e.id },
+      data: {
+        nombre: e.nombre.trim(),
+        orden: e.orden,
+        ...(e.probabilidad !== undefined && !esEtapaCerrada(keyDe.get(e.id) ?? "")
+          ? { probabilidad: guardable(keyDe.get(e.id) ?? "", e.probabilidad) }
+          : {}),
+      },
+    }))
   );
 
   const actualizadas = await prisma.etapaPipeline.findMany({ where: { tenantId }, orderBy: { orden: "asc" } });
-  return NextResponse.json(actualizadas);
+  return NextResponse.json(conProbabilidad(actualizadas));
+}
+
+function conProbabilidad<T extends { key: string; probabilidad: number | null }>(etapas: T[]) {
+  return etapas.map(e => ({ ...e, probabilidad: probabilidadDeEtapa(e.key, e.probabilidad) }));
+}
+
+// La pantalla manda el % de todas las etapas en cada guardado (aunque solo se
+// haya renombrado una). Si es el de fábrica se guarda null, para que la etapa
+// siga al de fábrica si este cambia en el futuro, en vez de quedar congelada.
+function guardable(key: string, probabilidad: number): number | null {
+  return PROBABILIDAD_ETAPA_DEFECTO[key as EtapaOportunidad] === probabilidad ? null : probabilidad;
 }

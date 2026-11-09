@@ -19,7 +19,7 @@ import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonLista } from "@/components/ui/estados";
 import { METODOLOGIAS, METODOLOGIA_POR_DEFECTO, metodologiaDe, type MetodologiaVentas } from "@/lib/metodologias-venta";
 
-type EtapaPipeline = { id: string; key: string; nombre: string; orden: number; oculta: boolean };
+type EtapaPipeline = { id: string; key: string; nombre: string; orden: number; oculta: boolean; probabilidad: number };
 
 type Modulos = {
   funciones?: boolean;
@@ -155,7 +155,7 @@ export default function ConfiguracionPage() {
     const res = await fetch("/api/etapas-pipeline", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ etapas: nuevasEtapas.map((e, i) => ({ id: e.id, nombre: e.nombre, orden: i + 1 })) }),
+      body: JSON.stringify({ etapas: nuevasEtapas.map((e, i) => ({ id: e.id, nombre: e.nombre, orden: i + 1, probabilidad: e.probabilidad })) }),
     });
     setGuardandoEtapas(false);
     if (!res.ok) {
@@ -169,6 +169,12 @@ export default function ConfiguracionPage() {
 
   function renombrarEtapa(id: string, nombre: string) {
     setEtapas(prev => prev.map(e => e.id === id ? { ...e, nombre } : e));
+  }
+
+  function cambiarProbabilidadEtapa(id: string, valor: string) {
+    const n = Math.round(Number(valor));
+    const probabilidad = Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 0;
+    setEtapas(prev => prev.map(e => e.id === id ? { ...e, probabilidad } : e));
   }
 
   async function toggleOcultarEtapa(etapa: EtapaPipeline) {
@@ -763,6 +769,8 @@ export default function ConfiguracionPage() {
           </div>
           <p className="text-xs text-slate-400 mb-4">
             Cambia el nombre visible de cada etapa y arrástralas para reordenarlas. El orden y los nombres se reflejan en el Pipeline y en Reportes. "Ganada" y "Perdida" no se pueden ocultar; las demás solo si no tienen oportunidades asignadas.
+            <br />
+            El <strong className="font-medium text-slate-500">%</strong> es la probabilidad de cierre que toma un negocio al entrar a esa etapa (el vendedor puede afinarla) y alimenta el pronóstico ponderado. "Ganada" es siempre 100% y "Perdida" 0%. Un cambio aquí aplica a los negocios que se muevan de etapa desde ahora.
           </p>
           <div className="flex flex-col gap-1.5">
             {etapas.map(e => {
@@ -784,6 +792,20 @@ export default function ConfiguracionPage() {
                       className="flex-1 text-sm text-slate-800 outline-none border-b border-transparent focus:border-brand-400 py-0.5"
                     />
                     {e.oculta && <span className="text-xs text-slate-400 shrink-0">Oculta</span>}
+                    {puedeOcultar ? (
+                      <label className="shrink-0 flex items-center gap-1 text-xs text-slate-500" title="Probabilidad de cierre al entrar a esta etapa">
+                        <input
+                          type="number" min={0} max={100} step={5} inputMode="numeric"
+                          aria-label={`Probabilidad de ${e.nombre}`}
+                          value={e.probabilidad}
+                          onChange={ev => cambiarProbabilidadEtapa(e.id, ev.target.value)}
+                          onBlur={() => guardarEtapas(etapas)}
+                          className={campo("sm", "w-16 text-right")}
+                        />%
+                      </label>
+                    ) : (
+                      <span className="shrink-0 w-[4.75rem] text-right text-xs text-slate-400" title="Fija">{e.probabilidad}%</span>
+                    )}
                     {puedeOcultar && (
                       <button onClick={() => toggleOcultarEtapa(e)}
                         className="shrink-0 text-slate-400 hover:text-slate-700 p-1" title={e.oculta ? "Mostrar etapa" : "Ocultar etapa"}>

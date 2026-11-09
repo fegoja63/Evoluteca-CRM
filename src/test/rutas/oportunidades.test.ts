@@ -359,3 +359,47 @@ describe("el guardarrail de Prisma", () => {
     ).resolves.toBeInstanceOf(Array);
   });
 });
+
+describe("probabilidad por etapa", () => {
+  beforeEach(() => comoUsuario(A, "COMERCIAL"));
+
+  async function probabilidadDe(id: string) {
+    const o = await prisma.oportunidad.findFirst({ where: { id, tenantId: A.tenantId }, select: { probabilidad: true } });
+    return o?.probabilidad;
+  }
+
+  it("al crear sin probabilidad toma la de su etapa", async () => {
+    const { status, cuerpo } = await llamar(crear, { body: { titulo: "Negocio calificado", etapa: "CALIFICADO" } });
+    expect(status).toBe(201);
+    expect(await probabilidadDe((cuerpo as { id: string }).id)).toBe(20);
+  });
+
+  it("al crear usa la probabilidad configurada por el tenant", async () => {
+    await prisma.etapaPipeline.update({ where: { id: A.etapaPipeline, tenantId: A.tenantId }, data: { probabilidad: 15 } });
+    const { cuerpo } = await llamar(crear, { body: { titulo: "Prospecto nuevo" } });
+    expect(await probabilidadDe((cuerpo as { id: string }).id)).toBe(15);
+  });
+
+  it("al cambiar de etapa toma la de la etapa nueva", async () => {
+    const { status } = await llamar(editar, { params: { id: A.oportunidadDelComercial }, body: { etapa: "NEGOCIACION" } });
+    expect(status).toBe(200);
+    expect(await probabilidadDe(A.oportunidadDelComercial)).toBe(75);
+  });
+
+  it("respeta la probabilidad afinada a mano en el mismo guardado", async () => {
+    await llamar(editar, { params: { id: A.oportunidadDelComercial }, body: { etapa: "PROPUESTA", probabilidad: 40 } });
+    expect(await probabilidadDe(A.oportunidadDelComercial)).toBe(40);
+  });
+
+  it("sin cambio de etapa, el vendedor puede afinarla", async () => {
+    await llamar(editar, { params: { id: A.oportunidadDelComercial }, body: { probabilidad: 35 } });
+    expect(await probabilidadDe(A.oportunidadDelComercial)).toBe(35);
+  });
+
+  it("Ganada es siempre 100 y Perdida 0, se mande lo que se mande", async () => {
+    await llamar(editar, { params: { id: A.oportunidadDelComercial }, body: { etapa: "GANADA", probabilidad: 30 } });
+    expect(await probabilidadDe(A.oportunidadDelComercial)).toBe(100);
+    await llamar(editar, { params: { id: A.oportunidadDelComercial }, body: { etapa: "PERDIDA", motivoPerdida: "Precio" } });
+    expect(await probabilidadDe(A.oportunidadDelComercial)).toBe(0);
+  });
+});

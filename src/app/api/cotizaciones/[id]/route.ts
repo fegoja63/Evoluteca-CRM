@@ -150,7 +150,7 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
         const tenant = await prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { modulos: true } });
         const postventa = datosPostventaAlGanar(moduloActivo(tenant?.modulos, MODULO_POSTVENTA), op.postventaEtapa);
         await prisma.$transaction([
-          prisma.oportunidad.update({ where: { id: op.id }, data: { etapa: "GANADA", ...postventa } }),
+          prisma.oportunidad.update({ where: { id: op.id }, data: { etapa: "GANADA", probabilidad: 100, ...postventa } }),
           prisma.cambioEtapa.create({
             data: {
               oportunidadId: op.id,
