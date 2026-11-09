@@ -21,6 +21,7 @@ import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonKanban, SkeletonKpis, SkeletonTabla } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
 import { ETAPA_ESTILO as ESTILO_ETAPA } from "@/lib/etapas-color";
+import { probabilidadDeEtapa } from "@/lib/probabilidad-etapa";
 import { formatoFecha, formatoDia } from "@/lib/fecha-bogota";
 
 const MOTIVOS_PERDIDA = [
@@ -124,7 +125,7 @@ const ETAPAS_DEFECTO = [
   { key: "NEGOCIACION", label: "Negociación" },
   { key: "GANADA",      label: "Ganada" },
   { key: "PERDIDA",     label: "Perdida" },
-];
+].map(e => ({ ...e, probabilidad: probabilidadDeEtapa(e.key) }));
 
 const MESES_LABEL: Record<string, number> = {
   ENERO:1, FEBRERO:2, MARZO:3, ABRIL:4, MAYO:5, JUNIO:6,
@@ -151,6 +152,9 @@ export default function PipelinePage() {
   const [ETAPAS, setETAPAS] = useState(
     ETAPAS_DEFECTO.map(e => ({ ...e, ...ETAPA_ESTILO[e.key] }))
   );
+  // Probabilidad que toma un negocio al entrar a una etapa (configurada por el
+  // Administrador); el vendedor la puede afinar después con el control.
+  const probEtapa = (key: string) => probabilidadDeEtapa(key, ETAPAS.find(e => e.key === key)?.probabilidad);
   const [cargando, setCargando]   = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -189,7 +193,7 @@ export default function PipelinePage() {
   const [vista, setVista] = useState<"kanban" | "tabla">("kanban");
   const [orden, setOrden] = useState<{ col: string; dir: "asc" | "desc" }>({ col: "creadoEn", dir: "desc" });
   const [form, setForm] = useState({
-    titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50", fechaCierre: "",
+    titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: String(probEtapa("PROSPECTO")), fechaCierre: "",
     salonId: "", sede: "", fechaEvento: "", horaInicio: "", horaFin: "",
   });
   const [modoContacto, setModoContacto] = useState<"existente" | "nuevo">("existente");
@@ -269,7 +273,9 @@ export default function PipelinePage() {
       setETAPAS(
         data
           .filter((e: { oculta?: boolean }) => !e.oculta)
-          .map((e: { key: string; nombre: string }) => ({ key: e.key, label: e.nombre, ...ETAPA_ESTILO[e.key] }))
+          .map((e: { key: string; nombre: string; probabilidad?: number }) => ({
+            key: e.key, label: e.nombre, probabilidad: probabilidadDeEtapa(e.key, e.probabilidad), ...ETAPA_ESTILO[e.key],
+          }))
       );
     });
   }, []);
@@ -357,7 +363,7 @@ export default function PipelinePage() {
       return;
     }
 
-    setForm({ titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: "50", fechaCierre: "", salonId: "", sede: "", fechaEvento: "", horaInicio: "", horaFin: "" });
+    setForm({ titulo: "", valor: "", etapa: "PROSPECTO", notas: "", empresaId: "", contactoId: "", probabilidad: String(probEtapa("PROSPECTO")), fechaCierre: "", salonId: "", sede: "", fechaEvento: "", horaInicio: "", horaFin: "" });
     setModoContacto("existente");
     setNuevoContactoForm({ nombre: "", email: "", telefono: "", cargo: "" });
     setDisponibilidad(null);
@@ -386,6 +392,7 @@ export default function PipelinePage() {
     setOportunidades(prev => prev.map(o => o.id === id ? {
       ...o,
       etapa,
+      probabilidad: probEtapa(etapa),
       ...(cotizacionNumero ? { extras: { ...(o.extras || {}), "COTIZACION NUMERO": cotizacionNumero } } : {}),
     } : o));
     try {
@@ -406,7 +413,7 @@ export default function PipelinePage() {
     const id = modalPerdidaId;
     const motivoPerdida = motivoPerdidaSel === "Otro" ? otroMotivoPerdida.trim() : motivoPerdidaSel;
     const previas = oportunidades;
-    setOportunidades(prev => prev.map(o => o.id === id ? { ...o, etapa: "PERDIDA", motivoPerdida } : o));
+    setOportunidades(prev => prev.map(o => o.id === id ? { ...o, etapa: "PERDIDA", probabilidad: 0, motivoPerdida } : o));
     setModalPerdidaId(null);
     try {
       const res = await fetch(`/api/oportunidades/${id}`, {
@@ -772,7 +779,7 @@ export default function PipelinePage() {
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Etapa</label>
-              <select value={form.etapa} onChange={e => setForm({...form, etapa: e.target.value})}
+              <select value={form.etapa} onChange={e => setForm({...form, etapa: e.target.value, probabilidad: String(probEtapa(e.target.value))})}
                 className={campo("md", "w-full")}>
                 {ETAPAS.map(et => <option key={et.key} value={et.key}>{et.label}</option>)}
               </select>
@@ -901,7 +908,9 @@ export default function PipelinePage() {
               </label>
               <input type="range" min="0" max="100" step="5" value={form.probabilidad}
                 onChange={e => setForm({...form, probabilidad: e.target.value})}
-                className="w-full accent-red-600" />
+                disabled={form.etapa === "GANADA" || form.etapa === "PERDIDA"}
+                className="w-full accent-red-600 disabled:opacity-50" />
+                <p className="mt-1 text-[11px] text-slate-400">Se pone sola según la etapa; puedes afinarla.</p>
             </div>
             <div>
               <label className="mb-1 block text-xs text-slate-500">Fecha de cierre estimada</label>
