@@ -33,6 +33,7 @@ import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
 import { mapaEtapas } from "@/lib/etapas-color";
+import { probabilidadDeEtapa } from "@/lib/probabilidad-etapa";
 import { formatoFecha, formatoFechaHora, formatoDia, aInputDia } from "@/lib/fecha-bogota";
 
 type Oportunidad = {
@@ -80,7 +81,7 @@ const ETAPAS_DEFECTO = [
   { key: "NEGOCIACION", label: "Negociación" },
   { key: "GANADA",      label: "Ganada" },
   { key: "PERDIDA",     label: "Perdida" },
-];
+].map(e => ({ ...e, probabilidad: probabilidadDeEtapa(e.key) }));
 
 const ETAPA_ORDEN = ["PROSPECTO","CALIFICADO","PROPUESTA","NEGOCIACION","GANADA","PERDIDA"];
 
@@ -220,7 +221,9 @@ export default function OportunidadDetallePage() {
       setETAPAS(
         data
           .filter((e: { oculta?: boolean }) => !e.oculta)
-          .map((e: { key: string; nombre: string }) => ({ key: e.key, label: e.nombre, color: ETAPA_COLOR[e.key] }))
+          .map((e: { key: string; nombre: string; probabilidad?: number }) => ({
+            key: e.key, label: e.nombre, probabilidad: probabilidadDeEtapa(e.key, e.probabilidad), color: ETAPA_COLOR[e.key],
+          }))
       );
     });
   }, []);
@@ -429,7 +432,7 @@ export default function OportunidadDetallePage() {
               </div>
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">Etapa</label>
-                <select value={form.etapa} onChange={e => setForm({...form, etapa: e.target.value})}
+                <select value={form.etapa} onChange={e => setForm({...form, etapa: e.target.value, probabilidad: String(probabilidadDeEtapa(e.target.value, ETAPAS.find(x => x.key === e.target.value)?.probabilidad))})}
                   className={campo("md", "w-full")}>
                   {ETAPAS.map(e => <option key={e.key} value={e.key}>{e.label}</option>)}
                 </select>
@@ -445,7 +448,9 @@ export default function OportunidadDetallePage() {
                 </label>
                 <input type="range" min="0" max="100" step="5" value={form.probabilidad}
                   onChange={e => setForm({...form, probabilidad: e.target.value})}
-                  className="w-full accent-brand-600 mt-2" />
+                  disabled={form.etapa === "GANADA" || form.etapa === "PERDIDA"}
+                  className="w-full accent-brand-600 mt-2 disabled:opacity-50" />
+                <p className="mt-1 text-[11px] text-slate-400">Se pone sola según la etapa; puedes afinarla.</p>
               </div>
               {moduloSalones && (
                 <div className="col-span-2">

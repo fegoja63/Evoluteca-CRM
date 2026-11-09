@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { crearCotizacionSchema } from "@/lib/validations/cotizaciones";
 import { parseOrError } from "@/lib/validations/helpers";
+import { probabilidadPara } from "@/lib/probabilidad-etapa";
 import { valorConImpuestos } from "@/lib/cotizaciones";
 
 export async function GET() {
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
           fechaEvento: fechaEventoDate,
           horaInicio: horaInicio || null,
           horaFin: horaFin || null,
-          probabilidad: 50,
+          probabilidad: await probabilidadPara(tx, tenantId, "PROPUESTA"),
           tenantId,
           creadoBy: session.user.id,
         },

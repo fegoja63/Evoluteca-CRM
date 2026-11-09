@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import ExcelJS from "exceljs";
 import { excedeTope } from "@/lib/importar-limite";
 import { normalizarEmail } from "@/lib/duplicados";
+import { probabilidadesDelTenant } from "@/lib/probabilidad-etapa";
 import { parseMonto } from "@/lib/parse-monto";
 
 type Mapeo = Record<string, string>; // campoDelCRM -> columnaDelExcel
@@ -155,6 +156,8 @@ export async function POST(request: Request) {
     const empresas = await prisma.empresa.findMany({ where: { tenantId }, select: { id: true, nombre: true } });
     const empresaMap = new Map(empresas.map((e) => [e.nombre.toLowerCase(), e.id]));
     const ETAPAS_VALIDAS = ["PROSPECTO", "CALIFICADO", "PROPUESTA", "NEGOCIACION", "GANADA", "PERDIDA"];
+    // Cada negocio importado toma la probabilidad de su etapa.
+    const probabilidades = await probabilidadesDelTenant(prisma, tenantId);
 
     const data = [];
     for (const fila of filas) {
@@ -168,6 +171,7 @@ export async function POST(request: Request) {
       data.push({
         titulo,
         etapa,
+        probabilidad: probabilidades[etapa],
         valor,
         notas: getCol(fila, "notas"),
         extras: getExtras(fila) ?? undefined,
