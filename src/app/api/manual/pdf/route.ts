@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.38"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.39"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -509,7 +509,7 @@ export async function GET() {
           )),
         ),
       ),
-      React.createElement(P, null, "Cada etapa trae su probabilidad de cierre: Prospecto 10%, Calificado 20%, Cotización 50%, Negociación 75%, Ganada 100% y Perdida 0%. Al crear un negocio o moverlo de etapa (arrastrando la tarjeta, con la barra de pasos de la ficha o en Editar) toma la probabilidad de esa etapa. El vendedor puede afinarla con el control \"Probabilidad\" si conoce mejor el caso; si después lo vuelve a mover de etapa, toma la de la etapa nueva. Ganada es siempre 100% y Perdida 0%. Con esta probabilidad se calcula el pronóstico ponderado (valor × probabilidad)."),
+      React.createElement(P, null, "Cada etapa trae su probabilidad de cierre: Prospecto 10%, Calificado 20%, Cotización 25%, Negociación 75%, Ganada 100% y Perdida 0%. Al crear un negocio o moverlo de etapa (arrastrando la tarjeta, con la barra de pasos de la ficha o en Editar) toma la probabilidad de esa etapa. El vendedor puede afinarla con el control \"Probabilidad\" si conoce mejor el caso; si después lo vuelve a mover de etapa, toma la de la etapa nueva. Ganada es siempre 100% y Perdida 0%. Con esta probabilidad se calcula el pronóstico ponderado (valor × probabilidad)."),
       React.createElement(Tip, null, "El nombre visible de cada etapa se puede personalizar (y el orden de las columnas, reordenar) desde Configuración > Etapas del pipeline — ver 9.5. Ahí mismo el Administrador ajusta la probabilidad de cada etapa. El significado de fondo (activa, ganada o perdida) no cambia, solo cómo se ve en pantalla."),
       React.createElement(P, null, "Colores de las etapas: las etapas abiertas usan el azul de la marca, de claro a oscuro según avanzan en el embudo (Prospecto más claro, Negociación más oscuro). Ganada es verde y Perdida gris; el rojo queda reservado para lo vencido o en riesgo. Los mismos colores se usan en el Dashboard, el Pipeline, las fichas, Cotizaciones, Reportes y el correo del resumen mensual."),
       React.createElement(P, null, "Las columnas Ganada y Perdida aparecen compactas: muestran cuántos negocios hay y su valor total, para que el tablero se concentre en los negocios abiertos. Siguen funcionando para cerrar: arrastra una tarjeta hasta Ganada o Perdida igual que antes (al soltar en Perdida se pide el motivo). Para ver los negocios cerrados pulsa \"Ver negocios\"; para volver a la vista compacta, \"Compactar\". El CRM recuerda tu preferencia en ese navegador."),
@@ -1070,7 +1070,7 @@ export async function GET() {
       React.createElement(LI, null, "Renombrar — haz clic en el nombre de cualquier etapa y edítalo directamente (por ejemplo, cambiar \"Cotización\" por \"Propuesta enviada\")"),
       React.createElement(LI, null, "Reordenar — arrastra cada etapa (ícono de puntos a la izquierda) para cambiar el orden de las columnas en el kanban"),
       React.createElement(LI, null, "Ocultar — el ícono de ojo oculta una etapa del Pipeline y de Reportes cuando tu proceso de venta no la usa"),
-      React.createElement(LI, null, "Probabilidad — el número con % junto a cada etapa es la probabilidad de cierre que toma un negocio al entrar a ella (de fábrica 10 · 20 · 50 · 75). Cámbialo y sal del campo para guardar. Aplica a los negocios que se muevan de etapa desde ese momento; Ganada (100%) y Perdida (0%) son fijas"),
+      React.createElement(LI, null, "Probabilidad — el número con % junto a cada etapa es la probabilidad de cierre que toma un negocio al entrar a ella (de fábrica 10 · 20 · 25 · 75). Cámbialo y sal del campo para guardar. Aplica a los negocios que se muevan de etapa desde ese momento; Ganada (100%) y Perdida (0%) son fijas"),
       React.createElement(P, null, "Las etapas \"Ganada\" y \"Perdida\" nunca se pueden ocultar, porque el Dashboard, los Reportes y las alertas automáticas por correo dependen de que siempre existan. Las demás etapas solo se pueden ocultar si no tienen ninguna oportunidad asignada en ese momento — si lo intentas con oportunidades dentro, el sistema te avisa cuántas hay y no permite ocultarla."),
       React.createElement(Tip, null, "Ocultar una etapa no borra ni mueve ninguna oportunidad — solo deja de mostrarse esa columna mientras esté vacía. Puedes volver a mostrarla en cualquier momento con el mismo ícono de ojo."),
 
