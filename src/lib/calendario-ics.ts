@@ -26,12 +26,12 @@ const ETIQUETA_FILTRO: Record<FiltroAgenda, string> = {
 };
 
 // Escapa los caracteres con significado especial en el formato iCalendar (RFC 5545).
-function escIcs(s: string) {
+export function escIcs(s: string) {
   return s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
 }
 
 // Formatea una fecha como marca UTC de iCalendar: 20260719T113300Z.
-function fmtDt(d: Date) {
+export function fmtDt(d: Date) {
   return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 }
 

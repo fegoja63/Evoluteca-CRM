@@ -6,6 +6,7 @@ import { IconCircleCheck, IconCalendar, IconCopy, IconCheck, IconRefresh, IconTr
 import DosFactores from "./DosFactores";
 import AppCelular from "./AppCelular";
 import CorreoCco from "./CorreoCco";
+import EnlaceAgendar from "./EnlaceAgendar";
 import { CampoPassword } from "@/components/campo-password";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonLista } from "@/components/ui/estados";
@@ -210,6 +211,8 @@ export default function PerfilPage() {
       <AppCelular />
 
       <CorreoCco />
+
+      <EnlaceAgendar />
 
       {/* Suscripción de calendario */}
       <div className={tarjeta("p-5 mt-6")}>
