@@ -8,7 +8,7 @@ import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import {
   IconLayoutDashboard, IconBuilding, IconUsers, IconChartFunnel, IconCalendar,
-  IconFileText, IconPackage, IconTemplate, IconReportAnalytics,
+  IconFileText, IconPackage, IconTemplate, IconMailFast, IconReportAnalytics,
   IconUsersGroup, IconTheater, IconTicket, IconScale, IconBuildingPavilion, IconMessageChatbot,
   IconDatabaseImport, IconTrash, IconRocket, IconLifebuoy, IconSettings, IconHistory,
   IconUserCircle, IconLogout, IconSearch, IconX, IconArrowsSort, IconCheck,
@@ -29,6 +29,7 @@ const navBase: NavItem[] = [
   { href: "/dashboard/cotizaciones-formales", label: "Cotizaciones", icon: IconFileText },
   { href: "/dashboard/catalogo", label: "Catálogo", icon: IconPackage },
   { href: "/dashboard/plantillas", label: "Plantillas", icon: IconTemplate },
+  { href: "/dashboard/secuencias", label: "Secuencias", icon: IconMailFast },
   { href: "/dashboard/reportes", label: "Reportes", icon: IconReportAnalytics },
   { href: "/dashboard/asistente-ia", label: "Asistente IA", icon: IconSparkles },
   { href: "/dashboard/equipo", label: "Equipo", icon: IconUsersGroup },
@@ -72,6 +73,7 @@ const GRUPO_DE_HREF: Record<string, GrupoId> = {
   "/dashboard/cotizaciones-formales": "ventas",
   "/dashboard/catalogo": "ventas",
   "/dashboard/plantillas": "ventas",
+  "/dashboard/secuencias": "ventas",
   "/dashboard/cuentas": "relaciones",
   "/dashboard/contactos": "relaciones",
   "/dashboard/reportes": "analisis",

@@ -33,6 +33,8 @@ const PARAMS_DEL_CLIENTE_A: Record<string, Record<string, string>> = {
   "/api/cotizaciones/[id]/pdf": { id: A.cotizacion },
   "/api/cotizaciones/[id]/token": { id: A.cotizacion },
   "/api/empresas/[id]": { id: A.empresa },
+  "/api/secuencias/[id]": { id: A.secuencia },
+  "/api/secuencias/inscripciones/[id]": { id: A.inscripcionSecuencia },
   "/api/empresas/[id]/reasignar": { id: A.empresa },
   "/api/espectadores/[id]": { id: A.espectador },
   "/api/etapas-pipeline/[id]": { id: A.etapaPipeline },

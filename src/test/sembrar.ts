@@ -54,6 +54,8 @@ function ids(letra: "a" | "b") {
     minuta: `min-${letra}-1`,
     objecion: `obj-${letra}-1`,
     participante: `par-${letra}-1`,
+    secuencia: `sec-${letra}-1`,
+    inscripcionSecuencia: `ins-${letra}-1`,
   } as const;
 }
 
@@ -336,6 +338,27 @@ function operacionesDeModulos(m: Molde, nombre: string) {
         oportunidadId: m.oportunidadDelComercial,
         contactoId: m.contacto,
         rol: "INFLUYE",
+      },
+    }),
+
+    prisma.secuencia.create({
+      data: {
+        id: m.secuencia,
+        tenantId: m.tenantId,
+        nombre: `Secuencia de ${nombre}`,
+        pasos: [{ diasEspera: 0, asunto: "Hola {{nombre}}", cuerpo: "Seguimiento" }],
+      },
+    }),
+
+    // Activa pero programada muy lejos: el cron de las pruebas no la toca.
+    prisma.inscripcionSecuencia.create({
+      data: {
+        id: m.inscripcionSecuencia,
+        tenantId: m.tenantId,
+        secuenciaId: m.secuencia,
+        contactoId: m.contacto,
+        usuarioId: m.comercial,
+        proximoEnvio: new Date("2099-01-01T00:00:00.000Z"),
       },
     }),
   ];
