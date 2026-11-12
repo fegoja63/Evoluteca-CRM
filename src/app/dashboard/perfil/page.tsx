@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { IconCircleCheck, IconCalendar, IconCopy, IconCheck, IconRefresh, IconTrash } from "@tabler/icons-react";
 import DosFactores from "./DosFactores";
 import AppCelular from "./AppCelular";
+import CorreoCco from "./CorreoCco";
 import { CampoPassword } from "@/components/campo-password";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonLista } from "@/components/ui/estados";
@@ -207,6 +208,8 @@ export default function PerfilPage() {
       </div>
 
       <AppCelular />
+
+      <CorreoCco />
 
       {/* Suscripción de calendario */}
       <div className={tarjeta("p-5 mt-6")}>
