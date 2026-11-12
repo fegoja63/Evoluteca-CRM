@@ -21,6 +21,7 @@ import { boton, tarjeta } from "@/components/ui/estilos";
 import { mapaEtapas } from "@/lib/etapas-color";
 import { BotonHecha } from "@/components/boton-hecha";
 import { ResumenPipelineIA } from "@/components/resumen-pipeline-ia";
+import { AvisoActivarAvisos } from "@/components/aviso-activar-avisos";
 
 export const dynamic = "force-dynamic";
 
@@ -384,6 +385,9 @@ export default async function DashboardPage(props: { searchParams: Promise<{ alc
 
   return (
     <div className="space-y-5">
+
+      {/* Solo en el celular y mientras los avisos no estén activos. */}
+      <AvisoActivarAvisos />
 
       {/* ══ HERO ═══════════════════════════════════════════════════════════
           En pantallas anchas queda fijo arriba al hacer scroll; la franja del
