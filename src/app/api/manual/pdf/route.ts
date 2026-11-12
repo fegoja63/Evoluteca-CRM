@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.42"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.43"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -714,6 +714,13 @@ export async function GET() {
       React.createElement(LI, null, "Preguntas pendientes y qué preparar o llevar."),
       React.createElement(LI, null, "Invitación para el cliente — asunto y texto de usted, con el objetivo y la agenda, y el botón \"Copiar\". Si la reunión ya está vencida, la invitación propone reprogramarla y pide su disponibilidad."),
       React.createElement(Nota, null, "No guarda nada. Cada preparación usa una acción del cupo mensual de IA. Retoma los compromisos y riesgos de las minutas anteriores del negocio y el análisis del negocio del cliente (ver 2.10.3), si los hay."),
+      React.createElement(H2, null, "4.11 Enlace para que el cliente agende"),
+      React.createElement(P, null, "En Mi perfil, sección \"Enlace para agendar reuniones\", activa tu enlace personal y compártelo en tu firma de correo, por WhatsApp o en una cotización. El cliente lo abre, elige el día y una hora libre, escribe su nombre y correo (y si quiere su teléfono, empresa y motivo) y confirma. Al instante:"),
+      React.createElement(LI, null, "La reunión queda en tu Agenda, a tu nombre, ligada al contacto (si su correo ya existe en el CRM) o a un contacto nuevo, y a su negocio abierto si lo tiene."),
+      React.createElement(LI, null, "Te llega un aviso al celular (si activaste los avisos) y un correo con los datos del cliente."),
+      React.createElement(LI, null, "El cliente recibe un correo de confirmación con la invitación para su calendario."),
+      React.createElement(P, null, "En la misma sección defines tu horario: días de la semana, desde y hasta qué hora, duración de cada reunión, aviso mínimo (por ejemplo, no aceptar reuniones con menos de 4 horas) y hasta cuántos días hacia adelante se puede agendar. El enlace no ofrece las horas en las que ya tienes reuniones, llamadas o visitas pendientes en la Agenda. Todas las horas son de Colombia."),
+      React.createElement(Nota, null, "Si dejas de usar el enlace, desactívalo; con \"Enlace nuevo\" el anterior deja de funcionar. Las tareas y correos de la Agenda no bloquean horas: solo reuniones, llamadas y visitas."),
     ),
 
     // ── CAPÍTULO 5: COTIZACIONES ──

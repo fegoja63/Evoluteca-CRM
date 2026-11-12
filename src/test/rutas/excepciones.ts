@@ -82,6 +82,10 @@ export const RUTAS_SIN_SESION: Record<string, Exencion> = {
     guardian: "token por cotizacion, revocable",
     motivo: "El cliente final abre su cotizacion desde un enlace, sin cuenta en el CRM.",
   },
+  "/api/publica/agendar/[token]": {
+    guardian: "Usuario.tokenAgenda, revocable + limite por enlace y por IP",
+    motivo: "El cliente final agenda una reunion con el vendedor desde su enlace, sin cuenta en el CRM.",
+  },
   "/api/calendario/[token]": {
     guardian: "Usuario.tokenCalendario, revocable",
     motivo:

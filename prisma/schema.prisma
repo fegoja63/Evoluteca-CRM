@@ -322,6 +322,11 @@ model Usuario {
   // esa dirección en copia oculta, el correo queda registrado en la ficha del
   // contacto (ver lib/correo-cco.ts). Revocable desde Mi perfil.
   tokenCco            String?    @unique
+  // Enlace público para que los clientes agenden una reunión con este usuario
+  // (/agendar/<tokenAgenda>) y su horario: { dias, desde, hasta, duracion,
+  // anticipacionHoras, diasAdelante } — ver lib/agendar.ts. null = apagado.
+  tokenAgenda         String?    @unique
+  agendaConfig        Json?
 
   // --- Verificación en dos pasos (TOTP, opcional por usuario) ---
   // Secreto compartido con la app de autenticación (Google Authenticator y

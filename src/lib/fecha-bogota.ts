@@ -26,6 +26,11 @@ export function medianocheBogota(deltaDias = 0, now: Date = new Date()): Date {
   return new Date(Date.UTC(anio, mes, dia + deltaDias, HORAS_OFFSET_BOGOTA, 0, 0, 0));
 }
 
+/** Día de la semana en Bogotá (0 = domingo … 6 = sábado) de un instante. */
+export function diaSemanaBogota(instante: Date): number {
+  return new Date(instante.getTime() - HORAS_OFFSET_BOGOTA * 3600_000).getUTCDay();
+}
+
 // ---------------------------------------------------------------------------
 // Fechas escritas en formularios (datetime-local / date).
 //
