@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { numeroCotizacion } from "@/lib/cotizaciones";
 import { paletaMarca } from "@/lib/color-marca";
@@ -66,10 +66,21 @@ export default function CotizacionPublicaPage() {
   const [procesando, setProcesando] = useState(false);
   const [confirmado, setConfirmado] = useState(false);
 
+  // Avisa una sola vez por carga que la cotización se abrió (para que el
+  // vendedor sepa que el cliente la vio). Si falla, no afecta lo que se ve.
+  const vistaRegistrada = useRef(false);
+
   useEffect(() => {
     fetch(`/api/publica/cotizacion/${token}`)
       .then(r => r.ok ? r.json() : Promise.reject())
-      .then(data => { setCot(data); setCargando(false); })
+      .then(data => {
+        setCot(data);
+        setCargando(false);
+        if (!vistaRegistrada.current) {
+          vistaRegistrada.current = true;
+          fetch(`/api/publica/cotizacion/${token}`, { method: "POST", keepalive: true }).catch(() => {});
+        }
+      })
       .catch(() => { setError("Cotización no encontrada o enlace inválido."); setCargando(false); });
   }, [token]);
 

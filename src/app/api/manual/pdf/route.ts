@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.39"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.40"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -768,6 +768,8 @@ export async function GET() {
       React.createElement(P, null, 'Desde el detalle de la cotización, haz clic en "Enviar email" para abrir un panel con un campo de correo editable. Viene pre-llenado con el email del contacto vinculado (si tiene), pero puedes cambiarlo por cualquier otra dirección antes de enviar — útil cuando quien recibe la cotización no es el contacto principal registrado en el CRM.'),
       React.createElement(P, null, 'El cliente recibe el correo a nombre de tu empresa (con tu logo); "Evoluteca CRM" solo aparece como una nota pequeña al pie. Cuando el cliente responde, su respuesta se guarda automáticamente en el CRM: aparece en la tarjeta "Correos" de la cotización (ficha del contacto y de su oportunidad) y te llega un aviso a tu correo con un enlace para abrirla. El "Correo de la empresa" (ver 9.1) queda como respaldo del buzón de respuesta.'),
       React.createElement(P, null, "El correo que recibe el cliente trae dos botones que funcionan sin necesidad de iniciar sesión: \"Ver y responder en línea\" (abre la cotización, donde el cliente puede aceptarla o rechazarla) y \"Descargar PDF\". Ambos usan el enlace seguro de la cotización. También puedes generar un \"Link cliente\" — esa misma URL pública de solo lectura — para compartirla por otro canal (WhatsApp, mensaje directo) sin enviar correo."),
+      React.createElement(P, null, "Cuando el cliente abre el enlace, el CRM lo registra: la cotización muestra \"Vista por el cliente\" con la fecha y hora de la última apertura (y cuántas veces la abrió), tanto en la lista de Cotizaciones como en su detalle y en la ficha del negocio. La primera vez que la abre, al dueño del negocio le llega un correo avisándole, para que llame mientras el cliente la tiene fresca. Una cotización enviada que el cliente aún no abre muestra \"Sin abrir\"."),
+      React.createElement(Tip, null, "No cuentan las aperturas de tu propio equipo (si revisas el enlace con tu sesión iniciada) ni las recargas de la misma visita dentro de media hora. Tampoco cuenta la vista previa que arman WhatsApp o el correo al pegar el enlace."),
       React.createElement(Nota, null, "Si un cliente ve \"No autorizado\" al abrir el PDF, es porque recibió una cotización enviada antes de esta mejora: vuelve a enviársela para que le llegue el enlace nuevo."),
 
       React.createElement(H2, null, "5.9 Catálogo de servicios"),

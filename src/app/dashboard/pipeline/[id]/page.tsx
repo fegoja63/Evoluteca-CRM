@@ -34,6 +34,7 @@ import { SkeletonDetalle } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
 import { mapaEtapas } from "@/lib/etapas-color";
 import { probabilidadDeEtapa } from "@/lib/probabilidad-etapa";
+import { insigniaVista } from "@/lib/cotizacion-vista-texto";
 import { formatoFecha, formatoFechaHora, formatoDia, aInputDia } from "@/lib/fecha-bogota";
 
 type Oportunidad = {
@@ -60,7 +61,7 @@ type Oportunidad = {
   fechaRenovacion?: string | null;
   origenRenovacion?: { id: string; titulo: string } | null;
   renovaciones?: { id: string; titulo: string; etapa: string }[];
-  cotizaciones?: { id: string; numero: number; numeroManual: string | null; estado: string; fechaValidez: string | null; creadoEn: string }[];
+  cotizaciones?: { id: string; numero: number; numeroManual: string | null; estado: string; fechaValidez: string | null; creadoEn: string; tokenPublico?: string | null; vistas?: number; vistaUltimaEn?: string | null }[];
 };
 
 const ESTADO_COT: Record<string, { label: string; clase: string }> = {
@@ -852,6 +853,7 @@ export default function OportunidadDetallePage() {
                         <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ESTADO_COT[c.estado]?.clase ?? "bg-slate-100 text-slate-600"}`}>
                           {ESTADO_COT[c.estado]?.label ?? c.estado}
                         </span>
+                        <InsigniaVistaCot c={c} />
                         <span className="flex-1" />
                         <span className="text-xs text-slate-400">
                           {c.fechaValidez ? `Válida hasta ${formatoDia(new Date(c.fechaValidez), { day: "2-digit", month: "short", year: "numeric" })}` : `Creada ${formatoFecha(new Date(c.creadoEn), { day: "2-digit", month: "short" })}`}
@@ -931,6 +933,7 @@ export default function OportunidadDetallePage() {
                     <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ESTADO_COT[c.estado]?.clase ?? "bg-slate-100 text-slate-600"}`}>
                       {ESTADO_COT[c.estado]?.label ?? c.estado}
                     </span>
+                    <InsigniaVistaCot c={c} />
                   </Link>
                 ))}
                 {cotizaciones.length > 3 && (
@@ -997,5 +1000,17 @@ export default function OportunidadDetallePage() {
         </div>
       )}
     </div>
+  );
+}
+
+/** "Vista 2×" / "Sin abrir" junto a una cotización del negocio. */
+function InsigniaVistaCot({ c }: { c: Parameters<typeof insigniaVista>[0] }) {
+  const v = insigniaVista(c);
+  if (!v) return null;
+  return (
+    <span title={v.detalle}
+      className={`rounded-full px-2 py-0.5 text-2xs font-semibold ${v.vista ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+      {v.texto}
+    </span>
   );
 }
