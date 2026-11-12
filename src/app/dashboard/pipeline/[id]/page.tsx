@@ -35,6 +35,7 @@ import { useEscape } from "@/lib/use-escape";
 import { mapaEtapas } from "@/lib/etapas-color";
 import { probabilidadDeEtapa } from "@/lib/probabilidad-etapa";
 import { insigniaVista } from "@/lib/cotizacion-vista-texto";
+import { SecuenciaFicha } from "@/components/secuencia-ficha";
 import { formatoFecha, formatoFechaHora, formatoDia, aInputDia } from "@/lib/fecha-bogota";
 
 type Oportunidad = {
@@ -831,6 +832,9 @@ export default function OportunidadDetallePage() {
                   contactoId={op.contacto?.id}
                   emailDestino={op.contacto?.email}
                 />
+                {op.etapa !== "GANADA" && op.etapa !== "PERDIDA" && (
+                  <SecuenciaFicha contactoId={op.contacto?.id} oportunidadId={op.id} contactoTieneCorreo={!!op.contacto?.email} />
+                )}
               </>
             )}
 

@@ -18,6 +18,7 @@ import { tipoActividadDef } from "@/lib/tipos-actividad";
 import {
   IconPhone, IconUsers, IconPencil, IconTrash, IconPlus, IconCheck, IconBriefcase, IconSend,
 } from "@tabler/icons-react";
+import { SecuenciaFicha } from "@/components/secuencia-ficha";
 import { formatoFecha } from "@/lib/fecha-bogota";
 
 type Empresa = { id: string; nombre: string };
@@ -321,6 +322,8 @@ export default function FichaContactoPage() {
             <CorreosPanel key={correoKey} contactoId={contacto.id} empresaId={contacto.empresa?.id}
               emailDestino={contacto.email} abrirRedactando={correoKey > 0} />
           </div>
+
+          <SecuenciaFicha contactoId={contacto.id} contactoTieneCorreo={!!contacto.email} />
 
           <NotasRapidas
             valor={contacto.notas}

@@ -68,6 +68,11 @@ export const RUTAS_SIN_SESION: Record<string, Exencion> = {
     motivo:
       "La invoca un GitHub Action (Vercel Hobby no admite crons frecuentes), que no tiene sesion de usuario. Falla cerrado: sin CRON_SECRET configurado responde 503 y no atiende a nadie.",
   },
+  "/api/cron/secuencias": {
+    guardian: "CRON_SECRET",
+    motivo:
+      "La invoca el GitHub Action de secuencias (dias habiles), que no tiene sesion de usuario. Falla cerrado: sin CRON_SECRET configurado responde 503 y no atiende a nadie.",
+  },
   "/api/cron/recuperar-tenant": {
     guardian: "CRON_SECRET (+ confirmar=<slug> para escribir)",
     motivo:

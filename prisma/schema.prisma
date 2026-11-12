@@ -134,6 +134,8 @@ model Tenant {
   rentabilidadClientes     RentabilidadCliente[]
   analisisClientes         AnalisisCliente[]
   suscripcionesPush        SuscripcionPush[]
+  secuencias               Secuencia[]
+  inscripcionesSecuencia   InscripcionSecuencia[]
 
   @@map("tenants")
 }
@@ -352,6 +354,7 @@ model Usuario {
   registrosHoras       RegistroHoras[]
   actividadesAsignadas Actividad[]     @relation("ActividadResponsable")
   suscripcionesPush    SuscripcionPush[]
+  inscripcionesSecuencia InscripcionSecuencia[]
 
   @@index([tenantId])
   @@map("usuarios")
@@ -420,6 +423,7 @@ model Contacto {
   adjuntos        Adjunto[]
   correos         CorreoRegistrado[]
   participaciones ParticipanteOportunidad[]
+  inscripcionesSecuencia InscripcionSecuencia[]
 
   @@index([tenantId])
   @@index([tenantId, creadoEn])
@@ -499,6 +503,7 @@ model Oportunidad {
   cambiosEtapa CambioEtapa[]
   adjuntos     Adjunto[]
   correos      CorreoRegistrado[]
+  inscripcionesSecuencia InscripcionSecuencia[]
 
   @@index([tenantId])
   @@index([tenantId, creadoEn])
@@ -1456,4 +1461,62 @@ model SuscripcionPush {
   @@unique([tenantId, endpoint])
   @@index([tenantId, usuarioId])
   @@map("suscripciones_push")
+}
+
+// Secuencias de seguimiento: correos que salen solos al cliente, con días de
+// espera entre uno y otro, hasta que responda (ver lib/secuencias.ts).
+model Secuencia {
+  id          String   @id @default(uuid())
+  nombre      String
+  descripcion String?
+  // Pasos en orden: [{ diasEspera, asunto, cuerpo }]. diasEspera del primero
+  // cuenta desde la inscripción (0 = sale al inscribir); los demás, desde el
+  // envío anterior. Admite variables {{nombre}}, {{empresa}}, {{vendedor}}…
+  pasos       Json
+  activa      Boolean  @default(true)
+  creadoEn    DateTime @default(now())
+  creadoBy    String?
+
+  tenantId      String
+  tenant        Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  inscripciones InscripcionSecuencia[]
+
+  @@index([tenantId])
+  @@map("secuencias")
+}
+
+enum EstadoInscripcion {
+  ACTIVA
+  COMPLETADA
+  DETENIDA
+}
+
+// Un contacto dentro de una secuencia. El vendedor que lo inscribe es el
+// remitente de los correos y recibe las respuestas.
+model InscripcionSecuencia {
+  id            String            @id @default(uuid())
+  estado        EstadoInscripcion @default(ACTIVA)
+  // RESPONDIO | NEGOCIO_CERRADO | SIN_CORREO | MANUAL | SECUENCIA_INACTIVA | USUARIO_INACTIVO | ERROR_ENVIO
+  motivoFin     String?
+  pasoSiguiente Int               @default(0)
+  proximoEnvio  DateTime?
+  enviados      Int               @default(0)
+  creadoEn      DateTime          @default(now())
+  finalizadoEn  DateTime?
+
+  tenantId      String
+  tenant        Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  secuenciaId   String
+  secuencia     Secuencia    @relation(fields: [secuenciaId], references: [id], onDelete: Cascade)
+  contactoId    String
+  contacto      Contacto     @relation(fields: [contactoId], references: [id], onDelete: Cascade)
+  oportunidadId String?
+  oportunidad   Oportunidad? @relation(fields: [oportunidadId], references: [id], onDelete: SetNull)
+  usuarioId     String
+  usuario       Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, contactoId])
+  @@index([estado, proximoEnvio])
+  @@map("inscripciones_secuencia")
 }

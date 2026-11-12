@@ -1,0 +1,38 @@
+# Envía los correos de las secuencias de seguimiento que vencieron.
+#
+# Por qué GitHub Actions: el plan Hobby de Vercel solo permite 2 crons (ya
+# usados). Toda la lógica vive en /api/cron/secuencias.
+#
+# Horario: lunes a viernes 13:30 UTC = 8:30 a. m. en Bogotá. Los pasos que
+# vencen el fin de semana salen el lunes. GitHub puede retrasar el cron; para
+# correos de seguimiento por días no importa.
+#
+# Usa el mismo Secret CRON_SECRET y la Variable CRM_URL que los demás workflows.
+
+name: Secuencias CRM
+
+on:
+  schedule:
+    - cron: "30 13 * * 1-5"
+  workflow_dispatch: {}
+
+jobs:
+  secuencias:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar al endpoint de secuencias
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          CRM_URL: ${{ vars.CRM_URL || 'https://evoluteca-crm-six.vercel.app' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "Falta el secret CRON_SECRET en el repositorio." >&2
+            exit 1
+          fi
+          codigo=$(curl -sS -o respuesta.json -w "%{http_code}" --max-time 150 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$CRM_URL/api/cron/secuencias")
+          echo "HTTP $codigo"
+          cat respuesta.json || true
+          echo ""
+          [ "$codigo" -ge 200 ] && [ "$codigo" -lt 300 ]

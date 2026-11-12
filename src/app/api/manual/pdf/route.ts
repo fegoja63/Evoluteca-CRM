@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.43"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.44"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -478,6 +478,12 @@ export async function GET() {
       React.createElement(P, null, "Además, cuando entra una respuesta te llega un aviso a tu propio correo (el que tienes en Mi perfil) con el texto y un botón para abrir la ficha en el CRM."),
       React.createElement(P, null, "Correos que escribes desde tu propio correo (CCO inteligente): en Mi perfil, sección \"Registrar correos con CCO\", pulsa \"Activar mi dirección CCO\" y copia la dirección. Cuando le escribas a un cliente desde Gmail, Outlook o el celular, ponla en CCO (copia oculta): el correo queda registrado en la tarjeta \"Correos\" de la ficha del contacto, marcado como Enviado y ligado a su negocio abierto más reciente. El cliente no ve la dirección y el CRM no lee tu buzón: solo recibe la copia que tú decides mandarle. Si el cliente responde a todos y la dirección sigue en copia, su respuesta también queda registrada como Recibido."),
       React.createElement(Tip, null, "Guarda la dirección CCO como contacto en tu correo (por ejemplo \"CRM\") para ponerla en copia oculta con dos letras. Se registra en cada contacto del CRM cuyo correo vaya en el mensaje: si el destinatario todavía no es contacto, créalo primero. Los correos aparecen unas horas después, porque el CRM revisa el buzón varias veces al día. Si crees que alguien más tiene tu dirección, genera una nueva desde Mi perfil y la anterior deja de funcionar."),
+      React.createElement(H2, null, "2.13 Secuencias de seguimiento"),
+      React.createElement(P, null, "Una secuencia es una serie de correos que salen solos al cliente, con días de espera entre uno y otro, hasta que responda. Sirve para no olvidar el seguimiento de una propuesta o de un cliente que se enfrió. Se crean en Ventas › Secuencias (solo Administrador o Gerente): nombre y, por cada correo, cuántos días después sale, el asunto y el texto. Puedes usar {{nombre}} (primer nombre del contacto), {{empresa}}, {{vendedor}} y {{negocio}}. Si es la primera, \"Empezar con la sugerida\" trae tres correos listos para ajustar."),
+      React.createElement(Paso, { n: 1, titulo: "Inscribir", desc: "En la ficha del contacto o del negocio, tarjeta \"Secuencia de seguimiento\", elige la secuencia y pulsa \"Iniciar\". Si el primer correo es de día 0, sale de inmediato." }),
+      React.createElement(Paso, { n: 2, titulo: "Envíos", desc: "Los siguientes correos salen los días hábiles en la mañana (los que caen el fin de semana salen el lunes), a tu nombre y quedan en la tarjeta \"Correos\" de la ficha. Si el cliente responde, su respuesta entra al CRM como cualquier otra." }),
+      React.createElement(Paso, { n: 3, titulo: "Se detiene sola", desc: "Cuando el cliente responde (por el hilo del CRM o por tu CCO), cuando el negocio se gana o se pierde, o si el contacto se queda sin correo. También puedes detenerla a mano desde la ficha o desde la pantalla Secuencias." }),
+      React.createElement(Nota, null, "Un contacto solo puede estar en una secuencia a la vez. En la pantalla Secuencias ves quiénes están en curso, cuántos correos van y cuándo sale el próximo; el Comercial ve solo los suyos."),
       React.createElement(Nota, null, "Solo se capturan las respuestas a correos que enviaste desde el CRM; no reemplaza tu bandeja de entrada. Por ahora los correos se manejan en texto sencillo, sin adjuntos."),
 
       React.createElement(H2, null, "2.13 Vistas, datos completos y asignar desde la lista"),
