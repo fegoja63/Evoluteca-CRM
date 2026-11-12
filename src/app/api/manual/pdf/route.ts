@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.41"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.42"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -476,6 +476,8 @@ export async function GET() {
       React.createElement(Paso, { n: 3, titulo: "Recibir la respuesta", desc: "Cuando el cliente responde, su respuesta se registra sola en la misma tarjeta, marcada como \"Recibido\", y vinculada a la ficha correcta. La captura corre automáticamente varias veces al día (en promedio cada 4 horas), así que una respuesta puede tardar unas horas en aparecer; el aviso a tu correo llega en ese mismo momento." }),
       React.createElement(Paso, { n: 4, titulo: "Consultar", desc: "Cada correo de la lista muestra asunto, remitente/destinatario y fecha, con su etiqueta Enviado o Recibido; haz clic para desplegar el mensaje completo. Así toda la conversación queda ligada al cliente." }),
       React.createElement(P, null, "Además, cuando entra una respuesta te llega un aviso a tu propio correo (el que tienes en Mi perfil) con el texto y un botón para abrir la ficha en el CRM."),
+      React.createElement(P, null, "Correos que escribes desde tu propio correo (CCO inteligente): en Mi perfil, sección \"Registrar correos con CCO\", pulsa \"Activar mi dirección CCO\" y copia la dirección. Cuando le escribas a un cliente desde Gmail, Outlook o el celular, ponla en CCO (copia oculta): el correo queda registrado en la tarjeta \"Correos\" de la ficha del contacto, marcado como Enviado y ligado a su negocio abierto más reciente. El cliente no ve la dirección y el CRM no lee tu buzón: solo recibe la copia que tú decides mandarle. Si el cliente responde a todos y la dirección sigue en copia, su respuesta también queda registrada como Recibido."),
+      React.createElement(Tip, null, "Guarda la dirección CCO como contacto en tu correo (por ejemplo \"CRM\") para ponerla en copia oculta con dos letras. Se registra en cada contacto del CRM cuyo correo vaya en el mensaje: si el destinatario todavía no es contacto, créalo primero. Los correos aparecen unas horas después, porque el CRM revisa el buzón varias veces al día. Si crees que alguien más tiene tu dirección, genera una nueva desde Mi perfil y la anterior deja de funcionar."),
       React.createElement(Nota, null, "Solo se capturan las respuestas a correos que enviaste desde el CRM; no reemplaza tu bandeja de entrada. Por ahora los correos se manejan en texto sencillo, sin adjuntos."),
 
       React.createElement(H2, null, "2.13 Vistas, datos completos y asignar desde la lista"),

@@ -318,6 +318,10 @@ model Usuario {
   // sin suscripción activa. El feed es de solo lectura y solo expone las
   // actividades que el usuario ya puede ver según su rol.
   tokenCalendario     String?    @unique
+  // Token de la dirección "CCO inteligente" (ingest+cco-<token>@…): al poner
+  // esa dirección en copia oculta, el correo queda registrado en la ficha del
+  // contacto (ver lib/correo-cco.ts). Revocable desde Mi perfil.
+  tokenCco            String?    @unique
 
   // --- Verificación en dos pasos (TOTP, opcional por usuario) ---
   // Secreto compartido con la app de autenticación (Google Authenticator y

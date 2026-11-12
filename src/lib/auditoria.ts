@@ -39,6 +39,7 @@ const CAMPOS_SENSIBLES = new Set([
   "resetToken",
   "resetTokenExpiry",
   "tokenCalendario",
+  "tokenCco",
   "apiKeyLeads",
   "tokenPublico",
   "datos", // contenido en base64 de los adjuntos: pesado e innecesario aquí

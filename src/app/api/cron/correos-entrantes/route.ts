@@ -5,6 +5,7 @@ import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { extraerToken, conTope, TopeExcedido, TOPES_CORREO } from "@/lib/correo-inbound";
 import { escapeHtml } from "@/lib/html";
+import { registrarCorreoCco, tokenDeCco } from "@/lib/correo-cco";
 
 export const dynamic = "force-dynamic";
 // La conexión IMAP + parseo de varios mensajes puede tardar; se pide margen.
@@ -114,6 +115,29 @@ export async function GET(req: Request) {
 
         if (!token) {
           incidencias.push(`uid ${uid}: sin token de hilo reconocible`);
+          await marcarLeido(uid);
+          continue;
+        }
+
+        // CCO inteligente: el vendedor puso su dirección del CRM en copia oculta.
+        const tokenCco = tokenDeCco(token);
+        if (tokenCco) {
+          const htmlPlanoCco = typeof parsed.html === "string" ? parsed.html.replace(/<[^>]+>/g, " ") : "";
+          const destinatarios: string[] = [];
+          for (const campo of [parsed.to, parsed.cc]) {
+            if (!campo) continue;
+            for (const c of Array.isArray(campo) ? campo : [campo]) for (const v of c.value) if (v.address) destinatarios.push(v.address);
+          }
+          const r = await registrarCorreoCco(tokenCco, {
+            messageId: parsed.messageId ?? null,
+            de: parsed.from?.value[0]?.address ?? "desconocido",
+            destinatarios,
+            asunto: parsed.subject ?? "",
+            cuerpo: parsed.text || htmlPlanoCco,
+            fecha: parsed.date ?? null,
+          }, ingestBase);
+          if (r.registrados > 0) vinculados += r.registrados;
+          else incidencias.push(`uid ${uid}: CCO ${r.estado}`);
           await marcarLeido(uid);
           continue;
         }
