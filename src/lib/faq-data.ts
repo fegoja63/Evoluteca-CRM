@@ -12,6 +12,8 @@ export type Faq = {
 
 export const FAQS: Faq[] = [
   // ── Primeros pasos ──
+  { categoria: "Primeros pasos", pregunta: "¿Puedo tener el CRM como app en el celular y recibir avisos?",
+    respuesta: "Sí. En Mi perfil, sección \"App en tu celular\": instálalo en la pantalla de inicio (iPhone: Compartir › \"Agregar a inicio\"; Android: menú ⋮ › \"Instalar app\"; computador: ícono de instalar en la barra de direcciones) y pulsa \"Activar avisos\". Ese dispositivo te avisará cuando un cliente abra una cotización de tus negocios y cuando te asignen una tarea. En iPhone los avisos funcionan solo desde la app instalada. Puedes probarlos con \"Enviar aviso de prueba\"." },
   { categoria: "Primeros pasos", pregunta: "¿Cómo ingreso por primera vez al CRM?",
     respuesta: "Tu asesor Evoluteca activa la cuenta de tu empresa y te envía tu correo y una contraseña temporal para ingresar a crm.evoluteca.com. Te recomendamos cambiar tu contraseña desde Mi perfil apenas entres." },
   { categoria: "Primeros pasos", pregunta: "Olvidé mi contraseña, ¿cómo la recupero?",

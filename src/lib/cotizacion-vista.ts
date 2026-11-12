@@ -17,6 +17,7 @@ import { escapeHtml } from "@/lib/html";
 import { registrarErrorServidor } from "@/lib/registrar-error-servidor";
 import { formatoFechaHora } from "@/lib/fecha-bogota";
 import { numeroCotizacion } from "@/lib/cotizaciones";
+import { enviarPush } from "@/lib/push";
 
 const BASE_URL = process.env.NEXTAUTH_URL ?? "https://evoluteca-crm-six.vercel.app";
 const LOGO_FGJ = "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg";
@@ -64,13 +65,12 @@ export async function registrarVistaCotizacion(
 }
 
 /**
- * Correo al dueño del negocio (o, si la cotización no tiene negocio con dueño,
- * a los administradores) la primera vez que el cliente abre la cotización.
- * Best-effort: nunca lanza.
+ * Aviso (push al celular y correo) al dueño del negocio —o, si la cotización
+ * no tiene negocio con dueño, a los administradores— la primera vez que el
+ * cliente abre la cotización. Best-effort: nunca lanza.
  */
 async function avisarPrimeraVista(cotizacionId: string, tenantId: string, cuando: Date): Promise<void> {
   try {
-    if (!process.env.RESEND_API_KEY) return;
     const cot = await prisma.cotizacion.findFirst({
       where: { id: cotizacionId, tenantId },
       select: {
@@ -90,14 +90,22 @@ async function avisarPrimeraVista(cotizacionId: string, tenantId: string, cuando
       where: duenoId
         ? { id: duenoId, tenantId, activo: true }
         : { tenantId, activo: true, rol: "ADMINISTRADOR" },
-      select: { nombre: true, email: true },
+      select: { id: true, nombre: true, email: true },
     });
-    const conCorreo = destinatarios.filter(d => d.email);
-    if (conCorreo.length === 0) return;
 
-    const esc = (v: unknown) => escapeHtml(String(v ?? ""));
     const numero = numeroCotizacion(cot);
     const quien = cot.contacto?.nombre ?? cot.empresa?.nombre ?? "Tu cliente";
+    await enviarPush(tenantId, destinatarios.map(d => d.id), {
+      titulo: `👀 ${quien} abrió la cotización ${numero}`,
+      cuerpo: cot.oportunidad?.titulo ? `${cot.oportunidad.titulo} · buen momento para llamar.` : "Buen momento para llamar y resolver dudas.",
+      url: `/dashboard/cotizaciones-formales/${cotizacionId}`,
+      etiqueta: `cot-vista-${cotizacionId}`,
+    });
+
+    if (!process.env.RESEND_API_KEY) return;
+    const conCorreo = destinatarios.filter(d => d.email);
+    if (conCorreo.length === 0) return;
+    const esc = (v: unknown) => escapeHtml(String(v ?? ""));
     const cliente = cot.empresa?.nombre ? ` (${cot.empresa.nombre})` : "";
     const hora = formatoFechaHora(cuando, { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
     const subject = `👀 ${quien} abrió la cotización ${numero}`;
