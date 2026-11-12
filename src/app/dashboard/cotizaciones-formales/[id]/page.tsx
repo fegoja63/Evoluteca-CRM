@@ -5,7 +5,7 @@ import { toast } from "@/lib/toast";
 import { ahorroMensualTotal, valorCotizacion, valorFeeMensual, MODALIDAD_LABEL, numeroCotizacion } from "@/lib/cotizaciones";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { IconLink, IconMail, IconCheck, IconBrandWhatsapp, IconStar, IconDownload, IconCopy, IconArrowLeft, IconPencil } from "@tabler/icons-react";
+import { IconLink, IconMail, IconCheck, IconBrandWhatsapp, IconStar, IconDownload, IconCopy, IconArrowLeft, IconPencil, IconEye, IconEyeOff } from "@tabler/icons-react";
 import { LineasEditor, type Linea } from "@/components/lineas-editor";
 import { RedactorEmailIA } from "@/components/redactor-email-ia";
 import { RevisorPropuestaIA } from "@/components/revisor-propuesta-ia";
@@ -15,6 +15,7 @@ import { useSession } from "next-auth/react";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonDetalle } from "@/components/ui/estados";
 import { useEscape } from "@/lib/use-escape";
+import { insigniaVista } from "@/lib/cotizacion-vista-texto";
 import { formatoFecha, formatoDia } from "@/lib/fecha-bogota";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
@@ -39,6 +40,9 @@ type Cotizacion = {
   impuesto2Nombre: string | null;
   impuesto2Porcentaje: string | null;
   creadoEn: string;
+  tokenPublico?: string | null;
+  vistas?: number;
+  vistaUltimaEn?: string | null;
   empresa:     { id: string; nombre: string; email: string | null; telefono: string | null } | null;
   contacto:    { id: string; nombre: string; email: string | null; telefono: string | null } | null;
   oportunidad: { id: string; titulo: string } | null;
@@ -422,6 +426,15 @@ export default function CotizacionDetailPage() {
             <span className={`rounded-full border px-3 py-0.5 text-xs font-bold ${ESTADO_COLOR[cot.estado]}`}>
               {ESTADO_LABEL[cot.estado]}
             </span>
+            {(() => {
+              const v = insigniaVista(cot);
+              return v && (
+                <span title={v.detalle}
+                  className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-3 py-0.5 text-xs font-semibold ${v.vista ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-slate-100 text-slate-500"}`}>
+                  {v.vista ? <IconEye size={13} stroke={2} /> : <IconEyeOff size={13} stroke={2} />}{v.vista ? `${v.texto} por el cliente · ${v.ultima}` : v.texto}
+                </span>
+              );
+            })()}
             {cot.reemplazada && (
               <span className="rounded-full border border-slate-200 bg-slate-200 px-3 py-0.5 text-xs font-bold text-slate-500">
                 Reemplazada

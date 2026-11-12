@@ -756,6 +756,11 @@ model Cotizacion {
   sede                   String?
   fechaValidez           DateTime?
   tokenPublico           String?             @unique
+  // Aperturas del enlace público por el cliente (ver lib/cotizacion-vista.ts).
+  // No cuentan las del propio equipo ni las recargas dentro de 30 minutos.
+  vistas                 Int                 @default(0)
+  vistaPrimeraEn         DateTime?
+  vistaUltimaEn          DateTime?
   motivoRechazo          String?
   impuestoNombre         String?
   impuestoPorcentaje     Decimal?            @db.Decimal(5, 2)

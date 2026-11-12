@@ -4,6 +4,8 @@ import { permitirYRegistrar } from "@/lib/rate-limit";
 import { accionCotizacionPublicaSchema } from "@/lib/validations/publica";
 import { parseOrError } from "@/lib/validations/helpers";
 import { seccionesVisibles } from "@/lib/cuerpo-cotizacion";
+import { registrarVistaCotizacion } from "@/lib/cotizacion-vista";
+import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +26,22 @@ export async function GET(_req: Request, props: { params: Promise<{ token: strin
   // resuelve en el servidor y se quita el campo crudo del tenant de la respuesta.
   const { cuerpoCotizacion, ...tenant } = cot.tenant;
   void cuerpoCotizacion;
-  return NextResponse.json({ ...cot, tenant, cuerpo: seccionesVisibles(cot.tenant.cuerpoCotizacion, !!cot.condicionesComerciales) });
+  // Las aperturas son información interna del vendedor: no se le muestran al cliente.
+  const { vistas, vistaPrimeraEn, vistaUltimaEn, ...publica } = cot;
+  void vistas; void vistaPrimeraEn; void vistaUltimaEn;
+  return NextResponse.json({ ...publica, tenant, cuerpo: seccionesVisibles(cot.tenant.cuerpoCotizacion, !!cot.condicionesComerciales) });
+}
+
+// La página pública avisa aquí que el cliente la abrió (ver lib/cotizacion-vista.ts).
+export async function POST(_req: Request, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
+  const permitido = await permitirYRegistrar(`cotvista:${params.token}`, 30, 60 * 60 * 1000);
+  if (!permitido) return NextResponse.json({ ok: true });
+
+  const session = await auth().catch(() => null);
+  const resultado = await registrarVistaCotizacion(params.token, session?.user?.tenantId ?? null);
+  if (resultado === "no-encontrada") return NextResponse.json({ error: "No encontrada" }, { status: 404 });
+  return NextResponse.json({ ok: true });
 }
 
 export async function PATCH(req: Request, props: { params: Promise<{ token: string }> }) {

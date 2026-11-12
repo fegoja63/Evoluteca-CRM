@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   IconFilePlus, IconSearch, IconX, IconDownload, IconAlertTriangle, IconFileText,
-  IconSend, IconBan, IconTrash, IconArchive,
+  IconSend, IconBan, IconTrash, IconArchive, IconEye, IconEyeOff,
 } from "@tabler/icons-react";
 import { idsReemplazadas, valorConImpuestos, MODALIDAD_LABEL, numeroCotizacion } from "@/lib/cotizaciones";
 import { guardarJson } from "@/lib/guardar";
 import { toast } from "@/lib/toast";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonTabla, EstadoVacio } from "@/components/ui/estados";
+import { insigniaVista } from "@/lib/cotizacion-vista-texto";
 import { fechaISO, formatoDia } from "@/lib/fecha-bogota";
 
 type Item = { id: string; descripcion: string; cantidad: number; precioUnit: string };
@@ -26,6 +27,9 @@ type Cotizacion = {
   sede: string | null;
   notas: string | null;
   creadoEn: string;
+  tokenPublico?: string | null;
+  vistas?: number;
+  vistaUltimaEn?: string | null;
   empresa:  { id: string; nombre: string } | null;
   contacto: { id: string; nombre: string; email: string | null } | null;
   oportunidad: { id: string; titulo: string } | null;
@@ -332,6 +336,15 @@ export default function CotizacionesFormalesPage() {
                       <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${ESTADO_COLOR[c.estado]}`}>
                         {ESTADO_LABEL[c.estado]}
                       </span>
+                      {(() => {
+                        const v = insigniaVista(c);
+                        return v && (
+                          <span title={v.detalle}
+                            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-2xs font-semibold ${v.vista ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+                            {v.vista ? <IconEye size={11} stroke={2} /> : <IconEyeOff size={11} stroke={2} />}{v.texto}
+                          </span>
+                        );
+                      })()}
                       {c.modalidad && c.modalidad !== "FEE_FIJO" && (
                         <span className="rounded-full px-2 py-0.5 text-2xs font-semibold bg-brand-50 text-brand-700">
                           {MODALIDAD_LABEL[c.modalidad] ?? c.modalidad}

@@ -87,7 +87,7 @@ function PageHeader({ base }: { base: string }) {
 }
 function Footer() {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.14"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.15"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -371,7 +371,7 @@ export async function GET() {
       React.createElement(Footer, null),
       React.createElement(Paso, { n: 6, titulo: "Crea una cotización formal", desc: "Ve a Cotizaciones > Nueva. Selecciona tu cliente y contacto, y agrega ítems desde el Catálogo (o escríbelos a mano). Prueba también cargar una Plantilla.", esperado: "El total se calcula solo con su desglose e impuesto; cargar una plantilla llena los ítems de golpe." }),
       React.createElement(Paso, { n: 7, titulo: "Descarga el PDF", desc: "Guarda la cotización y descárgala en PDF.", esperado: "Un PDF profesional con el logo, el desglose de servicios, el impuesto y el total, listo para enviar al cliente." }),
-      React.createElement(Paso, { n: 8, titulo: "Cámbiale el estado / envíala por email", desc: "Marca la cotización como 'Enviada' (o usa el envío por email). Observa cómo el estado cambia de color.", esperado: "El estado pasa a Enviada; una cotización sin respuesta por varios días dispara luego una alerta." }),
+      React.createElement(Paso, { n: 8, titulo: "Cámbiale el estado / envíala por email", desc: "Marca la cotización como 'Enviada' (o usa el envío por email). Observa cómo el estado cambia de color. Luego copia el 'Link cliente' y ábrelo en una ventana de incógnito (sin sesión), como lo haría tu cliente.", esperado: "El estado pasa a Enviada; una cotización sin respuesta por varios días dispara luego una alerta. Al volver a la cotización verás 'Vista por el cliente' con la hora, y al dueño del negocio le llega un correo avisando que el cliente la abrió." }),
       React.createElement(Paso, { n: 9, titulo: "Gana el negocio", desc: "Vuelve a tu oportunidad y pulsa 'Ganada' en la barra de etapas del encabezado (o arrástrala a la columna Ganada del Pipeline).", esperado: "La oportunidad se marca como ganada y su valor empieza a contar en la meta del mes y en los reportes." }),
       React.createElement(Paso, { n: 10, titulo: "Prueba también perder una", desc: "Crea otra oportunidad rápida y márcala como 'Perdida' (botón Perdida de la barra de etapas, o arrastrándola). El sistema te pedirá el motivo de pérdida (precio, competencia, etc.).", esperado: "El motivo queda guardado; aparece en rojo en la oportunidad, entre paréntesis en la lista del cliente, y alimenta el reporte de motivos de pérdida." }),
       React.createElement(Paso, { n: 11, titulo: "Mira el impacto", desc: "Vuelve al Dashboard y a Reportes.", esperado: "Tu venta ganada movió el gauge de la meta, el ticket promedio y la tasa de cierre. Todo el ciclo quedó reflejado." }),

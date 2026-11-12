@@ -139,6 +139,8 @@ export const FAQS: Faq[] = [
   // ── Cotizaciones ──
   { categoria: "Cotizaciones", pregunta: "¿Cómo creo una cotización formal?",
     respuesta: "Ve a Nueva cotización, elige Cliente/Contacto/Oportunidad (existente o nuevo sin salir del formulario), agrega los ítems de servicio, define impuesto si aplica y guarda como borrador. Desde el detalle puedes cambiar el estado y descargar el PDF." },
+  { categoria: "Cotizaciones", pregunta: "¿Cómo sé si el cliente ya abrió la cotización?",
+    respuesta: "Cuando el cliente abre el enlace de la cotización (el del correo o el \"Link cliente\"), la cotización muestra \"Vista por el cliente\" con la fecha y hora de la última apertura y cuántas veces la abrió: en la lista de Cotizaciones, en su detalle y en la ficha del negocio. La primera vez que la abre, al dueño del negocio le llega un correo de aviso. Si se envió y aún no la abre, dice \"Sin abrir\". No cuentan las aperturas de tu propio equipo ni la vista previa que arma WhatsApp al pegar el enlace." },
   { categoria: "Cotizaciones", pregunta: "¿Puedo cotizar a un cliente nuevo sin salir de la pantalla de Nueva cotización?",
     respuesta: "Sí. Cada campo (Cliente, Contacto, Oportunidad vinculada) tiene botones Existente / + Nuevo — puedes crear un cliente y un contacto nuevos sin cambiar de pantalla, y quedan vinculados automáticamente entre sí." },
   { categoria: "Cotizaciones", pregunta: "¿Qué estados puede tener una cotización?",

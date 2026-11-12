@@ -30,7 +30,7 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
       // Cotizaciones formales ligadas (pestaña Cotizaciones de la ficha).
       cotizaciones: {
         where: { eliminadoEn: null, tenantId: session.user.tenantId },
-        select: { id: true, numero: true, numeroManual: true, estado: true, fechaValidez: true, creadoEn: true },
+        select: { id: true, numero: true, numeroManual: true, estado: true, fechaValidez: true, creadoEn: true, tokenPublico: true, vistas: true, vistaUltimaEn: true },
         orderBy: { creadoEn: "desc" },
       },
     },
