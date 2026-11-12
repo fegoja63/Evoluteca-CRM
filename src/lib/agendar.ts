@@ -5,14 +5,15 @@
  * - El horario lo define cada usuario en Mi perfil (AgendaConfig). Todas las
  *   horas son de Bogotá (UTC-5 fijo).
  * - "Ocupado" = reuniones, llamadas y visitas pendientes del usuario en la
- *   Agenda (las tareas y correos no bloquean). Cuando se conecte Google
- *   Calendar, sus eventos se sumarán aquí.
+ *   Agenda (las tareas y correos no bloquean), más los eventos de su
+ *   calendario de Google/Outlook/iCloud si lo conectó (lib/calendario-externo.ts).
  * - La reserva vuelve a calcular los horarios en el servidor: solo se acepta
  *   una hora que esté libre en ese momento.
  */
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { medianocheBogota, diaSemanaBogota } from "@/lib/fecha-bogota";
+import { ocupadosDeCalendarioExterno } from "@/lib/calendario-externo";
 
 export const DURACIONES = [15, 30, 45, 60, 90] as const;
 
@@ -105,16 +106,27 @@ export async function usuarioDelEnlace(token: string) {
   return prisma.usuario.findFirst({
     where: { tokenAgenda: token, activo: true, tenant: { activo: true } },
     select: {
-      id: true, nombre: true, email: true, tenantId: true, agendaConfig: true,
+      id: true, nombre: true, email: true, tenantId: true, agendaConfig: true, calendarioExterno: true,
       tenant: { select: { nombre: true, logoUrl: true, colorMarca: true, emailsActivos: true } },
     },
   });
 }
 
-/** Horas libres del dueño del enlace a partir de ahora. */
-export async function horariosDelEnlace(u: { id: string; tenantId: string; agendaConfig: unknown }, ahora = new Date()) {
+/** Horas libres del dueño del enlace a partir de ahora (Agenda del CRM + su calendario externo, si lo conectó). */
+export async function horariosDelEnlace(
+  u: { id: string; tenantId: string; agendaConfig: unknown; calendarioExterno?: string | null }, ahora = new Date(),
+) {
   const config = configDe(u.agendaConfig);
   const hasta = medianocheBogota(config.diasAdelante, ahora);
-  const ocupados = await ocupadosDelUsuario(u.tenantId, u.id, ahora, hasta, config.duracion);
-  return { config, dias: calcularHorarios(config, ocupados, ahora) };
+  const [delCrm, externos] = await Promise.all([
+    ocupadosDelUsuario(u.tenantId, u.id, ahora, hasta, config.duracion),
+    u.calendarioExterno
+      ? ocupadosDeCalendarioExterno(u.calendarioExterno, ahora, hasta).catch(e => {
+          // Si el calendario externo no responde, el enlace sigue con la Agenda del CRM.
+          console.error("calendario externo:", e instanceof Error ? e.message : String(e));
+          return [] as Intervalo[];
+        })
+      : Promise.resolve([] as Intervalo[]),
+  ]);
+  return { config, dias: calcularHorarios(config, [...delCrm, ...externos], ahora) };
 }

@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.44"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.45"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -727,6 +727,8 @@ export async function GET() {
       React.createElement(LI, null, "El cliente recibe un correo de confirmación con la invitación para su calendario."),
       React.createElement(P, null, "En la misma sección defines tu horario: días de la semana, desde y hasta qué hora, duración de cada reunión, aviso mínimo (por ejemplo, no aceptar reuniones con menos de 4 horas) y hasta cuántos días hacia adelante se puede agendar. El enlace no ofrece las horas en las que ya tienes reuniones, llamadas o visitas pendientes en la Agenda. Todas las horas son de Colombia."),
       React.createElement(Nota, null, "Si dejas de usar el enlace, desactívalo; con \"Enlace nuevo\" el anterior deja de funcionar. Las tareas y correos de la Agenda no bloquean horas: solo reuniones, llamadas y visitas."),
+      React.createElement(P, null, "Conecta tu calendario de Google, Outlook o iCloud (sección \"Tu calendario de Google u Outlook\" en Mi perfil) para que el enlace tampoco ofrezca las horas en las que ya tienes algo allá. Pegas la \"dirección secreta en formato iCal\" de tu calendario y pulsas Conectar: el CRM solo lee cuándo estás ocupado (no cambia nada en tu calendario), respeta los eventos que se repiten y no toma en cuenta los marcados como \"Disponible\". En Google la encuentras en Configuración › tu calendario › Integrar el calendario."),
+      React.createElement(Tip, null, "No necesitas cuenta de Google Cloud ni dar permisos a ninguna app. Si el calendario no responde en algún momento, el enlace sigue funcionando con la Agenda del CRM. La dirección secreta es privada: no la compartas; si se filtra, en Google puedes restablecerla y volver a conectarla."),
     ),
 
     // ── CAPÍTULO 5: COTIZACIONES ──

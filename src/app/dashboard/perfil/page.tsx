@@ -7,6 +7,7 @@ import DosFactores from "./DosFactores";
 import AppCelular from "./AppCelular";
 import CorreoCco from "./CorreoCco";
 import EnlaceAgendar from "./EnlaceAgendar";
+import CalendarioExterno from "./CalendarioExterno";
 import { CampoPassword } from "@/components/campo-password";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 import { SkeletonLista } from "@/components/ui/estados";
@@ -213,6 +214,8 @@ export default function PerfilPage() {
       <CorreoCco />
 
       <EnlaceAgendar />
+
+      <CalendarioExterno />
 
       {/* Suscripción de calendario */}
       <div className={tarjeta("p-5 mt-6")}>

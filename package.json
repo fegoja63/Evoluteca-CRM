@@ -21,6 +21,7 @@
     "@vercel/blob": "^2.8.0",
     "bcryptjs": "^3.0.3",
     "exceljs": "^4.4.0",
+    "ical.js": "2.2.1",
     "imapflow": "^1.6.6",
     "mailparser": "^3.9.15",
     "next": "^16.2.11",

@@ -41,6 +41,7 @@ const CAMPOS_SENSIBLES = new Set([
   "tokenCalendario",
   "tokenCco",
   "tokenAgenda",
+  "calendarioExterno",
   "apiKeyLeads",
   "tokenPublico",
   "datos", // contenido en base64 de los adjuntos: pesado e innecesario aquí
