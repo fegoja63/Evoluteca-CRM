@@ -329,6 +329,10 @@ model Usuario {
   // anticipacionHoras, diasAdelante } — ver lib/agendar.ts. null = apagado.
   tokenAgenda         String?    @unique
   agendaConfig        Json?
+  // Dirección secreta iCal del calendario del usuario (Google, Outlook o
+  // iCloud). El CRM la lee para saber cuándo está ocupado y no ofrecer esas
+  // horas en el enlace para agendar (lib/calendario-externo.ts). Es privada.
+  calendarioExterno   String?
 
   // --- Verificación en dos pasos (TOTP, opcional por usuario) ---
   // Secreto compartido con la app de autenticación (Google Authenticator y
