@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.40"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.41"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -283,6 +283,9 @@ export async function GET() {
       React.createElement(LI, null, "Botón flotante + (rojo ladrillo, esquina inferior derecha) — abre un menú con acciones rápidas: nueva actividad, nuevo cliente, nueva cotización y ver pipeline"),
       React.createElement(LI, null, "Contenido con margen inferior para que la barra no tape el contenido"),
       React.createElement(Tip, null, "El botón + se convierte en × al abrirse. Toca fuera del menú o toca × para cerrarlo sin navegar."),
+      React.createElement(P, null, "Instalar el CRM como app: en Mi perfil, sección \"App en tu celular\", verás cómo agregarlo a la pantalla de inicio. En iPhone (Safari): botón Compartir › \"Agregar a inicio\". En Android (Chrome): menú ⋮ › \"Instalar app\". En el computador (Chrome o Edge): ícono de instalar en la barra de direcciones (o el botón \"Instalar Evoluteca CRM\" si aparece). Queda con el ícono de Evoluteca, se abre en su propia ventana sin la barra del navegador y, al mantener presionado el ícono, ofrece atajos a Bandeja Hoy, Pipeline y Agenda."),
+      React.createElement(P, null, "Avisos en el celular: en esa misma sección pulsa \"Activar avisos\" y acepta el permiso. Desde ese momento ese dispositivo te avisa cuando un cliente abre por primera vez una cotización de tus negocios y cuando alguien te asigna una tarea; al tocar el aviso se abre directo la cotización o tu agenda. Con \"Enviar aviso de prueba\" compruebas que llegan. Se activan por dispositivo: hazlo en el celular y en el computador si quieres recibirlos en ambos."),
+      React.createElement(Nota, null, "En iPhone los avisos solo funcionan desde la app instalada (iOS 16.4 o superior): primero agrégala a inicio y ábrela desde ese ícono. Si alguna vez bloqueaste los avisos para el sitio, actívalos desde la configuración del navegador."),
 
       React.createElement(H2, null, "1.5 Base de ayuda dentro del sistema"),
       React.createElement(P, null, "Ve a Ayuda / Soporte en el menú lateral. La página abre con un buscador de preguntas frecuentes agrupadas por módulo (Primeros pasos, Pipeline, Cotizaciones, Reportes, Configuración, etc.) — escribe cualquier palabra clave, con o sin tildes, y haz clic en una pregunta para desplegar la respuesta."),

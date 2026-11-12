@@ -87,7 +87,7 @@ function PageHeader({ base }: { base: string }) {
 }
 function Footer() {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.15"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.16"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }

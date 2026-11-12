@@ -6,6 +6,7 @@ import { estadoActivacion } from "@/lib/activacion";
 import { Sidebar } from "@/components/sidebar";
 import { MobileNav } from "@/components/mobile-nav";
 import { Fab } from "@/components/fab";
+import { RegistrarServiceWorker } from "@/components/registrar-sw";
 import { Toaster } from "@/lib/toast";
 import { prisma } from "@/lib/prisma";
 import { estadoLicencia } from "@/lib/licencias";
@@ -64,6 +65,7 @@ export default async function DashboardLayout({
       {/* El botón flotante y la paleta crean registros del CRM. */}
       {!soloFinanzas && <Fab />}
       <Toaster />
+      <RegistrarServiceWorker />
       {!soloFinanzas && <PaletaComandos />}
     </div>
   );

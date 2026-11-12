@@ -133,6 +133,7 @@ model Tenant {
   cuentasPorCobrar         CuentaPorCobrar[]
   rentabilidadClientes     RentabilidadCliente[]
   analisisClientes         AnalisisCliente[]
+  suscripcionesPush        SuscripcionPush[]
 
   @@map("tenants")
 }
@@ -341,6 +342,7 @@ model Usuario {
   metasVendedor        MetaVendedor[]
   registrosHoras       RegistroHoras[]
   actividadesAsignadas Actividad[]     @relation("ActividadResponsable")
+  suscripcionesPush    SuscripcionPush[]
 
   @@index([tenantId])
   @@map("usuarios")
@@ -1423,4 +1425,26 @@ model AnalisisCliente {
 
   @@index([tenantId])
   @@map("analisis_cliente")
+}
+
+// Avisos en el celular/computador (Web Push). Una fila por navegador o app
+// instalada en la que el usuario activó los avisos, por cuenta (ver lib/push.ts). Si el
+// servicio de push dice que ya no existe (410/404), se borra al enviar.
+model SuscripcionPush {
+  id        String   @id @default(uuid())
+  endpoint  String
+  p256dh    String
+  auth      String
+  // Navegador/dispositivo, solo para mostrarlo ("Chrome en Android").
+  agente    String?
+  creadoEn  DateTime @default(now())
+
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tenantId  String
+  tenant    Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, endpoint])
+  @@index([tenantId, usuarioId])
+  @@map("suscripciones_push")
 }

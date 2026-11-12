@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { escapeHtml } from "@/lib/html";
 import { registrarErrorServidor } from "@/lib/registrar-error-servidor";
 import { formatoFechaHora } from "@/lib/fecha-bogota";
+import { enviarPush } from "@/lib/push";
 
 const BASE_URL = process.env.NEXTAUTH_URL ?? "https://evoluteca-crm-six.vercel.app";
 const LOGO_FGJ = "https://evoluteca-crm-six.vercel.app/Logo%20FGJ.jpg";
@@ -33,14 +34,13 @@ type Params = {
  *
  * No envía correo si:
  *  - te asignas la tarea a ti mismo (responsable === asignador),
- *  - no hay RESEND_API_KEY configurada,
+ *  - no hay RESEND_API_KEY configurada (el aviso push sí sale),
  *  - el tenant tiene los correos desactivados (Tenant.emailsActivos = false),
  *  - el responsable no existe/está inactivo o no tiene email.
  */
 export async function notificarTareaAsignada(p: Params): Promise<void> {
   try {
     if (!p.responsableId || p.responsableId === p.asignadorId) return;
-    if (!process.env.RESEND_API_KEY) return;
 
     const [tenant, responsable] = await Promise.all([
       prisma.tenant.findUnique({ where: { id: p.tenantId }, select: { emailsActivos: true, logoUrl: true } }),
@@ -49,12 +49,20 @@ export async function notificarTareaAsignada(p: Params): Promise<void> {
         select: { nombre: true, email: true },
       }),
     ]);
-    if (!tenant?.emailsActivos) return;
-    if (!responsable?.email) return;
+    if (!tenant?.emailsActivos || !responsable) return;
 
-    const esc = (v: unknown) => escapeHtml(String(v ?? ""));
     const tipoLabel = TIPO_LABEL[p.actividad.tipo] ?? p.actividad.tipo;
     const fechaFmt = formatoFechaHora(new Date(p.actividad.fecha), { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+
+    // Aviso en el celular/computador (si el responsable activó los avisos).
+    await enviarPush(p.tenantId, [p.responsableId], {
+      titulo: `📋 ${p.asignadorNombre} te asignó una tarea`,
+      cuerpo: `${p.actividad.titulo} · ${tipoLabel}, ${fechaFmt}`,
+      url: "/dashboard/agenda?filtro=asignadas",
+    });
+
+    if (!process.env.RESEND_API_KEY || !responsable.email) return;
+    const esc = (v: unknown) => escapeHtml(String(v ?? ""));
 
     const subject = `📋 Nueva tarea asignada: ${esc(p.actividad.titulo)}`;
     const html = `

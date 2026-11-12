@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -21,6 +21,12 @@ const fuente = localFont({
 export const metadata: Metadata = {
   title: "Evoluteca CRM",
   description: "Organiza tus ventas en un día.",
+  // App instalada en iPhone: nombre bajo el ícono y barra de estado del sistema.
+  appleWebApp: { capable: true, title: "Evoluteca", statusBarStyle: "default" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0b1c26",
 };
 
 export default function RootLayout({
