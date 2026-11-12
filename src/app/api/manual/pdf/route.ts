@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.45"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.46"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -333,6 +333,7 @@ export async function GET() {
       React.createElement(Paso, { n: 2, titulo: "Arrastrar y soltar", desc: "Arrastra cada módulo a la posición que prefieras dentro de su grupo (Hoy, Ventas, Relaciones…). El nuevo orden se guarda automáticamente en tu perfil." }),
       React.createElement(Paso, { n: 3, titulo: "Terminar", desc: "Haz clic en \"Listo\" para volver a la navegación normal. Con el botón \"Restablecer\" vuelves al orden original en cualquier momento." }),
       React.createElement(Nota, null, "El orden del menú es personal de cada usuario — no afecta a tus compañeros. Si se activa un módulo nuevo (por ejemplo Funciones o Salones), aparece automáticamente en el grupo Módulos del menú, sin alterar el orden que ya definiste."),
+      React.createElement(P, null, "Menú compacto: si prefieres más espacio en pantalla, pulsa el ícono de compactar que está junto a \"Ordenar\". El menú queda como una columna angosta con solo los temas (Hoy, Ventas, Relaciones, Análisis, Módulos y Más); al pasar el cursor sobre un tema se despliegan sus opciones al lado (en pantallas táctiles, con un toque). El tema de la pantalla en la que estás lleva una marca roja. Con \"Expandir\", abajo en la barra, vuelves al menú completo. Es una preferencia tuya en este navegador y en el celular no cambia nada."),
 
       React.createElement(H2, null, "1.8 Modo Día, Noche o Automático"),
       React.createElement(P, null, "Abajo en el menú lateral, junto a \"Cerrar sesión\", está el botón \"Tema\". Cada clic pasa al siguiente modo:"),

@@ -5,14 +5,15 @@ import { abrirPaleta } from "@/components/paleta-comandos";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   IconLayoutDashboard, IconBuilding, IconUsers, IconChartFunnel, IconCalendar,
   IconFileText, IconPackage, IconTemplate, IconMailFast, IconReportAnalytics,
   IconUsersGroup, IconTheater, IconTicket, IconScale, IconBuildingPavilion, IconMessageChatbot,
   IconDatabaseImport, IconTrash, IconRocket, IconLifebuoy, IconSettings, IconHistory,
   IconUserCircle, IconLogout, IconSearch, IconX, IconArrowsSort, IconCheck,
-  IconGripVertical, IconArrowBackUp, IconSparkles, IconHeartHandshake, IconChevronDown, IconChevronRight, IconInbox, IconCoin, type Icon,
+  IconGripVertical, IconArrowBackUp, IconSparkles, IconHeartHandshake, IconChevronDown, IconChevronRight, IconInbox, IconCoin,
+  IconSun, IconApps, IconDots, IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand, type Icon,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/cn";
 import { INICIO_FINANZAS } from "@/lib/cuenta-finanzas";
@@ -88,6 +89,17 @@ function grupoDe(href: string): GrupoId {
   return GRUPO_DE_HREF[href] ?? (HREFS_OPCIONALES.has(href) ? "modulos" : "mas");
 }
 
+// Ícono de cada grupo en el menú compacto.
+const ICONO_GRUPO: Record<GrupoId, Icon> = {
+  finanzas: IconCoin, hoy: IconSun, ventas: IconChartFunnel, relaciones: IconUsers,
+  analisis: IconReportAnalytics, modulos: IconApps, mas: IconDots,
+};
+
+// Menú compacto: solo los grupos, y cada uno despliega sus opciones al pasar
+// el cursor (o al tocarlo en pantallas táctiles). Es una preferencia de cada
+// usuario en su navegador; en el celular no aplica (allá va la barra inferior).
+const CLAVE_COMPACTO = "evoluteca:menu-compacto";
+
 // Qué grupos tiene plegados el usuario. Vive en este navegador: es una
 // comodidad visual, no un dato del CRM.
 const CLAVE_PLEGADOS = "evoluteca:menu-plegados";
@@ -131,14 +143,51 @@ export function Sidebar({ tenantNombre, onClose, soloFinanzas = false, conFinanz
   const [dragOverHref, setDragOverHref] = useState<string | null>(null);
   const [plegados, setPlegados] = useState<Partial<Record<GrupoId, boolean>>>(PLEGADOS_DEFECTO);
   const [atajo, setAtajo] = useState("Ctrl K");
+  // El cajón del celular (onClose) siempre va completo.
+  const [compactoGuardado, setCompactoGuardado] = useState(false);
+  const compacto = compactoGuardado && !onClose;
+  const [flotante, setFlotante] = useState<{ grupo: GrupoId; top: number } | null>(null);
+  const cierreRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     try {
       const guardado = window.localStorage.getItem(CLAVE_PLEGADOS);
       if (guardado) setPlegados(JSON.parse(guardado));
+      setCompactoGuardado(window.localStorage.getItem(CLAVE_COMPACTO) === "1");
     } catch { /* sin almacenamiento: se usan los valores por defecto */ }
     if (/Mac|iPhone|iPad/.test(navigator.platform)) setAtajo("⌘K");
   }, []);
+
+  function cambiarCompacto(valor: boolean) {
+    setCompactoGuardado(valor);
+    setFlotante(null);
+    setReordenando(false);
+    try { window.localStorage.setItem(CLAVE_COMPACTO, valor ? "1" : "0"); } catch { /* ignorar */ }
+  }
+
+  // Al navegar se cierra el menú desplegado.
+  useEffect(() => { setFlotante(null); }, [pathname]);
+
+  // Escape o un clic fuera cierran el menú desplegado (pantallas táctiles).
+  useEffect(() => {
+    if (!flotante) return;
+    const alTeclado = (e: KeyboardEvent) => { if (e.key === "Escape") setFlotante(null); };
+    const alClic = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest("[data-menu-compacto]")) setFlotante(null);
+    };
+    window.addEventListener("keydown", alTeclado);
+    window.addEventListener("mousedown", alClic);
+    return () => { window.removeEventListener("keydown", alTeclado); window.removeEventListener("mousedown", alClic); };
+  }, [flotante]);
+
+  function abrirFlotante(grupo: GrupoId, boton: HTMLElement) {
+    if (cierreRef.current) clearTimeout(cierreRef.current);
+    setFlotante({ grupo, top: boton.getBoundingClientRect().top });
+  }
+  function cerrarFlotante() {
+    if (cierreRef.current) clearTimeout(cierreRef.current);
+    cierreRef.current = setTimeout(() => setFlotante(null), 180);
+  }
 
   function alternarGrupo(id: GrupoId) {
     setPlegados(prev => {
@@ -219,6 +268,87 @@ export function Sidebar({ tenantNombre, onClose, soloFinanzas = false, conFinanz
   const nombreUsuario = session?.user?.name ?? "";
   const rolUsuario = session?.user?.rol ? session.user.rol.charAt(0) + session.user.rol.slice(1).toLowerCase() : "";
 
+  if (compacto) {
+    const grupoAbierto = flotante ? grupos.find(g => g.id === flotante.grupo) : null;
+    return (
+      <nav data-menu-compacto className="flex h-screen w-[76px] flex-col items-center bg-brand-950 text-white">
+        <Link href="/dashboard" title={tenantNombre} className="mt-4 mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-white">
+          <img src="/iconos/icono-96.png" alt="Evoluteca CRM" className="h-8 w-8" />
+        </Link>
+        {!soloFinanzas && (
+          <button type="button" onClick={() => abrirPaleta()} title={"Buscar o crear (" + atajo + ")"}
+            className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg text-brand-300 hover:bg-white/10 hover:text-white">
+            <IconSearch size={19} stroke={1.75} />
+          </button>
+        )}
+        <div className="flex flex-1 flex-col items-center gap-1 overflow-y-auto py-1">
+          {grupos.map(g => {
+            const Icono = ICONO_GRUPO[g.id];
+            const tieneActivo = g.items.some(i => esActivo(i.href));
+            const abierto = flotante?.grupo === g.id;
+            return (
+              <button key={g.id} type="button"
+                onMouseEnter={e => abrirFlotante(g.id, e.currentTarget)}
+                onMouseLeave={cerrarFlotante}
+                onClick={e => (abierto ? setFlotante(null) : abrirFlotante(g.id, e.currentTarget))}
+                aria-expanded={abierto}
+                className={cn(
+                  "relative flex w-16 flex-col items-center gap-0.5 rounded-xl py-2 transition-colors",
+                  abierto ? "bg-white/10 text-white" : tieneActivo ? "text-white" : "text-brand-300 hover:bg-white/10 hover:text-white",
+                )}>
+                {tieneActivo && <span className="absolute left-0 top-1/2 h-7 w-[3px] -translate-y-1/2 rounded-r bg-accent-500" />}
+                <Icono size={21} stroke={1.75} />
+                <span className="text-[11px] font-medium leading-tight">{g.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {grupoAbierto && flotante && (
+          <div
+            onMouseEnter={() => { if (cierreRef.current) clearTimeout(cierreRef.current); }}
+            onMouseLeave={cerrarFlotante}
+            style={{ top: Math.max(8, Math.min(flotante.top - 8, window.innerHeight - 56 - grupoAbierto.items.length * 40)) }}
+            className="fixed left-[82px] z-50 w-56 rounded-xl border border-slate-200 bg-white p-2 text-slate-800 shadow-xl">
+            <p className="px-2 pb-1.5 pt-1 text-2xs font-semibold uppercase tracking-wide text-slate-400">{grupoAbierto.label}</p>
+            {grupoAbierto.items.map(item => {
+              const Icono = item.icon;
+              const activo = esActivo(item.href);
+              return (
+                <Link key={item.href} href={item.href}
+                  className={cn(
+                    "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors",
+                    activo ? "bg-accent-600 font-medium text-white" : "hover:bg-slate-100",
+                  )}>
+                  <Icono size={17} stroke={1.75} className={activo ? "text-white" : "text-slate-500"} />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="flex flex-col items-center gap-1 border-t border-white/10 py-3">
+          {nombreUsuario && (
+            <Link href="/dashboard/perfil" title={nombreUsuario + " · Mi perfil"}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-500 text-xs font-bold text-white">
+              {iniciales(nombreUsuario)}
+            </Link>
+          )}
+          <button type="button" onClick={() => cambiarCompacto(false)} title="Expandir el menú"
+            className="flex w-16 flex-col items-center gap-0.5 rounded-xl py-1.5 text-brand-300 hover:bg-white/10 hover:text-white">
+            <IconLayoutSidebarLeftExpand size={19} stroke={1.75} />
+            <span className="text-[11px] leading-tight">Expandir</span>
+          </button>
+          <button type="button" onClick={() => signOut({ callbackUrl: "/login" })} title="Cerrar sesión"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-brand-300 hover:bg-white/10 hover:text-white">
+            <IconLogout size={18} stroke={1.75} />
+          </button>
+        </div>
+      </nav>
+    );
+  }
+
   return (
     <nav className="flex h-screen w-56 flex-col bg-brand-950 text-white">
       <div className="px-5 py-6 border-b border-white/10 relative">
@@ -281,6 +411,12 @@ export function Sidebar({ tenantNombre, onClose, soloFinanzas = false, conFinanz
             {reordenando ? <IconCheck size={13} stroke={2} /> : <IconArrowsSort size={13} stroke={1.75} />}
             {reordenando ? "Listo" : "Ordenar"}
           </button>
+          {!onClose && !reordenando && (
+            <button onClick={() => cambiarCompacto(true)} title="Compactar el menú: solo los temas, y cada uno se despliega al pasar el cursor"
+              className="rounded-md p-1 text-brand-300 transition-colors hover:bg-white/5 hover:text-white">
+              <IconLayoutSidebarLeftCollapse size={15} stroke={1.75} />
+            </button>
+          )}
         </div>}
       </div>
 
