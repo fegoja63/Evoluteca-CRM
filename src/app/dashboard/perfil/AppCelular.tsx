@@ -4,23 +4,7 @@ import { useEffect, useState } from "react";
 import { IconDeviceMobile, IconBell, IconBellOff, IconDownload, IconCircleCheck } from "@tabler/icons-react";
 import { boton, tarjeta } from "@/components/ui/estilos";
 import { toast } from "@/lib/toast";
-
-// Llave pública VAPID (base64url) → bytes, como la pide pushManager.subscribe.
-function llaveABytes(base64: string): Uint8Array<ArrayBuffer> {
-  const relleno = "=".repeat((4 - (base64.length % 4)) % 4);
-  const b64 = (base64 + relleno).replace(/-/g, "+").replace(/_/g, "/");
-  const bin = atob(b64);
-  const out = new Uint8Array(new ArrayBuffer(bin.length));
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
-}
-
-function nombreDispositivo(): string {
-  const ua = navigator.userAgent;
-  const so = /iPhone|iPad/.test(ua) ? "iPhone/iPad" : /Android/.test(ua) ? "Android" : /Mac/.test(ua) ? "Mac" : /Windows/.test(ua) ? "Windows" : "otro";
-  const nav = /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "navegador";
-  return `${nav} en ${so}`;
-}
+import { activarAvisos, esAppInstalada, navegadorAdmiteAvisos } from "@/lib/push-cliente";
 
 type Estado = "cargando" | "sin-soporte" | "ios-sin-instalar" | "bloqueado" | "apagado" | "activo" | "no-configurado";
 
@@ -33,8 +17,7 @@ export default function AppCelular() {
   const [instalada, setInstalada] = useState(false);
 
   useEffect(() => {
-    const standalone = window.matchMedia("(display-mode: standalone)").matches
-      || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    const standalone = esAppInstalada();
     const alInstalable = () => setInstalable(true);
     window.addEventListener("evoluteca-instalable", alInstalable);
 
@@ -42,7 +25,7 @@ export default function AppCelular() {
       setInstalada(standalone);
       setInstalable(!!window.__evolutecaInstalar);
       const ios = /iPhone|iPad/.test(navigator.userAgent);
-      if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+      if (!navegadorAdmiteAvisos()) {
         setEstado(ios && !standalone ? "ios-sin-instalar" : "sin-soporte");
         return;
       }
@@ -71,17 +54,9 @@ export default function AppCelular() {
     if (!publicKey) return;
     setTrabajando(true);
     try {
-      const permiso = await Notification.requestPermission();
-      if (permiso !== "granted") { setEstado(permiso === "denied" ? "bloqueado" : "apagado"); return; }
-      const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: llaveABytes(publicKey) });
-      const res = await fetch("/api/push", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...sub.toJSON(), agente: nombreDispositivo() }),
-      });
-      if (!res.ok) throw new Error();
-      setEstado("activo");
+      const resultado = await activarAvisos(publicKey);
+      setEstado(resultado);
+      if (resultado !== "activo") return;
       toast.success("Avisos activados en este dispositivo.");
     } catch {
       toast.error("No se pudieron activar los avisos. Inténtalo de nuevo.");
