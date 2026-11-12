@@ -27,6 +27,13 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#0b1c26",
+  width: "device-width",
+  initialScale: 1,
+  // En iPhone, tocar un campo con letra de menos de 16 px hace que Safari
+  // amplíe la página y la deje así (se veía cortada por la derecha).
+  // maximumScale evita ese zoom automático; iOS sigue permitiendo pellizcar
+  // para ampliar, así que no se pierde accesibilidad.
+  maximumScale: 1,
 };
 
 export default function RootLayout({
