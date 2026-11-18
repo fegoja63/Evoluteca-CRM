@@ -11,10 +11,10 @@ import { prisma } from "../prisma-vigilado";
 
 // La API de Claude se simula: no gasta cupo ni depende de la red, y se puede
 // ver qué se le pide al modelo.
-type Peticion = { system: string; messages: { content: string }[]; max_tokens: number };
+type Peticion = { model: string; fallbacks: { model: string }[]; system: string; messages: { content: string }[]; max_tokens: number };
 const stream = vi.hoisted(() => vi.fn());
 vi.mock("@anthropic-ai/sdk", () => {
-  class Anthropic { messages = { stream }; }
+  class Anthropic { beta = { messages: { stream } }; }
   return { default: Anthropic };
 });
 
@@ -51,6 +51,8 @@ describe("Coach de objeciones", () => {
 
   it("por defecto responde con enfoque consultivo y pide qué falta calificar y la pregunta para destrabar", async () => {
     const p = await pedirCoach("Está muy caro");
+    expect(p.model).toBe("claude-opus-5-5");
+    expect(p.fallbacks).toEqual([{ model: "claude-opus-4-8" }]);
     expect(p.system).toContain("Venta consultiva");
     expect(p.system).toContain("QUÉ FALTA CALIFICAR:");
     expect(p.system).toContain("PREGUNTA PARA DESTRABAR:");

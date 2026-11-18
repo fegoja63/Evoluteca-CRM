@@ -95,9 +95,13 @@ No inventes datos, cifras ni compromisos que no estén en la información dada. 
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        const ms = client.messages.stream({
-          model: "claude-opus-4-8",
-          max_tokens: 800,
+        const ms = client.beta.messages.stream({
+          model: "claude-opus-5-5",
+          // Opus 5.5 siempre piensa; ese pensamiento cuenta dentro de max_tokens, por eso
+          // la holgura. El largo de la respuesta lo fija el prompt.
+          max_tokens: 4000,
+          betas: ["server-side-fallback-2026-06-01"],
+          fallbacks: [{ model: "claude-opus-4-8" }],
           output_config: { effort: "low" },
           system: SYSTEM,
           messages: [{ role: "user", content: contexto }],

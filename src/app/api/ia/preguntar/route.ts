@@ -95,7 +95,7 @@ export async function POST(req: Request) {
   const client = new Anthropic();
   const hoy = new Date();
   const anioHoy = componentesHoyBogota(hoy).anio; // calendario de Colombia, no el del servidor (UTC)
-  const SYSTEM = `Eres un traductor de preguntas comerciales a consultas estructuradas sobre una base de oportunidades de venta de un CRM. NO respondes con datos ni cifras: solo llamas a la herramienta "consultar" con los parámetros que mejor representen la pregunta del usuario.
+  const SYSTEM = `Eres un traductor de preguntas comerciales a consultas estructuradas sobre una base de oportunidades de venta de un CRM. NO respondes con datos ni cifras: solo devuelves la consulta con los parámetros que mejor representen la pregunta del usuario.
 
 Hoy es ${formatoFecha(hoy, { day: "2-digit", month: "long", year: "numeric" })}: "este año" = ${anioHoy}, "el año pasado" = ${anioHoy - 1}, "este mes" = el mes en curso.
 
@@ -109,49 +109,63 @@ Guía:
 - filtros.anio: uno de: ${anios.length ? anios.join(", ") : "(ninguno)"}.
 - filtros.vendedor: nombre aproximado de uno de: ${usuarios.map(u => u.nombre).join(", ") || "(ninguno)"}.
 - titulo: un título corto y legible del resultado (ej. "Valor ganado por mes en 2026").
-Elige valores solo de las listas dadas. Si la pregunta no encaja con estos datos, igual llama a la herramienta con tu mejor interpretación.`;
+Elige valores solo de las listas dadas. Si la pregunta no encaja con estos datos, igual devuelve la consulta con tu mejor interpretación.`;
 
+  // La consulta sale como JSON con esquema (structured outputs). Opus 5.5 no acepta
+  // forzar una herramienta con tool_choice, y el esquema da la misma garantía.
   let msg;
   try {
-    msg = await client.messages.create({
-      model: "claude-opus-4-8",
-      max_tokens: 500,
-      output_config: { effort: "low" },
-      system: SYSTEM,
-      tools: [{
-        name: "consultar",
-        description: "Ejecuta una consulta agregada sobre las oportunidades del CRM.",
-        input_schema: {
-          type: "object",
-          properties: {
-            metrica: { type: "string", enum: METRICAS as unknown as string[] },
-            dimension: { type: "string", enum: DIMENSIONES as unknown as string[] },
-            chart: { type: "string", enum: ["barras", "tabla", "numero"] },
-            titulo: { type: "string" },
-            filtros: {
-              type: "object",
-              properties: {
-                etapa: { type: "string", enum: ETAPAS as unknown as string[] },
-                segmento: { type: "string" },
-                sede: { type: "string" },
-                anio: { type: "number" },
-                soloAbiertas: { type: "boolean" },
-                vendedor: { type: "string" },
+    msg = await client.beta.messages.create({
+      model: "claude-opus-5-5",
+      // Opus 5.5 siempre piensa; ese pensamiento cuenta dentro de max_tokens.
+      max_tokens: 2000,
+      betas: ["server-side-fallback-2026-06-01"],
+      fallbacks: [{ model: "claude-opus-4-8" }],
+      output_config: {
+        effort: "low",
+        format: {
+          type: "json_schema",
+          schema: {
+            type: "object",
+            properties: {
+              metrica: { type: "string", enum: METRICAS as unknown as string[] },
+              dimension: { type: "string", enum: DIMENSIONES as unknown as string[] },
+              chart: { type: "string", enum: ["barras", "tabla", "numero"] },
+              titulo: { type: "string" },
+              filtros: {
+                type: "object",
+                properties: {
+                  etapa: { type: "string", enum: ETAPAS as unknown as string[] },
+                  segmento: { type: "string" },
+                  sede: { type: "string" },
+                  anio: { type: "number" },
+                  soloAbiertas: { type: "boolean" },
+                  vendedor: { type: "string" },
+                },
+                additionalProperties: false,
               },
             },
+            required: ["metrica", "dimension"],
+            additionalProperties: false,
           },
-          required: ["metrica", "dimension"],
         },
-      }],
-      tool_choice: { type: "tool", name: "consultar" },
+      },
+      system: SYSTEM,
       messages: [{ role: "user", content: pregunta }],
     });
   } catch {
     return NextResponse.json({ error: "No se pudo procesar la pregunta en este momento. Inténtalo de nuevo." }, { status: 502 });
   }
 
-  const toolUse = msg.content.find((b): b is Anthropic.ToolUseBlock => b.type === "tool_use");
-  const spec = toolUse?.input as Spec | undefined;
+  let spec: Spec | undefined;
+  if (msg.stop_reason !== "refusal" && msg.stop_reason !== "max_tokens") {
+    const texto = msg.content.find((b) => b.type === "text");
+    try {
+      spec = texto && texto.type === "text" ? (JSON.parse(texto.text) as Spec) : undefined;
+    } catch {
+      spec = undefined;
+    }
+  }
   if (!spec || !METRICAS.includes(spec.metrica) || !DIMENSIONES.includes(spec.dimension)) {
     return NextResponse.json({ error: "No entendí bien la pregunta. Intenta ser más específico, por ejemplo: “valor ganado por mes este año”." }, { status: 422 });
   }
