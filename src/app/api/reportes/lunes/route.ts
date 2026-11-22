@@ -5,6 +5,8 @@ import { fechaEfectiva } from "@/lib/fecha-efectiva";
 import { filtroOwner, filtroOwnerActividad } from "@/lib/permisos";
 import { componentesHoyBogota, medianocheBogota, formatoFecha } from "@/lib/fecha-bogota";
 import { calcularCumplimiento } from "@/lib/cumplimiento-proceso";
+import { DIAS_EMBUDO } from "@/lib/embudo-entrada";
+import { embudoEntrada } from "@/lib/embudo-entrada-carga";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +16,8 @@ export const dynamic = "force-dynamic";
 //   3. Actividad comercial — cuántas llamadas/reuniones/visitas/propuestas en 7 días.
 //   5. Ticket promedio     — valor medio de una operación ganada (últimos 12 meses).
 //   7. Movimiento de clientes — nuevos / activos / inactivos / perdidos.
+//   Embudo de entrada — consultas → calificados → propuestas → ventas de lo que
+//      entró en los últimos 30 días (ver lib/embudo-entrada).
 //   Cumplimiento del proceso — por vendedor: % de lo agendado que se hizo (7 días),
 //      tareas vencidas y negocios sin próximo paso (ver lib/cumplimiento-proceso).
 //
@@ -46,6 +50,7 @@ export async function GET() {
   const hace60dias   = medianocheBogota(-DIAS_INACTIVIDAD);
   const inicioMes    = new Date(Date.UTC(anio, mes, 1, 5, 0, 0));
   const hace12meses  = new Date(Date.UTC(anio, mes - 12, 1, 5, 0, 0));
+  const haceEmbudo   = medianocheBogota(-DIAS_EMBUDO);
 
   // Fechas legibles (ancladas a Bogotá) para que cada indicador diga de qué día
   // o mes a qué día o mes va su ventana, y no confunda con un simple "últimos 7
@@ -53,7 +58,7 @@ export async function GET() {
   const fmtDia = (dt: Date) => formatoFecha(dt, { day: "numeric", month: "short" });
   const fmtMes = (dt: Date) => formatoFecha(dt, { month: "short", year: "numeric" });
 
-  const [actividades7d, cotizaciones7d, empresas, ganadas, perdidasMes, actsCumplimiento, opsCumplimiento, usuarios] = await Promise.all([
+  const [actividades7d, cotizaciones7d, empresas, ganadas, perdidasMes, actsCumplimiento, opsCumplimiento, usuarios, embudo] = await Promise.all([
     // 3. Actividad comercial: toques del equipo en los últimos 7 días. Se cuenta
     //    por `fecha` (cuándo ocurrió/ocurre la actividad), acotado a fecha<=ahora
     //    para no contar lo agendado a futuro como ya hecho.
@@ -117,6 +122,7 @@ export async function GET() {
       },
     }),
     prisma.usuario.findMany({ where: { tenantId }, select: { id: true, nombre: true } }),
+    embudoEntrada(tenantId, haceEmbudo, rol === "COMERCIAL" ? userId : null),
   ]);
 
   // ── 3. Actividad comercial (últimos 7 días) ──
@@ -196,12 +202,14 @@ export async function GET() {
       perdidos,
     },
     cumplimiento,
+    embudo,
     // Rangos legibles de cada ventana, para mostrarlos junto a cada indicador.
     rangos: {
       actividad: `${fmtDia(hace7dias)} – ${fmtDia(ahora)}`,
       cumplimiento: `${fmtDia(hace7dias)} – ${fmtDia(new Date(inicioHoy.getTime() - 1))}`,
       ticket: ticketVentana === "12m" ? `${fmtMes(hace12meses)} – ${fmtMes(ahora)}` : "todo el histórico",
       mes: fmtMes(ahora),
+      embudo: `${fmtDia(haceEmbudo)} – ${fmtDia(ahora)}`,
       diasInactividad: DIAS_INACTIVIDAD,
     },
   });

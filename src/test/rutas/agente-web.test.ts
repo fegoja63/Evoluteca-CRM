@@ -23,8 +23,9 @@ import { GET as verConfig, PUT as guardarConfig } from "@/app/api/agente-web/rou
 const TOKEN = "0123456789abcdef0123456789abcdef";
 const TOKEN_B = "fedcba9876543210fedcba9876543210";
 const AGENDA = "abcdef0123456789abcdef0123456789";
-const vacio = { nombre: null, empresa: null, email: null, telefono: null, necesidad: null, cantidad: null, plazo: null };
-const respuesta = (datos: Partial<typeof vacio> = {}, extra: Record<string, unknown> = {}) => ({
+type Datos = Record<"nombre" | "empresa" | "email" | "telefono" | "necesidad" | "cantidad" | "plazo", string | null>;
+const vacio: Datos = { nombre: null, empresa: null, email: null, telefono: null, necesidad: null, cantidad: null, plazo: null };
+const respuesta = (datos: Partial<Datos> = {}, extra: Record<string, unknown> = {}) => ({
   stop_reason: "end_turn",
   parsed_output: { respuesta: "Con gusto le ayudo.", datos: { ...vacio, ...datos }, calificacion: "MEDIA", ofrecerAgenda: false, ...extra },
   usage: { input_tokens: 100, output_tokens: 20 },
