@@ -63,6 +63,10 @@ model Tenant {
   // defecto del sistema (no rompe cotizaciones de tenants que no lo configuren).
   cuerpoCotizacion     Json?
   apiKeyLeads          String?   @unique
+  // Chat con IA para la página web del cliente (/chat/<agenteWebToken>):
+  // { activo, nombre, saludo, info, responsableId } — ver lib/agente-web.ts.
+  agenteWebToken       String?   @unique
+  agenteWebConfig      Json?
   // Tope de usuarios activos según el plan contratado (null = sin límite).
   // Lo controla exclusivamente el panel interno de Evoluteca, no el propio
   // tenant — es una palanca de precios, no una preferencia de cuenta.
@@ -134,6 +138,7 @@ model Tenant {
   rentabilidadClientes     RentabilidadCliente[]
   analisisClientes         AnalisisCliente[]
   suscripcionesPush        SuscripcionPush[]
+  conversacionesAgente     ConversacionAgente[]
   secuencias               Secuencia[]
   inscripcionesSecuencia   InscripcionSecuencia[]
 
@@ -352,12 +357,12 @@ model Usuario {
   reset2faToken   String?   @unique
   reset2faExpiry  DateTime?
 
-  tenantId             String
-  tenant               Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  metasVendedor        MetaVendedor[]
-  registrosHoras       RegistroHoras[]
-  actividadesAsignadas Actividad[]     @relation("ActividadResponsable")
-  suscripcionesPush    SuscripcionPush[]
+  tenantId               String
+  tenant                 Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  metasVendedor          MetaVendedor[]
+  registrosHoras         RegistroHoras[]
+  actividadesAsignadas   Actividad[]            @relation("ActividadResponsable")
+  suscripcionesPush      SuscripcionPush[]
   inscripcionesSecuencia InscripcionSecuencia[]
 
   @@index([tenantId])
@@ -418,15 +423,15 @@ model Contacto {
 
   segmento String? // INDIVIDUAL | GRUPO | EMPRESA | COLEGIO
 
-  empresaId       String?
-  empresa         Empresa?                  @relation(fields: [empresaId], references: [id], onDelete: SetNull)
-  oportunidades   Oportunidad[]
-  actividades     Actividad[]
-  cotizaciones    Cotizacion[]
-  eventosTimeline EventoTimeline[]
-  adjuntos        Adjunto[]
-  correos         CorreoRegistrado[]
-  participaciones ParticipanteOportunidad[]
+  empresaId              String?
+  empresa                Empresa?                  @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+  oportunidades          Oportunidad[]
+  actividades            Actividad[]
+  cotizaciones           Cotizacion[]
+  eventosTimeline        EventoTimeline[]
+  adjuntos               Adjunto[]
+  correos                CorreoRegistrado[]
+  participaciones        ParticipanteOportunidad[]
   inscripcionesSecuencia InscripcionSecuencia[]
 
   @@index([tenantId])
@@ -475,16 +480,17 @@ model Oportunidad {
   // ---- Postventa (módulo opcional) ----
   // null = el negocio no está en el tablero de Postventa. Entra en ENTREGA al
   // ganarse (si el módulo está activo) o con "Pasar a postventa" en la ficha.
-  postventaEtapa     EtapaPostventa?
+  postventaEtapa       EtapaPostventa?
   // Cuándo hay que renovar (contrato, licencia, servicio). Dispara el aviso de
   // "renovaciones próximas" 30 días antes.
-  fechaRenovacion    DateTime?
+  fechaRenovacion      DateTime?
   // Si esta oportunidad es la RENOVACIÓN de otra, apunta al negocio original.
-  origenRenovacionId String?
-  origenRenovacion   Oportunidad?              @relation("RenovacionDe", fields: [origenRenovacionId], references: [id], onDelete: SetNull)
-  renovaciones       Oportunidad[]             @relation("RenovacionDe")
-  minutas            Minuta[]
-  participantes      ParticipanteOportunidad[]
+  origenRenovacionId   String?
+  origenRenovacion     Oportunidad?              @relation("RenovacionDe", fields: [origenRenovacionId], references: [id], onDelete: SetNull)
+  renovaciones         Oportunidad[]             @relation("RenovacionDe")
+  minutas              Minuta[]
+  participantes        ParticipanteOportunidad[]
+  conversacionesAgente ConversacionAgente[]
 
   creadoEn    DateTime  @default(now())
   creadoBy    String?
@@ -502,11 +508,11 @@ model Oportunidad {
   salonId String?
   salon   Salon?  @relation(fields: [salonId], references: [id], onDelete: SetNull)
 
-  actividades  Actividad[]
-  cotizaciones Cotizacion[]
-  cambiosEtapa CambioEtapa[]
-  adjuntos     Adjunto[]
-  correos      CorreoRegistrado[]
+  actividades            Actividad[]
+  cotizaciones           Cotizacion[]
+  cambiosEtapa           CambioEtapa[]
+  adjuntos               Adjunto[]
+  correos                CorreoRegistrado[]
   inscripcionesSecuencia InscripcionSecuencia[]
 
   @@index([tenantId])
@@ -556,13 +562,13 @@ model Adjunto {
 // alertas (que comparan por key literal, ej. o.etapa === "GANADA") no
 // necesitan cambiar: solo la UI del Pipeline muestra el nombre/orden custom.
 model EtapaPipeline {
-  id     String  @id @default(uuid())
-  key    String // PROSPECTO | CALIFICADO | PROPUESTA | NEGOCIACION | GANADA | PERDIDA
-  nombre String
-  orden  Int
+  id           String  @id @default(uuid())
+  key          String // PROSPECTO | CALIFICADO | PROPUESTA | NEGOCIACION | GANADA | PERDIDA
+  nombre       String
+  orden        Int
   // Solo las 4 etapas intermedias se pueden ocultar, y solo si no tienen
   // oportunidades asignadas (se valida en la API) — GANADA/PERDIDA nunca.
-  oculta Boolean @default(false)
+  oculta       Boolean @default(false)
   // Probabilidad de cierre (0–100) que toma un negocio al entrar a esta etapa.
   // null = la de fábrica (src/lib/probabilidad-etapa.ts). Ganada y Perdida son
   // siempre 100 y 0, no se configuran.
@@ -1449,13 +1455,13 @@ model AnalisisCliente {
 // instalada en la que el usuario activó los avisos, por cuenta (ver lib/push.ts). Si el
 // servicio de push dice que ya no existe (410/404), se borra al enviar.
 model SuscripcionPush {
-  id        String   @id @default(uuid())
-  endpoint  String
-  p256dh    String
-  auth      String
+  id       String   @id @default(uuid())
+  endpoint String
+  p256dh   String
+  auth     String
   // Navegador/dispositivo, solo para mostrarlo ("Chrome en Android").
-  agente    String?
-  creadoEn  DateTime @default(now())
+  agente   String?
+  creadoEn DateTime @default(now())
 
   usuarioId String
   usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
@@ -1523,4 +1529,29 @@ model InscripcionSecuencia {
   @@index([tenantId, contactoId])
   @@index([estado, proximoEnvio])
   @@map("inscripciones_secuencia")
+}
+
+// Conversación del chat con IA de la página web (ver lib/agente-web.ts). El
+// visitante la retoma con su `secreto` (guardado en su navegador). Cuando da
+// nombre y un medio de contacto, se crea el lead y queda ligado aquí.
+model ConversacionAgente {
+  id            String   @id @default(uuid())
+  secreto       String
+  // [{ rol: "visitante" | "agente", texto, en }]
+  mensajes      Json     @default("[]")
+  // Lo que la IA fue sacando de la conversación: nombre, empresa, email…
+  datos         Json     @default("{}")
+  calificacion  String?
+  paginaOrigen  String?
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  oportunidadId String?
+  oportunidad   Oportunidad? @relation(fields: [oportunidadId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, actualizadoEn])
+  @@map("conversaciones_agente")
 }

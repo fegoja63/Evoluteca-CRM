@@ -23,14 +23,18 @@ export async function verificarCupoIA(tenantId: string): Promise<NextResponse | 
   return null;
 }
 
-/** Suma una acción de IA. Nunca tumba la respuesta si el conteo falla. */
-export async function registrarUsoIA(tenantId: string, usage: { input_tokens: number; output_tokens: number }): Promise<void> {
+/**
+ * Suma una acción de IA (o `acciones`, p. ej. 0 para los mensajes siguientes
+ * de una conversación del Chat web, que solo suman tokens). Nunca tumba la
+ * respuesta si el conteo falla.
+ */
+export async function registrarUsoIA(tenantId: string, usage: { input_tokens: number; output_tokens: number }, acciones = 1): Promise<void> {
   const periodo = periodoActual();
   try {
     await prisma.usoIA.upsert({
       where: { tenantId_periodo: { tenantId, periodo } },
-      create: { tenantId, periodo, cantidad: 1, tokensEntrada: usage.input_tokens, tokensSalida: usage.output_tokens },
-      update: { cantidad: { increment: 1 }, tokensEntrada: { increment: usage.input_tokens }, tokensSalida: { increment: usage.output_tokens } },
+      create: { tenantId, periodo, cantidad: acciones, tokensEntrada: usage.input_tokens, tokensSalida: usage.output_tokens },
+      update: { cantidad: { increment: acciones }, tokensEntrada: { increment: usage.input_tokens }, tokensSalida: { increment: usage.output_tokens } },
     });
   } catch { /* el conteo no debe tumbar la respuesta */ }
 }

@@ -40,8 +40,19 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/(.*)",
+        // Todo menos el Chat web, que se muestra dentro de la página del cliente.
+        source: "/((?!chat/).*)",
         headers: securityHeaders,
+      },
+      {
+        // Chat web (/chat/<token>): la misma política, pero cualquier sitio lo
+        // puede incrustar (lo pone /agente-web.js en un iframe). Sin
+        // X-Frame-Options, que no tiene un valor "permitir a todos".
+        source: "/chat/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: csp.replace("frame-ancestors 'none'", "frame-ancestors *") },
+          ...securityHeaders.filter(h => h.key !== "Content-Security-Policy" && h.key !== "X-Frame-Options"),
+        ],
       },
     ];
   },
