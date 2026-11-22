@@ -8,6 +8,9 @@ import { moduloActivo } from "@/lib/permisos";
 import { MODULO_POSTVENTA, DIAS_AVISO_RENOVACION, estadoRenovacion } from "@/lib/postventa";
 import { destinoCopia, PREFIJO_COPIA } from "@/lib/copia-resumen";
 import { barrasHorizontales, barraApilada, barrasComparadas, variacion, tituloGrafica } from "@/lib/graficas-correo";
+import { DIAS_EMBUDO, tasaPaso } from "@/lib/embudo-entrada";
+import { embudoEntrada } from "@/lib/embudo-entrada-carga";
+import { medianocheBogota } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -264,6 +267,25 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
       </div>`
     : "";
 
+  // ── Gráfica: embudo de entrada (lo que entró en 30 días y hasta dónde llegó) ──
+  const e = await embudoEntrada(u.tenantId, medianocheBogota(-DIAS_EMBUDO, ahora), esComercial ? u.id : null);
+  const pasosEntrada = [
+    { etiqueta: "Consultas", valor: e.consultas, color: "#bfdbfe" },
+    { etiqueta: "Calificados", valor: e.calificados, color: "#60a5fa" },
+    { etiqueta: "Propuestas", valor: e.propuestas, color: "#2563eb" },
+    { etiqueta: "Ventas", valor: e.ventas, color: "#1e3a8a" },
+  ];
+  const entrada = e.consultas > 0
+    ? `<div style="margin-top:14px;background:white;border:1px solid #e2e8f0;border-radius:10px;padding:12px">
+        ${tituloGrafica(`Embudo de entrada · últimos ${DIAS_EMBUDO} días`)}
+        ${barrasHorizontales(pasosEntrada.map((p, i) => {
+          const tasa = i > 0 ? tasaPaso(p.valor, pasosEntrada[i - 1].valor) : null;
+          return { ...p, detalle: tasa === null ? String(p.valor) : `${p.valor} · ${tasa}%` };
+        }))}
+        ${e.chat.conversaciones > 0 ? `<p style="margin:6px 0 0;font-size:12px;color:#64748b">💬 Chat web: <strong>${e.chat.conversaciones}</strong> conversaciones, <strong>${e.chat.conDatos}</strong> dejaron sus datos.</p>` : ""}
+      </div>`
+    : "";
+
   // ── KPIs de cabecera ──
   const kpis = `<div style="display:flex;gap:8px;margin-top:4px">
     <div style="flex:1;background:white;border:1px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center">
@@ -285,6 +307,7 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
       <p style="font-size:14px;color:#64748b;margin:0 0 14px">Hola <strong>${u.nombre}</strong>, ${sujeto.semana}:</p>
       ${kpis}
       ${embudo}
+      ${entrada}
       ${bloquePregunta("① ¿Qué oportunidades puedo cerrar?", q1, "#eff6ff")}
       ${bloquePregunta("② ¿Qué operaciones están bloqueadas?", q2, "#fffbeb")}
       ${bloquePregunta("③ ¿Qué acción generará ventas futuras?", q3 + graficaActividad, "#f0fdf4")}

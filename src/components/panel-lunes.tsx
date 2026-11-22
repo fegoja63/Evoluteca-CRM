@@ -5,9 +5,10 @@ import Link from "next/link";
 import {
   IconCalendarStats, IconPhone, IconUsers, IconMapPin, IconMail, IconFileText,
   IconTag, IconUserPlus, IconActivity, IconSnowflake, IconUserMinus, IconChecklist,
-  IconChevronRight, IconListCheck, type Icon,
+  IconChevronRight, IconListCheck, IconFilter, IconMessageCircle, type Icon,
 } from "@tabler/icons-react";
 import { tarjeta } from "@/components/ui/estilos";
+import { tasaPaso, type EmbudoEntrada } from "@/lib/embudo-entrada";
 
 type Datos = {
   actividad: {
@@ -23,7 +24,8 @@ type Datos = {
     agendadas7d: number; hechas7d: number; pct7d: number | null;
     vencidas: number; sinProximoPaso: number;
   }[];
-  rangos: { actividad: string; cumplimiento: string; ticket: string; mes: string; diasInactividad: number };
+  embudo: EmbudoEntrada;
+  rangos: { actividad: string; cumplimiento: string; ticket: string; mes: string; diasInactividad: number; embudo: string };
 };
 
 // Color del % de cumplimiento: verde ≥ 80, ámbar ≥ 50, rojo por debajo.
@@ -206,6 +208,8 @@ export function PanelLunes() {
 
       </div>
 
+      <TarjetaEmbudo embudo={d.embudo} rango={d.rangos.embudo} />
+
       {/* ── Cumplimiento del proceso (por vendedor) ──
           Mide si el equipo hace lo que agenda, no solo cuánto vende. */}
       {d.cumplimiento.length > 0 && (
@@ -264,6 +268,66 @@ export function PanelLunes() {
             </table>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+// Tonos del navy de la marca: más oscuro a medida que la consulta avanza.
+const PASOS_EMBUDO = [
+  { clave: "consultas", label: "Consultas", sub: "entraron", color: "bg-brand-200" },
+  { clave: "calificados", label: "Calificados", sub: "llegaron a Calificado", color: "bg-brand-400" },
+  { clave: "propuestas", label: "Propuestas", sub: "llegaron a Propuesta", color: "bg-brand-600" },
+  { clave: "ventas", label: "Ventas", sub: "se ganaron", color: "bg-brand-800" },
+] as const;
+
+// Embudo de entrada: de lo que entró en los últimos 30 días, hasta dónde llegó
+// (ver lib/embudo-entrada). El % de cada paso es sobre el paso anterior.
+function TarjetaEmbudo({ embudo, rango }: { embudo: EmbudoEntrada; rango: string }) {
+  const max = embudo.consultas || 1;
+  return (
+    <div className={tarjeta("mt-4 p-5")}>
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="text-sm font-bold text-slate-900">Embudo de entrada</p>
+          <p className="mt-0.5 text-xs text-slate-400">
+            Lo que entró en los últimos 30 días <span className="font-semibold text-slate-600">({rango})</span> y hasta dónde llegó · el % es sobre el paso anterior
+          </p>
+        </div>
+        <IconFilter size={18} stroke={1.75} className="text-brand-600" />
+      </div>
+      {embudo.consultas === 0 ? (
+        <p className="text-xs text-slate-500">
+          No entraron consultas nuevas en estos 30 días. El <Link href="/dashboard/agente-web" className="font-semibold text-brand-700 hover:underline">Chat web</Link> atiende
+          a los visitantes de su página y las convierte en oportunidades.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {PASOS_EMBUDO.map((p, i) => {
+            const valor = embudo[p.clave];
+            const tasa = i > 0 ? tasaPaso(valor, embudo[PASOS_EMBUDO[i - 1].clave]) : null;
+            return (
+              <div key={p.clave} className="flex items-center gap-3">
+                <div className="w-28 shrink-0">
+                  <p className="text-xs font-semibold text-slate-700">{p.label}</p>
+                  <p className="text-2xs text-slate-400">{p.sub}</p>
+                </div>
+                <div className="h-6 flex-1 overflow-hidden rounded-lg bg-slate-100">
+                  <div className={`h-6 rounded-lg ${p.color}`} style={{ width: `${Math.max((valor / max) * 100, valor > 0 ? 3 : 0)}%` }} />
+                </div>
+                <span className="w-10 shrink-0 text-right text-lg font-extrabold text-slate-800">{valor}</span>
+                <span className="w-12 shrink-0 text-right text-xs font-semibold text-slate-500">{tasa === null ? "" : `${tasa}%`}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {embudo.chat.conversaciones > 0 && (
+        <Link href="/dashboard/agente-web" className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-3 text-xs text-slate-600 hover:text-brand-700">
+          <IconMessageCircle size={15} stroke={1.75} className="text-brand-600" />
+          Chat web: <strong>{embudo.chat.conversaciones}</strong> conversaciones, <strong>{embudo.chat.conDatos}</strong> dejaron sus datos
+          <IconChevronRight size={13} stroke={2} className="ml-auto text-slate-300" />
+        </Link>
       )}
     </div>
   );
