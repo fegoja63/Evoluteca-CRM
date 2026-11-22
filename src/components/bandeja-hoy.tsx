@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  IconPinned, IconPhone, IconMail, IconExternalLink, IconCheck, IconCalendarTime, IconBulb,
+  IconPinned, IconPhone, IconMail, IconExternalLink, IconCheck, IconCalendarTime, IconBulb, IconBrandWhatsapp,
   IconBuilding, IconUser, IconChartFunnel, IconInbox,
 } from "@tabler/icons-react";
 import { tipoActividadDef } from "@/lib/tipos-actividad";
@@ -46,6 +46,11 @@ function sugerirNuevaFecha(iso: string) {
   return aInputDatetimeLocal(manana);
 }
 
+const RE_WHATSAPP = /^Abrir WhatsApp: (https:\/\/wa\.me\/\S+)$/m;
+const enlaceWhatsAppDe = (notas: string | null) => notas?.match(RE_WHATSAPP)?.[1] ?? null;
+/** Notas sin la línea del enlace (ya está en el botón). */
+const notasVisibles = (notas: string) => notas.replace(RE_WHATSAPP, "").trim();
+
 /** Qué significa "Hacer" para cada tipo: llamar, escribir o abrir el negocio. */
 function accionHacer(it: ItemBandeja): { label: string; href: string; externo: boolean; icon: typeof IconPhone } {
   const tel = it.contacto?.telefono ?? it.empresa?.telefono;
@@ -53,6 +58,9 @@ function accionHacer(it: ItemBandeja): { label: string; href: string; externo: b
   const ficha = it.oportunidad ? `/dashboard/pipeline/${it.oportunidad.id}`
     : it.empresa ? `/dashboard/cuentas/${it.empresa.id}`
     : it.contacto ? `/dashboard/contactos/${it.contacto.id}` : "/dashboard/agenda";
+  // Paso de WhatsApp de una secuencia: las notas traen el enlace con el mensaje listo.
+  const wa = enlaceWhatsAppDe(it.notas);
+  if (wa) return { label: "Enviar WhatsApp", href: wa, externo: true, icon: IconBrandWhatsapp };
   if (it.tipo === "LLAMADA" && tel) return { label: `Llamar ${tel}`, href: `tel:${tel.replace(/\s+/g, "")}`, externo: true, icon: IconPhone };
   if (it.tipo === "EMAIL" && email) return { label: `Escribir a ${email}`, href: `mailto:${email}`, externo: true, icon: IconMail };
   return { label: it.oportunidad ? "Abrir el negocio" : "Abrir la ficha", href: ficha, externo: false, icon: IconExternalLink };
@@ -193,7 +201,7 @@ export function BandejaHoy({ itemsIniciales, alcance }: { itemsIniciales: ItemBa
                     {sel.responsable && <span className="text-slate-400">· {sel.responsable}</span>}
                   </div>
                   <h2 className="mt-2 text-lg font-bold text-slate-900">{sel.titulo}</h2>
-                  {sel.notas && <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">{sel.notas}</p>}
+                  {sel.notas && <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">{notasVisibles(sel.notas)}</p>}
                 </div>
 
                 {/* Con quién / sobre qué */}
@@ -234,7 +242,7 @@ export function BandejaHoy({ itemsIniciales, alcance }: { itemsIniciales: ItemBa
                 {/* Acciones */}
                 <div className="flex flex-wrap gap-2">
                   {hacer.externo ? (
-                    <a href={hacer.href} className={boton("primario", "md")}><IconoHacer size={16} stroke={1.75} />{hacer.label}</a>
+                    <a href={hacer.href} {...(hacer.href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})} className={boton("primario", "md")}><IconoHacer size={16} stroke={1.75} />{hacer.label}</a>
                   ) : (
                     <Link href={hacer.href} className={boton("primario", "md")}><IconoHacer size={16} stroke={1.75} />{hacer.label}</Link>
                   )}

@@ -1,8 +1,13 @@
 /**
- * Secuencias de seguimiento: correos que salen solos al cliente, con días de
- * espera entre uno y otro, hasta que responda.
+ * Secuencias de seguimiento: pasos que se cumplen solos, con días de espera
+ * entre uno y otro, hasta que el cliente responda. Cada paso es de un canal:
+ *   EMAIL     el correo sale solo al cliente.
+ *   LLAMADA   se crea una llamada en la Bandeja Hoy del vendedor, con el guion.
+ *   WHATSAPP  se crea una tarea con el mensaje ya escrito y el enlace que abre
+ *             WhatsApp con ese texto (wa.me); el vendedor solo lo envía.
  *
- * - La plantilla (Secuencia) tiene pasos { diasEspera, asunto, cuerpo }.
+ * - La plantilla (Secuencia) tiene pasos { canal, diasEspera, asunto, cuerpo }
+ *   (los pasos guardados antes de los canales son EMAIL).
  * - Al inscribir un contacto, el primer paso sale de inmediato si su
  *   diasEspera es 0; si no, el día que toque. Cada paso siguiente se programa
  *   para el inicio del día (hora de Bogotá) que resulta de sumar sus días de
@@ -21,13 +26,18 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { medianocheBogota } from "@/lib/fecha-bogota";
 import { enviarCorreoAlCliente } from "@/lib/enviar-correo";
+import { enviarPush } from "@/lib/push";
+
+export const CANALES = ["EMAIL", "LLAMADA", "WHATSAPP"] as const;
+export type Canal = (typeof CANALES)[number];
 
 export const pasoSchema = z.object({
+  canal: z.enum(CANALES).default("EMAIL"),
   diasEspera: z.number().int().min(0).max(90),
-  asunto: z.string().trim().min(1, "Cada paso necesita asunto").max(200),
+  asunto: z.string().trim().max(200).default(""),
   cuerpo: z.string().trim().min(1, "Cada paso necesita texto").max(5000),
-});
-export const pasosSchema = z.array(pasoSchema).min(1, "Agrega al menos un correo").max(10);
+}).refine(p => p.canal !== "EMAIL" || p.asunto.length > 0, { message: "Cada correo necesita asunto", path: ["asunto"] });
+export const pasosSchema = z.array(pasoSchema).min(1, "Agrega al menos un paso").max(10);
 
 export const secuenciaSchema = z.object({
   nombre: z.string().trim().min(2, "Ponle un nombre").max(120),
@@ -59,6 +69,22 @@ export function aplicarVariables(texto: string, v: { nombre: string; empresa?: s
     clave.toLowerCase() in valores ? valores[clave.toLowerCase()] : todo);
 }
 
+/**
+ * Enlace que abre WhatsApp con el mensaje escrito. Un celular colombiano de
+ * 10 dígitos (3xx…) recibe el indicativo 57. null si no hay número.
+ */
+export function enlaceWhatsApp(telefono: string | null | undefined, texto: string): string | null {
+  let n = (telefono ?? "").replace(/\D/g, "");
+  if (n.length === 10 && n.startsWith("3")) n = `57${n}`;
+  if (n.length < 8) return null;
+  return `https://wa.me/${n}?text=${encodeURIComponent(texto)}`;
+}
+
+/** ¿Algún paso es un correo? Solo entonces el contacto necesita correo. */
+export function tieneCorreos(pasos: PasoSecuencia[]): boolean {
+  return pasos.some(p => p.canal === "EMAIL");
+}
+
 /** Inicio (hora Bogotá) del día que cae `dias` días después de `desde`. */
 export function diaDeEnvio(dias: number, desde: Date): Date {
   return medianocheBogota(dias, desde);
@@ -80,9 +106,9 @@ export async function inscribir(p: {
   if (!secuencia) return { ok: false, status: 404, error: "Secuencia no encontrada" };
   if (!secuencia.activa) return { ok: false, status: 400, error: "La secuencia está desactivada" };
   if (!contacto) return { ok: false, status: 404, error: "Contacto no encontrado" };
-  if (!contacto.email) return { ok: false, status: 400, error: "El contacto no tiene correo" };
   const pasos = pasosDe(secuencia.pasos);
-  if (pasos.length === 0) return { ok: false, status: 400, error: "La secuencia no tiene correos" };
+  if (pasos.length === 0) return { ok: false, status: 400, error: "La secuencia no tiene pasos" };
+  if (!contacto.email && tieneCorreos(pasos)) return { ok: false, status: 400, error: "El contacto no tiene correo y la secuencia envía correos" };
 
   if (p.oportunidadId) {
     const o = await prisma.oportunidad.findFirst({ where: { id: p.oportunidadId, tenantId: p.tenantId, eliminadoEn: null }, select: { id: true } });
@@ -124,25 +150,25 @@ async function finalizar(id: string, tenantId: string, estado: "COMPLETADA" | "D
 
 export type ResultadoPaso = "enviado" | "completada" | "detenida" | "error" | "omitida";
 
-/** Revisa y, si toca, envía el siguiente correo de una inscripción. */
+/** Revisa y, si toca, cumple el siguiente paso de una inscripción. */
 export async function procesarInscripcion(id: string, tenantId: string, ahora = new Date()): Promise<ResultadoPaso> {
   const ins = await prisma.inscripcionSecuencia.findFirst({
     where: { id, tenantId, estado: "ACTIVA" },
     include: {
-      secuencia: { select: { activa: true, pasos: true } },
-      contacto: { select: { nombre: true, email: true, eliminadoEn: true, empresaId: true, empresa: { select: { nombre: true } } } },
+      secuencia: { select: { activa: true, pasos: true, nombre: true } },
+      contacto: { select: { nombre: true, email: true, telefono: true, eliminadoEn: true, empresaId: true, empresa: { select: { nombre: true, telefono: true } } } },
       oportunidad: { select: { titulo: true, etapa: true, eliminadoEn: true } },
       usuario: { select: { id: true, nombre: true, email: true, activo: true } },
       tenant: { select: { emailsActivos: true, activo: true } },
     },
   });
   if (!ins) return "omitida";
-  if (!ins.tenant.activo || !ins.tenant.emailsActivos) return "omitida"; // cuenta suspendida: se retoma al reactivarla
+  if (!ins.tenant.activo) return "omitida"; // cuenta suspendida: se retoma al reactivarla
 
   const parar = async (motivo: string) => { await finalizar(ins.id, ins.tenantId, "DETENIDA", motivo, ahora); return "detenida" as const; };
   if (!ins.secuencia.activa) return parar("SECUENCIA_INACTIVA");
   if (!ins.usuario.activo) return parar("USUARIO_INACTIVO");
-  if (ins.contacto.eliminadoEn || !ins.contacto.email) return parar("SIN_CORREO");
+  if (ins.contacto.eliminadoEn) return parar("SIN_CORREO");
   if (ins.oportunidad && (ins.oportunidad.etapa === "GANADA" || ins.oportunidad.etapa === "PERDIDA")) return parar("NEGOCIO_CERRADO");
   const respondio = await prisma.correoRegistrado.findFirst({
     where: { tenantId: ins.tenantId, contactoId: ins.contactoId, direccion: "RECIBIDO", fecha: { gt: ins.creadoEn } },
@@ -153,6 +179,10 @@ export async function procesarInscripcion(id: string, tenantId: string, ahora = 
   const pasos = pasosDe(ins.secuencia.pasos);
   const paso = pasos[ins.pasoSiguiente];
   if (!paso) { await finalizar(ins.id, ins.tenantId, "COMPLETADA", null, ahora); return "completada"; }
+  if (paso.canal === "EMAIL") {
+    if (!ins.contacto.email) return parar("SIN_CORREO");
+    if (!ins.tenant.emailsActivos) return "omitida"; // correos apagados: se retoma al prenderlos
+  }
 
   const vars = {
     nombre: ins.contacto.nombre,
@@ -160,19 +190,21 @@ export async function procesarInscripcion(id: string, tenantId: string, ahora = 
     vendedor: ins.usuario.nombre,
     negocio: ins.oportunidad && !ins.oportunidad.eliminadoEn ? ins.oportunidad.titulo : null,
   };
-  const r = await enviarCorreoAlCliente({
-    tenantId: ins.tenantId,
-    remitente: { id: ins.usuario.id, nombre: ins.usuario.nombre, email: ins.usuario.email },
-    para: ins.contacto.email,
-    asunto: aplicarVariables(paso.asunto, vars),
-    cuerpo: aplicarVariables(paso.cuerpo, vars),
-    contactoId: ins.contactoId,
-    empresaId: ins.contacto.empresaId,
-    oportunidadId: ins.oportunidadId,
-  });
-  if (!r.ok) {
+  if (paso.canal === "EMAIL") {
+    const r = await enviarCorreoAlCliente({
+      tenantId: ins.tenantId,
+      remitente: { id: ins.usuario.id, nombre: ins.usuario.nombre, email: ins.usuario.email },
+      para: ins.contacto.email!,
+      asunto: aplicarVariables(paso.asunto, vars),
+      cuerpo: aplicarVariables(paso.cuerpo, vars),
+      contactoId: ins.contactoId,
+      empresaId: ins.contacto.empresaId,
+      oportunidadId: ins.oportunidadId,
+    });
     // Sin configuración de correo se reintenta en la próxima corrida; otro error, igual.
-    return "error";
+    if (!r.ok) return "error";
+  } else {
+    await crearTareaDelPaso(ins, paso, aplicarVariables(paso.cuerpo, vars), ahora);
   }
 
   const siguiente = pasos[ins.pasoSiguiente + 1];
@@ -185,7 +217,53 @@ export async function procesarInscripcion(id: string, tenantId: string, ahora = 
   return "enviado";
 }
 
-/** Envía todos los pasos vencidos (lo llama el cron de días hábiles). */
+type InscripcionCargada = {
+  id: string; tenantId: string; contactoId: string; oportunidadId: string | null;
+  secuencia: { nombre: string };
+  contacto: { nombre: string; telefono: string | null; empresaId: string | null; empresa: { telefono: string | null } | null };
+  usuario: { id: string };
+};
+
+/**
+ * Paso de llamada o WhatsApp: le deja al vendedor la actividad de hoy en su
+ * Bandeja, con el guion o el mensaje listo, y le avisa al celular.
+ */
+async function crearTareaDelPaso(ins: InscripcionCargada, paso: PasoSecuencia, texto: string, ahora: Date) {
+  const telefono = ins.contacto.telefono || ins.contacto.empresa?.telefono || null;
+  const esLlamada = paso.canal === "LLAMADA";
+  const titulo = (esLlamada
+    ? `Llamar a ${ins.contacto.nombre}${paso.asunto ? ` — ${paso.asunto}` : ""}`
+    : `WhatsApp a ${ins.contacto.nombre}`).slice(0, 200);
+  const wa = esLlamada ? null : enlaceWhatsApp(telefono, texto);
+  const notas = [
+    `Paso de la secuencia "${ins.secuencia.nombre}".`,
+    esLlamada ? `Qué decir:\n${texto}` : `Mensaje para enviar:\n${texto}`,
+    !esLlamada && !wa ? "El contacto no tiene celular: agréguelo en su ficha para abrir WhatsApp con un clic." : null,
+    wa ? `Abrir WhatsApp: ${wa}` : null,
+  ].filter(Boolean).join("\n\n");
+  await prisma.actividad.create({
+    data: {
+      tenantId: ins.tenantId,
+      tipo: esLlamada ? "LLAMADA" : "TAREA",
+      titulo,
+      fecha: ahora,
+      notas: notas.slice(0, 8000),
+      creadoBy: ins.usuario.id,
+      responsableId: ins.usuario.id,
+      contactoId: ins.contactoId,
+      empresaId: ins.contacto.empresaId,
+      oportunidadId: ins.oportunidadId,
+    },
+  });
+  await enviarPush(ins.tenantId, [ins.usuario.id], {
+    titulo: esLlamada ? `📞 Toca llamar a ${ins.contacto.nombre}` : `💬 Toca escribirle por WhatsApp a ${ins.contacto.nombre}`,
+    cuerpo: `Secuencia "${ins.secuencia.nombre}" · está en su Bandeja Hoy`,
+    url: "/dashboard/hoy",
+    etiqueta: `secuencia-${ins.id}`,
+  });
+}
+
+/** Cumple todos los pasos vencidos (lo llama el cron de días hábiles). */
 export async function procesarSecuencias(ahora = new Date(), limite = 200, presupuestoMs = 90_000) {
   const inicio = Date.now();
   const pendientes = await prisma.inscripcionSecuencia.findMany({
