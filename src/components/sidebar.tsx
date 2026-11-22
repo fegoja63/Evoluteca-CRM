@@ -13,7 +13,7 @@ import {
   IconDatabaseImport, IconTrash, IconRocket, IconLifebuoy, IconSettings, IconHistory,
   IconUserCircle, IconLogout, IconSearch, IconX, IconArrowsSort, IconCheck,
   IconGripVertical, IconArrowBackUp, IconSparkles, IconHeartHandshake, IconChevronDown, IconChevronRight, IconInbox, IconCoin,
-  IconSun, IconApps, IconDots, IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand, type Icon,
+  IconSun, IconApps, IconDots, IconZzz, IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand, type Icon,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/cn";
 import { INICIO_FINANZAS } from "@/lib/cuenta-finanzas";
@@ -25,6 +25,7 @@ const navBase: NavItem[] = [
   { href: "/dashboard/hoy", label: "Bandeja Hoy", icon: IconInbox },
   { href: "/dashboard/cuentas", label: "Clientes", icon: IconBuilding },
   { href: "/dashboard/contactos", label: "Contactos", icon: IconUsers },
+  { href: "/dashboard/base-dormida", label: "Reactivar clientes", icon: IconZzz },
   { href: "/dashboard/pipeline", label: "Pipeline", icon: IconChartFunnel },
   { href: "/dashboard/agenda", label: "Agenda", icon: IconCalendar },
   { href: "/dashboard/cotizaciones-formales", label: "Cotizaciones", icon: IconFileText },
@@ -79,6 +80,7 @@ const GRUPO_DE_HREF: Record<string, GrupoId> = {
   "/dashboard/agente-web": "ventas",
   "/dashboard/cuentas": "relaciones",
   "/dashboard/contactos": "relaciones",
+  "/dashboard/base-dormida": "relaciones",
   "/dashboard/reportes": "analisis",
   "/dashboard/asistente-ia": "analisis",
   "/dashboard/equipo": "analisis",
