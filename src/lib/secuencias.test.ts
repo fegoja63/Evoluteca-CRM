@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { aplicarVariables, pasosDe, diaDeEnvio, secuenciaSchema } from "./secuencias";
+import { aplicarVariables, pasosDe, diaDeEnvio, secuenciaSchema, enlaceWhatsApp, tieneCorreos } from "./secuencias";
 
 describe("aplicarVariables", () => {
   it("usa el primer nombre en {{nombre}} y el completo en {{nombre_completo}}", () => {
@@ -27,5 +27,35 @@ describe("diaDeEnvio", () => {
   it("programa para el inicio del día en Bogotá, así el envío de la mañana lo toma", () => {
     // Martes 17 nov 2026, 4:00 p. m. Bogotá + 3 días = viernes 20 a las 00:00 Bogotá (05:00Z).
     expect(diaDeEnvio(3, new Date("2026-11-17T21:00:00Z")).toISOString()).toBe("2026-11-20T05:00:00.000Z");
+  });
+});
+
+describe("canales", () => {
+  it("los pasos guardados antes de los canales se leen como correos", () => {
+    expect(pasosDe([{ diasEspera: 0, asunto: "Hola", cuerpo: "x" }])[0].canal).toBe("EMAIL");
+  });
+  it("llamada y WhatsApp no necesitan asunto; el correo sí", () => {
+    const ok = secuenciaSchema.safeParse({ nombre: "Mixta", pasos: [
+      { canal: "WHATSAPP", diasEspera: 0, cuerpo: "Hola" },
+      { canal: "LLAMADA", diasEspera: 2, asunto: "", cuerpo: "Guion" },
+    ] });
+    expect(ok.success).toBe(true);
+    expect(secuenciaSchema.safeParse({ nombre: "X", pasos: [{ canal: "EMAIL", diasEspera: 0, asunto: "", cuerpo: "x" }] }).success).toBe(false);
+    expect(secuenciaSchema.safeParse({ nombre: "X", pasos: [{ canal: "SMS", diasEspera: 0, cuerpo: "x" }] }).success).toBe(false);
+  });
+  it("tieneCorreos", () => {
+    expect(tieneCorreos(pasosDe([{ canal: "LLAMADA", diasEspera: 0, cuerpo: "x" }]))).toBe(false);
+    expect(tieneCorreos(pasosDe([{ diasEspera: 0, asunto: "a", cuerpo: "x" }]))).toBe(true);
+  });
+});
+
+describe("enlaceWhatsApp", () => {
+  it("agrega el 57 a un celular colombiano y codifica el mensaje", () => {
+    expect(enlaceWhatsApp("300 123 4567", "Hola Ana & cía")).toBe("https://wa.me/573001234567?text=Hola%20Ana%20%26%20c%C3%ADa");
+    expect(enlaceWhatsApp("+57 (300) 123-4567", "x")).toBe("https://wa.me/573001234567?text=x");
+  });
+  it("sin número no hay enlace", () => {
+    expect(enlaceWhatsApp(null, "x")).toBeNull();
+    expect(enlaceWhatsApp("123", "x")).toBeNull();
   });
 });

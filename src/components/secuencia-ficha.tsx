@@ -15,6 +15,10 @@ type Inscripcion = {
   usuario: { nombre: string };
 };
 
+/** ¿Tiene algún paso de correo? (los pasos sin canal son correos) */
+const enviaCorreos = (s: { pasos: unknown[] }) =>
+  s.pasos.some(p => ((p as { canal?: string })?.canal ?? "EMAIL") === "EMAIL");
+
 const MOTIVO: Record<string, string> = {
   RESPONDIO: "el cliente respondió",
   NEGOCIO_CERRADO: "el negocio se cerró",
@@ -41,15 +45,17 @@ export function SecuenciaFicha({ contactoId, oportunidadId, contactoTieneCorreo 
     fetch("/api/secuencias").then(r => r.json()).then(d => {
       const activas = (Array.isArray(d) ? d : []).filter((s: Secuencia) => s.activa);
       setSecuencias(activas);
-      setElegida(e => e || activas[0]?.id || "");
+      setElegida(e => e || activas.find(s => contactoTieneCorreo || !enviaCorreos(s))?.id || "");
     }).catch(() => {});
     fetch(`/api/secuencias/inscripciones?contactoId=${contactoId}`).then(r => r.json())
       .then(d => setInscripciones(Array.isArray(d) ? d : [])).catch(() => {});
   }
-  useEffect(cargar, [contactoId]);
+  useEffect(cargar, [contactoId, contactoTieneCorreo]);
 
   if (!contactoId) return null;
   const activa = inscripciones.find(i => i.estado === "ACTIVA");
+  // Sin correo solo sirven las secuencias de llamadas y WhatsApp.
+  const disponibles = secuencias.filter(s => contactoTieneCorreo || !enviaCorreos(s));
   const pasadas = inscripciones.filter(i => i.estado !== "ACTIVA").slice(0, 3);
 
   async function inscribir() {
@@ -63,12 +69,12 @@ export function SecuenciaFicha({ contactoId, oportunidadId, contactoTieneCorreo 
     setTrabajando(false);
     const cuerpo = await res?.json().catch(() => null);
     if (!res?.ok) { toast.error(cuerpo?.error ?? "No se pudo iniciar la secuencia."); return; }
-    toast.success(cuerpo?.enviadoAhora ? "Secuencia iniciada: el primer correo ya salió." : "Secuencia iniciada.");
+    toast.success(cuerpo?.enviadoAhora ? "Secuencia iniciada: el primer paso ya se cumplió." : "Secuencia iniciada.");
     cargar();
   }
 
   async function detener(id: string) {
-    if (!confirm("¿Detener la secuencia? No saldrán más correos.")) return;
+    if (!confirm("¿Detener la secuencia? No se cumplirán más pasos.")) return;
     const res = await fetch(`/api/secuencias/inscripciones/${id}`, { method: "DELETE" });
     if (!res.ok) toast.error("No se pudo detener.");
     cargar();
@@ -83,7 +89,7 @@ export function SecuenciaFicha({ contactoId, oportunidadId, contactoTieneCorreo 
         <div className="mt-2 rounded-xl bg-brand-50 px-4 py-3">
           <p className="text-sm font-medium text-slate-800">{activa.secuencia.nombre}</p>
           <p className="text-xs text-slate-600 mt-0.5">
-            {activa.enviados} de {activa.secuencia.pasos.length} correos enviados
+            {activa.enviados} de {activa.secuencia.pasos.length} pasos cumplidos
             {activa.proximoEnvio ? ` · próximo: ${formatoFecha(activa.proximoEnvio, { weekday: "long", day: "numeric", month: "long" })}` : ""}
             {` · inició ${activa.usuario.nombre}`}
           </p>
@@ -92,8 +98,8 @@ export function SecuenciaFicha({ contactoId, oportunidadId, contactoTieneCorreo 
             <IconPlayerStop size={14} stroke={1.75} /> Detener
           </button>
         </div>
-      ) : !contactoTieneCorreo ? (
-        <p className="text-xs text-slate-500">El contacto no tiene correo: agréguelo para poder usar una secuencia.</p>
+      ) : secuencias.length > 0 && disponibles.length === 0 ? (
+        <p className="text-xs text-slate-500">El contacto no tiene correo y todas las secuencias envían correos: agréguelo para poder usarlas.</p>
       ) : secuencias.length === 0 ? (
         <p className="text-xs text-slate-500">
           No hay secuencias activas. <Link href="/dashboard/secuencias" className="text-brand-600 hover:underline">Crear una</Link>
@@ -101,7 +107,7 @@ export function SecuenciaFicha({ contactoId, oportunidadId, contactoTieneCorreo 
       ) : (
         <div className="mt-2 flex flex-wrap gap-2">
           <select value={elegida} onChange={e => setElegida(e.target.value)} className={campo("md", "flex-1 min-w-0")}>
-            {secuencias.map(s => <option key={s.id} value={s.id}>{s.nombre} ({s.pasos.length} correos)</option>)}
+            {disponibles.map(s => <option key={s.id} value={s.id}>{s.nombre} ({s.pasos.length} pasos)</option>)}
           </select>
           <button onClick={inscribir} disabled={trabajando || !elegida} className={boton("primario", "md", "shrink-0 flex")}>
             {trabajando ? "Iniciando…" : "Iniciar"}

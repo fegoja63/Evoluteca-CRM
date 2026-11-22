@@ -140,3 +140,61 @@ describe("permisos", () => {
     expect(r.status).toBe(404);
   });
 });
+
+describe("pasos de llamada y WhatsApp", () => {
+  const MIXTA = [
+    { canal: "WHATSAPP", diasEspera: 0, cuerpo: "Hola {{nombre}}, le escribe {{vendedor}}" },
+    { canal: "LLAMADA", diasEspera: 2, asunto: "Dudas", cuerpo: "Preguntar qué le pareció" },
+    { canal: "EMAIL", diasEspera: 3, asunto: "Resumen", cuerpo: "Correo" },
+  ];
+
+  async function inscribirMixta() {
+    comoUsuario(A, "GERENTE");
+    const { cuerpo } = await llamar(crearSecuencia, { body: { nombre: "Mixta", pasos: MIXTA } });
+    comoUsuario(A, "COMERCIAL");
+    return llamar(inscribirRuta, { body: { secuenciaId: (cuerpo as { id: string }).id, contactoId: A.contacto, oportunidadId: A.oportunidadDelComercial } });
+  }
+
+  it("el WhatsApp queda como tarea de hoy del vendedor, con el mensaje y el enlace; no sale correo", async () => {
+    await prisma.contacto.update({ where: { id: A.contacto, tenantId: A.tenantId }, data: { telefono: "300 123 4567" } });
+    const r = await inscribirMixta();
+    expect(r.status).toBe(201);
+    expect(enviados.lista).toHaveLength(0);
+    const tarea = await prisma.actividad.findFirst({ where: { tenantId: A.tenantId, titulo: "WhatsApp a Ana María Pérez" } });
+    expect(tarea).toMatchObject({ tipo: "TAREA", responsableId: A.comercial, contactoId: A.contacto, oportunidadId: A.oportunidadDelComercial, completada: false });
+    expect(tarea?.notas).toContain("Hola Ana, le escribe Comercial");
+    expect(tarea?.notas).toContain("Abrir WhatsApp: https://wa.me/573001234567?text=Hola%20Ana");
+    expect(await inscripcionNueva()).toMatchObject({ estado: "ACTIVA", pasoSiguiente: 1 });
+  });
+
+  it("la llamada queda como llamada con el guion; después sale el correo", async () => {
+    await inscribirMixta();
+    const ins = await inscripcionNueva();
+    await correrCron(new Date(ins!.proximoEnvio!.getTime() + 60_000));
+    const llamada = await prisma.actividad.findFirst({ where: { tenantId: A.tenantId, tipo: "LLAMADA", titulo: "Llamar a Ana María Pérez — Dudas" } });
+    expect(llamada?.notas).toContain("Preguntar qué le pareció");
+    const despues = await inscripcionNueva();
+    await correrCron(new Date(despues!.proximoEnvio!.getTime() + 60_000));
+    expect(enviados.lista.map(e => e.asunto)).toEqual(["Resumen"]);
+    expect(await inscripcionNueva()).toMatchObject({ estado: "COMPLETADA" });
+  });
+
+  it("sin celular la tarea lo dice y no trae enlace", async () => {
+    await prisma.contacto.update({ where: { id: A.contacto, tenantId: A.tenantId }, data: { telefono: null } });
+    await prisma.empresa.update({ where: { id: A.empresa, tenantId: A.tenantId }, data: { telefono: null } });
+    await inscribirMixta();
+    const tarea = await prisma.actividad.findFirst({ where: { tenantId: A.tenantId, titulo: "WhatsApp a Ana María Pérez" } });
+    expect(tarea?.notas).toContain("no tiene celular");
+    expect(tarea?.notas).not.toContain("wa.me");
+  });
+
+  it("un contacto sin correo puede entrar a una secuencia sin correos, pero no a una con correos", async () => {
+    await prisma.contacto.update({ where: { id: A.contacto, tenantId: A.tenantId }, data: { email: null } });
+    comoUsuario(A, "GERENTE");
+    const solo = await llamar(crearSecuencia, { body: { nombre: "Solo llamadas", pasos: [MIXTA[1]] } });
+    const mixta = await llamar(crearSecuencia, { body: { nombre: "Mixta", pasos: MIXTA } });
+    comoUsuario(A, "COMERCIAL");
+    expect((await llamar(inscribirRuta, { body: { secuenciaId: (mixta.cuerpo as { id: string }).id, contactoId: A.contacto } })).status).toBe(400);
+    expect((await llamar(inscribirRuta, { body: { secuenciaId: (solo.cuerpo as { id: string }).id, contactoId: A.contacto } })).status).toBe(201);
+  });
+});
