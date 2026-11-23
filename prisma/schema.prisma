@@ -67,6 +67,9 @@ model Tenant {
   // { activo, nombre, saludo, info, responsableId } — ver lib/agente-web.ts.
   agenteWebToken       String?   @unique
   agenteWebConfig      Json?
+  // Reseña y recompra tras ganar un negocio: { resena: { activa, dias, enlace,
+  // mensaje }, recompra: { activa, dias, mensaje } } — ver lib/resena-recompra.ts.
+  resenaRecompraConfig Json?
   // Tope de usuarios activos según el plan contratado (null = sin límite).
   // Lo controla exclusivamente el panel interno de Evoluteca, no el propio
   // tenant — es una palanca de precios, no una preferencia de cuenta.
@@ -485,6 +488,10 @@ model Oportunidad {
   // "renovaciones próximas" 30 días antes.
   fechaRenovacion      DateTime?
   // Si esta oportunidad es la RENOVACIÓN de otra, apunta al negocio original.
+  // Cuándo se le dejó al vendedor la tarea de pedir reseña / ofrecer recompra
+  // (lib/resena-recompra.ts); null = todavía no.
+  resenaPedidaEn       DateTime?
+  recompraAvisadaEn    DateTime?
   origenRenovacionId   String?
   origenRenovacion     Oportunidad?              @relation("RenovacionDe", fields: [origenRenovacionId], references: [id], onDelete: SetNull)
   renovaciones         Oportunidad[]             @relation("RenovacionDe")
