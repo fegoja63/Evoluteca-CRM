@@ -14,6 +14,7 @@ import {
 } from "@tabler/icons-react";
 import { CamposPersonalizadosAdmin } from "@/components/campos-personalizados-admin";
 import { AutomatizacionesAdmin } from "@/components/automatizaciones-admin";
+import { ResenaRecompraConfig } from "@/components/resena-recompra-config";
 import { paletaMarca, normalizarColorMarca, PALETA_EVOLUTECA } from "@/lib/color-marca";
 import { boton, campo } from "@/components/ui/estilos";
 import { SkeletonLista } from "@/components/ui/estados";
@@ -827,6 +828,8 @@ export default function ConfiguracionPage() {
       <CamposPersonalizadosAdmin esAdmin={esAdmin} />
 
       {esAdmin && <AutomatizacionesAdmin />}
+
+      {esAdmin && <ResenaRecompraConfig />}
 
       {esAdmin && (
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
