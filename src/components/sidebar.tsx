@@ -54,7 +54,8 @@ const navOpcionales: Record<string, NavItem> = {
 // arranca plegado. "Ordenar" sigue funcionando, pero dentro de cada grupo.
 type GrupoId = "finanzas" | "hoy" | "ventas" | "relaciones" | "analisis" | "modulos" | "mas";
 
-// El Gerente Financiero: en una cuenta con CRM va entre los módulos; en una
+// El Gerente Financiero: en una cuenta con CRM va en Análisis, justo debajo de
+// Reportes (entre los módulos quedaba al fondo del menú y no se veía); en una
 // cuenta solo Finanzas es todo el menú (ver lib/cuenta-finanzas).
 const ITEM_FINANZAS: NavItem = { href: INICIO_FINANZAS, label: "Gerente Financiero", icon: IconCoin };
 
@@ -84,7 +85,7 @@ const GRUPO_DE_HREF: Record<string, GrupoId> = {
   "/dashboard/reportes": "analisis",
   "/dashboard/asistente-ia": "analisis",
   "/dashboard/equipo": "analisis",
-  [INICIO_FINANZAS]: "modulos",
+  [INICIO_FINANZAS]: "analisis",
 };
 
 const HREFS_OPCIONALES = new Set(Object.values(navOpcionales).map(i => i.href));
@@ -216,13 +217,13 @@ export function Sidebar({ tenantNombre, onClose, soloFinanzas = false, conFinanz
     { href: "/dashboard/ayuda", label: "Ayuda / Soporte", icon: IconLifebuoy },
     { href: "/dashboard/configuracion", label: "Configuración", icon: IconSettings },
   ] : [
-    ...navBase,
+    ...navBase.flatMap(item =>
+      // Las finanzas de la empresa las ven el Administrador y el Gerente (lib/finanzas/acceso).
+      item.href === "/dashboard/reportes" && conFinanzas && session?.user?.rol !== "COMERCIAL" ? [item, ITEM_FINANZAS] : [item]),
     ...Object.entries(modulos)
       .filter(([, activo]) => activo)
       .map(([key]) => navOpcionales[key])
       .filter(Boolean),
-    // Las finanzas de la empresa las ven el Administrador y el Gerente (lib/finanzas/acceso).
-    ...(conFinanzas && session?.user?.rol !== "COMERCIAL" ? [ITEM_FINANZAS] : []),
     { href: "/dashboard/datos", label: "Datos", icon: IconDatabaseImport },
     { href: "/dashboard/papelera", label: "Papelera", icon: IconTrash },
     // Solo para administradores: contiene la actividad de todo el equipo. La

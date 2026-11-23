@@ -25,6 +25,7 @@ vi.mock("@/lib/activacion", () => ({ estadoActivacion: async () => ({ necesitaAc
 
 import DashboardLayout from "@/app/dashboard/layout";
 import { Sidebar } from "@/components/sidebar";
+import { MobileNav } from "@/components/mobile-nav";
 import { PATCH as editarTenant } from "@/app/api/admin-evoluteca/tenants/[id]/route";
 import { GET as resumenSemanal } from "@/app/api/cron/resumen-semanal/route";
 
@@ -59,6 +60,18 @@ function propsDelSidebar(nodo: ReactNode): Record<string, unknown> | null {
   const el = nodo as ReactElement<{ children?: ReactNode }>;
   if (el.type === Sidebar) return el.props as Record<string, unknown>;
   return propsDelSidebar(el.props.children);
+}
+
+// Igual, para la barra inferior del celular.
+function propsDeMobileNav(nodo: ReactNode): Record<string, unknown> | null {
+  if (Array.isArray(nodo)) {
+    for (const n of nodo) { const p = propsDeMobileNav(n); if (p) return p; }
+    return null;
+  }
+  if (!isValidElement(nodo)) return null;
+  const el = nodo as ReactElement<{ children?: ReactNode }>;
+  if (el.type === MobileNav) return el.props as Record<string, unknown>;
+  return propsDeMobileNav(el.props.children);
 }
 
 async function abrir(ruta: string) {
@@ -138,5 +151,32 @@ describe("correos automáticos del CRM", () => {
     const usuariosDeA = await sinAislamiento("contar usuarios del tenant A", () =>
       prisma.usuario.count({ where: { tenantId: A.tenantId, activo: true } }));
     expect(await contar()).toBe(antes - usuariosDeA);
+  });
+});
+
+describe("el Gerente Financiero en el celular (cuenta con CRM)", () => {
+  async function conLicencia() {
+    await prisma.licenciaModulo.create({ data: {
+      tenantId: B.tenantId, producto: "FINANZAS", referenciaPago: "PRUEBA",
+      desde: new Date(Date.now() - 86_400_000), hasta: new Date(Date.now() + 30 * 86_400_000),
+    } });
+  }
+  const movil = async () => propsDeMobileNav(await DashboardLayout({ children: null }));
+
+  it("con licencia lo ven el Administrador y el Gerente, no el Comercial", async () => {
+    await conLicencia();
+    rutaActual = "/dashboard";
+    comoUsuario(B, "ADMINISTRADOR");
+    expect((await movil())?.conFinanzas).toBe(true);
+    comoUsuario(B, "GERENTE");
+    expect((await movil())?.conFinanzas).toBe(true);
+    comoUsuario(B, "COMERCIAL");
+    expect((await movil())?.conFinanzas).toBe(false);
+  });
+
+  it("sin licencia no aparece", async () => {
+    rutaActual = "/dashboard";
+    comoUsuario(B, "ADMINISTRADOR");
+    expect((await movil())?.conFinanzas).toBe(false);
   });
 });

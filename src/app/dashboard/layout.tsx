@@ -61,7 +61,7 @@ export default async function DashboardLayout({
         </div>
       </main>
       {/* Nav inferior + FAB: solo móvil */}
-      <MobileNav soloFinanzas={soloFinanzas} />
+      <MobileNav soloFinanzas={soloFinanzas} conFinanzas={!soloFinanzas && conFinanzas && session.user.rol !== "COMERCIAL"} />
       {/* El botón flotante y la paleta crean registros del CRM. */}
       {!soloFinanzas && <Fab />}
       <Toaster />
