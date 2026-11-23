@@ -24,6 +24,9 @@ vi.mock("@anthropic-ai/sdk", () => {
 });
 
 import { POST as leer } from "@/app/api/finanzas/leer-ia/route";
+import { POST as subirParte } from "@/app/api/finanzas/subir-parte/route";
+import { TAMANO_PARTE } from "@/lib/finanzas/subida-partes";
+import JSZip from "jszip";
 
 const M = 1_000_000;
 const ceros = { ventas: 0, costoVentas: 0, gastosAdmin: 0, gastosVentas: 0, depreciacion: 0, intereses: 0 };
@@ -52,7 +55,8 @@ beforeEach(async () => {
   await sinAislamiento("preparar licencia y contadores del tenant A", async () => {
     await prisma.licenciaModulo.deleteMany({ where: { tenantId: A.tenantId } });
     await prisma.usoIA.deleteMany({ where: { tenantId: A.tenantId } });
-    await prisma.rateLimit.deleteMany({ where: { clave: { startsWith: "ia-finanzas:" } } });
+    await prisma.rateLimit.deleteMany({ where: { OR: [{ clave: { startsWith: "ia-finanzas:" } }, { clave: { startsWith: "finanzas-parte:" } }] } });
+    await prisma.parteArchivoTemporal.deleteMany({});
     await prisma.tenant.update({ where: { id: A.tenantId }, data: { limiteResumenesIA: 100 } });
     await prisma.licenciaModulo.create({ data: { tenantId: A.tenantId, producto: "FINANZAS", desde: new Date("2026-01-01T05:00:00Z"), hasta: new Date("2099-12-31T05:00:00Z"), referenciaPago: "PRUEBA" } });
   });
@@ -64,6 +68,33 @@ function subir(archivo: File) {
   return leer(new Request("http://localhost/api/finanzas/leer-ia", { method: "POST", body: form }));
 }
 const pdf = () => new File(["%PDF-1.4 estados"], "estados-2025.pdf", { type: "application/pdf" });
+
+/** Sube un archivo por partes como lo hace la pantalla y devuelve el subidaId. */
+async function subirPorPartes(bytes: Uint8Array, nombre: string, subidaId = crypto.randomUUID()) {
+  const total = Math.ceil(bytes.length / TAMANO_PARTE);
+  for (let i = 0; i < total; i++) {
+    const form = new FormData();
+    form.append("subidaId", subidaId);
+    form.append("indice", String(i));
+    form.append("total", String(total));
+    form.append("nombre", nombre);
+    form.append("parte", new File([bytes.slice(i * TAMANO_PARTE, (i + 1) * TAMANO_PARTE)], nombre));
+    const r = await subirParte(new Request("http://localhost/api/finanzas/subir-parte", { method: "POST", body: form }));
+    if (r.status !== 200) return { subidaId, status: r.status, error: (await r.json()).error as string };
+  }
+  return { subidaId, status: 200, error: "" };
+}
+function leerSubida(subidaId: string) {
+  const form = new FormData();
+  form.append("subidaId", subidaId);
+  return leer(new Request("http://localhost/api/finanzas/leer-ia", { method: "POST", body: form }));
+}
+/** Un "PDF" de ~10 MB (la cabecera basta para reconocerlo). */
+function pdfGrande(): Uint8Array {
+  const b = new Uint8Array(10 * 1024 * 1024).fill(32);
+  b.set(new TextEncoder().encode("%PDF-1.4"));
+  return b;
+}
 
 describe("leer los estados del contador con IA", () => {
   it("manda el PDF a claude-opus-5-5 con salida estructurada y respaldo, y devuelve la propuesta limpia", async () => {
@@ -110,10 +141,64 @@ describe("leer los estados del contador con IA", () => {
     expect(parse.mock.calls[0][0].messages[0].content[0]).toMatchObject({ type: "image", source: { media_type: "image/png" } });
   });
 
-  it("rechaza otros formatos sin llamar a la IA", async () => {
+  it("un Word se le pasa como texto", async () => {
     comoUsuario(A, "ADMINISTRADOR");
-    const r = await subir(new File(["hola"], "estados.docx"));
+    const z = new JSZip();
+    z.file("word/document.xml", "<w:document><w:body><w:p><w:t>Ingresos operacionales 1.418.000</w:t></w:p></w:body></w:document>");
+    const r = await subir(new File([await z.generateAsync({ type: "arraybuffer" })], "estados.docx"));
+    expect(r.status).toBe(200);
+    expect(parse.mock.calls[0][0].messages[0].content[0].text).toContain("Ingresos operacionales 1.418.000");
+  });
+
+  it("un Excel antiguo (.xls) se rechaza sin llamar a la IA y dice qué hacer", async () => {
+    comoUsuario(A, "ADMINISTRADOR");
+    const r = await subir(new File([new Uint8Array([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1])], "estados.xls"));
     expect(r.status).toBe(400);
+    expect((await r.json()).error).toContain("Guardar como");
+    expect(parse).not.toHaveBeenCalled();
+  });
+});
+
+describe("archivos grandes (hasta 15 MB) por partes", () => {
+  it("un PDF de 10 MB se sube por partes, se lee y las partes se borran", async () => {
+    comoUsuario(A, "ADMINISTRADOR");
+    const { subidaId, status } = await subirPorPartes(pdfGrande(), "estados-grandes.pdf");
+    expect(status).toBe(200);
+    expect(await prisma.parteArchivoTemporal.count({ where: { tenantId: A.tenantId, subidaId } })).toBe(3);
+    const r = await leerSubida(subidaId);
+    expect(r.status).toBe(200);
+    const bloque = parse.mock.calls[0][0].messages[0].content[0];
+    expect(bloque.type).toBe("document");
+    expect(Buffer.from(bloque.source.data, "base64").length).toBe(10 * 1024 * 1024);
+    expect(await prisma.parteArchivoTemporal.count({ where: { tenantId: A.tenantId, subidaId } })).toBe(0);
+  });
+
+  it("más de 15 MB se rechaza", async () => {
+    comoUsuario(A, "ADMINISTRADOR");
+    const enorme = new Uint8Array(16 * 1024 * 1024).fill(32);
+    const { status, error } = await subirPorPartes(enorme, "enorme.pdf");
+    expect(status).toBe(400);
+    expect(error).toContain("15 MB");
+  });
+
+  it("la subida de otro usuario no se puede leer, y un comercial no puede subir", async () => {
+    comoUsuario(A, "ADMINISTRADOR");
+    const { subidaId } = await subirPorPartes(pdfGrande(), "estados.pdf");
+    comoUsuario(A, "GERENTE");
+    expect((await leerSubida(subidaId)).status).toBe(400);
+    expect(parse).not.toHaveBeenCalled();
+    comoUsuario(A, "COMERCIAL");
+    expect((await subirPorPartes(new Uint8Array(10).fill(32), "x.pdf")).status).toBe(403);
+  });
+
+  it("una subida incompleta no se lee", async () => {
+    comoUsuario(A, "ADMINISTRADOR");
+    const subidaId = crypto.randomUUID();
+    const form = new FormData();
+    form.append("subidaId", subidaId); form.append("indice", "1"); form.append("total", "3"); form.append("nombre", "x.pdf");
+    form.append("parte", new File([new Uint8Array(100).fill(32)], "x.pdf"));
+    expect((await subirParte(new Request("http://localhost/api/finanzas/subir-parte", { method: "POST", body: form }))).status).toBe(200);
+    expect((await leerSubida(subidaId)).status).toBe(400);
     expect(parse).not.toHaveBeenCalled();
   });
 

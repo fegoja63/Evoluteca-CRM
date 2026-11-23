@@ -142,6 +142,7 @@ model Tenant {
   analisisClientes         AnalisisCliente[]
   suscripcionesPush        SuscripcionPush[]
   conversacionesAgente     ConversacionAgente[]
+  partesArchivoTemporal    ParteArchivoTemporal[]
   secuencias               Secuencia[]
   inscripcionesSecuencia   InscripcionSecuencia[]
 
@@ -1561,4 +1562,25 @@ model ConversacionAgente {
 
   @@index([tenantId, actualizadoEn])
   @@map("conversaciones_agente")
+}
+
+// Pedazos de un archivo grande (hasta 15 MB) que el usuario sube por partes
+// para que la IA lo lea (Gerente Financiero › Cargar datos): Vercel no acepta
+// más de 4,5 MB por petición. Se unen y se BORRAN apenas se leen; los que
+// quedan huérfanos se borran a la hora (ver lib/finanzas/subida-partes.ts).
+model ParteArchivoTemporal {
+  id       String   @id @default(uuid())
+  subidaId String
+  indice   Int
+  nombre   String
+  datos    Bytes
+  creadoBy String
+  creadoEn DateTime @default(now())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([subidaId, indice])
+  @@index([tenantId, creadoEn])
+  @@map("partes_archivo_temporal")
 }
