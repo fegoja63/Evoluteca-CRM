@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { IconSparkles, IconUpload } from "@tabler/icons-react";
+import { IconSparkles, IconUpload, IconDeviceFloppy, IconCircleCheck, IconFilePlus } from "@tabler/icons-react";
 import { toast } from "@/lib/toast";
 import { boton, tarjeta } from "@/components/ui/estilos";
 import { cn } from "@/lib/cn";
@@ -80,7 +80,10 @@ export function LeerConIA() {
   // Meses a guardar: los que leyó la IA, o el acumulado repartido si el usuario lo pide.
   const [meses, setMeses] = useState<Periodo[]>([]);
   const [repartido, setRepartido] = useState(false);
-  const [guardando, setGuardando] = useState<"meses" | "balance" | null>(null);
+  const [guardando, setGuardando] = useState<"meses" | "balance" | "todo" | null>(null);
+  // Después de guardar: qué quedó guardado, y el botón para cargar otro informe.
+  const [guardado, setGuardado] = useState<string | null>(null);
+  const [claveInput, setClaveInput] = useState(0);
 
   async function leer() {
     if (!archivo) return;
@@ -126,7 +129,55 @@ export function LeerConIA() {
     }
   }
 
+  /**
+   * Guarda de una vez todo lo que la IA leyó: los meses (si el estado de
+   * resultados viene acumulado del año, pide confirmar el reparto en meses
+   * iguales) y el balance. Antes había que encontrar dos botones y, con un
+   * acumulado, primero "Repartir": era fácil irse sin guardar nada.
+   */
+  async function guardarTodo() {
+    if (!lectura) return;
+    let mesesAGuardar = meses;
+    if (mesesAGuardar.length === 0 && lectura.acumulado) {
+      const n = mesesEntre(lectura.acumulado.desde, lectura.acumulado.hasta).length;
+      if (!confirm(`El estado de resultados viene acumulado de ${mesCorto(lectura.acumulado.desde)} a ${mesCorto(lectura.acumulado.hasta)}. Se guardará repartido en ${n} meses iguales (es un promedio, no el dato real de cada mes). ¿Continuar?`)) return;
+      mesesAGuardar = repartirAcumulado(lectura.acumulado);
+    }
+    setGuardando("todo");
+    const hecho: string[] = [];
+    try {
+      if (mesesAGuardar.length > 0) {
+        await enviar("/api/finanzas/periodos", "PUT", { periodos: mesesAGuardar });
+        hecho.push(`${mesesAGuardar.length} mes(es) del estado de resultados`);
+      }
+      if (lectura.balance) {
+        await enviar("/api/finanzas/balance", "PUT", lectura.balance);
+        hecho.push(`el balance al ${formatoDia(lectura.balance.corte)}`);
+      }
+      setGuardado(hecho.join(" y "));
+      setLectura(null);
+      setMeses([]);
+      setArchivo(null);
+      setClaveInput(k => k + 1);
+      router.refresh();
+    } catch (e) {
+      // Lo que alcanzó a guardarse queda guardado; se dice qué faltó.
+      toast.error(`${hecho.length ? `Se guardó ${hecho.join(" y ")}, pero ` : ""}${(e as Error).message}`);
+    } finally {
+      setGuardando(null);
+    }
+  }
+
+  function cargarOtro() {
+    setGuardado(null);
+    setLectura(null);
+    setMeses([]);
+    setArchivo(null);
+    setClaveInput(k => k + 1);
+  }
+
   const sinNada = lectura && meses.length === 0 && !lectura.acumulado && !lectura.balance;
+  const hayQueGuardar = !!lectura && (meses.length > 0 || !!lectura.acumulado || !!lectura.balance);
 
   return (
     <section className={tarjeta("p-5 space-y-3")}>
@@ -142,11 +193,11 @@ export function LeerConIA() {
       <div className="flex flex-wrap items-center gap-2">
         <label className={boton("secundario", "sm", "cursor-pointer")}>
           <IconUpload size={15} />{archivo ? archivo.name : "Elegir archivo (PDF, Excel, Word, foto u otro)"}
-          <input type="file" className="sr-only"
+          <input key={claveInput} type="file" className="sr-only"
             onChange={e => {
               const f = e.target.files?.[0] ?? null;
               if (f && f.size > MAX_ARCHIVO && !/^image\//.test(f.type)) { toast.error("El archivo pesa más de 15 MB. Suba solo los estados financieros."); e.target.value = ""; return; }
-              setArchivo(f); setLectura(null);
+              setArchivo(f); setLectura(null); setGuardado(null);
             }} />
         </label>
         <button type="button" onClick={leer} disabled={!archivo || leyendo} className={boton("marca", "sm")}>
@@ -154,6 +205,16 @@ export function LeerConIA() {
         </button>
       </div>
 
+      {guardado && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+          <p className="flex flex-1 items-center gap-1.5 text-sm text-emerald-800">
+            <IconCircleCheck size={16} />Listo: se guardó {guardado}. Ya lo ve en Resumen, Estados e Indicadores.
+          </p>
+          <button type="button" onClick={cargarOtro} className={boton("secundario", "sm")}>
+            <IconFilePlus size={15} />Cargar otro informe
+          </button>
+        </div>
+      )}
       {lectura && (
         <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
           {UNIDAD[lectura.unidadDocumento] && (
@@ -166,6 +227,15 @@ export function LeerConIA() {
             </div>
           )}
           {sinNada && <p className="text-sm text-slate-600">No se encontraron estados financieros en este documento.</p>}
+
+          {hayQueGuardar && (
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-brand-100 bg-brand-50 px-3 py-2">
+              <p className="flex-1 text-sm text-slate-700">Revise las cifras de abajo y guárdelas. Puede corregir cualquier mes después en &quot;Meses cargados&quot;.</p>
+              <button type="button" onClick={guardarTodo} disabled={guardando !== null} className={boton("primario", "sm")}>
+                <IconDeviceFloppy size={15} />{guardando === "todo" ? "Guardando…" : "Guardar todo lo leído"}
+              </button>
+            </div>
+          )}
 
           {lectura.acumulado && !repartido && (
             <div className="space-y-2">
