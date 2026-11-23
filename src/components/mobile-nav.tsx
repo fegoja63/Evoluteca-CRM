@@ -22,9 +22,13 @@ const NAV_MOVIL_FINANZAS: { href: string; icon: Icon; label: string }[] = [
   { href: "/dashboard/ayuda",         icon: IconLifebuoy,   label: "Ayuda" },
 ];
 
-export function MobileNav({ soloFinanzas = false }: { soloFinanzas?: boolean }) {
+// Cuenta con CRM y licencia del Gerente Financiero (Administrador o Gerente):
+// sin esto no había cómo llegar al módulo desde el celular.
+const ITEM_FINANZAS_MOVIL = { href: INICIO_FINANZAS, icon: IconCoin, label: "Finanzas" };
+
+export function MobileNav({ soloFinanzas = false, conFinanzas = false }: { soloFinanzas?: boolean; conFinanzas?: boolean }) {
   const pathname = usePathname();
-  const items = soloFinanzas ? NAV_MOVIL_FINANZAS : NAV_MOVIL;
+  const items = soloFinanzas ? NAV_MOVIL_FINANZAS : conFinanzas ? [...NAV_MOVIL, ITEM_FINANZAS_MOVIL] : NAV_MOVIL;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-brand-950 border-t border-white/10 flex sm:hidden">
