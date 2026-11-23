@@ -22,11 +22,60 @@ type Lectura = {
 
 const UNIDAD: Record<string, string> = { miles: "miles de pesos", millones: "millones de pesos" };
 
+const MB = 1024 * 1024;
+const MAX_ARCHIVO = 15 * MB;     // tope del archivo
+const MAX_DIRECTO = 3.5 * MB;    // hasta aquí va en una sola petición; más, por partes
+const TAMANO_PARTE = Math.floor(3.5 * MB);
+const MAX_IMAGEN = 3.5 * MB;     // la IA no acepta imágenes de más de 5 MB: se achican antes
+
+/** Una foto muy pesada se achica en el navegador (JPEG, lado mayor 3000 px). */
+async function achicarFoto(f: File): Promise<File> {
+  if (!/^image\/(jpeg|png|webp)$/.test(f.type) || f.size <= MAX_IMAGEN) return f;
+  try {
+    const bmp = await createImageBitmap(f);
+    const escala = Math.min(1, 3000 / Math.max(bmp.width, bmp.height));
+    const lienzo = document.createElement("canvas");
+    lienzo.width = Math.round(bmp.width * escala);
+    lienzo.height = Math.round(bmp.height * escala);
+    lienzo.getContext("2d")!.drawImage(bmp, 0, 0, lienzo.width, lienzo.height);
+    const blob = await new Promise<Blob | null>(r => lienzo.toBlob(r, "image/jpeg", 0.85));
+    return blob ? new File([blob], f.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" }) : f;
+  } catch {
+    return f; // si el navegador no la puede abrir, que el servidor diga qué hacer
+  }
+}
+
+/** Manda el archivo: directo si es pequeño; si no, por partes y luego pide leerlo. */
+async function enviarParaLeer(f: File, avance: (texto: string) => void): Promise<Response> {
+  const form = new FormData();
+  if (f.size <= MAX_DIRECTO) {
+    form.append("archivo", f);
+  } else {
+    const subidaId = crypto.randomUUID();
+    const total = Math.ceil(f.size / TAMANO_PARTE);
+    for (let i = 0; i < total; i++) {
+      avance(`Subiendo ${i + 1} de ${total}…`);
+      const parte = new FormData();
+      parte.append("subidaId", subidaId);
+      parte.append("indice", String(i));
+      parte.append("total", String(total));
+      parte.append("nombre", f.name);
+      parte.append("parte", f.slice(i * TAMANO_PARTE, (i + 1) * TAMANO_PARTE), f.name);
+      const r = await fetch("/api/finanzas/subir-parte", { method: "POST", body: parte });
+      if (!r.ok) return r;
+    }
+    form.append("subidaId", subidaId);
+  }
+  avance("Leyendo… puede tardar un minuto");
+  return fetch("/api/finanzas/leer-ia", { method: "POST", body: form });
+}
+
 /** 1. Leer con IA los estados del contador; el usuario revisa y guarda. */
 export function LeerConIA() {
   const router = useRouter();
   const [archivo, setArchivo] = useState<File | null>(null);
   const [leyendo, setLeyendo] = useState(false);
+  const [avance, setAvance] = useState("");
   const [lectura, setLectura] = useState<Lectura | null>(null);
   // Meses a guardar: los que leyó la IA, o el acumulado repartido si el usuario lo pide.
   const [meses, setMeses] = useState<Periodo[]>([]);
@@ -37,11 +86,11 @@ export function LeerConIA() {
     if (!archivo) return;
     setLeyendo(true);
     setLectura(null);
-    const form = new FormData();
-    form.append("archivo", archivo);
-    const res = await fetch("/api/finanzas/leer-ia", { method: "POST", body: form });
-    const data = await res.json().catch(() => ({}));
+    const res = await enviarParaLeer(await achicarFoto(archivo), setAvance).catch(() => null);
+    const data = await res?.json().catch(() => ({}));
     setLeyendo(false);
+    setAvance("");
+    if (!res) { toast.error("No se pudo enviar el archivo. Revise su conexión e inténtelo de nuevo."); return; }
     if (!res.ok) { toast.error(data.error ?? "No se pudo leer el documento."); return; }
     setLectura(data);
     setMeses(data.periodos);
@@ -86,18 +135,22 @@ export function LeerConIA() {
           <IconSparkles size={18} className="text-brand-600" />1. Leer los estados del contador con IA
         </h2>
         <p className="mt-1 text-sm text-slate-500">
-          Suba el PDF, una foto o el Excel de los estados financieros tal como se los entregó su contador. La IA propone las cifras
-          y usted las revisa antes de guardar. Cuenta como una acción de IA de su plan.
+          Suba los estados financieros tal como se los entregó su contador: PDF, Excel, Word, una foto o cualquier otro archivo
+          (hasta 15 MB). La IA propone las cifras y usted las revisa antes de guardar. Cuenta como una acción de IA de su plan.
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <label className={boton("secundario", "sm", "cursor-pointer")}>
-          <IconUpload size={15} />{archivo ? archivo.name : "Elegir archivo (PDF, foto o Excel)"}
-          <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.xlsx,.csv" className="sr-only"
-            onChange={e => { setArchivo(e.target.files?.[0] ?? null); setLectura(null); }} />
+          <IconUpload size={15} />{archivo ? archivo.name : "Elegir archivo (PDF, Excel, Word, foto u otro)"}
+          <input type="file" className="sr-only"
+            onChange={e => {
+              const f = e.target.files?.[0] ?? null;
+              if (f && f.size > MAX_ARCHIVO && !/^image\//.test(f.type)) { toast.error("El archivo pesa más de 15 MB. Suba solo los estados financieros."); e.target.value = ""; return; }
+              setArchivo(f); setLectura(null);
+            }} />
         </label>
         <button type="button" onClick={leer} disabled={!archivo || leyendo} className={boton("marca", "sm")}>
-          {leyendo ? "Leyendo… puede tardar un minuto" : "Leer con IA"}
+          {leyendo ? (avance || "Leyendo… puede tardar un minuto") : "Leer con IA"}
         </button>
       </div>
 
