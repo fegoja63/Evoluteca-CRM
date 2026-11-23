@@ -84,12 +84,21 @@ export function LeerConIA() {
   // Después de guardar: qué quedó guardado, y el botón para cargar otro informe.
   const [guardado, setGuardado] = useState<string | null>(null);
   const [claveInput, setClaveInput] = useState(0);
+  const [arrastrando, setArrastrando] = useState(false);
 
-  async function leer() {
-    if (!archivo) return;
+  /** Elegir o soltar un archivo lo lee de una vez (antes había que pulsar además "Leer con IA"). */
+  function elegir(f: File | null) {
+    if (!f || leyendo) return;
+    if (f.size > MAX_ARCHIVO && !/^image\//.test(f.type)) { toast.error("El archivo pesa más de 15 MB. Suba solo los estados financieros."); return; }
+    setArchivo(f); setGuardado(null);
+    void leer(f);
+  }
+
+  async function leer(f: File | null = archivo) {
+    if (!f) return;
     setLeyendo(true);
     setLectura(null);
-    const res = await enviarParaLeer(await achicarFoto(archivo), setAvance).catch(() => null);
+    const res = await enviarParaLeer(await achicarFoto(f), setAvance).catch(() => null);
     const data = await res?.json().catch(() => ({}));
     setLeyendo(false);
     setAvance("");
@@ -190,20 +199,37 @@ export function LeerConIA() {
           (hasta 15 MB). La IA propone las cifras y usted las revisa antes de guardar. Cuenta como una acción de IA de su plan.
         </p>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <label className={boton("secundario", "sm", "cursor-pointer")}>
-          <IconUpload size={15} />{archivo ? archivo.name : "Elegir archivo (PDF, Excel, Word, foto u otro)"}
-          <input key={claveInput} type="file" className="sr-only"
-            onChange={e => {
-              const f = e.target.files?.[0] ?? null;
-              if (f && f.size > MAX_ARCHIVO && !/^image\//.test(f.type)) { toast.error("El archivo pesa más de 15 MB. Suba solo los estados financieros."); e.target.value = ""; return; }
-              setArchivo(f); setLectura(null); setGuardado(null);
-            }} />
-        </label>
-        <button type="button" onClick={leer} disabled={!archivo || leyendo} className={boton("marca", "sm")}>
-          {leyendo ? (avance || "Leyendo… puede tardar un minuto") : "Leer con IA"}
-        </button>
-      </div>
+      {/* Zona de subida: clic para buscar el archivo o arrastrarlo encima. Al
+          elegirlo, la IA lo lee de una vez (no hay un segundo botón gris). */}
+      <label
+        onDragOver={e => { e.preventDefault(); setArrastrando(true); }}
+        onDragLeave={() => setArrastrando(false)}
+        onDrop={e => { e.preventDefault(); setArrastrando(false); elegir(e.dataTransfer.files?.[0] ?? null); }}
+        className={cn(
+          "flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed px-4 py-7 text-center transition-colors",
+          leyendo ? "cursor-wait border-brand-300 bg-brand-50" : "cursor-pointer hover:border-brand-400 hover:bg-brand-50",
+          arrastrando ? "border-brand-500 bg-brand-50" : "border-slate-300 bg-slate-50",
+        )}>
+        <IconUpload size={28} stroke={1.5} className="text-brand-600" />
+        {leyendo ? (
+          <>
+            <span className="text-sm font-semibold text-slate-800">{avance || "Leyendo… puede tardar un minuto"}</span>
+            {archivo && <span className="text-xs text-slate-500">{archivo.name}</span>}
+          </>
+        ) : (
+          <>
+            <span className="text-sm font-semibold text-slate-800">
+              {archivo && lectura ? "Cargar otro archivo" : "Haga clic aquí para buscar el archivo, o arrástrelo"}
+            </span>
+            <span className="text-xs text-slate-500">PDF, Excel, Word, foto u otro · hasta 15 MB · la IA lo lee apenas lo elija</span>
+          </>
+        )}
+        <input key={claveInput} type="file" className="sr-only" disabled={leyendo}
+          onChange={e => { elegir(e.target.files?.[0] ?? null); e.target.value = ""; }} />
+      </label>
+      {archivo && !leyendo && !lectura && !guardado && (
+        <button type="button" onClick={() => leer()} className={boton("marca", "sm")}>Leer de nuevo {archivo.name}</button>
+      )}
 
       {guardado && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
