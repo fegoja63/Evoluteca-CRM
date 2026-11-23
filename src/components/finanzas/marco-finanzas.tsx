@@ -1,12 +1,17 @@
 import Link from "next/link";
-import { IconCoin } from "@tabler/icons-react";
+import { IconCoin, IconFileUpload } from "@tabler/icons-react";
 import type { ResumenLicencia } from "@/lib/licencias";
 import { formatoDia } from "@/lib/fecha-bogota";
 import { boton, insignia, tarjeta } from "@/components/ui/estilos";
 import { PestanasFinanzas } from "./pestanas-finanzas";
 
-/** Título, estado de la licencia y pestañas, común a todas las pantallas del módulo. */
-export function MarcoFinanzas({ licencia, children }: { licencia: ResumenLicencia; children: React.ReactNode }) {
+/**
+ * Título, estado de la licencia y pestañas, común a todas las pantallas del
+ * módulo. Con la licencia vigente trae el botón "Cargar estados financieros"
+ * (la pestaña "Cargar datos" queda al final y no se notaba); en esa misma
+ * pestaña no se muestra (`enCargar`).
+ */
+export function MarcoFinanzas({ licencia, enCargar = false, children }: { licencia: ResumenLicencia; enCargar?: boolean; children: React.ReactNode }) {
   return (
     <div className="space-y-6">
       {/* Título y pestañas quedan fijos arriba al hacer scroll en pantallas
@@ -20,8 +25,15 @@ export function MarcoFinanzas({ licencia, children }: { licencia: ResumenLicenci
           </h1>
           <p className="mt-1 text-sm text-slate-500">Los números de su empresa, claros y a tiempo para decidir.</p>
         </div>
-        {licencia.estado === "VIGENTE" && licencia.hasta && (
-          <span className={insignia("exito")}>Activo hasta el {formatoDia(licencia.hasta)}</span>
+        {licencia.estado === "VIGENTE" && (
+          <div className="flex flex-wrap items-center gap-2">
+            {licencia.hasta && <span className={insignia("exito")}>Activo hasta el {formatoDia(licencia.hasta)}</span>}
+            {!enCargar && (
+              <Link href="/dashboard/finanzas/cargar" className={boton("primario", "sm")}>
+                <IconFileUpload size={15} stroke={1.75} />Cargar estados financieros
+              </Link>
+            )}
+          </div>
         )}
         {licencia.estado === "VENCIDA" && <span className={insignia("alerta")}>Licencia vencida · solo lectura</span>}
       </div>
