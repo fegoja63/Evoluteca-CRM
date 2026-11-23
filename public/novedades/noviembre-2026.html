@@ -142,7 +142,11 @@
           <tr><td><a href="#cco">Registrar correos con CCO</a></td><td><span class="pill opt">Sí, una vez</span></td><td>Cada usuario</td></tr>
           <tr><td><a href="#agendar">Enlace para que el cliente agende</a></td><td><span class="pill opt">Sí, una vez</span></td><td>Cada usuario</td></tr>
           <tr><td><a href="#calendario">Conectar Google Calendar u Outlook</a></td><td><span class="pill opt">Sí, una vez</span></td><td>Cada usuario que use el enlace</td></tr>
-          <tr><td><a href="#secuencias">Secuencias de seguimiento</a></td><td><span class="pill si">Sí, crearlas</span></td><td>Administrador o Gerente las crea; todos las usan</td></tr>
+          <tr><td><a href="#secuencias">Secuencias de seguimiento (correo, llamada y WhatsApp)</a></td><td><span class="pill si">Sí, crearlas</span></td><td>Administrador o Gerente las crea; todos las usan</td></tr>
+          <tr><td><a href="#chat">Chat web con IA para su página</a></td><td><span class="pill si">Sí, activarlo e instalarlo</span></td><td>Administrador</td></tr>
+          <tr><td><a href="#embudo">Embudo de entrada en El Lunes</a></td><td><span class="pill no">No, ya funciona</span></td><td>Todos</td></tr>
+          <tr><td><a href="#reactivar">Reactivar clientes con IA</a></td><td><span class="pill opt">Cuando quiera</span></td><td>Todos (cada uno sus clientes)</td></tr>
+          <tr><td><a href="#resenas">Reseñas y recompra</a></td><td><span class="pill opt">Sí, activarlas</span></td><td>Administrador</td></tr>
           <tr><td><a href="#menu">Menú lateral compacto</a></td><td><span class="pill opt">Opcional</span></td><td>Cada usuario, si lo quiere</td></tr>
           <tr><td><a href="#iphone">Mejor lectura en iPhone</a></td><td><span class="pill no">No</span></td><td>Todos</td></tr>
         </tbody>
@@ -229,14 +233,65 @@
 
   <article class="novedad" id="secuencias">
     <div class="novedad-cab"><h2>Secuencias de seguimiento</h2><span class="pill si">El Administrador o Gerente las crea</span></div>
-    <p>Una secuencia es una serie de correos que salen solos al cliente, con días de espera entre uno y otro, hasta que responda. Sirve para no olvidar el seguimiento de una propuesta o de un cliente que se enfrió. Los correos salen a nombre de quien la inicia, los días hábiles en la mañana, y la secuencia <strong>se detiene sola</strong> si el cliente responde o si el negocio se gana o se pierde.</p>
+    <p>Una secuencia es una serie de pasos de seguimiento, con días de espera entre uno y otro, hasta que el cliente responda. Sirve para no olvidar el seguimiento de una propuesta o de un cliente que se enfrió. Cada paso puede ser:</p>
+    <ul>
+      <li><strong>Correo:</strong> sale solo al cliente, a nombre de quien inició la secuencia.</li>
+      <li><strong>Llamada:</strong> ese día le aparece al vendedor en su Bandeja Hoy, con el guion de qué decir.</li>
+      <li><strong>WhatsApp:</strong> ese día le aparece una tarea con el mensaje ya escrito y el botón <strong>"Enviar WhatsApp"</strong>, que abre WhatsApp con el número y el texto listos.</li>
+    </ul>
+    <p>Los pasos se cumplen los días hábiles en la mañana y la secuencia <strong>se detiene sola</strong> si el cliente responde o si el negocio se gana o se pierde.</p>
     <div class="hacer">
       <h3>Qué hacer</h3>
       <ol>
-        <li><strong>Administrador o Gerente (una vez):</strong> <span class="ruta">Ventas › Secuencias</span> → <strong>"Empezar con la sugerida"</strong> (trae tres correos listos para ajustar) o "Desde cero". Revise los textos y guarde.</li>
+        <li><strong>Administrador o Gerente (una vez):</strong> <span class="ruta">Ventas › Secuencias</span> → <strong>"Empezar con la sugerida"</strong> (trae una secuencia lista que mezcla correo, WhatsApp y llamada) o "Desde cero". Revise los textos y guarde.</li>
         <li><strong>Cualquier usuario, cuando la necesite:</strong> en la ficha del contacto o del negocio (pestaña Actividad), tarjeta "Secuencia de seguimiento" → elija la secuencia → <strong>Iniciar</strong>.</li>
       </ol>
       <p>Mientras nadie cree una secuencia, no sale ningún correo automático.</p>
+    </div>
+  </article>
+
+  <article class="novedad" id="chat">
+    <div class="novedad-cab"><h2>Chat web con IA para su página</h2><span class="pill si">El Administrador lo activa</span></div>
+    <p>Un asistente con IA atiende a los visitantes de su página web <strong>a cualquier hora</strong>: responde con la información de su empresa y su catálogo, pregunta qué necesitan, pide su nombre y un correo o celular y califica el interés. Cuando el visitante deja sus datos, el CRM crea el cliente, el contacto y la oportunidad (origen "Chat web") y le avisa al responsable al celular. No inventa precios ni condiciones: lo que no sepa, dice que un asesor lo confirma.</p>
+    <div class="hacer">
+      <h3>Qué hacer (una vez, el Administrador)</h3>
+      <ol>
+        <li><span class="ruta">Ventas › Chat web</span> → escriba lo que el asistente debe saber de su empresa (qué vende, horarios, ciudades, tiempos de entrega, formas de pago) y elija quién recibe los prospectos.</li>
+        <li>Marque <strong>"Activo"</strong> y pulse <strong>"Probar"</strong> para conversar con él como si fuera un cliente.</li>
+        <li>Pegue el código que aparece en su página web (antes de &lt;/body&gt;; sirve en WordPress, Wix y cualquier sitio que permita pegar código) o comparta el enlace directo en Instagram o WhatsApp.</li>
+      </ol>
+      <p>Cada conversación usa una acción del cupo mensual de IA. Las conversaciones quedan en la misma pantalla.</p>
+    </div>
+  </article>
+
+  <article class="novedad" id="embudo">
+    <div class="novedad-cab"><h2>Embudo de entrada en El Lunes</h2><span class="pill no">No tiene que hacer nada</span></div>
+    <p>En <span class="ruta">Reportes › El Lunes</span> y en el correo del lunes hay una tarjeta nueva: de lo que entró en los últimos 30 días, cuántos se <strong>calificaron</strong>, cuántos llegaron a <strong>propuesta</strong> y cuántos se <strong>vendieron</strong>, con el porcentaje de cada paso. Así se ve en qué paso se cae la venta. Incluye las conversaciones del Chat web.</p>
+  </article>
+
+  <article class="novedad" id="reactivar">
+    <div class="novedad-cab"><h2>Reactivar clientes con IA</h2><span class="pill opt">Cuando quiera · cada usuario</span></div>
+    <p>En <span class="ruta">Relaciones › Reactivar clientes</span> están los clientes que no tienen un negocio en curso ni movimiento en 60 días, 90 días, 6 meses o 1 año (primero los que ya le compraron). La IA le escribe a cada uno un mensaje según lo que pasó con él: qué compró, por qué se perdió, de qué se habló.</p>
+    <div class="hacer">
+      <h3>Qué hacer</h3>
+      <ol>
+        <li>Elija el plazo y marque hasta 10 clientes → <strong>"Redactar con IA"</strong>.</li>
+        <li>Revise y edite cada mensaje y elija Correo o WhatsApp.</li>
+        <li>Pulse <strong>"Enviar"</strong>: el correo sale a su nombre y la respuesta vuelve al CRM; el WhatsApp queda en su Bandeja Hoy con el botón para enviarlo.</li>
+      </ol>
+      <p>Cada lote usa una acción del cupo de IA. A quien ya le escribió sale de la lista.</p>
+    </div>
+  </article>
+
+  <article class="novedad" id="resenas">
+    <div class="novedad-cab"><h2>Reseñas y recompra</h2><span class="pill opt">Opcional · el Administrador las activa</span></div>
+    <p>Después de ganar un negocio, el CRM le recuerda solo al vendedor <strong>pedir la reseña</strong> (por defecto a los 15 días, con el enlace donde el cliente la deja, por ejemplo el de Google) y <strong>ofrecer una nueva compra</strong> (por defecto a los 90 días, si el cliente no tiene otro negocio en curso). La tarea le llega a su Bandeja Hoy con el mensaje listo y el botón de WhatsApp.</p>
+    <div class="hacer">
+      <h3>Qué hacer (una vez, el Administrador)</h3>
+      <ol>
+        <li><span class="ruta">Configuración › Reseñas y recompra</span> → marque las que quiera, ajuste los días y los mensajes.</li>
+        <li>Para la reseña, pegue el enlace de su perfil de Google (u otro sitio de reseñas) y pulse <strong>Guardar</strong>.</li>
+      </ol>
     </div>
   </article>
 

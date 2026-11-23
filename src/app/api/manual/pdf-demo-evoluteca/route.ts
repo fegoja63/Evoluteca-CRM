@@ -87,7 +87,7 @@ function PageHeader({ base }: { base: string }) {
 }
 function Footer() {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.21"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.22"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -463,7 +463,7 @@ export async function GET() {
       React.createElement(LI, null, "Vista Lista o Calendario (alterna entre ambas)."),
       React.createElement(LI, null, "Las actividades de hoy se resaltan en rojo; las vencidas alimentan las alertas."),
       React.createElement(LI, null, "Cada fila tiene a la izquierda el círculo 'Hecha' (se pone verde al completarla) y al final el menú '...' con Editar, Añadir a mi calendario, Reasignar y Borrar."),
-      React.createElement(LI, null, "Bandeja Hoy (menú Hoy): las pendientes de hoy y las vencidas una por una, con su detalle, una sugerencia y los botones Hacer (llamar, escribir o abrir el negocio), Reprogramar y Hecha. El interruptor rojo 'Mías / Equipo' (Administrador y Gerente) cambia entre tus tareas y las de todos: el Administrador abre en Equipo y el Gerente en Mías."),
+      React.createElement(LI, null, "Bandeja Hoy (menú Hoy): las pendientes de hoy y las vencidas una por una, con su detalle, una sugerencia y los botones Hacer (llamar, escribir, 'Enviar WhatsApp' o abrir el negocio), Reprogramar y Hecha. El interruptor rojo 'Mías / Equipo' (Administrador y Gerente) cambia entre tus tareas y las de todos: el Administrador abre en Equipo y el Gerente en Mías."),
       React.createElement(LI, null, "Llévala a tu calendario de tres formas: una actividad suelta ('Añadir a mi calendario' en el menú '...' de cada fila, que te deja elegir el calendario en Google u Outlook), un bloque completo según el filtro activo (botón iCal), o un enlace de suscripción en vivo desde Mi perfil que se mantiene actualizado solo. Además, notificaciones por email."),
 
       React.createElement(H2, null, "8.5 Otros módulos"),
@@ -474,6 +474,11 @@ export async function GET() {
       React.createElement(LI, null, "Cotizaciones: los filtros 'Vencidas' y 'Vencen en 7 días' junto al buscador muestran solo las que hay que renovar o cerrar."),
       React.createElement(LI, null, "Datos > Importar desde Excel: carga masiva que crea clientes, contactos y oportunidades vinculados de un archivo."),
       React.createElement(LI, null, "Objeciones: la pestaña Objeciones trae la guía del equipo (objeción, respuesta recomendada y lo que conviene evitar). En la ficha de una oportunidad, panel derecho, el Coach de objeciones con IA la usa para responder (capítulo 9, paso 14)."),
+      React.createElement(LI, null, "Secuencias (Ventas): cada paso puede ser Correo (sale solo), Llamada (te aparece en la Bandeja Hoy con el guion) o WhatsApp (te aparece con el mensaje escrito y el botón 'Enviar WhatsApp'). 'Empezar con la sugerida' trae una que mezcla los tres."),
+      React.createElement(LI, null, "Reactivar clientes (Relaciones): los clientes sin negocio en curso ni movimiento en 60 días, 90 días, 6 meses o 1 año; la IA les redacta un correo o un WhatsApp según su historial (capítulo 9, paso 16)."),
+      React.createElement(LI, null, "Chat web (Ventas): el asistente con IA para la página web del cliente, con su código, su enlace y las conversaciones (capítulo 9, paso 15)."),
+      React.createElement(LI, null, "Reportes › El Lunes: el 'Embudo de entrada' muestra de lo que entró en 30 días cuántos se calificaron, llegaron a propuesta y se vendieron, con el % de cada paso."),
+      React.createElement(LI, null, "Configuración › Reseñas y recompra: después de ganar un negocio, la tarea de pedir la reseña (a los 15 días) y de ofrecer la recompra (a los 90) le llega sola al vendedor."),
       React.createElement(Tip, null, "En Datos puedes probar la importación con un Excel pequeño. El sistema evita duplicar si vuelves a importar el mismo archivo."),
 
       React.createElement(H2, null, "8.6 Gerente financiero (módulo de pago)"),
@@ -507,6 +512,8 @@ export async function GET() {
       React.createElement(Paso, { n: 12, titulo: "Correo de seguimiento", desc: "Guarda una minuta con IA y, en la minuta, pulsa 'Correo de seguimiento'.", esperado: "Un borrador de máximo 120 palabras que confirma el próximo paso, sin los riesgos internos, con el destinatario puesto y los botones 'Enviar desde el CRM' y 'Copiar'. No lo envíes a direcciones reales del demo." }),
       React.createElement(Paso, { n: 13, titulo: "Análisis del negocio del cliente", desc: "Abre un cliente, pestaña Resumen, y en 'Análisis del negocio del cliente' pulsa 'Analizar con IA'. Sube un PDF de su informe anual o presentación, o pega una noticia inventada sobre sus planes.", esperado: "Situación, desafíos, objetivos, plazo, cómo mide el éxito, dónde podemos ayudar y preguntas para validar. Queda guardado: arma después el Plan para ganar de una oportunidad de ese cliente y verás que lo tiene en cuenta." }),
       React.createElement(Paso, { n: 14, titulo: "Coach de objeciones", desc: "Abre una oportunidad y, en el panel derecho, escribe en el Coach de objeciones lo que te dijo el cliente (por ejemplo 'Me parece muy caro para lo que necesitamos') o elige una objeción de la guía.", esperado: "Cuatro partes: la respuesta sugerida, por qué funciona, qué falta calificar del negocio (Presupuesto, Quién decide, Prioridad o momento, Necesidad o dolor o Competencia) y una pregunta para destrabarlo, con el enfoque de la metodología elegida en Configuración. Si la objeción se parece a una de la guía, lo dice." }),
+      React.createElement(Paso, { n: 15, titulo: "Chat web", desc: "Como administrador, en Ventas › Chat web abre 'Ajustes', escribe en 'Lo que el asistente debe saber' qué vende tu empresa y sus horarios, elige quién recibe los prospectos, marca 'Activo' y pulsa 'Probar'. Pregunta como si fueras un cliente y, cuando te lo pida, deja un nombre y un correo inventados.", esperado: "Respuestas al instante con tu información (sin inventar precios), la calificación del interés y, al dejar los datos, una oportunidad nueva en Prospecto con origen 'Chat web'. La conversación queda en la pantalla Chat web. Si el responsable tiene su enlace para agendar, el chat ofrece la reunión. Apágalo al terminar." }),
+      React.createElement(Paso, { n: 16, titulo: "Reactivar clientes", desc: "En Relaciones › Reactivar clientes elige el plazo, marca algunos clientes y pulsa 'Redactar con IA'.", esperado: "Para cada cliente, un correo y un WhatsApp basados en lo que pasó con él, con el 'gancho' que usó. Puedes editarlos y elegir el canal. No pulses 'Enviar' con direcciones reales del demo. Si la lista sale vacía es porque todos los clientes del demo tienen movimiento reciente." }),
       React.createElement(Nota, null, "Todas las funciones de IA descuentan del mismo cupo mensual (según tu plan puede ser ilimitado o con tope). Cada panel muestra cuánto llevas consumido, para que el uso sea siempre transparente."),
       React.createElement(Wow, { titulo: "Por qué importa" }, "La IA no reemplaza al vendedor: le ahorra lo tedioso. Prepara el contexto de una cuenta, el estado del pipeline, la lectura de tus reportes, la respuesta a una pregunta y hasta el correo de una cotización —en segundos y solo con los datos que ya viven en tu CRM."),
 
@@ -537,6 +544,8 @@ export async function GET() {
       React.createElement(Check, null, "Abrí el Asistente IA y probé varias funciones (resumen de cliente, brief del pipeline, análisis de tendencias, pregúntale a tus datos, redactor de correos, revisor de propuestas, oportunidades de crecimiento e informe mensual)."),
       React.createElement(Check, null, "Armé el Plan para ganar de una oportunidad y agendé uno de sus pasos; preparé una reunión desde la Agenda y redacté el correo de seguimiento de una minuta, y analicé el negocio de un cliente con un documento."),
       React.createElement(Check, null, "Elegí una metodología de ventas y probé el Coach de objeciones en una oportunidad."),
+      React.createElement(Check, null, "Activé el Chat web, conversé como cliente y vi la oportunidad que se creó; revisé el Embudo de entrada en El Lunes."),
+      React.createElement(Check, null, "Armé una secuencia con pasos de correo, llamada y WhatsApp, redacté mensajes en Reactivar clientes y activé Reseñas y recompra."),
       React.createElement(Check, null, "Recorrí el Gerente financiero: resumen, caja proyectada con el simulador y el diagnóstico del Gerente IA."),
       React.createElement(Check, null, "Abrí el CRM en el celular."),
 

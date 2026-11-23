@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.46"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.47"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -480,18 +480,28 @@ export async function GET() {
       React.createElement(P, null, "Correos que escribes desde tu propio correo (CCO inteligente): en Mi perfil, sección \"Registrar correos con CCO\", pulsa \"Activar mi dirección CCO\" y copia la dirección. Cuando le escribas a un cliente desde Gmail, Outlook o el celular, ponla en CCO (copia oculta): el correo queda registrado en la tarjeta \"Correos\" de la ficha del contacto, marcado como Enviado y ligado a su negocio abierto más reciente. El cliente no ve la dirección y el CRM no lee tu buzón: solo recibe la copia que tú decides mandarle. Si el cliente responde a todos y la dirección sigue en copia, su respuesta también queda registrada como Recibido."),
       React.createElement(Tip, null, "Guarda la dirección CCO como contacto en tu correo (por ejemplo \"CRM\") para ponerla en copia oculta con dos letras. Se registra en cada contacto del CRM cuyo correo vaya en el mensaje: si el destinatario todavía no es contacto, créalo primero. Los correos aparecen unas horas después, porque el CRM revisa el buzón varias veces al día. Si crees que alguien más tiene tu dirección, genera una nueva desde Mi perfil y la anterior deja de funcionar."),
       React.createElement(H2, null, "2.13 Secuencias de seguimiento"),
-      React.createElement(P, null, "Una secuencia es una serie de correos que salen solos al cliente, con días de espera entre uno y otro, hasta que responda. Sirve para no olvidar el seguimiento de una propuesta o de un cliente que se enfrió. Se crean en Ventas › Secuencias (solo Administrador o Gerente): nombre y, por cada correo, cuántos días después sale, el asunto y el texto. Puedes usar {{nombre}} (primer nombre del contacto), {{empresa}}, {{vendedor}} y {{negocio}}. Si es la primera, \"Empezar con la sugerida\" trae tres correos listos para ajustar."),
+      React.createElement(P, null, "Una secuencia es una serie de pasos de seguimiento con días de espera entre uno y otro, hasta que el cliente responda. Sirve para no olvidar el seguimiento de una propuesta o de un cliente que se enfrió. Se crean en Ventas › Secuencias (solo Administrador o Gerente): nombre y, por cada paso, su canal, cuántos días después toca y el texto. Puedes usar {{nombre}} (primer nombre del contacto), {{empresa}}, {{vendedor}} y {{negocio}}. Si es la primera, \"Empezar con la sugerida\" trae una secuencia lista para ajustar que mezcla correo, WhatsApp y llamada."),
+      React.createElement(LI, null, "Correo — sale solo al cliente, a tu nombre. Necesita asunto y texto."),
+      React.createElement(LI, null, "Llamada — ese día te aparece una llamada en la Bandeja Hoy con el guion de qué decir (el motivo, si lo pones, va en el título)."),
+      React.createElement(LI, null, "WhatsApp — ese día te aparece una tarea con el mensaje ya escrito y el botón \"Enviar WhatsApp\", que abre WhatsApp con el número del contacto y el texto listo: solo lo envías. A un celular colombiano de 10 dígitos se le agrega el 57."),
       React.createElement(Paso, { n: 1, titulo: "Inscribir", desc: "En la ficha del contacto o del negocio, tarjeta \"Secuencia de seguimiento\", elige la secuencia y pulsa \"Iniciar\". Si el primer correo es de día 0, sale de inmediato." }),
-      React.createElement(Paso, { n: 2, titulo: "Envíos", desc: "Los siguientes correos salen los días hábiles en la mañana (los que caen el fin de semana salen el lunes), a tu nombre y quedan en la tarjeta \"Correos\" de la ficha. Si el cliente responde, su respuesta entra al CRM como cualquier otra." }),
+      React.createElement(Paso, { n: 2, titulo: "Pasos", desc: "Los pasos se cumplen los días hábiles en la mañana (los que caen el fin de semana, el lunes). Los correos salen a tu nombre y quedan en la tarjeta \"Correos\" de la ficha; las llamadas y los WhatsApp te llegan a la Bandeja Hoy con un aviso al celular. La secuencia sigue al paso siguiente en su fecha, hayas hecho o no la tarea." }),
       React.createElement(Paso, { n: 3, titulo: "Se detiene sola", desc: "Cuando el cliente responde (por el hilo del CRM o por tu CCO), cuando el negocio se gana o se pierde, o si el contacto se queda sin correo. También puedes detenerla a mano desde la ficha o desde la pantalla Secuencias." }),
-      React.createElement(Nota, null, "Un contacto solo puede estar en una secuencia a la vez. En la pantalla Secuencias ves quiénes están en curso, cuántos correos van y cuándo sale el próximo; el Comercial ve solo los suyos."),
+      React.createElement(Nota, null, "Un contacto solo puede estar en una secuencia a la vez. Un contacto sin correo puede entrar a una secuencia que solo tenga llamadas y WhatsApp. En la pantalla Secuencias ves quiénes están en curso, cuántos pasos van y cuándo toca el próximo; el Comercial ve solo los suyos."),
       React.createElement(Nota, null, "Solo se capturan las respuestas a correos que enviaste desde el CRM; no reemplaza tu bandeja de entrada. Por ahora los correos se manejan en texto sencillo, sin adjuntos."),
 
-      React.createElement(H2, null, "2.13 Vistas, datos completos y asignar desde la lista"),
+      React.createElement(H2, null, "2.14 Vistas, datos completos y asignar desde la lista"),
       React.createElement(P, null, "Sobre la tabla de Clientes hay pestañas de vistas: Todos, Mis clientes y \"Sin vendedor N\" (aparece solo si hay clientes sin vendedor). Un clic filtra la tabla al instante. El rol Comercial no ve estas pestañas porque ya solo ve sus propios clientes."),
       React.createElement(P, null, "En Contactos las vistas son Todos, \"Sin empresa N\" y \"Sin correo N\", para encontrar rápido los contactos a los que les falta un dato."),
       React.createElement(P, null, "La columna \"Datos\" muestra con una barra qué tan completa está cada ficha: en Clientes cuenta correo, teléfono, sector, sitio web y si tiene contactos; en Contactos, correo, teléfono, cargo y empresa. Al pasar el cursor se ve qué falta."),
       React.createElement(P, null, "Asignar desde la lista: en Clientes, si un cliente no tiene vendedor aparece el botón punteado \"+ Asignar\"; y si ya lo tiene, un clic en el nombre del vendedor permite cambiarlo. Ambos abren la confirmación de reasignar, porque el cambio también pasa al nuevo vendedor las oportunidades y actividades de ese cliente (solo Administrador). En Contactos, \"+ Asignar\" en la columna Empresa abre la edición del contacto para ponerle su empresa."),
+
+      React.createElement(H2, null, "2.15 Reactivar clientes (base dormida)"),
+      React.createElement(P, null, "En Relaciones › Reactivar clientes están los clientes que no tienen un negocio en curso ni movimiento (actividades, correos o negocios) en un tiempo que tú eliges: 60 días, 90 días, 6 meses o 1 año. Primero aparecen los que ya te compraron. Solo salen los que tienen un contacto con correo o celular."),
+      React.createElement(Paso, { n: 1, titulo: "Elegir", desc: "Marca hasta 10 clientes. Cada fila muestra el último negocio con él, su contacto y cuántos días lleva quieto." }),
+      React.createElement(Paso, { n: 2, titulo: "Redactar con IA", desc: "La IA escribe para cada uno un correo y una versión corta para WhatsApp, basados en lo que pasó con ese cliente (qué compró, por qué se perdió, de qué se habló en las minutas). Arriba de cada mensaje muestra en qué se basó." }),
+      React.createElement(Paso, { n: 3, titulo: "Revisar y enviar", desc: "Edita lo que quieras, elige Correo o WhatsApp para cada uno y pulsa Enviar. El correo sale a tu nombre y la respuesta vuelve al CRM; el WhatsApp queda como tarea en tu Bandeja Hoy con el botón \"Enviar WhatsApp\"." }),
+      React.createElement(Nota, null, "Cada lote usa una acción del cupo de IA. Lo enviado cuenta como movimiento: el cliente sale de la lista y no se le vuelve a escribir enseguida. El Comercial ve y escribe solo a sus clientes. Si los correos están desactivados en Configuración, no sale ningún correo."),
     ),
 
     // ── CAPÍTULO 3: PIPELINE ──
@@ -707,7 +717,7 @@ export async function GET() {
       React.createElement(P, null, "La Bandeja Hoy (menú Hoy › Bandeja Hoy, o Ctrl+K › Bandeja Hoy) reúne lo que tienes que despachar: las actividades pendientes de hoy y las vencidas (en rojo)."),
       React.createElement(P, null, "Arriba a la derecha está el interruptor rojo \"Mías / Equipo\" (solo para Administrador y Gerente). \"Mías\" son las tareas que tienes como responsable o creaste sin asignar; \"Equipo\", las de todos. El Administrador abre por defecto en Equipo, porque controla toda la actividad; el Gerente, en Mías. El Comercial siempre ve solo las suyas, sin interruptor."),
       React.createElement(P, null, "A la izquierda está la lista; al elegir una, a la derecha aparece su detalle: tipo, fecha, notas, el negocio, cliente y contacto (con enlace) y una sugerencia de qué hacer. Abajo, tres botones:"),
-      React.createElement(LI, null, "Hacer — si es una llamada y hay teléfono, \"Llamar\" marca el número; si es un correo y hay email, \"Escribir\" abre tu correo; en los demás casos abre el negocio o la ficha."),
+      React.createElement(LI, null, "Hacer — si es una llamada y hay teléfono, \"Llamar\" marca el número; si es un correo y hay email, \"Escribir\" abre tu correo; si es un WhatsApp de una secuencia, de Reactivar clientes o de reseña y recompra, \"Enviar WhatsApp\" abre WhatsApp con el mensaje listo; en los demás casos abre el negocio o la ficha."),
       React.createElement(LI, null, "Reprogramar — elige nueva fecha y hora (propone mañana a la misma hora). Si la dejas para más tarde hoy, se queda en la bandeja; si es otro día, sale de ella."),
       React.createElement(LI, null, "Hecha — la marca como completada y pasa a la siguiente."),
       React.createElement(P, null, "La sugerencia sale de reglas, no de la IA (es instantánea y no gasta cupo): si el negocio ya está cerrado, sugiere marcarla como hecha si ya no aplica; si está vencida, hacerla hoy o reprogramarla con una fecha realista; si no, la acción del estado comercial del negocio (ver 3.3)."),
@@ -920,11 +930,12 @@ export async function GET() {
       React.createElement(P, null, "Si tu base de datos tiene información de segmento o sede/zona (por ejemplo, cargada por importación de Excel), en la barra de filtros de Reportes aparecen selectores adicionales \"Segmento\" y \"Sede\" para acotar todos los reportes a esa información. Si ningún registro tiene esos datos, los selectores simplemente no aparecen."),
 
       React.createElement(H2, null, "7.12 Panel \"El Lunes\" (foto de tu semana)"),
-      React.createElement(P, null, "Al inicio de Reportes, el bloque \"El Lunes\" muestra una foto del presente, independiente de los filtros de año/mes de abajo. Reúne cuatro indicadores para empezar la semana:"),
+      React.createElement(P, null, "Al inicio de Reportes, el bloque \"El Lunes\" muestra una foto del presente, independiente de los filtros de año/mes de abajo. Reúne cinco indicadores para empezar la semana:"),
       React.createElement(LI, null, "Actividad comercial: los toques del equipo en los últimos 7 días, contados por tipo (llamadas, reuniones, visitas y correos) más las propuestas enviadas. Administrador y Gerente ven además el desglose por vendedor."),
       React.createElement(LI, null, "Ticket promedio: el valor medio de una operación ganada en los últimos 12 meses (si no hay negocios ganados en ese lapso, usa todo el histórico)."),
       React.createElement(LI, null, "Movimiento de clientes: nuevos del mes, activos (con al menos un negocio en curso), inactivos (sin negocio en curso y +60 días sin actividad) y perdidos del mes."),
       React.createElement(LI, null, "Cumplimiento del proceso: por vendedor, si el equipo hace lo que agenda. Muestra el porcentaje de actividades agendadas en los últimos 7 días que se marcaron como hechas (verde 80% o más, ámbar 50% o más, rojo por debajo), las tareas vencidas (el número lleva a la Agenda) y los negocios activos sin próximo paso. Un Comercial ve solo su fila; Gerente y Administrador ven al equipo."),
+      React.createElement(LI, null, "Embudo de entrada: de lo que entró en los últimos 30 días, hasta dónde llegó. Consultas (oportunidades nuevas, sin contar renovaciones, más las conversaciones del Chat web que no dejaron datos), Calificados, Propuestas y Ventas, con el % de cada paso sobre el anterior: ahí se ve dónde se cae la venta. Cuenta la etapa más avanzada a la que llegó cada negocio, aunque después se haya perdido. Debajo, cuántas conversaciones tuvo el Chat web y cuántas dejaron sus datos. El correo del lunes trae la misma gráfica."),
       React.createElement(Nota, null, "La actividad comercial se cuenta por la fecha de la actividad; si el equipo no registra sus llamadas y reuniones, aparecerá en cero aunque sí esté trabajando. \"Propuestas\" cuenta las cotizaciones enviadas (no borradores) de los últimos 7 días."),
 
       React.createElement(H2, null, "7.13 Pronóstico de cierre a 30/60/90 días"),
@@ -1050,6 +1061,7 @@ export async function GET() {
       React.createElement(LI, null, "Aviso de renovación: 30 días antes (o si la fecha ya pasó), el negocio se marca \"por renovar\" en el tablero, aparece en el panel \"Requieren atención\" del Dashboard y en el Resumen del Lunes."),
       React.createElement(LI, null, "Oportunidad de renovación: el botón \"Crear oportunidad de renovación\" abre un negocio nuevo en el Pipeline, en Calificado, del mismo vendedor, con el mismo valor y con cierre estimado en la fecha de renovación. Queda ligado al original y trae la tarea \"Preparar propuesta de renovación\" para hoy. El original pasa a la etapa Renovación. No se duplica: si ya existe, el botón lleva a ella."),
       React.createElement(Tip, null, "Si ganaste negocios antes de activar el módulo, ábrelos y usa \"Pasar a postventa\" para sumarlos al tablero."),
+      React.createElement(Nota, null, "Para pedir reseñas y ofrecer recompra después de ganar un negocio no hace falta este módulo: ver 9.12."),
 
       React.createElement(H2, null, "9.3 Gestión del equipo y roles"),
       React.createElement(P, null, 'Ve a Equipo para ver los usuarios de tu organización. El Administrador puede crear nuevos miembros y asignarles uno de tres roles. Esto es lo que puede hacer cada uno:'),
@@ -1104,6 +1116,7 @@ export async function GET() {
       React.createElement(Paso, { n: 3, titulo: "Verificar en el Pipeline", desc: "Cada lead recibido aparece de inmediato como una oportunidad nueva en la columna Prospecto, con el cliente y contacto ya creados." }),
       React.createElement(Nota, null, "Rotar la clave (botón \"Rotar clave\") invalida la anterior de inmediato. Cualquier formulario o automatización que siga usando la clave vieja dejará de funcionar hasta que se actualice con la nueva — úsalo solo si sospechas que la clave se filtró."),
       React.createElement(Tip, null, "Si el mismo correo de cliente ya existe en tu CRM, el sistema reutiliza ese cliente en vez de duplicarlo — así un mismo lead que llena el formulario dos veces no genera registros repetidos."),
+      React.createElement(Nota, null, "Si no tienes quién programe la integración, el Chat web (9.11) se instala pegando una línea de código y crea los leads solo."),
 
       React.createElement(H2, null, "9.7 Alerta de negocios estancados"),
       React.createElement(P, null, "En Configuración, sección \"Alerta de negocios estancados\", el Administrador define a partir de cuántos días SIN MOVIMIENTO (sin actividad registrada ni cambio de etapa) una oportunidad activa se considera estancada. Por defecto son 14 días."),
@@ -1135,6 +1148,22 @@ export async function GET() {
       React.createElement(LI, null, "Challenger: enseñar algo nuevo y reencuadrar cómo el cliente ve su situación. Útil en mercados competidos o ante \"ya tenemos proveedor\"."),
       React.createElement(LI, null, "Venta de valor (Value Selling): vender el impacto y el retorno, no el producto. Útil ante objeciones de precio."),
       React.createElement(Tip, null, "Para servicios B2B con ciclos medianos o largos suelen encajar SPIN (para descubrir el dolor) y Venta de valor (para las objeciones de precio). El cambio aplica de inmediato a todo el equipo; solo el Administrador puede hacerlo."),
+
+      React.createElement(H2, null, "9.11 Chat web con IA"),
+      React.createElement(P, null, "Un asistente con IA atiende a los visitantes de tu página web a cualquier hora: responde con la información de tu empresa y tu Catálogo, pregunta qué necesitan, pide su nombre y un correo o celular, y califica el interés (alto, medio o bajo). Cuando el visitante deja nombre y un medio de contacto, el CRM crea el cliente, el contacto y la oportunidad en Prospecto (origen \"Chat web\") y le avisa al responsable al celular."),
+      React.createElement(Paso, { n: 1, titulo: "Configurar", desc: "En Ventas › Chat web (solo Administrador): nombre del asistente, saludo, lo que debe saber de tu empresa (qué vendes, a quién, horarios, ciudades, tiempos de entrega, formas de pago, preguntas frecuentes) y quién recibe los prospectos. Si no eliges a nadie, se reparten entre los comerciales." }),
+      React.createElement(Paso, { n: 2, titulo: "Activar", desc: "Marca \"Activo\". Aparecen el código para tu página y un enlace directo." }),
+      React.createElement(Paso, { n: 3, titulo: "Instalar", desc: "Pega el código antes de </body> en tu página (sirve en WordPress, Wix y cualquier sitio que permita pegar código): aparece un botón de chat en la esquina. El enlace directo sirve para Instagram, WhatsApp o un correo. Con \"Probar\" lo ves como lo verá un visitante." }),
+      React.createElement(P, null, "En la misma pantalla están las conversaciones recientes: quién escribió, qué necesita, la calificación, la conversación completa y el enlace a la oportunidad que se creó."),
+      React.createElement(Nota, null, "El asistente no inventa precios, descuentos ni condiciones: si algo no está en lo que escribiste, dice que un asesor lo confirma. Si pones precios en la información, los podrá decir. No sigue instrucciones del visitante para cambiar de tema o revelar sus reglas."),
+      React.createElement(Tip, null, "Si el responsable tiene activo su enlace para agendar (4.11), el asistente ofrece una reunión con un botón en el chat. Cada conversación usa una acción del cupo de IA, sin importar cuántos mensajes tenga; una conversación admite hasta 20 mensajes del visitante. \"Cambiar código\" deja sin funcionar el código anterior."),
+
+      React.createElement(H2, null, "9.12 Reseñas y recompra"),
+      React.createElement(P, null, "En Configuración › Reseñas y recompra (solo Administrador) activas dos recordatorios para después de ganar un negocio:"),
+      React.createElement(LI, null, "Pedir reseña — por defecto 15 días después del cierre. El mensaje lleva el enlace donde el cliente deja su reseña (por ejemplo, el de Google), que es obligatorio."),
+      React.createElement(LI, null, "Ofrecer recompra — por defecto 90 días después del cierre. No se crea si el cliente ya tiene otro negocio en curso."),
+      React.createElement(P, null, "Ese día, en la mañana, el dueño del negocio recibe en su Bandeja Hoy la tarea \"Pedir reseña a …\" u \"Ofrecer recompra a …\" con el mensaje listo, el botón \"Enviar WhatsApp\" si el contacto tiene celular y un aviso al celular. Si el dueño ya no está activo, la tarea va al Administrador. Los mensajes se editan y aceptan {{nombre}}, {{empresa}}, {{negocio}}, {{vendedor}} y, en la reseña, {{enlace}}."),
+      React.createElement(Nota, null, "Al activarlo solo se miran los negocios ganados en las últimas dos semanas después del plazo, para no llenar la bandeja con ventas viejas. A ningún negocio se le repite el recordatorio. Se revisa los días hábiles."),
     ),
 
     // ── CAPÍTULO 10: INTELIGENCIA ARTIFICIAL ──
@@ -1184,7 +1213,13 @@ export async function GET() {
       React.createElement(H2, null, "10.13 Análisis del negocio del cliente"),
       React.createElement(P, null, "En la ficha del cliente, resume su informe anual, su presentación o noticias en situación, desafíos, objetivos, plazo, cómo mide el éxito, dónde podemos ayudar y qué validar. Queda guardado y lo usan el Plan para ganar y Preparar reunión (ver 2.10.3)."),
 
-      React.createElement(H2, null, "10.14 Cupo mensual y privacidad"),
+      React.createElement(H2, null, "10.14 Chat web"),
+      React.createElement(P, null, "Atiende a los visitantes de tu página, los califica y crea el lead cuando dejan sus datos (ver 9.11). Cada conversación cuenta una sola acción del cupo."),
+
+      React.createElement(H2, null, "10.15 Reactivar clientes"),
+      React.createElement(P, null, "Redacta, para hasta 10 clientes dormidos a la vez, un correo y un WhatsApp según su historial (ver 2.15). Cada lote usa una acción."),
+
+      React.createElement(H2, null, "10.16 Cupo mensual y privacidad"),
       React.createElement(P, null, "Todas las funciones descuentan del mismo cupo mensual de IA. Según tu plan puede ser ilimitado o tener un tope; cada panel muestra cuánto llevas usado (por ejemplo \"12 / 100 este mes\"). La IA solo usa los datos que ya están en tu CRM y no los comparte con nadie más."),
       React.createElement(Tip, null, "La IA es un asistente, no un reemplazo: acelera el borrador y el análisis, pero la decisión — y la revisión final de cada correo o informe — siguen siendo tuyas."),
 
