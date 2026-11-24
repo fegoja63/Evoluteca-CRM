@@ -71,7 +71,8 @@ export function contextoFinanciero(d: Entrada) {
     aclaracionDelModo: ACLARACION_MODO[anual ? "anual" : "mensual"],
     actividadDeLaEmpresa: d.actividad || "no informada en los estados: no la deduzca del nombre de la empresa",
     mesesDesdeElUltimoDato: ultimoDato ? mesesDesde(ultimoDato, d.hoy) : null,
-    cierresAnuales: anual ? cierres.map(c => ({ anio: c.mes, ...lineas(c) })) : null,
+    // En el modo mensual van como referencia: la utilidad real de los años cerrados.
+    cierresAnuales: cierres.length ? cierres.map(c => ({ anio: c.mes, ...lineas(c) })) : null,
     estadoDeResultadosPorMes: anual ? null : meses.map(m => ({ mes: m.mes, ...lineas(m) })),
     totalUltimosMeses: meses.length ? {
       meses: meses.length, ...lineas(total),

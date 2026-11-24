@@ -46,6 +46,8 @@ export type CifrasInforme = {
   actual: FilaResultados;
   anterior: FilaResultados | null;
   anioAnterior: FilaResultados | null;
+  /** Modo mensual: el último cierre anual del contador, como referencia (utilidad real del año cerrado). */
+  cierreAnual?: FilaResultados | null;
   ultimos12: (FilaResultados & { meses: number }) | null;
   serie: FilaResultados[];
   indicadores: { grupo: string; nombre: string; valor: string; semaforo: Semaforo | null; lectura: string }[];
@@ -308,6 +310,7 @@ export function calcularCifras(d: EntradaCifras): CifrasInforme | null {
     actual: fila(ultimo),
     anterior: anterior ? fila(anterior) : null,
     anioAnterior: anioAnterior ? fila(anioAnterior) : null,
+    cierreAnual: !anual && d.cierres?.length ? fila([...d.cierres].sort((a, b) => a.mes.localeCompare(b.mes))[d.cierres.length - 1]) : null,
     ultimos12: !anual && doce.length > 1 ? { ...fila(sumarPeriodos(doce, `${doce[0].mes}/${ultimo.mes}`)), meses: doce.length } : null,
     serie: doce.map(fila),
     indicadores: listaIndicadores.map(i => ({ grupo: i.grupo, nombre: i.nombre, valor: valorIndicador(i), semaforo: i.semaforo, lectura: i.lectura })),
@@ -423,6 +426,7 @@ Reglas:
 - Si falta algo (balance, mes del año pasado, supuestos de caja confirmados), dilo y explica qué cargar; no lo supongas.
 - Prioriza lo urgente (la caja) sobre lo importante (la rentabilidad).
 - El puntaje de salud financiera ("salud") y la composición de cada $100 ("composicion") ya los calculó el sistema: úsalos tal cual.
+- Si el análisis es MENSUAL y viene "cierreAnualDelContador", úsalo como referencia: es la utilidad real del último año cerrado (con lo no operacional y el impuesto que reportó el contador). Compárala con lo que va del año en curso y di si el año va mejor o peor; recuerda que en los meses el impuesto puede ser estimado.
 - Mira "modoDelAnalisis". Si es ANUAL (cierre de año): el informe es del año. En el punto 2 compara el año contra el año anterior ("anioAnterior" del comparativo), con la utilidad real, que ya incluye los ingresos y gastos no operacionales y el impuesto de renta que reportó el contador; explica qué partidas no operacionales movieron la utilidad. No hables de meses, temporadas ni tendencias mensuales, porque no hay detalle mes a mes. En el punto 6 usa los "escenarios" que calculó el sistema para el año siguiente al cierre (conservador, base y optimista): explica qué supone cada uno, qué tan lejos está uno del otro y qué decisiones acercan la empresa al optimista; no calcules otros escenarios. Las metas del punto 9 son para el próximo cierre o el próximo reporte, no para "el próximo mes" si no hay meses.
 - El negocio de la empresa es el de "actividadDeLaEmpresa". Nunca lo deduzcas del nombre de la empresa (el nombre puede sugerir un negocio distinto del real).
 - Si hay inversiones (CDT, fiducias) en el balance, tenlas en cuenta como respaldo de liquidez antes de recomendar endeudarse.

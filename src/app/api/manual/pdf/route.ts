@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.51"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.52"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -1241,6 +1241,7 @@ export async function GET() {
       React.createElement(H3, null, "Estados mensuales o cierre anual"),
       React.createElement(P, null, "Puedes subir estados mes a mes o el cierre anual que entrega el contador (el año al lado del año anterior). Si el archivo trae un año completo (enero a diciembre), se guarda como cierre anual, junto con el año anterior y los dos balances si vienen, y el módulo pasa a análisis anual: compara año contra año con la utilidad que reportó el contador (ingresos y gastos no operacionales e impuesto de renta real). La IA también toma del documento a qué se dedica la empresa e identifica las inversiones (CDT, fiducias) aparte."),
       React.createElement(Nota, null, "Los resultados no son iguales en los dos casos. Con el cierre anual no hay detalle mes a mes: la caja proyectada y el punto de equilibrio usan promedios (año ÷ 12) y no hay temporada ni proyección por meses. Con estados mensuales sí, pero si el contador no reporta el impuesto de cada mes, se estima al 35 % y la utilidad puede diferir de la del cierre auditado. Cada pantalla te dice con cuál de los dos se hizo el análisis."),
+      React.createElement(Tip, null, "Lo ideal: sube el cierre anual auditado del año pasado y, además, los meses del año en curso. El análisis queda mensual (caja, temporada y proyección al día) y el cierre anual se muestra como referencia de la utilidad real del contador en Estados financieros, el informe y el gerente con IA."),
       React.createElement(H3, null, "Créditos de IA"),
       React.createElement(P, null, "Cada lectura de un archivo usa 1 crédito de IA, igual que cada informe del mes y cada consulta o diagnóstico del gerente con IA. Los créditos son un cupo mensual del plan de tu empresa (por ejemplo 100 al mes; el número exacto depende del plan contratado), compartido por todas las funciones de IA del CRM y del Gerente Financiero y por todos los usuarios de la empresa. Se renueva el día 1 de cada mes. Junto a cada botón que usa IA verás \"Usa 1 crédito de IA · Le quedan X de Y este mes\"."),
       React.createElement(Nota, null, "Los formatos antiguos de Office (.xls, .doc) y las fotos HEIC del iPhone no se pueden leer: guárdalos como Excel (.xlsx), PDF o JPG. Un archivo de más de 3,5 MB se sube por partes (verás \"Subiendo 2 de 4…\"); las fotos muy pesadas se achican solas."),

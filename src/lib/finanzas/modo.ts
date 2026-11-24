@@ -47,5 +47,5 @@ export function mesesDesde(periodo: string, hoy: string): number {
 /** La aclaración que ven los usuarios sobre la diferencia entre los dos análisis. */
 export const ACLARACION_MODO: Record<ModoAnalisis, string> = {
   anual: "Análisis con cierre anual: los resultados son del año completo y se comparan con el año anterior, con la utilidad que reportó el contador (ingresos y gastos no operacionales e impuesto de renta real). No hay detalle mes a mes: la caja proyectada y el punto de equilibrio usan promedios (año ÷ 12) y no se ven temporadas ni proyecciones por mes. Para eso, cargue los estados mensuales.",
-  mensual: "Análisis con estados mensuales: compara cada mes con el anterior y con el mismo mes del año pasado, muestra la temporada y proyecta los próximos meses. Si el contador no reporta el impuesto de renta de cada mes, se estima al 35 %, así que la utilidad puede diferir de la del cierre anual auditado.",
+  mensual: "Análisis con estados mensuales: compara cada mes con el anterior y con el mismo mes del año pasado, muestra la temporada y proyecta los próximos meses. Si el contador no reporta el impuesto de renta de cada mes, se estima al 35 %, así que la utilidad puede diferir de la del cierre anual auditado. Si también cargó el cierre anual, se muestra como referencia.",
 };

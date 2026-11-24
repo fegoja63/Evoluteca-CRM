@@ -230,6 +230,12 @@ function VistaInforme({ informe }: { informe: Informe }) {
             </tbody>
           </table>
         </div>
+        {c.cierreAnual && (
+          <p className="mb-2 text-xs text-slate-500">
+            Referencia: cierre {c.cierreAnual.mes} reportado por el contador: ventas {millones(c.cierreAnual.ventas)}, EBITDA{" "}
+            {millones(c.cierreAnual.ebitda)} y utilidad neta {millones(c.cierreAnual.utilidadNeta)}.
+          </p>
+        )}
         <Parrafos xs={t.resultados} />
       </section>
 

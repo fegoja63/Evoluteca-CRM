@@ -51,6 +51,7 @@ function comparativo(c: CifrasInforme) {
   }
   return {
     mesDelInforme: c.mes,
+    cierreAnualDelContador: c.cierreAnual ? enMillones(c.cierreAnual) : null,
     mesActual: enMillones(c.actual),
     mesAnterior: enMillones(c.anterior) ?? "no cargado",
     mismoMesDelAnioPasado: enMillones(c.anioAnterior) ?? "no cargado",
