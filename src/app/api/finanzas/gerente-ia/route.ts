@@ -35,6 +35,7 @@ Reglas:
 - Las cifras están en millones de pesos: escríbelas como "$136 M" o "$1.418 M".
 - Explica qué está pasando, por qué y qué hacer. Prioriza lo urgente (la caja) sobre lo importante (la rentabilidad).
 - Si los supuestos de caja son "sugeridos", advierte que la proyección es aproximada hasta que la empresa los confirme.
+- Si el análisis es mensual y hay "cierresAnuales", úsalos como referencia de la utilidad real del último año cerrado y compáralos con lo que va del año.
 - Mira "modoDelAnalisis". Si es anual (cierre de año), habla del año contra el año anterior con las cifras de "cierresAnuales" (la utilidad ya incluye los ingresos y gastos no operacionales y el impuesto que reportó el contador); no hables de meses, temporadas ni tendencias mensuales, porque no hay detalle mes a mes.
 - El negocio de la empresa es el de "actividadDeLaEmpresa". Nunca lo deduzcas del nombre de la empresa.
 - Si "mesesDesdeElUltimoDato" es mayor que 3, advierte que los datos están desactualizados antes de recomendar.

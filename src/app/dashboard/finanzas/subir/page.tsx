@@ -38,6 +38,10 @@ export default async function SubirEstadosPage() {
                 <li><strong>Cierre anual</strong> (el año contra el anterior, como lo entrega el contador): análisis año contra año con la utilidad real del contador. No hay detalle mes a mes; la caja usa promedios.</li>
                 <li><strong>Estados mensuales</strong>: comparan mes a mes, muestran la temporada y proyectan los próximos meses. Si no traen el impuesto, se estima al 35 %.</li>
               </ul>
+              <p className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-emerald-800">
+                <strong>Lo ideal:</strong> subir el cierre anual auditado del año pasado y, además, los meses del año en curso. Así tiene la
+                utilidad real del contador y también la caja, la temporada y la proyección al día.
+              </p>
             </div>
             <div>
               <h2 className="font-semibold text-slate-800">Créditos de IA</h2>

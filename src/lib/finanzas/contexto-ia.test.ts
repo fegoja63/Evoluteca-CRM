@@ -71,3 +71,15 @@ describe("contextoFinanciero con un cierre anual", () => {
     expect(c.aclaracionDelModo).toContain("cierre anual");
   });
 });
+
+describe("contextoFinanciero mensual con un cierre anual", () => {
+  it("manda los meses y además el cierre como referencia", () => {
+    const c = contextoFinanciero({
+      empresa: "Empresa de prueba", hoy: "2026-11-24", modo: "mensual", cierres: [{ ...mes("2025", 1500 * M), impuestoRenta: 90 * M }],
+      periodos: [mes("2026-09", 124 * M), mes("2026-10", 136 * M)], balance: BALANCE, supuestos: SUPUESTOS, supuestosGuardados: true, pipeline: [],
+    });
+    expect(c.modoDelAnalisis).toBe("mensual");
+    expect(c.estadoDeResultadosPorMes).toHaveLength(2);
+    expect(c.cierresAnuales?.[0]).toMatchObject({ anio: "2025", impuestoRenta: 90, impuestoRentaOrigen: "reportado por el contador" });
+  });
+});

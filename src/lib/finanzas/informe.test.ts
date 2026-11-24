@@ -174,3 +174,20 @@ describe("escenarios y qué pasa si (cierre anual de ejemplo, en millones)", () 
     expect(q[1].cambio).toBeCloseTo((1664 - 1380.9) * 0.65, 1);
   });
 });
+
+describe("cierre anual + meses del año en curso", () => {
+  it("el análisis es mensual y el cierre del contador queda como referencia", () => {
+    const cierre = { ...p("2025", 1200 * M), otrosGastos: 50 * M, impuestoRenta: 40 * M };
+    const c = calcularCifras({ ...entrada([p("2026-09", 100 * M), p("2026-10", 120 * M)]), modo: "mensual", cierres: [cierre] })!;
+    expect(c.modo).toBe("mensual");
+    expect(c.mes).toBe("2026-10");
+    expect(c.cierreAnual?.mes).toBe("2025");
+    expect(c.cierreAnual?.impuestoReal).toBe(true);
+    expect(c.cierreAnual?.impuesto).toBe(40 * M);
+  });
+
+  it("en el modo anual no se repite como referencia", () => {
+    const c = calcularCifras({ ...entrada([]), modo: "anual", cierres: [p("2025", 1200 * M)], periodos: mesesDelCierre(p("2025", 1200 * M)) })!;
+    expect(c.cierreAnual).toBeNull();
+  });
+});

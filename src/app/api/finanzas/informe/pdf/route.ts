@@ -460,6 +460,8 @@ export async function GET(req: Request) {
 
     h(Text, { style: s.h2 }, `${n()}. ${anual ? `Resultados del año ${c.mes}` : "Resultados del mes"}`),
     tablaResultados,
+    c.cierreAnual ? h(Text, { style: [s.muted, { marginBottom: 6 }] },
+      `Referencia: cierre ${c.cierreAnual.mes} reportado por el contador: ventas ${millones(c.cierreAnual.ventas)}, EBITDA ${millones(c.cierreAnual.ebitda)} y utilidad neta ${millones(c.cierreAnual.utilidadNeta)}${c.cierreAnual.impuestoReal ? " (con el impuesto real)" : ""}.`) : null,
     ...parrafos(t.resultados),
     c.serie.length > 1 ? h(View, { wrap: false }, h(Text, { style: s.h3 }, anual ? "Ventas, gastos, EBITDA y utilidad por año" : "Ventas y EBITDA, últimos meses"), anual ? graficaAnual(c.serie) : graficaVentas(c.serie)) : null,
     c.composicion ? h(View, { wrap: false }, h(Text, { style: s.h3 }, `A dónde se van cada $100 que vende (${mesCorto(c.mes)})`), graficaComposicion(c.composicion)) : null,

@@ -110,6 +110,8 @@ export default async function EstadosPage() {
         </>
       )}
 
+      {!anual && cierres.length > 0 && <TablaCierres cierres={cierres.slice(-2).map(estadoResultados)} />}
+
       {balance ? <TablaBalance balance={balance} anterior={balanceAnterior} /> : (
         <div className={tarjeta("p-5 text-sm text-slate-600")}>
           Falta el balance general.{" "}
@@ -117,6 +119,41 @@ export default async function EstadosPage() {
         </div>
       )}
     </MarcoFinanzas>
+  );
+}
+
+/** Modo mensual: el último cierre anual del contador (y el anterior), como referencia. */
+function TablaCierres({ cierres }: { cierres: Resultado[] }) {
+  const filas = FILAS_BASE.map(([e, campo, sub]): [string, keyof Resultado, boolean] =>
+    campo === "impuesto" ? [cierres[cierres.length - 1].impuestoReal ? "Impuesto de renta (reportado por el contador)" : "Impuesto de renta estimado", campo, sub] : [e, campo, sub]);
+  return (
+    <div>
+      <h2 className="mb-1 text-base font-semibold text-slate-800">Cierre anual reportado por el contador</h2>
+      <p className="mb-2 text-xs text-slate-500">
+        Referencia: la utilidad real del último año cerrado, con lo no operacional y el impuesto. Compárela con lo que va del año en los meses de arriba.
+      </p>
+      <div className={tarjeta("overflow-x-auto")}>
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 text-xs text-slate-500">
+            <tr>
+              <th className="px-4 py-2 text-left font-semibold">Cuenta</th>
+              {cierres.map(c => <th key={c.mes} className="px-4 py-2 text-right font-semibold">{c.mes}</th>)}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {filas.map(([etiqueta, campo, subtotal]) => (
+              <tr key={campo} className={cn(subtotal && "bg-brand-50/40 font-semibold")}>
+                <td className="whitespace-nowrap px-4 py-2 text-slate-700">{etiqueta}</td>
+                {cierres.map(c => {
+                  const v = (c[campo] as number | undefined) ?? 0;
+                  return <td key={c.mes} className={cn("whitespace-nowrap px-4 py-2 text-right tabular-nums", v < 0 && "text-red-600")}>{millones(v)}</td>;
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 
