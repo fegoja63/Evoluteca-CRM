@@ -89,3 +89,47 @@ describe("indicadores", () => {
     expect(i.cobertura.lectura).toContain("No pagó intereses");
   });
 });
+
+describe("partidas no operacionales e impuesto real (cierre anual)", () => {
+  // Cierre anual de ejemplo (millones) con gastos no operacionales grandes: sin ellos y sin el impuesto real el sistema mostraba utilidad cuando hubo pérdida.
+  const cierre: Periodo = {
+    mes: "2025", ventas: 2299.41, costoVentas: 0, gastosAdmin: 1663.96, gastosVentas: 130.85, depreciacion: 79.93, intereses: 33.94,
+    otrosIngresos: 29.27, otrosGastos: 315.2, impuestoRenta: 180.01,
+  };
+
+  it("la utilidad neta suma lo no operacional y usa el impuesto del contador", () => {
+    const r = estadoResultados(cierre);
+    expect(r.ebitda).toBeCloseTo(504.6, 1);
+    expect(r.antesDeImpuestos).toBeCloseTo(104.8, 1);
+    expect(r.impuestoReal).toBe(true);
+    expect(r.utilidadNeta).toBeCloseTo(-75.2, 1);
+  });
+
+  it("sin impuesto reportado lo estima al 35 %", () => {
+    const r = estadoResultados({ ...cierre, impuestoRenta: null });
+    expect(r.impuestoReal).toBe(false);
+    expect(r.impuesto).toBeCloseTo(104.8 * 0.35, 1);
+  });
+
+  it("al sumar periodos, el impuesto real solo se suma si todos lo traen", () => {
+    const a = { ...cierre, mes: "2025-01", impuestoRenta: 10 };
+    expect(sumarPeriodos([a, { ...a, mes: "2025-02" }]).impuestoRenta).toBe(20);
+    expect(sumarPeriodos([a, { ...a, mes: "2025-02", impuestoRenta: null }]).impuestoRenta).toBeNull();
+    expect(sumarPeriodos([a, a]).otrosGastos).toBeCloseTo(630.4, 1);
+  });
+
+  it("las inversiones cuentan en el activo total, no en el corriente", () => {
+    const b: Balance = { ...BALANCE, inversiones: 100 };
+    expect(totalesBalance(b).activoTotal - totalesBalance(BALANCE).activoTotal).toBe(100);
+    expect(totalesBalance(b).activoCorriente).toBe(totalesBalance(BALANCE).activoCorriente);
+  });
+
+  it("con un cierre anual, los indicadores usan el año y la cartera sobre 365 días", () => {
+    const b: Balance = { ...BALANCE, cuentasPorCobrar: 2299.41 / 365 * 30 };
+    const i = Object.fromEntries(indicadores([cierre], b, { anual: true }).map(x => [x.clave, x]));
+    expect(i.margenNeto.valor).toBeCloseTo(-75.2 / 2299.41, 3);
+    expect(i.margenNeto.semaforo).toBe("riesgo");
+    expect(i.margenNeto.lectura).toContain("en el año");
+    expect(i.diasCartera.valor).toBeCloseTo(30, 0);
+  });
+});

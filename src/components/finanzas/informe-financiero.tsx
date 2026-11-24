@@ -8,7 +8,8 @@ import { boton, insignia, tarjeta } from "@/components/ui/estilos";
 import { formatoFechaHora, formatoDia } from "@/lib/fecha-bogota";
 import { millones, mesCorto, variacion, TONO_SEMAFORO } from "@/lib/finanzas/formato";
 import { CupoIA, avisarUsoIA } from "./cupo-ia";
-import { PLAZOS, type CifrasInforme, type TextoInforme } from "@/lib/finanzas/informe";
+import { PLAZOS, type CifrasInforme, type FilaResultados, type TextoInforme } from "@/lib/finanzas/informe";
+import { ACLARACION_MODO } from "@/lib/finanzas/modo";
 
 type Informe = { id: string; mes: string; creadoEn: string; cifras: CifrasInforme; texto: TextoInforme };
 
@@ -111,9 +112,18 @@ function Kpi({ etiqueta, valor, detalle, rojo }: { etiqueta: string; valor: stri
 
 function VistaInforme({ informe }: { informe: Informe }) {
   const { cifras: c, texto: t } = informe;
-  const filas: [string, keyof typeof c.actual][] = [
-    ["Ventas", "ventas"], ["Utilidad bruta", "utilidadBruta"], ["EBITDA", "ebitda"], ["Utilidad neta (est.)", "utilidadNeta"],
+  const anual = c.modo === "anual";
+  const impuestoReal = !!c.actual.impuestoReal;
+  const conDetalle = anual || typeof c.actual.antesDeImpuestos === "number";
+  const filas: [string, keyof FilaResultados][] = [
+    ["Ventas", "ventas"], ["Utilidad bruta", "utilidadBruta"], ["EBITDA", "ebitda"],
+    ...(conDetalle ? [
+      ["Ingresos no operacionales", "otrosIngresos"], ["Gastos no operacionales", "otrosGastos"],
+      ["Utilidad antes de impuestos", "antesDeImpuestos"], [impuestoReal ? "Impuesto de renta" : "Impuesto (est. 35 %)", "impuesto"],
+    ] as [string, keyof FilaResultados][] : []),
+    [impuestoReal ? "Utilidad neta" : "Utilidad neta (est.)", "utilidadNeta"],
   ];
+  const valor = (f: FilaResultados | null, k: keyof FilaResultados) => (f && typeof f[k] === "number" ? (f[k] as number) : null);
   const p = c.proyeccion;
   const barras = [
     ...c.serie.slice(-6).map(f => ({ mes: f.mes, ventas: f.ventas, proyectado: false })),
@@ -129,7 +139,7 @@ function VistaInforme({ informe }: { informe: Informe }) {
     <article className={tarjeta("p-5 sm:p-6 space-y-6")}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Mes analizado: {mesCorto(c.mes)}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{anual ? `Cierre anual ${c.mes}` : `Mes analizado: ${mesCorto(c.mes)}`}</p>
           <h3 className="mt-1 text-lg font-bold text-slate-900">{t.titulo}</h3>
           <p className="text-xs text-slate-400">Generado el {formatoFechaHora(informe.creadoEn)}</p>
         </div>
@@ -154,8 +164,8 @@ function VistaInforme({ informe }: { informe: Informe }) {
         )}
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Kpi etiqueta={`Ventas ${mesCorto(c.mes)}`} valor={millones(c.actual.ventas)}
-            detalle={c.anterior ? `${variacion(c.actual.ventas, c.anterior.ventas)} vs. mes anterior` : undefined} />
-          <Kpi etiqueta="Utilidad neta (est.)" valor={millones(c.actual.utilidadNeta)} rojo={c.actual.utilidadNeta < 0}
+            detalle={c.anterior ? `${variacion(c.actual.ventas, c.anterior.ventas)} vs. ${anual ? c.anterior.mes : "mes anterior"}` : undefined} />
+          <Kpi etiqueta={impuestoReal ? "Utilidad neta" : "Utilidad neta (est.)"} valor={millones(c.actual.utilidadNeta)} rojo={c.actual.utilidadNeta < 0}
             detalle={c.actual.ventas ? `${Math.round((c.actual.utilidadNeta / c.actual.ventas) * 100)}% de las ventas` : undefined} />
           <Kpi etiqueta="Caja" valor={c.balance ? millones(c.balance.caja) : "—"}
             detalle={c.balance ? `al ${formatoDia(c.balance.corte, { day: "numeric", month: "short" })}` : "sin balance"} />
@@ -178,25 +188,43 @@ function VistaInforme({ informe }: { informe: Informe }) {
         )}
       </div>
 
+      <div className="space-y-1">
+        <p className="border-l-2 border-slate-300 pl-2 text-xs text-slate-500">{ACLARACION_MODO[anual ? "anual" : "mensual"]}</p>
+        {c.mesesDesdeDato != null && c.mesesDesdeDato > 3 && (
+          <p className="border-l-2 border-amber-400 pl-2 text-xs text-amber-700">
+            El último dato cargado es de {mesCorto(c.mes)}, hace {c.mesesDesdeDato} meses: las cifras y la caja de hoy pueden ser otras.
+          </p>
+        )}
+      </div>
+
       <section>
-        <h4 className="mb-2 text-sm font-bold text-slate-800">Resultados del mes</h4>
+        <h4 className="mb-2 text-sm font-bold text-slate-800">{anual ? `Resultados del año ${c.mes}` : "Resultados del mes"}</h4>
         <div className="mb-3 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-slate-500">
                 <th className="py-1 pr-3 font-semibold">Concepto</th>
                 <th className="py-1 pr-3 text-right font-semibold">{mesCorto(c.mes)}</th>
-                <th className="py-1 pr-3 text-right font-semibold">vs. mes anterior</th>
-                <th className="py-1 text-right font-semibold">vs. año pasado</th>
+                <th className="py-1 pr-3 text-right font-semibold">{anual ? (c.anterior ? c.anterior.mes : "Año anterior") : "vs. mes anterior"}</th>
+                <th className="py-1 text-right font-semibold">{anual ? "Variación" : "vs. año pasado"}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filas.map(([n, k]) => (
                 <tr key={k}>
                   <td className="py-1.5 pr-3 text-slate-700">{n}</td>
-                  <td className="py-1.5 pr-3 text-right font-semibold tabular-nums">{millones(c.actual[k] as number)}</td>
-                  <td className="py-1.5 pr-3 text-right tabular-nums text-slate-600">{c.anterior ? variacion(c.actual[k] as number, c.anterior[k] as number) : "—"}</td>
-                  <td className="py-1.5 text-right tabular-nums text-slate-600">{c.anioAnterior ? variacion(c.actual[k] as number, c.anioAnterior[k] as number) : "—"}</td>
+                  <td className="py-1.5 pr-3 text-right font-semibold tabular-nums">{valor(c.actual, k) != null ? millones(valor(c.actual, k)!) : "—"}</td>
+                  {anual ? (
+                    <>
+                      <td className="py-1.5 pr-3 text-right tabular-nums text-slate-600">{valor(c.anterior, k) != null ? millones(valor(c.anterior, k)!) : "—"}</td>
+                      <td className="py-1.5 text-right tabular-nums text-slate-600">{valor(c.anterior, k) != null && valor(c.actual, k) != null ? variacion(valor(c.actual, k)!, valor(c.anterior, k)!) : "—"}</td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="py-1.5 pr-3 text-right tabular-nums text-slate-600">{valor(c.anterior, k) != null && valor(c.actual, k) != null ? variacion(valor(c.actual, k)!, valor(c.anterior, k)!) : "—"}</td>
+                      <td className="py-1.5 text-right tabular-nums text-slate-600">{valor(c.anioAnterior, k) != null && valor(c.actual, k) != null ? variacion(valor(c.actual, k)!, valor(c.anioAnterior, k)!) : "—"}</td>
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -204,6 +232,51 @@ function VistaInforme({ informe }: { informe: Informe }) {
         </div>
         <Parrafos xs={t.resultados} />
       </section>
+
+      {(c.queSiPasa?.length ?? 0) > 0 && (
+        <section>
+          <h4 className="mb-2 text-sm font-bold text-slate-800">Qué pasa si…</h4>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs text-slate-500">
+                  <th className="py-1 pr-3 font-semibold">Palanca</th>
+                  <th className="py-1 pr-3 text-right font-semibold">Cambio en la utilidad</th>
+                  <th className="py-1 text-right font-semibold">Utilidad neta resultante</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {c.queSiPasa!.map(q => (
+                  <tr key={q.palanca}>
+                    <td className="py-1.5 pr-3 text-slate-700">{q.palanca}</td>
+                    <td className="py-1.5 pr-3 text-right font-semibold tabular-nums text-emerald-700">+{millones(q.cambio)}</td>
+                    <td className={`py-1.5 text-right tabular-nums ${q.utilidadNeta < 0 ? "text-red-600" : "text-slate-800"}`}>{millones(q.utilidadNeta)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-1 text-2xs text-slate-400">Cada palanca se mide por separado, con impuesto de renta estimado del 35 % sobre el cambio.</p>
+        </section>
+      )}
+
+      {c.escenarios && (
+        <section>
+          <h4 className="mb-2 text-sm font-bold text-slate-800">Escenarios {c.escenarios.anio}</h4>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {c.escenarios.lista.map(e => (
+              <div key={e.nombre} className={`rounded-xl border p-3 ${e.nombre === "Base" ? "border-brand-400" : "border-slate-200"}`}>
+                <p className="text-2xs font-semibold uppercase tracking-wide text-slate-400">{e.nombre}</p>
+                <p className={`mt-0.5 text-lg font-bold tabular-nums ${e.utilidadNeta < 0 ? "text-red-600" : "text-slate-900"}`}>{millones(e.utilidadNeta)}</p>
+                <p className="text-2xs text-slate-500">utilidad neta · ventas {millones(e.ventas)} · EBITDA {millones(e.ebitda)}</p>
+                <p className="mt-1 text-2xs text-slate-500">{e.supuesto}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mb-2 mt-1 text-2xs text-slate-400">Estimación del sistema a partir del último cierre; impuesto de renta estimado al 35 %. No reemplaza un presupuesto.</p>
+          <Parrafos xs={t.proyeccion ?? []} />
+        </section>
+      )}
 
       {p && (
         <section>
@@ -307,7 +380,7 @@ function VistaInforme({ informe }: { informe: Informe }) {
 
       {metas.length > 0 && (
         <section>
-          <h4 className="mb-2 text-sm font-bold text-slate-800">Metas para el próximo mes</h4>
+          <h4 className="mb-2 text-sm font-bold text-slate-800">{anual ? "Metas para el próximo reporte" : "Metas para el próximo mes"}</h4>
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-slate-500">
@@ -337,7 +410,7 @@ function VistaInforme({ informe }: { informe: Informe }) {
       )}
 
       <p className="text-2xs text-slate-400">
-        Cifras calculadas por el sistema a partir de los estados cargados (utilidad neta con impuesto de renta estimado del 35%); las
+        Cifras calculadas por el sistema a partir de los estados cargados ({impuestoReal ? "utilidad neta con el impuesto de renta que reportó el contador" : "utilidad neta con impuesto de renta estimado del 35%"}); las
         proyecciones son estimaciones. El análisis lo redacta la IA sobre esas cifras: no reemplaza la revisión del contador.
       </p>
     </article>

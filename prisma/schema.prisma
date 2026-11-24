@@ -47,6 +47,10 @@ model Tenant {
   // correos automáticos del CRM. Lo cambia solo Evoluteca desde el panel
   // interno (ver lib/cuenta-finanzas.ts); no es una preferencia del tenant.
   soloFinanzas         Boolean   @default(false)
+  // A qué se dedica la empresa, tomado de sus estados financieros (notas,
+  // objeto social, líneas de ingreso) para que el análisis con IA no lo
+  // adivine por el nombre. Lo escribe la lectura con IA; se puede corregir.
+  actividadFinanciera  String?
   logoUrl              String?
   // Color corporativo (#rrggbb) para lo que ve el cliente final: PDF, página
   // pública y correo de la cotización. null = azul de Evoluteca (ver lib/color-marca).
@@ -136,6 +140,7 @@ model Tenant {
   licenciasModulo          LicenciaModulo[]
   periodosFinancieros      PeriodoFinanciero[]
   balancesFinancieros      BalanceFinanciero[]
+  cierresAnuales           CierreAnual[]
   supuestosCaja            SupuestosCaja?
   cuentasPorCobrar         CuentaPorCobrar[]
   rentabilidadClientes     RentabilidadCliente[]
@@ -194,11 +199,41 @@ model PeriodoFinanciero {
   gastosVentas  Decimal  @default(0) @db.Decimal(16, 2)
   depreciacion  Decimal  @default(0) @db.Decimal(16, 2)
   intereses     Decimal  @default(0) @db.Decimal(16, 2)
+  // Ingresos y gastos no operacionales (rendimientos, recuperaciones, gastos
+  // extraordinarios…) sin los intereses, e impuesto de renta real del
+  // contador. impuestoRenta null = se estima con la tarifa general.
+  otrosIngresos Decimal  @default(0) @db.Decimal(16, 2)
+  otrosGastos   Decimal  @default(0) @db.Decimal(16, 2)
+  impuestoRenta Decimal? @db.Decimal(16, 2)
   creadoEn      DateTime @default(now())
   actualizadoEn DateTime @updatedAt
 
   @@unique([tenantId, mes])
   @@map("finanzas_periodos")
+}
+
+// Estado de resultados de un AÑO completo tal como lo entrega el contador
+// (cierre anual). No se reparte en meses: el análisis anual compara año contra
+// año, con las partidas no operacionales y el impuesto real.
+model CierreAnual {
+  id            String   @id @default(uuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  anio          Int
+  ventas        Decimal  @db.Decimal(16, 2)
+  costoVentas   Decimal  @default(0) @db.Decimal(16, 2)
+  gastosAdmin   Decimal  @default(0) @db.Decimal(16, 2)
+  gastosVentas  Decimal  @default(0) @db.Decimal(16, 2)
+  depreciacion  Decimal  @default(0) @db.Decimal(16, 2)
+  intereses     Decimal  @default(0) @db.Decimal(16, 2)
+  otrosIngresos Decimal  @default(0) @db.Decimal(16, 2)
+  otrosGastos   Decimal  @default(0) @db.Decimal(16, 2)
+  impuestoRenta Decimal? @db.Decimal(16, 2)
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@unique([tenantId, anio])
+  @@map("finanzas_cierres_anuales")
 }
 
 model BalanceFinanciero {
@@ -211,6 +246,9 @@ model BalanceFinanciero {
   cuentasPorCobrar       Decimal  @default(0) @db.Decimal(16, 2)
   inventario             Decimal  @default(0) @db.Decimal(16, 2)
   otrosActivosCorrientes Decimal  @default(0) @db.Decimal(16, 2)
+  // Inversiones (CDT, fiducias, derechos fiduciarios, acciones). Se cuentan
+  // como activo no corriente, pero aparte, para que el análisis las vea.
+  inversiones            Decimal  @default(0) @db.Decimal(16, 2)
   activosFijos           Decimal  @default(0) @db.Decimal(16, 2)
   proveedores            Decimal  @default(0) @db.Decimal(16, 2)
   obligacionesCP         Decimal  @default(0) @db.Decimal(16, 2)

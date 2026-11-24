@@ -15,6 +15,10 @@ export const periodoSchema = z.object({
   gastosVentas: monto.default(0),
   depreciacion: monto.default(0),
   intereses: monto.default(0),
+  // Opcionales: si no vienen, un mes ya guardado conserva los que tenía.
+  otrosIngresos: monto.optional(),
+  otrosGastos: monto.optional(),
+  impuestoRenta: monto.nullable().optional(),
 });
 
 // Hasta 10 años de meses en una sola carga.
@@ -28,12 +32,32 @@ export const balanceSchema = z.object({
   cuentasPorCobrar: monto.default(0),
   inventario: monto.default(0),
   otrosActivosCorrientes: monto.default(0),
+  inversiones: monto.default(0),
   activosFijos: monto.default(0),
   proveedores: monto.default(0),
   obligacionesCP: monto.default(0),
   impuestosLaborales: monto.default(0),
   deudaLP: monto.default(0),
   patrimonio: monto,
+});
+
+// Cierres anuales (estado de resultados de un año completo, sin repartir en
+// meses) y, opcional, a qué se dedica la empresa según sus estados.
+export const cierreAnualSchema = z.object({
+  anio: z.number().int().min(2000, "Año inválido").max(2100, "Año inválido"),
+  ventas: monto,
+  costoVentas: monto.default(0),
+  gastosAdmin: monto.default(0),
+  gastosVentas: monto.default(0),
+  depreciacion: monto.default(0),
+  intereses: monto.default(0),
+  otrosIngresos: monto.default(0),
+  otrosGastos: monto.default(0),
+  impuestoRenta: monto.nullable().default(null),
+});
+export const guardarCierresSchema = z.object({
+  cierres: z.array(cierreAnualSchema).min(1, "No hay cierres para guardar").max(10, "Máximo 10 años por carga"),
+  actividad: z.string().trim().max(400, "Máximo 400 caracteres").optional(),
 });
 
 export const UNIDADES = ["pesos", "miles", "millones"] as const;

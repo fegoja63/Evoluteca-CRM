@@ -11,6 +11,8 @@ const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "o
 
 /** "2026-09" → "sep 26". */
 export function mesCorto(mes: string): string {
+  // Un cierre anual se identifica solo con el año ("2025").
+  if (/^\d{4}$/.test(mes)) return mes;
   const [a, m] = mes.split("-");
   return `${MESES[Number(m) - 1] ?? m} ${a.slice(2)}`;
 }

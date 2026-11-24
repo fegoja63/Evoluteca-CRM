@@ -8,14 +8,22 @@ import { estadoResultados, sumarPeriodos, ultimosMeses, totalesBalance, indicado
 import { puntoEquilibrio, salidasMensuales, diasEntre, type FacturaPorCobrar, type NegocioPipeline, type Supuestos } from "./caja";
 import { alertaCaja } from "./alerta-caja";
 import { analizarClientes, type ClienteRentabilidad } from "./rentabilidad";
+import { ACLARACION_MODO, mesesDesde, type ModoAnalisis } from "./modo";
 
 const mm = (v: number) => Math.round(v / 100_000) / 10;
 
 type Entrada = {
   empresa: string;
   hoy: string;
+  /** Meses de cálculo (en el modo anual, el último año repartido en promedios). */
   periodos: Periodo[];
+  /** Modo del análisis y cierres anuales (ver lib/finanzas/modo). */
+  modo?: ModoAnalisis;
+  cierres?: Periodo[];
+  /** A qué se dedica la empresa según sus estados financieros. */
+  actividad?: string | null;
   balance: (Balance & { corte: string }) | null;
+  balanceAnterior?: (Balance & { corte: string }) | null;
   supuestos: Supuestos;
   supuestosGuardados: boolean;
   pipeline: NegocioPipeline[];
@@ -23,9 +31,33 @@ type Entrada = {
   rentabilidadClientes?: ClienteRentabilidad[];
 };
 
+/** Un estado de resultados con todas sus líneas, en millones. */
+function lineas(r: ReturnType<typeof estadoResultados>) {
+  return {
+    ventas: mm(r.ventas), costoVentas: mm(r.costoVentas), utilidadBruta: mm(r.utilidadBruta),
+    gastosAdmin: mm(r.gastosAdmin), gastosVentas: mm(r.gastosVentas), ebitda: mm(r.ebitda), depreciacion: mm(r.depreciacion),
+    intereses: mm(r.intereses), otrosIngresosNoOperacionales: mm(r.otrosIngresos ?? 0), otrosGastosNoOperacionales: mm(r.otrosGastos ?? 0),
+    utilidadAntesDeImpuestos: mm(r.antesDeImpuestos), impuestoRenta: mm(r.impuesto),
+    impuestoRentaOrigen: r.impuestoReal ? "reportado por el contador" : "estimado al 35 %", utilidadNeta: mm(r.utilidadNeta),
+  };
+}
+
+function datosDelBalance(bal: Balance & { corte: string }) {
+  const t = totalesBalance(bal);
+  return {
+    corte: bal.corte, caja: mm(bal.caja), cuentasPorCobrar: mm(bal.cuentasPorCobrar), inventario: mm(bal.inventario),
+    otrosActivosCorrientes: mm(bal.otrosActivosCorrientes), inversiones: mm(bal.inversiones ?? 0), activosFijos: mm(bal.activosFijos),
+    activoCorriente: mm(t.activoCorriente), activoTotal: mm(t.activoTotal), proveedores: mm(bal.proveedores),
+    pasivoCorriente: mm(t.pasivoCorriente), pasivoTotal: mm(t.pasivoTotal), patrimonio: mm(bal.patrimonio),
+  };
+}
+
 export function contextoFinanciero(d: Entrada) {
-  const meses = ultimosMeses(d.periodos, 12).map(estadoResultados);
+  const anual = d.modo === "anual";
+  const cierres = (d.cierres ?? []).map(estadoResultados);
+  const meses = anual ? [] : ultimosMeses(d.periodos, 12).map(estadoResultados);
   const total = estadoResultados(sumarPeriodos(meses));
+  const ultimoDato = anual ? cierres[cierres.length - 1]?.mes : meses[meses.length - 1]?.mes;
   const pe = puntoEquilibrio(d.periodos);
   const alerta = d.balance
     ? alertaCaja({ hoy: d.hoy, caja: d.balance.caja, cartera: d.balance.cuentasPorCobrar, carteraDetalle: d.carteraDetalle, supuestos: d.supuestos, pipeline: d.pipeline })
@@ -35,28 +67,23 @@ export function contextoFinanciero(d: Entrada) {
     empresa: d.empresa,
     hoy: d.hoy,
     unidad: "millones de pesos colombianos (COP)",
-    estadoDeResultadosPorMes: meses.map(m => ({
-      mes: m.mes, ventas: mm(m.ventas), costoVentas: mm(m.costoVentas), utilidadBruta: mm(m.utilidadBruta),
-      gastosAdmin: mm(m.gastosAdmin), gastosVentas: mm(m.gastosVentas), ebitda: mm(m.ebitda), utilidadNeta: mm(m.utilidadNeta),
-    })),
+    modoDelAnalisis: anual ? "anual (cierre de año)" : "mensual",
+    aclaracionDelModo: ACLARACION_MODO[anual ? "anual" : "mensual"],
+    actividadDeLaEmpresa: d.actividad || "no informada en los estados: no la deduzca del nombre de la empresa",
+    mesesDesdeElUltimoDato: ultimoDato ? mesesDesde(ultimoDato, d.hoy) : null,
+    cierresAnuales: anual ? cierres.map(c => ({ anio: c.mes, ...lineas(c) })) : null,
+    estadoDeResultadosPorMes: anual ? null : meses.map(m => ({ mes: m.mes, ...lineas(m) })),
     totalUltimosMeses: meses.length ? {
-      meses: meses.length, ventas: mm(total.ventas), utilidadBruta: mm(total.utilidadBruta), ebitda: mm(total.ebitda),
-      utilidadNeta: mm(total.utilidadNeta), nota: "La utilidad neta usa un impuesto de renta estimado del 35 %.",
+      meses: meses.length, ...lineas(total),
     } : null,
-    balance: d.balance ? (() => {
-      const t = totalesBalance(d.balance);
-      const b = d.balance;
-      return {
-        corte: b.corte, caja: mm(b.caja), cuentasPorCobrar: mm(b.cuentasPorCobrar), inventario: mm(b.inventario),
-        activoCorriente: mm(t.activoCorriente), activoTotal: mm(t.activoTotal), proveedores: mm(b.proveedores),
-        pasivoCorriente: mm(t.pasivoCorriente), pasivoTotal: mm(t.pasivoTotal), patrimonio: mm(b.patrimonio),
-      };
-    })() : null,
-    indicadores: indicadores(d.periodos, d.balance).filter(i => i.valor !== null).map(i => ({
+    balance: d.balance ? datosDelBalance(d.balance) : null,
+    balanceAnterior: d.balanceAnterior ? datosDelBalance(d.balanceAnterior) : null,
+    indicadores: (anual ? indicadores(d.cierres!.slice(-1), d.balance, { anual: true }) : indicadores(d.periodos, d.balance)).filter(i => i.valor !== null).map(i => ({
       nombre: i.nombre, valor: i.formato === "porcentaje" ? `${Math.round(i.valor! * 100)} %` : i.formato === "dias" ? `${Math.round(i.valor!)} días` : `${i.valor!.toFixed(2)} veces`,
       semaforo: i.semaforo, lectura: i.lectura,
     })),
     puntoDeEquilibrio: pe ? {
+      nota: anual ? "Calculado con promedios mensuales del cierre anual (año ÷ 12)." : undefined,
       ventasMensualesNecesarias: mm(pe.ventasNecesarias), gastosFijosMensuales: mm(pe.gastosFijos),
       margenContribucion: `${Math.round(pe.margenContribucion * 100)} %`, ventasUltimoMes: mm(pe.ventasUltimoMes), mesUltimo: pe.mesUltimo,
     } : null,

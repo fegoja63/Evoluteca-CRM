@@ -487,7 +487,7 @@ export async function GET() {
       React.createElement(LI, null, "Caja proyectada: el saldo día a día durante 13 semanas, con y sin negocios nuevos del Pipeline, el calendario de obligaciones y el simulador '¿qué pasa si…?' (cobros más lentos, contratar a alguien, vender menos)."),
       React.createElement(LI, null, "Estados financieros e indicadores: ventas, costos y margen mes a mes, y los indicadores con su lectura."),
       React.createElement(LI, null, "Rentabilidad por cliente: quién te deja más margen, no solo quién te compra más."),
-      React.createElement(LI, null, "Gerente IA: pulsa 'Diagnóstico del mes' o hazle una pregunta (por ejemplo '¿Puedo contratar a una persona más?'). Las cifras las calcula el sistema; la IA las explica y propone qué hacer primero."),
+      React.createElement(LI, null, "Gerente IA: pulsa 'Diagnóstico financiero' o hazle una pregunta (por ejemplo '¿Puedo contratar a una persona más?'). Las cifras las calcula el sistema; la IA las explica y propone qué hacer primero."),
       React.createElement(Nota, null, "Es un módulo de pago que Evoluteca habilita por licencia. El detalle de cada pantalla está en el capítulo 11 del Manual de Usuario."),
     ),
 

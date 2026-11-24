@@ -68,7 +68,7 @@ export function FormSupuestos({ supuestos, guardados, soloLectura, soloFinanzas 
       {!guardados && (
         <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
           Estos supuestos son <strong>sugeridos</strong> a partir de sus estados financieros (promedio de los últimos 3 meses).
-          La nómina va incluida en los gastos fijos: si la separa, réstela de ahí. Revíselos y guárdelos.
+          La nómina va incluida en los gastos fijos: si la separa, réstela de ahí.{soloFinanzas ? " Como su cuenta no tiene CRM, en \"Contratos vigentes al mes\" se sugiere su promedio de ventas: ajústelo a lo que de verdad entra cada mes." : ""} Revíselos y guárdelos.
         </p>
       )}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

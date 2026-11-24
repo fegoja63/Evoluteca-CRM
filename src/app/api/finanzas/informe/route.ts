@@ -30,8 +30,25 @@ export async function GET() {
 const mm = (v: number) => Math.round(v / 100_000) / 10;
 const enMillones = (f: FilaResultados | null) => f && Object.fromEntries(Object.entries(f).map(([k, v]) => [k, typeof v === "number" ? mm(v) : v]));
 
-/** Lo que se le agrega al resumen del Gerente IA: la comparación del mes. */
+/** Lo que se le agrega al resumen del Gerente IA: la comparación del mes (o del año). */
 function comparativo(c: CifrasInforme) {
+  if (c.modo === "anual") {
+    return {
+      anioDelInforme: c.mes,
+      anioActual: enMillones(c.actual),
+      anioAnterior: enMillones(c.anterior) ?? "no cargado",
+      aniosCargados: c.serie.map(enMillones),
+      salud: c.salud ?? null,
+      composicion: c.composicion ? { cadaCienPesosVendidos: c.composicion } : null,
+      escenarios: c.escenarios ? {
+        anio: c.escenarios.anio,
+        crecimientoDelUltimoAnio: `${Math.round(c.escenarios.crecimiento * 100)} %`,
+        lista: c.escenarios.lista.map(e => ({ nombre: e.nombre, supuesto: e.supuesto, ventas: mm(e.ventas), ebitda: mm(e.ebitda), utilidadNeta: mm(e.utilidadNeta) })),
+      } : null,
+      queSiPasa: (c.queSiPasa ?? []).map(q => ({ palanca: q.palanca, cambioEnUtilidad: mm(q.cambio), utilidadNetaResultante: mm(q.utilidadNeta) })),
+      balanceAnterior: c.balanceAnterior ? Object.fromEntries(Object.entries(c.balanceAnterior).map(([k, v]) => [k, typeof v === "number" ? mm(v) : v])) : null,
+    };
+  }
   return {
     mesDelInforme: c.mes,
     mesActual: enMillones(c.actual),
@@ -41,6 +58,7 @@ function comparativo(c: CifrasInforme) {
     // Ya calculados por el sistema: la IA los lee y los explica, no los recalcula.
     salud: c.salud ?? null,
     composicion: c.composicion ? { cadaCienPesosVendidos: c.composicion } : null,
+    queSiPasa12Meses: (c.queSiPasa ?? []).map(q => ({ palanca: q.palanca, cambioEnUtilidad: mm(q.cambio), utilidadNetaResultante: mm(q.utilidadNeta) })),
     proyeccion: c.proyeccion ? {
       metodo: c.proyeccion.metodo === "estacional"
         ? "mismo mes del año pasado × crecimiento de los últimos 3 meses contra el año pasado"
@@ -74,7 +92,7 @@ export async function POST() {
   const rentabilidadClientes = rentabilidad.map(f => ({ cliente: f.cliente, ventas: Number(f.ventas), costo: Number(f.costo), diasPago: f.diasPago }));
   const cifras = calcularCifras({ empresa: tenant?.nombre ?? "", ...datos, rentabilidadClientes });
   if (!cifras) {
-    return NextResponse.json({ error: "Primero cargue al menos un mes de estado de resultados (pestaña Cargar datos)." }, { status: 400 });
+    return NextResponse.json({ error: "Primero suba sus estados financieros (pestaña Subir estados): un cierre anual o al menos un mes." }, { status: 400 });
   }
 
   const permitido = await permitirYRegistrar(`ia-informe:${session?.user?.id ?? tenantId}`, 3, 60 * 1000);

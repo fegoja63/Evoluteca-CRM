@@ -53,6 +53,12 @@ export default async function CajaPage({ searchParams }: { searchParams: Promise
           La caja de partida es la del balance al {formatoDia(d.balance.corte)} ({antiguedad} días atrás). Actualice el balance para que la proyección sea confiable.
         </p>
       )}
+      {d.modo === "anual" && (
+        <p className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+          Sus datos son un cierre anual: la caja usa los gastos e ingresos promedio del año (año ÷ 12). Revise los supuestos de abajo, sobre todo
+          lo que entra cada mes (contratos vigentes o ventas de contado), y guárdelos.
+        </p>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi titulo="Caja de partida" valor={millones(d.balance.caja)} detalle={`Balance al ${formatoDia(d.balance.corte)}`} />

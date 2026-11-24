@@ -47,7 +47,7 @@ export function GerenteIA({ soloLectura, compacto = false }: { soloLectura: bool
       <div className={tarjeta("p-5 space-y-3")}>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800"><IconSparkles size={18} className="text-brand-600" />Diagnóstico del mes</h2>
+            <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800"><IconSparkles size={18} className="text-brand-600" />Diagnóstico financiero</h2>
             <p className="mt-1 text-xs text-slate-500">El gerente con IA lee sus estados, la caja y el pipeline, y le dice qué está pasando, por qué y qué hacer.</p>
             {!soloLectura && <CupoIA className="mt-1.5" />}
           </div>
@@ -93,7 +93,7 @@ export function GerenteIA({ soloLectura, compacto = false }: { soloLectura: bool
             <CupoIA className="mt-1.5" />
           </div>
           <button type="button" onClick={() => preguntar()} disabled={pensando} className={boton("primario", "sm")}>
-            {pensando && respuestas.length === 0 ? "Analizando…" : "Diagnóstico del mes"}
+            {pensando && respuestas.length === 0 ? "Analizando…" : "Diagnóstico financiero"}
           </button>
         </div>
         <div className="flex flex-wrap gap-2">

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { mesMas, calcularCifras, limpiarTexto, proyectar, saludFinanciera, type EntradaCifras } from "./informe";
+import { mesMas, calcularCifras, limpiarTexto, proyectar, saludFinanciera, escenariosAnio, queSiPasa, type EntradaCifras } from "./informe";
 import { supuestosSugeridos } from "./caja";
+import { mesesDelCierre } from "./modo";
 
 const M = 1_000_000;
 const p = (mes: string, ventas: number) => ({ mes, ventas, costoVentas: ventas / 2, gastosAdmin: 10 * M, gastosVentas: 0, depreciacion: 0, intereses: 0 });
@@ -104,5 +105,72 @@ describe("saludFinanciera", () => {
     expect(saludFinanciera(["bien", "riesgo"])?.etiqueta).toBe("En atención");
     expect(saludFinanciera(["riesgo", "atencion", "riesgo"])?.etiqueta).toBe("Frágil");
     expect(saludFinanciera([null])).toBeNull();
+  });
+});
+
+describe("calcularCifras con un cierre anual", () => {
+  const cierre = (anio: string, ventas: number, extra: Partial<ReturnType<typeof p>> & { otrosGastos?: number; impuestoRenta?: number | null } = {}) =>
+    ({ ...p(anio, ventas), ...extra });
+
+  it("compara año contra año, con la utilidad real y sin proyección mensual", () => {
+    const cierres = [cierre("2024", 2117.6 * M, { impuestoRenta: 201.5 * M }), cierre("2025", 2299.4 * M, { otrosGastos: 1100 * M, impuestoRenta: 180 * M })];
+    const c = calcularCifras({ ...entrada([]), modo: "anual", cierres, periodos: mesesDelCierre(cierres[1]), actividad: "Arrendamiento de inmuebles" })!;
+    expect(c.modo).toBe("anual");
+    expect(c.mes).toBe("2025");
+    expect(c.anterior?.mes).toBe("2024");
+    expect(c.anioAnterior).toBeNull();
+    expect(c.ultimos12).toBeNull();
+    expect(c.proyeccion).toBeNull();
+    expect(c.actividad).toBe("Arrendamiento de inmuebles");
+    expect(c.mesesDesdeDato).toBe(11);
+    expect(c.actual.impuestoReal).toBe(true);
+    expect(c.actual.impuesto).toBe(180 * M);
+    // Con los gastos no operacionales la empresa pierde, aunque la operación gane.
+    expect(c.actual.ebitda).toBeGreaterThan(0);
+    expect(c.actual.utilidadNeta).toBeLessThan(0);
+    expect(c.composicion?.otrosGastos).toBeGreaterThan(0);
+    expect(c.serie.map(f => f.mes)).toEqual(["2024", "2025"]);
+    // El punto de equilibrio es mensual: sale de los promedios del año (10 M ÷ 12), no del total.
+    expect(c.equilibrio!.gastosFijos).toBeLessThan(1 * M);
+  });
+});
+
+describe("saludFinanciera con pérdida", () => {
+  it("una empresa que pierde plata no sale Sólida aunque tenga liquidez", () => {
+    const s = saludFinanciera(["bien", "bien", "bien", "riesgo"], { perdida: true })!;
+    expect(s.puntaje).toBe(50);
+    expect(s.etiqueta).toBe("En atención");
+    expect(saludFinanciera(["bien", "bien", "bien", "riesgo"])!.etiqueta).toBe("Sólida");
+  });
+});
+
+describe("escenarios y qué pasa si (cierre anual de ejemplo, en millones)", () => {
+  const c2024 = { mes: "2024", ventas: 2117.6, costoVentas: 0, gastosAdmin: 1380.9, gastosVentas: 47, depreciacion: 89.8, intereses: 68.4, otrosIngresos: 31.6, otrosGastos: 0.7, impuestoRenta: 201.5 };
+  const c2025 = { mes: "2025", ventas: 2299.4, costoVentas: 0, gastosAdmin: 1664, gastosVentas: 130.8, depreciacion: 79.9, intereses: 33.9, otrosIngresos: 29.3, otrosGastos: 315.2, impuestoRenta: 180 };
+
+  it("arma el año siguiente en tres escenarios ordenados de peor a mejor", () => {
+    const e = escenariosAnio(c2025, c2024)!;
+    expect(e.anio).toBe("2026");
+    expect(e.crecimiento).toBeCloseTo(0.086, 2);
+    const [cons, base, opt] = e.lista;
+    expect([cons.nombre, base.nombre, opt.nombre]).toEqual(["Conservador", "Base", "Optimista"]);
+    expect(cons.utilidadNeta).toBeLessThan(base.utilidadNeta);
+    expect(base.utilidadNeta).toBeLessThan(opt.utilidadNeta);
+    expect(cons.utilidadNeta).toBeLessThan(0); // se repiten los $315 M y los gastos siguen creciendo
+    expect(base.ventas).toBeCloseTo(2299.4 * 1.0859, 0);
+    expect(escenariosAnio({ ...c2025, mes: "2025-12" }, null)).toBeNull();
+  });
+
+  it("mide cada palanca sobre la utilidad, después de impuestos", () => {
+    const q = queSiPasa(c2025, c2024, "2024");
+    expect(q.map(x => x.palanca)).toEqual([
+      "Si los gastos no operacionales no se repiten",
+      "Si los gastos de administración vuelven al nivel de 2024",
+      "Si los gastos de administración bajan 10 %",
+      "Si las ventas suben 5 % (con el mismo costo por peso vendido)",
+    ]);
+    expect(q[0].cambio).toBeCloseTo(315.2 * 0.65, 1);
+    expect(q[0].utilidadNeta).toBeCloseTo(-75.2 + 315.2 * 0.65, 0);
+    expect(q[1].cambio).toBeCloseTo((1664 - 1380.9) * 0.65, 1);
   });
 });

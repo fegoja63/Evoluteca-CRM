@@ -254,11 +254,17 @@ export function puntoEquilibrio(periodos: Periodo[]): PuntoEquilibrio | null {
  * sale del promedio de sus últimos 3 meses. La nómina viene dentro de los
  * gastos de administración, así que queda en 0 hasta que el cliente la separe.
  */
-export function supuestosSugeridos(periodos: Periodo[], diasCartera: number | null): Supuestos {
+export function supuestosSugeridos(periodos: Periodo[], diasCartera: number | null, opciones: { sinCRM?: boolean } = {}): Supuestos {
   const tres = ultimosMeses(periodos, 3);
   const n = Math.max(1, tres.length);
   const prom = (f: (p: Periodo) => number) => tres.reduce((a, p) => a + f(p), 0) / n;
+  // Sin CRM no hay pipeline que traiga ventas a la caja: sin esto la
+  // proyección supondría que la empresa paga todo y no cobra nada. Se sugiere
+  // el promedio de ventas como ingreso recurrente (a revisar por el usuario).
+  const ventasMes = opciones.sinCRM ? Math.round(prom(p => p.ventas)) : 0;
   return {
+    ingresosRecurrentes: ventasMes,
+    plazoRecurrentes: diasCartera ? Math.round(diasCartera) : 30,
     nominaMensual: 0,
     gastosFijosMensuales: Math.round(prom(p => p.gastosAdmin + p.gastosVentas)),
     cuotaDeudaMensual: Math.round(prom(p => p.intereses)),

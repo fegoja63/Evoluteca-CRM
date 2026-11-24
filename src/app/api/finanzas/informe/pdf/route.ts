@@ -6,7 +6,8 @@ import { exigirAccesoFinanzas } from "@/lib/finanzas/acceso";
 import { paletaMarca } from "@/lib/color-marca";
 import { formatoDia } from "@/lib/fecha-bogota";
 import { millones, mesCorto, variacion } from "@/lib/finanzas/formato";
-import { PLAZOS, type CifrasInforme, type FilaResultados, type TextoInforme } from "@/lib/finanzas/informe";
+import { PLAZOS, type BalanceInforme, type CifrasInforme, type FilaResultados, type TextoInforme } from "@/lib/finanzas/informe";
+import { ACLARACION_MODO } from "@/lib/finanzas/modo";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -53,6 +54,12 @@ export async function GET(req: Request) {
 
   const c = informe.cifras as unknown as CifrasInforme;
   const t = informe.texto as unknown as TextoInforme;
+  const anual = c.modo === "anual";
+  const impuestoReal = !!c.actual.impuestoReal;
+  // Con el cierre anual (o si el informe trae el detalle) la tabla muestra hasta la utilidad neta.
+  const conDetalle = anual || typeof c.actual.antesDeImpuestos === "number";
+  let seccion = 0;
+  const n = () => ++seccion;
   const marca = paletaMarca(informe.tenant.colorMarca);
   const [logoCliente, logoEvoluteca, logoFgj] = await Promise.all([
     imagen(informe.tenant.logoUrl),
@@ -115,7 +122,7 @@ export async function GET(req: Request) {
       ),
       h(View, { style: { flexDirection: "row" } }, ...serie.map(f => h(Text, { key: f.mes, style: [s.chico, { width: paso, textAlign: "center" }] }, mesCorto(f.mes)))),
       h(View, { style: { flexDirection: "row" } }, ...serie.map(f => h(Text, { key: f.mes, style: [s.chico, { width: paso, textAlign: "center", color: "#334155" }] }, `${Math.round(f.ventas / 1_000_000)}`))),
-      h(Text, { style: [s.chico, { marginTop: 2 }] }, "Ventas en millones de pesos bajo cada mes."),
+      h(Text, { style: [s.chico, { marginTop: 2 }] }, `Ventas en millones de pesos bajo cada ${anual ? "año" : "mes"}.`),
     );
   }
 
@@ -150,7 +157,8 @@ export async function GET(req: Request) {
   function graficaComposicion(k: NonNullable<CifrasInforme["composicion"]>) {
     const partes: [string, number, string][] = [
       ["Costo de ventas", k.costo, "#94a3b8"], ["Administración", k.admin, "#64748b"], ["Ventas", k.ventas, "#a78bfa"],
-      ["Depreciación", k.depreciacion, "#cbd5e1"], ["Intereses", k.intereses, "#f59e0b"], ["Impuesto (est.)", k.impuesto, "#fb7185"],
+      ["Depreciación", k.depreciacion, "#cbd5e1"], ["Intereses", k.intereses, "#f59e0b"],
+      ["Gastos no operacionales", k.otrosGastos ?? 0, "#f97316"], [impuestoReal ? "Impuesto de renta" : "Impuesto (est.)", k.impuesto, "#fb7185"],
       ["Utilidad neta", Math.max(0, k.utilidad), "#059669"],
     ];
     const total = partes.reduce((a, p) => a + Math.max(0, p[1]), 0) || 1;
@@ -165,8 +173,29 @@ export async function GET(req: Request) {
       h(View, { style: { flexDirection: "row", flexWrap: "wrap", marginTop: 5 } },
         ...partes.map(([n, v, col]) => h(View, { key: n, style: { flexDirection: "row", alignItems: "center", width: "33%", marginBottom: 3 } },
           h(View, { style: { width: 8, height: 8, backgroundColor: col, marginRight: 4 } }),
-          h(Text, { style: { fontSize: 8 } }, `${n}: $${v.toLocaleString("es-CO", { maximumFractionDigits: 1 })}`)))),
-      k.utilidad < 0 ? h(Text, { style: [s.muted, { color: "#dc2626" }] }, `Este mes hubo pérdida: por cada $100 vendidos se perdieron $${Math.abs(k.utilidad).toLocaleString("es-CO", { maximumFractionDigits: 1 })}.`) : null,
+          h(Text, { style: { fontSize: 8 } }, `${n}: ${n === "Utilidad neta" && k.utilidad < 0 ? "–" : ""}$${(n === "Utilidad neta" ? Math.abs(k.utilidad) : v).toLocaleString("es-CO", { maximumFractionDigits: 1 })}`)))),
+      (k.otrosIngresos ?? 0) > 0 ? h(Text, { style: s.muted }, `Además entraron $${(k.otrosIngresos ?? 0).toLocaleString("es-CO", { maximumFractionDigits: 1 })} de ingresos no operacionales por cada $100 vendidos.`) : null,
+      k.utilidad < 0 ? h(Text, { style: [s.muted, { color: "#dc2626" }] }, `${anual ? "En el año" : "Este mes"} hubo pérdida: por cada $100 vendidos se perdieron $${Math.abs(k.utilidad).toLocaleString("es-CO", { maximumFractionDigits: 1 })}.`) : null,
+    );
+  }
+
+  /** Utilidad neta de cada escenario, con la línea de cero. */
+  function graficaEscenarios(lista: NonNullable<CifrasInforme["escenarios"]>["lista"]) {
+    const H = 70;
+    const vals = lista.map(e => e.utilidadNeta);
+    const max = Math.max(1, ...vals);
+    const min = Math.min(0, ...vals);
+    const y = (v: number) => 4 + (H - 8) * (1 - (v - min) / (max - min));
+    const paso = W / lista.length;
+    return h(View, { wrap: false, style: { marginBottom: 6 } },
+      h(Svg, { width: W, height: H },
+        ...lista.map((e, i) => h(Rect, {
+          key: e.nombre, x: i * paso + paso * 0.3, y: Math.min(y(e.utilidadNeta), y(0)), width: paso * 0.4,
+          height: Math.max(0.8, Math.abs(y(e.utilidadNeta) - y(0))), fill: e.utilidadNeta < 0 ? "#dc2626" : e.nombre === "Base" ? marca.principal : "#94a3b8",
+        })),
+        h(Line, { x1: 0, y1: y(0), x2: W, y2: y(0), stroke: "#475569", strokeWidth: 0.8 }),
+      ),
+      h(View, { style: { flexDirection: "row" } }, ...lista.map(e => h(Text, { key: e.nombre, style: [s.chico, { width: paso, textAlign: "center" }] }, `${e.nombre}: ${millones(e.utilidadNeta)}`))),
     );
   }
 
@@ -190,29 +219,105 @@ export async function GET(req: Request) {
     );
   }
 
+  /** Cierre anual: por año, barras agrupadas de ventas, gastos, EBITDA y utilidad neta (con la línea de cero). */
+  function graficaAnual(serie: FilaResultados[]) {
+    const H = 150;
+    const series: [string, string, (f: FilaResultados) => number][] = [
+      ["Ventas", "#94a3b8", f => f.ventas],
+      ["Costos y gastos operativos", "#f59e0b", f => f.costoVentas + f.gastosAdmin + f.gastosVentas],
+      ["EBITDA", marca.principal, f => f.ebitda],
+      ["Utilidad neta", "#059669", f => f.utilidadNeta],
+    ];
+    const valores = serie.flatMap(f => series.map(([, , v]) => v(f)));
+    const max = Math.max(1, ...valores);
+    const min = Math.min(0, ...valores);
+    const y = (v: number) => 4 + (H - 8) * (1 - (v - min) / (max - min));
+    const grupo = W / serie.length;
+    const ancho = (grupo * 0.72) / series.length;
+    return h(View, { wrap: false, style: { marginVertical: 6 } },
+      h(View, { style: { flexDirection: "row", flexWrap: "wrap", marginBottom: 4 } }, ...series.map(([n2, col]) => h(View, { key: n2 }, leyenda(col, n2)))),
+      h(Svg, { width: W, height: H },
+        ...serie.flatMap((f, i) => series.map(([n2, col, v], j) => {
+          const val = v(f);
+          const x = i * grupo + grupo * 0.14 + j * ancho;
+          const top = Math.min(y(val), y(0));
+          const alto = Math.max(0.8, Math.abs(y(val) - y(0)));
+          return h(Rect, { key: `${f.mes}-${n2}`, x, y: top, width: ancho * 0.9, height: alto, fill: n2 === "Utilidad neta" && val < 0 ? "#dc2626" : col });
+        })),
+        h(Line, { x1: 0, y1: y(0), x2: W, y2: y(0), stroke: "#475569", strokeWidth: 0.8 }),
+      ),
+      h(View, { style: { flexDirection: "row" } }, ...serie.map(f => h(View, { key: f.mes, style: { width: grupo, alignItems: "center" } },
+        h(Text, { style: [s.chico, { fontFamily: "Helvetica-Bold", color: "#334155" }] }, f.mes),
+        h(Text, { style: s.chico }, `Utilidad ${millones(f.utilidadNeta)}`)))),
+    );
+  }
+
+  /** Composición del balance en cada corte: qué tiene la empresa y cómo se financia. */
+  function graficaBalance(cortes: BalanceInforme[]) {
+    const activo = (b: BalanceInforme): [string, number, string][] => [
+      ["Caja", b.caja, "#059669"], ["Cartera", b.cuentasPorCobrar, "#34d399"],
+      ["Otros corrientes", Math.max(0, b.activoCorriente - b.caja - b.cuentasPorCobrar), "#a7f3d0"],
+      ["Inversiones", b.inversiones ?? 0, "#6366f1"],
+      ["Activos fijos y otros", Math.max(0, b.activoTotal - b.activoCorriente - (b.inversiones ?? 0)), "#94a3b8"],
+    ];
+    const financia = (b: BalanceInforme): [string, number, string][] => [
+      ["Pasivo de corto plazo", b.pasivoCorriente, "#f59e0b"], ["Deuda de largo plazo", Math.max(0, b.pasivoTotal - b.pasivoCorriente), "#fb7185"],
+      ["Patrimonio", Math.max(0, b.patrimonio), marca.principal],
+    ];
+    const maxTotal = Math.max(1, ...cortes.map(b => b.activoTotal));
+    const ANCHO = W - 110;
+    const barra = (partes: [string, number, string][]) => {
+      let x = 0;
+      return h(Svg, { width: ANCHO, height: 14 }, ...partes.filter(p => p[1] > 0).map(([n2, v, col]) => {
+        const w = (v / maxTotal) * ANCHO;
+        const r = h(Rect, { key: n2, x, y: 0, width: w, height: 14, fill: col });
+        x += w;
+        return r;
+      }));
+    };
+    const fila = (titulo: string, b: BalanceInforme, partes: [string, number, string][]) => h(View, { style: { flexDirection: "row", alignItems: "center", marginBottom: 3 } },
+      h(Text, { style: [s.chico, { width: 110, color: "#334155" }] }, titulo), barra(partes));
+    const muestra = cortes[0];
+    return h(View, { wrap: false, style: { marginVertical: 6 } },
+      ...cortes.flatMap(b => [
+        fila(`Activo ${formatoDia(b.corte, { month: "short", year: "numeric" })}`, b, activo(b)),
+        fila(`Financiación ${formatoDia(b.corte, { month: "short", year: "numeric" })}`, b, financia(b)),
+      ]),
+      h(View, { style: { flexDirection: "row", flexWrap: "wrap", marginTop: 3 } },
+        ...[...activo(muestra), ...financia(muestra)].map(([n2, , col]) => h(View, { key: n2 }, leyenda(col, n2)))),
+      h(Text, { style: s.chico }, `Barras a la misma escala: el total es el activo (${cortes.map(b => `${formatoDia(b.corte, { month: "short", year: "numeric" })}: ${millones(b.activoTotal)}`).join(" · ")}).`),
+    );
+  }
+
   // ── Tablas ────────────────────────────────────────────────────────────────
 
   const filasResultados: [string, keyof FilaResultados][] = [
     ["Ventas", "ventas"], ["Costo de ventas", "costoVentas"], ["Utilidad bruta", "utilidadBruta"],
-    ["Gastos de administración", "gastosAdmin"], ["Gastos de ventas", "gastosVentas"], ["EBITDA", "ebitda"], ["Utilidad neta (est.)", "utilidadNeta"],
+    ["Gastos de administración", "gastosAdmin"], ["Gastos de ventas", "gastosVentas"], ["EBITDA", "ebitda"],
+    ...(conDetalle ? [
+      ["Depreciación", "depreciacion"], ["Gastos financieros", "intereses"],
+      ["Ingresos no operacionales", "otrosIngresos"], ["Gastos no operacionales", "otrosGastos"],
+      ["Utilidad antes de impuestos", "antesDeImpuestos"], [impuestoReal ? "Impuesto de renta" : "Impuesto (est. 35 %)", "impuesto"],
+    ] as [string, keyof FilaResultados][] : []),
+    [impuestoReal ? "Utilidad neta" : "Utilidad neta (est.)", "utilidadNeta"],
   ];
-  const num = (f: FilaResultados | null, k: keyof FilaResultados) => (f ? millones(f[k] as number) : "—");
+  const num = (f: FilaResultados | null, k: keyof FilaResultados) => (f && typeof f[k] === "number" ? millones(f[k] as number) : "—");
   const tablaResultados = h(View, { style: s.tabla, wrap: false },
     h(View, { style: s.filaHead },
       h(Text, { style: [s.celdaIzq, s.head] }, "Concepto"),
       h(Text, { style: [s.celda, s.head] }, mesCorto(c.mes)),
-      h(Text, { style: [s.celda, s.head] }, c.anterior ? mesCorto(c.anterior.mes) : "Mes anterior"),
+      h(Text, { style: [s.celda, s.head] }, c.anterior ? mesCorto(c.anterior.mes) : anual ? "Año anterior" : "Mes anterior"),
       h(Text, { style: [s.celda, s.head] }, "Var."),
-      h(Text, { style: [s.celda, s.head] }, c.anioAnterior ? mesCorto(c.anioAnterior.mes) : "Año anterior"),
-      h(Text, { style: [s.celda, s.head] }, "Var."),
+      anual ? null : h(Text, { style: [s.celda, s.head] }, c.anioAnterior ? mesCorto(c.anioAnterior.mes) : "Año anterior"),
+      anual ? null : h(Text, { style: [s.celda, s.head] }, "Var."),
     ),
     ...filasResultados.map(([nombre, k]) => h(View, { key: k, style: s.fila },
       h(Text, { style: s.celdaIzq }, nombre),
       h(Text, { style: [s.celda, { fontFamily: "Helvetica-Bold" }] }, num(c.actual, k)),
       h(Text, { style: s.celda }, num(c.anterior, k)),
-      h(Text, { style: s.celda }, c.anterior ? variacion(c.actual[k] as number, c.anterior[k] as number) : "—"),
-      h(Text, { style: s.celda }, num(c.anioAnterior, k)),
-      h(Text, { style: s.celda }, c.anioAnterior ? variacion(c.actual[k] as number, c.anioAnterior[k] as number) : "—"),
+      h(Text, { style: s.celda }, c.anterior && typeof c.anterior[k] === "number" ? variacion(c.actual[k] as number, c.anterior[k] as number) : "—"),
+      anual ? null : h(Text, { style: s.celda }, num(c.anioAnterior, k)),
+      anual ? null : h(Text, { style: s.celda }, c.anioAnterior ? variacion(c.actual[k] as number, c.anioAnterior[k] as number) : "—"),
     )),
   );
 
@@ -265,7 +370,7 @@ export async function GET(req: Request) {
         h(View, { style: { flex: 1 } },
           h(Text, { style: { fontSize: 9, color: marca.sobreOscuroSuave, letterSpacing: 1.5, textTransform: "uppercase" } }, informe.tenant.nombre),
           h(Text, { style: { fontSize: 24, fontFamily: "Helvetica-Bold", color: "#ffffff", marginTop: 6, lineHeight: 1.15 } }, "Informe de análisis financiero"),
-          h(Text, { style: { fontSize: 11, color: marca.sobreOscuro, marginTop: 6 } }, `Mes analizado: ${mesCorto(c.mes)} · ${generado}`),
+          h(Text, { style: { fontSize: 11, color: marca.sobreOscuro, marginTop: 6 } }, `${anual ? `Cierre anual ${c.mes}` : `Mes analizado: ${mesCorto(c.mes)}`} · ${generado}`),
         ),
         logoCliente ? h(View, { style: { backgroundColor: "#ffffff", borderRadius: 8, padding: 6, marginLeft: 12 } },
           h(Image, { src: logoCliente, style: { width: 80, height: 54, objectFit: "contain" } })) : null,
@@ -287,8 +392,8 @@ export async function GET(req: Request) {
         ),
       ) : null,
       h(View, { style: { flexDirection: "row", gap: 8, marginBottom: 12 } },
-        kpi(`Ventas ${mesCorto(c.mes)}`, millones(c.actual.ventas), c.anterior ? `${variacion(c.actual.ventas, c.anterior.ventas)} vs. mes anterior` : undefined),
-        kpi("Utilidad neta (est.)", millones(c.actual.utilidadNeta), c.actual.ventas ? `${Math.round((c.actual.utilidadNeta / c.actual.ventas) * 100)}% de las ventas` : undefined, c.actual.utilidadNeta < 0 ? "#dc2626" : undefined),
+        kpi(`Ventas ${mesCorto(c.mes)}`, millones(c.actual.ventas), c.anterior ? `${variacion(c.actual.ventas, c.anterior.ventas)} vs. ${anual ? c.anterior.mes : "mes anterior"}` : undefined),
+        kpi(impuestoReal ? "Utilidad neta" : "Utilidad neta (est.)", millones(c.actual.utilidadNeta), c.actual.ventas ? `${Math.round((c.actual.utilidadNeta / c.actual.ventas) * 100)}% de las ventas` : undefined, c.actual.utilidadNeta < 0 ? "#dc2626" : undefined),
         kpi("Caja", c.balance ? millones(c.balance.caja) : "—", c.balance ? `al ${formatoDia(c.balance.corte, { day: "numeric", month: "short" })}` : "sin balance"),
         kpi("Días de caja", c.caja?.diasCaja != null ? String(c.caja.diasCaja) : "—", c.caja ? c.caja.titulo : undefined, c.caja ? NIVEL_CAJA[c.caja.nivel] : undefined),
       ),
@@ -300,6 +405,13 @@ export async function GET(req: Request) {
         h(Text, { style: [s.h3, { fontSize: 11, color: marca.oscuro }] }, "Las 3 decisiones más urgentes"),
         h(View, { style: { fontSize: 10.5, lineHeight: 1.4 } }, ...t.decisionesUrgentes.map((x, i) => h(View, { key: i, style: [s.li, { marginBottom: 5 }] },
           h(Text, { style: [s.bullet, { fontSize: 10.5 }] }, `${i + 1}.`), h(Text, { style: [s.liTxt, { fontSize: 10.5, lineHeight: 1.4 }] }, x))))) : null,
+      c.escenarios ? (() => {
+        const [cons, base, opt] = c.escenarios.lista;
+        return h(View, { style: { flexDirection: "row", gap: 8, marginTop: 10 } },
+          kpi(`Escenario base ${c.escenarios.anio}`, millones(base.utilidadNeta), `utilidad neta · ventas ${millones(base.ventas)}`, base.utilidadNeta < 0 ? "#dc2626" : undefined),
+          kpi(`Rango ${c.escenarios.anio}`, `${millones(cons.utilidadNeta)} a ${millones(opt.utilidadNeta)}`, "de conservador a optimista (utilidad neta)"),
+        );
+      })() : null,
       c.proyeccion?.anio ? h(View, { style: { flexDirection: "row", gap: 8, marginTop: 10 } },
         kpi(`Cierre ${c.proyeccion.anio.anio} (estimado)`, millones(c.proyeccion.anio.ventasCierre), `ventas · ${c.proyeccion.anio.mesesReales} meses reales + proyección`),
         kpi(`Utilidad ${c.proyeccion.anio.anio} (estimada)`, millones(c.proyeccion.anio.utilidadCierre), "con impuesto de renta estimado del 35%", c.proyeccion.anio.utilidadCierre < 0 ? "#dc2626" : undefined),
@@ -340,15 +452,53 @@ export async function GET(req: Request) {
 
     h(Text, { style: [s.h2, { marginTop: 0 }] }, "Resumen ejecutivo"),
     h(View, { style: s.caja }, h(Text, { style: { fontFamily: "Helvetica-Bold", color: marca.textoSobreClaro, marginBottom: 3 } }, t.titulo), h(Text, null, t.resumenEjecutivo)),
+    h(View, { style: { borderLeftWidth: 2, borderLeftColor: "#94a3b8", paddingLeft: 6, marginBottom: 4 } },
+      h(Text, { style: s.muted }, ACLARACION_MODO[anual ? "anual" : "mensual"])),
+    c.mesesDesdeDato != null && c.mesesDesdeDato > 3
+      ? h(Text, { style: [s.muted, { color: "#b45309" }] }, `Atención: el último dato cargado es de ${mesCorto(c.mes)}, hace ${c.mesesDesdeDato} meses. Las cifras y la caja de hoy pueden ser otras.`)
+      : null,
 
-    h(Text, { style: s.h2 }, "1. Resultados del mes"),
+    h(Text, { style: s.h2 }, `${n()}. ${anual ? `Resultados del año ${c.mes}` : "Resultados del mes"}`),
     tablaResultados,
     ...parrafos(t.resultados),
-    c.serie.length > 1 ? h(View, { wrap: false }, h(Text, { style: s.h3 }, "Ventas y EBITDA, últimos meses"), graficaVentas(c.serie)) : null,
+    c.serie.length > 1 ? h(View, { wrap: false }, h(Text, { style: s.h3 }, anual ? "Ventas, gastos, EBITDA y utilidad por año" : "Ventas y EBITDA, últimos meses"), anual ? graficaAnual(c.serie) : graficaVentas(c.serie)) : null,
     c.composicion ? h(View, { wrap: false }, h(Text, { style: s.h3 }, `A dónde se van cada $100 que vende (${mesCorto(c.mes)})`), graficaComposicion(c.composicion)) : null,
+    c.queSiPasa?.length ? h(View, { wrap: false },
+      h(Text, { style: s.h3 }, `Qué pasa si… (utilidad neta ${anual ? `de ${c.mes}` : "de los últimos 12 meses"}: ${millones(c.queSiPasa[0].utilidadNeta - c.queSiPasa[0].cambio)})`),
+      h(View, { style: s.tabla },
+        h(View, { style: s.filaHead },
+          h(Text, { style: [{ flex: 4, padding: 4 }, s.head] }, "Palanca"),
+          h(Text, { style: [s.celda, s.head] }, "Cambio en la utilidad"),
+          h(Text, { style: [s.celda, s.head] }, "Utilidad neta resultante"),
+        ),
+        ...c.queSiPasa.map((q, i) => h(View, { key: i, style: s.fila },
+          h(Text, { style: { flex: 4, padding: 4 } }, q.palanca),
+          h(Text, { style: [s.celda, { color: "#047857", fontFamily: "Helvetica-Bold" }] }, `+${millones(q.cambio)}`),
+          h(Text, { style: [s.celda, { color: q.utilidadNeta < 0 ? "#dc2626" : "#0f172a" }] }, millones(q.utilidadNeta)),
+        )),
+      ),
+      h(Text, { style: s.chico }, "Calculado por el sistema con un impuesto de renta estimado del 35 % sobre el cambio. Cada palanca se mide por separado."),
+    ) : null,
+    c.escenarios ? h(View, null,
+      // El título va dentro del bloque que no se parte: así no queda solo al final de una página.
+      h(View, { wrap: false },
+        h(Text, { style: s.h2 }, `${n()}. Escenarios ${c.escenarios.anio}`),
+        h(View, { style: { flexDirection: "row", gap: 8, marginBottom: 6 } },
+          ...c.escenarios.lista.map(e => h(View, { key: e.nombre, style: [s.tarjeta, e.nombre === "Base" ? { borderColor: marca.principal, borderWidth: 1.5 } : {}] },
+            h(Text, { style: s.kpiTxt }, e.nombre),
+            h(Text, { style: [s.kpiNum, { color: e.utilidadNeta < 0 ? "#dc2626" : marca.oscuro }] }, millones(e.utilidadNeta)),
+            h(Text, { style: [s.chico, { lineHeight: 1.3 }] }, `utilidad neta · ventas ${millones(e.ventas)} · EBITDA ${millones(e.ebitda)}`),
+            h(Text, { style: [s.chico, { lineHeight: 1.3, marginTop: 3, color: "#475569" }] }, e.supuesto),
+          )),
+        ),
+        graficaEscenarios(c.escenarios.lista),
+        h(Text, { style: [s.muted, { marginBottom: 6 }] }, `Estimación del sistema a partir del cierre ${c.mes}${c.anterior ? ` y del crecimiento contra ${c.anterior.mes} (${Math.round(c.escenarios.crecimiento * 100)} %)` : ""}; el impuesto de renta se estima al 35 %. No reemplaza un presupuesto.`),
+      ),
+      ...parrafos(t.proyeccion),
+    ) : null,
 
     proy ? h(View, null,
-      h(Text, { style: s.h2, minPresenceAhead: 160 }, "2. Proyección"),
+      h(Text, { style: s.h2, minPresenceAhead: 160 }, `${n()}. Proyección`),
       graficaProyeccion(),
       h(View, { style: { flexDirection: "row", gap: 8, marginVertical: 6 } },
         ...proy.proximos.map(m => kpi(mesCorto(m.mes), millones(m.ventas), `utilidad est. ${millones(m.utilidadNeta)}`, m.utilidadNeta < 0 ? "#dc2626" : undefined)),
@@ -360,14 +510,17 @@ export async function GET(req: Request) {
       ...parrafos(t.proyeccion),
     ) : null,
 
-    h(Text, { style: s.h2, minPresenceAhead: 140 }, "3. Balance e indicadores"),
+    h(Text, { style: s.h2, minPresenceAhead: 140 }, `${n()}. Balance e indicadores`),
     c.balance
       ? h(Text, { style: s.muted }, `Balance al ${formatoDia(c.balance.corte)}: caja ${millones(c.balance.caja)} · cartera ${millones(c.balance.cuentasPorCobrar)} · activo total ${millones(c.balance.activoTotal)} · pasivo total ${millones(c.balance.pasivoTotal)} · patrimonio ${millones(c.balance.patrimonio)}.`)
       : h(Text, { style: s.muted }, "No hay balance cargado: los indicadores de liquidez y endeudamiento quedan sin calcular."),
+    c.balance ? h(View, { wrap: false }, h(Text, { style: s.h3 }, c.balanceAnterior ? "Qué tiene la empresa y cómo se financia (dos cortes)" : "Qué tiene la empresa y cómo se financia"),
+      graficaBalance([c.balance, ...(c.balanceAnterior ? [c.balanceAnterior] : [])])) : null,
     h(View, { style: { marginTop: 6 } }, tablaIndicadores),
     ...parrafos(t.balanceIndicadores),
 
-    h(Text, { style: s.h2, minPresenceAhead: 160 }, "4. Caja de las próximas 13 semanas"),
+    h(Text, { style: s.h2, minPresenceAhead: 160 }, `${n()}. Caja de las próximas 13 semanas`),
+    anual ? h(Text, { style: s.muted }, "Con un cierre anual, la caja usa los gastos e ingresos promedio del año (año ÷ 12).") : null,
     c.caja ? h(View, { wrap: false, style: [s.caja, { backgroundColor: "#f8fafc", borderLeftWidth: 3, borderLeftColor: NIVEL_CAJA[c.caja.nivel] }] },
       h(Text, { style: { fontFamily: "Helvetica-Bold", color: NIVEL_CAJA[c.caja.nivel] } }, c.caja.titulo),
       h(Text, null, c.caja.detalle),
@@ -377,7 +530,7 @@ export async function GET(req: Request) {
     ...parrafos(t.caja),
     c.equilibrio ? h(Text, { style: s.muted }, `Punto de equilibrio: se necesitan ventas de ${millones(c.equilibrio.ventasNecesarias)} al mes para cubrir gastos fijos de ${millones(c.equilibrio.gastosFijos)} (margen de contribución ${Math.round(c.equilibrio.margenContribucion * 100)}%).`) : null,
 
-    tablaClientes || t.clientes.length ? h(View, null, h(Text, { style: s.h2, minPresenceAhead: 120 }, "5. Rentabilidad por cliente"), tablaClientes, ...parrafos(t.clientes)) : null,
+    tablaClientes || t.clientes.length ? h(View, null, h(Text, { style: s.h2, minPresenceAhead: 120 }, `${n()}. Rentabilidad por cliente`), tablaClientes, ...parrafos(t.clientes)) : null,
 
     (t.riesgos?.length || t.oportunidades?.length) ? h(View, { wrap: false },
       h(Text, { style: s.h2 }, "Riesgos y oportunidades"),
@@ -403,7 +556,7 @@ export async function GET(req: Request) {
     )),
 
     t.metasProximoMes?.length ? h(View, { wrap: false },
-      h(Text, { style: s.h2 }, "Metas para el próximo mes"),
+      h(Text, { style: s.h2 }, anual ? "Metas para el próximo reporte" : "Metas para el próximo mes"),
       h(View, { style: s.tabla },
         h(View, { style: s.filaHead },
           h(Text, { style: [{ flex: 3, padding: 4 }, s.head] }, "Indicador"),
@@ -422,7 +575,8 @@ export async function GET(req: Request) {
     t.preguntasContador.length ? h(View, null, h(Text, { style: s.h2 }, "Preguntas para el contador"), ...vinetas(t.preguntasContador)) : null,
 
     h(Text, { style: [s.muted, { marginTop: 14 }] },
-      "Cifras calculadas por el sistema a partir de los estados financieros cargados (utilidad neta con impuesto de renta estimado del 35%); las proyecciones son estimaciones. El análisis lo redacta un asistente con inteligencia artificial sobre esas cifras: no reemplaza la revisión del contador ni constituye asesoría tributaria o legal."),
+      `Cifras calculadas por el sistema a partir de los estados financieros cargados (${impuestoReal ? "utilidad neta con el impuesto de renta que reportó el contador" : "utilidad neta con impuesto de renta estimado del 35%"}); las proyecciones son estimaciones. `
+      + "El análisis lo redacta un asistente con inteligencia artificial sobre esas cifras: no reemplaza la revisión del contador ni constituye asesoría tributaria o legal."),
     pie,
   );
 

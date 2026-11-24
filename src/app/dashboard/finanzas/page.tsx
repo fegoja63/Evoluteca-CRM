@@ -7,7 +7,10 @@ import { diasEntre } from "@/lib/finanzas/caja";
 import { diaCorto } from "@/lib/finanzas/formato";
 import { GerenteIA } from "@/components/finanzas/gerente-ia";
 import { RescateCaja } from "@/components/finanzas/rescate-caja";
-import { estadoResultados, sumarPeriodos, ultimosMeses, indicadores } from "@/lib/finanzas/estados";
+import { estadoResultados, sumarPeriodos, ultimosMeses } from "@/lib/finanzas/estados";
+import { indicadoresDe } from "@/lib/finanzas/datos";
+import { AvisoModo } from "@/components/finanzas/aviso-modo";
+import { mesesDesde } from "@/lib/finanzas/modo";
 import { millones, mesCorto, variacion, valorIndicador, TONO_SEMAFORO } from "@/lib/finanzas/formato";
 import { boton, insignia, tarjeta } from "@/components/ui/estilos";
 import { MarcoFinanzas, SinAccesoFinanzas } from "@/components/finanzas/marco-finanzas";
@@ -20,15 +23,18 @@ export default async function FinanzasPage() {
   if (acceso.bloqueo) return <SinAccesoFinanzas motivo={acceso.bloqueo} />;
 
   const datos = await cargarDatosCaja(acceso.tenantId);
-  const { periodos, balance } = datos;
+  const { balance, modo } = datos;
+  const anual = modo === "anual";
   const alerta = balance
     ? alertaCaja({ hoy: datos.hoy, caja: balance.caja, cartera: balance.cuentasPorCobrar, carteraDetalle: datos.carteraDetalle, supuestos: datos.supuestos, pipeline: datos.pipeline })
     : null;
-  const meses = ultimosMeses(periodos, 12);
+  // Con un cierre anual: el último año y el anterior; con meses: el último mes y los 12 meses.
+  const meses = anual ? datos.cierres : ultimosMeses(datos.mesesReales, 12);
   const ultimo = meses.length ? estadoResultados(meses[meses.length - 1]) : null;
   const anterior = meses.length > 1 ? estadoResultados(meses[meses.length - 2]) : null;
-  const anio = estadoResultados(sumarPeriodos(meses));
-  const enRiesgo = indicadores(periodos, balance).filter(i => i.semaforo === "riesgo" || i.semaforo === "atencion")
+  const anio = anual && ultimo ? ultimo : estadoResultados(sumarPeriodos(meses));
+  const antiguedad = ultimo ? mesesDesde(ultimo.mes, datos.hoy) : 0;
+  const enRiesgo = indicadoresDe(datos).filter(i => i.semaforo === "riesgo" || i.semaforo === "atencion")
     .sort((a, b) => (a.semaforo === "riesgo" ? 0 : 1) - (b.semaforo === "riesgo" ? 0 : 1));
 
   return (
@@ -53,19 +59,28 @@ export default async function FinanzasPage() {
               {alerta.rescate && <RescateCaja rescate={alerta.rescate} />}
             </div>
           )}
+          {antiguedad > 3 && (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              El último dato cargado es de {mesCorto(ultimo.mes)} (hace {antiguedad} meses). Suba estados más recientes para que la caja y los indicadores reflejen el hoy.
+            </p>
+          )}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Kpi titulo={`Ventas de ${mesCorto(ultimo.mes)}`} valor={millones(ultimo.ventas)}
-              detalle={anterior ? `${variacion(ultimo.ventas, anterior.ventas)} vs. ${mesCorto(anterior.mes)}` : "Primer mes cargado"} />
-            <Kpi titulo="Margen EBITDA del mes" valor={ultimo.ventas ? `${Math.round((ultimo.ebitda / ultimo.ventas) * 100)}%` : "—"}
-              detalle={anio.ventas ? `${meses.length} meses: ${Math.round((anio.ebitda / anio.ventas) * 100)}%` : ""} />
-            <Kpi titulo={`Utilidad neta, ${meses.length} meses`} valor={millones(anio.utilidadNeta)}
-              detalle={anio.ventas ? `Margen neto ${Math.round((anio.utilidadNeta / anio.ventas) * 100)}%` : ""} />
+            <Kpi titulo={anual ? `Ventas del año ${ultimo.mes}` : `Ventas de ${mesCorto(ultimo.mes)}`} valor={millones(ultimo.ventas)}
+              detalle={anterior ? `${variacion(ultimo.ventas, anterior.ventas)} vs. ${mesCorto(anterior.mes)}` : anual ? "Primer año cargado" : "Primer mes cargado"} />
+            <Kpi titulo={anual ? `Margen EBITDA ${ultimo.mes}` : "Margen EBITDA del mes"} valor={ultimo.ventas ? `${Math.round((ultimo.ebitda / ultimo.ventas) * 100)}%` : "—"}
+              detalle={anual ? (anterior?.ventas ? `${anterior.mes}: ${Math.round((anterior.ebitda / anterior.ventas) * 100)}%` : "")
+                : anio.ventas ? `${meses.length} meses: ${Math.round((anio.ebitda / anio.ventas) * 100)}%` : ""} />
+            <Kpi titulo={anual ? `Utilidad neta ${ultimo.mes}` : `Utilidad neta, ${meses.length} meses`} valor={millones(anio.utilidadNeta)}
+              detalle={anio.ventas ? `Margen neto ${Math.round((anio.utilidadNeta / anio.ventas) * 100)}%${anio.impuestoReal ? "" : " · impuesto estimado"}` : ""}
+              rojo={anio.utilidadNeta < 0} />
             <Kpi titulo="Caja hoy" valor={balance ? millones(balance.caja) : "—"}
               detalle={!balance || !alerta ? "Cargue el balance"
                 : alerta.conNegocios.primerDiaEnRojo ? `Alcanza ${diasEntre(datos.hoy, alerta.conNegocios.primerDiaEnRojo)} días, hasta el ${diaCorto(alerta.conNegocios.primerDiaEnRojo)}`
                 : "Alcanza las 13 semanas"}
               rojo={!!alerta?.conNegocios.primerDiaEnRojo} />
           </div>
+
+          <AvisoModo modo={modo} />
 
           <div className={tarjeta("p-5")}>
             <div className="flex items-center justify-between gap-2">

@@ -2,7 +2,7 @@ import { COLUMNAS_PLANTILLA } from "@/lib/finanzas/plantilla";
 import type { Periodo } from "@/lib/finanzas/estados";
 import { millones, mesCorto } from "@/lib/finanzas/formato";
 
-export const MONTOS = COLUMNAS_PLANTILLA.slice(1) as readonly { clave: Exclude<keyof Periodo, "mes">; titulo: string }[];
+export const MONTOS = COLUMNAS_PLANTILLA.slice(1) as readonly { clave: "ventas" | "costoVentas" | "gastosAdmin" | "gastosVentas" | "depreciacion" | "intereses"; titulo: string }[];
 
 // Monto como lo escribe un colombiano: "4.800.000".
 export const aTexto = (v: number) => (v ? Math.round(v).toLocaleString("es-CO") : "");

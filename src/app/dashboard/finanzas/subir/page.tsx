@@ -30,6 +30,16 @@ export default async function SubirEstadosPage() {
               </ol>
             </div>
             <div>
+              <h2 className="font-semibold text-slate-800">¿Mensuales o cierre anual?</h2>
+              <p className="mt-1">
+                Sirven los dos, pero <strong>no dan los mismos resultados</strong>:
+              </p>
+              <ul className="mt-1.5 list-disc space-y-1 pl-5">
+                <li><strong>Cierre anual</strong> (el año contra el anterior, como lo entrega el contador): análisis año contra año con la utilidad real del contador. No hay detalle mes a mes; la caja usa promedios.</li>
+                <li><strong>Estados mensuales</strong>: comparan mes a mes, muestran la temporada y proyectan los próximos meses. Si no traen el impuesto, se estima al 35 %.</li>
+              </ul>
+            </div>
+            <div>
               <h2 className="font-semibold text-slate-800">Créditos de IA</h2>
               <p className="mt-1">
                 Cada lectura usa <strong>1 crédito</strong>, igual que cada informe del mes y cada consulta al gerente con IA.

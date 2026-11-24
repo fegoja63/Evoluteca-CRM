@@ -1,5 +1,6 @@
-import { accesoPaginaFinanzas, cargarDatosFinancieros } from "@/lib/finanzas/datos";
-import { indicadores, type Indicador } from "@/lib/finanzas/estados";
+import { accesoPaginaFinanzas, cargarDatosFinancieros, indicadoresDe } from "@/lib/finanzas/datos";
+import type { Indicador } from "@/lib/finanzas/estados";
+import { AvisoModo } from "@/components/finanzas/aviso-modo";
 import { valorIndicador, TONO_SEMAFORO } from "@/lib/finanzas/formato";
 import { insignia, tarjeta } from "@/components/ui/estilos";
 import { MarcoFinanzas, SinAccesoFinanzas } from "@/components/finanzas/marco-finanzas";
@@ -12,15 +13,17 @@ export default async function IndicadoresPage() {
   const acceso = await accesoPaginaFinanzas();
   if (acceso.bloqueo) return <SinAccesoFinanzas motivo={acceso.bloqueo} />;
 
-  const { periodos, balance } = await cargarDatosFinancieros(acceso.tenantId);
-  const todos = indicadores(periodos, balance);
+  const datos = await cargarDatosFinancieros(acceso.tenantId);
+  const { balance, modo, cierres } = datos;
+  const todos = indicadoresDe(datos);
 
   return (
     <MarcoFinanzas licencia={acceso.licencia}>
       <p className="text-sm text-slate-600">
-        Cada indicador con su semáforo y lo que significa en palabras simples. Usan los últimos 12 meses de resultados
+        Cada indicador con su semáforo y lo que significa en palabras simples. Usan {modo === "anual" ? `el cierre del año ${cierres[cierres.length - 1]?.mes}` : "los últimos 12 meses de resultados"}
         {balance ? " y el último balance cargado" : ""}. Los rangos son una guía general para pymes: cada sector tiene los suyos.
       </p>
+      <AvisoModo modo={modo} />
       {GRUPOS.map(g => (
         <div key={g}>
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">{g}</h2>
