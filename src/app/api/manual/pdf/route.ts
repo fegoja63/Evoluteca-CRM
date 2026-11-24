@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.48"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.49"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -1227,17 +1227,19 @@ export async function GET() {
 
       // ── CAPÍTULO 11: GERENTE FINANCIERO ──
       React.createElement(H1, null, "11. Gerente Financiero (módulo de pago)"),
-      React.createElement(P, null, "El Gerente Financiero convierte los estados financieros de tu empresa en respuestas claras: cuánto vendes, cuánto te queda, cuánta caja tendrás en las próximas 13 semanas y qué hacer primero. Lo habilita Evoluteca por empresa, con licencia; lo ven solo el Administrador y el Gerente. Lo encuentras en el menú, sección Módulos, como \"Gerente Financiero\"."),
+      React.createElement(P, null, "El Gerente Financiero convierte los estados financieros de tu empresa en respuestas claras: cuánto vendes, cuánto te queda, cuánta caja tendrás en las próximas 13 semanas y qué hacer primero. Lo habilita Evoluteca por empresa, con licencia; lo ven solo el Administrador y el Gerente. Lo encuentras en el menú, sección Análisis, como \"Gerente Financiero\" (en el celular, en la barra de abajo: \"Finanzas\")."),
       React.createElement(Nota, null, "Las finanzas de la empresa son información de dirección: los usuarios Comerciales no ven el módulo. Si la licencia vence, tus cifras no se borran: el módulo queda en solo lectura."),
 
       React.createElement(H2, null, "11.1 Primeros pasos"),
-      React.createElement(Paso, { n: 1, titulo: "Carga tus cifras", desc: "En Cargar datos sube los estados financieros (lectura con IA), la plantilla mensual, o escríbelos a mano. Lo ideal: los últimos 12 meses del estado de resultados y el balance del último corte." }),
+      React.createElement(Paso, { n: 1, titulo: "Carga tus cifras", desc: "En la pestaña Subir estados (o con el botón \"Subir estados financieros\" de arriba) sube el archivo de tu contador y la IA lo lee; en Cargar datos usas la plantilla mensual o los escribes a mano. Lo ideal: los últimos 12 meses del estado de resultados y el balance del último corte." }),
       React.createElement(Paso, { n: 2, titulo: "Confirma los supuestos de caja", desc: "En Caja proyectada › Supuestos revisa nómina, gastos fijos, créditos, proveedores, impuestos e IVA, día de pago a la DIAN, ventas de contado, contratos vigentes y días de cobro, y guárdalos." }),
       React.createElement(Paso, { n: 3, titulo: "Revisa cada mes", desc: "Actualiza el mes que cerró y el balance; la alerta de caja, los indicadores y el diagnóstico se recalculan solos. Si quieres más precisión, carga también la cartera por cliente y la rentabilidad por cliente." }),
 
       React.createElement(H2, null, "11.2 Cargar datos"),
       React.createElement(H3, null, "Leer los estados del contador con IA"),
-      React.createElement(P, null, "Haz clic en el recuadro \"Haga clic aquí para buscar el archivo, o arrástrelo\" (o arrastra el archivo encima) y sube los estados tal como te los entregó el contador: PDF, Excel, Word, una foto, OpenOffice, CSV u otro, hasta 15 MB. La IA empieza a leerlo de inmediato y propone el estado de resultados y el balance, ya convertidos a pesos si el documento venía en miles o millones, y señala lo que debes revisar. Nada se guarda hasta que tú confirmas con \"Guardar todo lo leído\" (guarda los meses y el balance de una vez). Al terminar, \"Cargar otro informe\" deja la pantalla lista para el siguiente archivo. Cada lectura cuenta como una acción de IA de tu plan."),
+      React.createElement(P, null, "La lectura con IA tiene su propia pestaña, Subir estados (la segunda, resaltada), y el botón \"Subir estados financieros\" de arriba lleva a ella desde cualquier pantalla del módulo. Haz clic en el recuadro \"Haga clic aquí para buscar el archivo, o arrástrelo\" (o arrastra el archivo encima) y sube los estados tal como te los entregó el contador: PDF, Excel, Word, una foto, OpenOffice, CSV u otro, hasta 15 MB. La IA empieza a leerlo de inmediato y propone el estado de resultados y el balance, ya convertidos a pesos si el documento venía en miles o millones, y señala lo que debes revisar. Nada se guarda hasta que tú confirmas con \"Guardar todo lo leído\" (guarda los meses y el balance de una vez). Al terminar, \"Cargar otro informe\" deja la pantalla lista para el siguiente archivo."),
+      React.createElement(H3, null, "Créditos de IA"),
+      React.createElement(P, null, "Cada lectura de un archivo usa 1 crédito de IA, igual que cada informe del mes y cada consulta o diagnóstico del gerente con IA. Los créditos son un cupo mensual del plan de tu empresa (por ejemplo 100 al mes; el número exacto depende del plan contratado), compartido por todas las funciones de IA del CRM y del Gerente Financiero y por todos los usuarios de la empresa. Se renueva el día 1 de cada mes. Junto a cada botón que usa IA verás \"Usa 1 crédito de IA · Le quedan X de Y este mes\"."),
       React.createElement(Nota, null, "Los formatos antiguos de Office (.xls, .doc) y las fotos HEIC del iPhone no se pueden leer: guárdalos como Excel (.xlsx), PDF o JPG. Un archivo de más de 3,5 MB se sube por partes (verás \"Subiendo 2 de 4…\"); las fotos muy pesadas se achican solas."),
       React.createElement(Tip, null, "Si el contador te entrega el año completo (un acumulado), \"Guardar todo lo leído\" te pregunta si lo reparte en meses iguales. Es un promedio aproximado, no el dato real de cada mes: úsalo para empezar y reemplázalo cuando tengas los meses."),
       React.createElement(H3, null, "Plantilla mensual"),

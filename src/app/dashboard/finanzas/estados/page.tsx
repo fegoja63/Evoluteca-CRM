@@ -40,7 +40,7 @@ export default async function EstadosPage() {
       <MarcoFinanzas licencia={acceso.licencia}>
         <div className={tarjeta("p-6 text-sm text-slate-600")}>
           Todavía no hay estados financieros cargados.{" "}
-          {!acceso.soloLectura && <Link href="/dashboard/finanzas/cargar" className={boton("primario", "sm", "ml-2")}>Cargar mis datos</Link>}
+          {!acceso.soloLectura && <Link href="/dashboard/finanzas/subir" className={boton("primario", "sm", "ml-2")}>Subir mis estados</Link>}
         </div>
       </MarcoFinanzas>
     );

@@ -12,6 +12,7 @@ import { totalesBalance, balanceCuadra, type Balance, type Periodo } from "@/lib
 import { repartirAcumulado, mesesEntre, type Acumulado } from "@/lib/finanzas/lectura-ia";
 import { millones, mesCorto } from "@/lib/finanzas/formato";
 import { TablaMeses, enviar } from "./comun";
+import { CupoIA, avisarUsoIA } from "./cupo-ia";
 
 type Lectura = {
   periodos: Periodo[];
@@ -106,6 +107,7 @@ export function LeerConIA() {
     if (!res) { toast.error("No se pudo enviar el archivo. Revise su conexión e inténtelo de nuevo."); return; }
     if (!res.ok) { toast.error(data.error ?? "No se pudo leer el documento."); return; }
     setLectura(data);
+    avisarUsoIA();
     setMeses(data.periodos);
     setRepartido(false);
   }
@@ -190,15 +192,16 @@ export function LeerConIA() {
   const hayQueGuardar = !!lectura && (meses.length > 0 || !!lectura.acumulado || !!lectura.balance);
 
   return (
-    <section className={tarjeta("p-5 space-y-3")}>
+    <section className={tarjeta("p-5 sm:p-6 space-y-3 border-brand-200 ring-1 ring-brand-100")}>
       <div>
-        <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800">
-          <IconSparkles size={18} className="text-brand-600" />1. Leer los estados del contador con IA
+        <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-800">
+          <IconSparkles size={20} className="text-brand-600" />Suba los estados financieros de su contador
         </h2>
         <p className="mt-1 text-sm text-slate-500">
-          Suba los estados financieros tal como se los entregó su contador: PDF, Excel, Word, una foto o cualquier otro archivo
-          (hasta 15 MB). La IA propone las cifras y usted las revisa antes de guardar. Cuenta como una acción de IA de su plan.
+          Tal como se los entregaron: cierre del año o meses, en PDF (también escaneado), Excel, Word, una foto o cualquier otro
+          archivo, hasta 15 MB. La IA propone las cifras y usted las revisa antes de guardar.
         </p>
+        <CupoIA className="mt-1.5" />
       </div>
       {/* Zona de subida: clic para buscar el archivo o arrastrarlo encima. Al
           elegirlo, la IA lo lee de una vez (no hay un segundo botón gris). */}
@@ -207,11 +210,11 @@ export function LeerConIA() {
         onDragLeave={() => setArrastrando(false)}
         onDrop={e => { e.preventDefault(); setArrastrando(false); elegir(e.dataTransfer.files?.[0] ?? null); }}
         className={cn(
-          "flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed px-4 py-7 text-center transition-colors",
+          "flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed px-4 py-12 text-center transition-colors",
           leyendo ? "cursor-wait border-brand-300 bg-brand-50" : "cursor-pointer hover:border-brand-400 hover:bg-brand-50",
           arrastrando ? "border-brand-500 bg-brand-50" : "border-slate-300 bg-slate-50",
         )}>
-        <IconUpload size={28} stroke={1.5} className="text-brand-600" />
+        <IconUpload size={40} stroke={1.5} className="text-brand-600" />
         {leyendo ? (
           <>
             <span className="text-sm font-semibold text-slate-800">{avance || "Leyendo… puede tardar un minuto"}</span>
