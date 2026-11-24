@@ -26,7 +26,7 @@ describe("contextoFinanciero", () => {
 
   it("lleva las cifras en millones con un decimal", () => {
     expect(c.unidad).toContain("millones");
-    expect(c.estadoDeResultadosPorMes[1]).toMatchObject({ mes: "2026-09", ventas: 136, costoVentas: 68 });
+    expect(c.estadoDeResultadosPorMes![1]).toMatchObject({ mes: "2026-09", ventas: 136, costoVentas: 68 });
     expect(c.balance).toMatchObject({ caja: 40, activoTotal: 492, patrimonio: 218 });
   });
 
@@ -47,5 +47,27 @@ describe("contextoFinanciero", () => {
     expect(sin.balance).toBeNull();
     expect(sin.cajaProyectada13Semanas).toBeNull();
     expect(sin.pipelineCRM).toBeNull();
+  });
+});
+
+describe("contextoFinanciero con un cierre anual", () => {
+  const cierre = { ...mes("2025", 2299 * M), otrosGastos: 1100 * M, impuestoRenta: 180 * M };
+  const c = contextoFinanciero({
+    empresa: "Huertas de prueba", hoy: "2026-11-24", modo: "anual", cierres: [mes("2024", 2117 * M), cierre],
+    actividad: "Arrendamiento de bienes inmuebles", periodos: [], balance: BALANCE, supuestos: SUPUESTOS, supuestosGuardados: true, pipeline: [],
+  });
+
+  it("manda los años completos con la utilidad real y no meses", () => {
+    expect(c.modoDelAnalisis).toContain("anual");
+    expect(c.estadoDeResultadosPorMes).toBeNull();
+    expect(c.cierresAnuales?.map(x => x.anio)).toEqual(["2024", "2025"]);
+    expect(c.cierresAnuales?.[1]).toMatchObject({ otrosGastosNoOperacionales: 1100, impuestoRenta: 180, impuestoRentaOrigen: "reportado por el contador" });
+    expect(c.cierresAnuales?.[1].utilidadNeta).toBeLessThan(0);
+  });
+
+  it("dice a qué se dedica la empresa, cuánto hace del último dato y aclara el modo", () => {
+    expect(c.actividadDeLaEmpresa).toBe("Arrendamiento de bienes inmuebles");
+    expect(c.mesesDesdeElUltimoDato).toBe(11);
+    expect(c.aclaracionDelModo).toContain("cierre anual");
   });
 });

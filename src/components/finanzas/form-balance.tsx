@@ -10,11 +10,12 @@ import { totalesBalance, balanceCuadra, type Balance } from "@/lib/finanzas/esta
 import { millones } from "@/lib/finanzas/formato";
 import { aTexto, enviar } from "./comun";
 
-const CAMPOS: { clave: keyof Balance; titulo: string; grupo: "Activo" | "Pasivo" | "Patrimonio" }[] = [
+const CAMPOS: { clave: Exclude<keyof Balance, "inversiones"> | "inversiones"; titulo: string; grupo: "Activo" | "Pasivo" | "Patrimonio" }[] = [
   { clave: "caja", titulo: "Caja y bancos", grupo: "Activo" },
   { clave: "cuentasPorCobrar", titulo: "Cuentas por cobrar", grupo: "Activo" },
   { clave: "inventario", titulo: "Inventario", grupo: "Activo" },
   { clave: "otrosActivosCorrientes", titulo: "Otros activos corrientes", grupo: "Activo" },
+  { clave: "inversiones", titulo: "Inversiones (CDT, fiducias, acciones)", grupo: "Activo" },
   { clave: "activosFijos", titulo: "Activos fijos netos", grupo: "Activo" },
   { clave: "proveedores", titulo: "Proveedores", grupo: "Pasivo" },
   { clave: "obligacionesCP", titulo: "Obligaciones financieras de corto plazo", grupo: "Pasivo" },
@@ -30,7 +31,7 @@ export function FormBalance({ balance, soloLectura }: Props) {
   const router = useRouter();
   const [corte, setCorte] = useState(balance?.corte ?? "");
   const [valores, setValores] = useState<Record<string, string>>(
-    Object.fromEntries(CAMPOS.map(c => [c.clave, balance ? aTexto(balance[c.clave]) : ""])),
+    Object.fromEntries(CAMPOS.map(c => [c.clave, balance ? aTexto(balance[c.clave] ?? 0) : ""])),
   );
   const [guardando, setGuardando] = useState(false);
 

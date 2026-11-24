@@ -11,13 +11,19 @@
 export const TASA_RENTA = 0.35;
 
 export type Periodo = {
-  mes: string; // "YYYY-MM"
+  mes: string; // "YYYY-MM" (o "YYYY" en un cierre anual)
   ventas: number;
   costoVentas: number;
   gastosAdmin: number;
   gastosVentas: number;
   depreciacion: number;
   intereses: number;
+  /** Ingresos no operacionales (rendimientos, recuperaciones…), sin contar ventas. */
+  otrosIngresos?: number;
+  /** Gastos no operacionales distintos de los intereses (extraordinarios, comisiones…). */
+  otrosGastos?: number;
+  /** Impuesto de renta real del contador; null/ausente = se estima con TASA_RENTA. */
+  impuestoRenta?: number | null;
 };
 
 export type Balance = {
@@ -25,6 +31,8 @@ export type Balance = {
   cuentasPorCobrar: number;
   inventario: number;
   otrosActivosCorrientes: number;
+  /** Inversiones (CDT, fiducias, acciones): activo no corriente, aparte. */
+  inversiones?: number;
   activosFijos: number;
   proveedores: number;
   obligacionesCP: number;
@@ -39,6 +47,8 @@ export type Resultado = Periodo & {
   ebit: number;
   antesDeImpuestos: number;
   impuesto: number;
+  /** true = el impuesto es el que reportó el contador; false = estimado al 35 %. */
+  impuestoReal: boolean;
   utilidadNeta: number;
 };
 
@@ -47,20 +57,27 @@ export function estadoResultados(p: Periodo): Resultado {
   const utilidadBruta = p.ventas - p.costoVentas;
   const ebitda = utilidadBruta - p.gastosAdmin - p.gastosVentas;
   const ebit = ebitda - p.depreciacion;
-  const antesDeImpuestos = ebit - p.intereses;
-  // Con pérdida no se causa impuesto de renta (simplificación).
-  const impuesto = antesDeImpuestos > 0 ? antesDeImpuestos * TASA_RENTA : 0;
-  return { ...p, utilidadBruta, ebitda, ebit, antesDeImpuestos, impuesto, utilidadNeta: antesDeImpuestos - impuesto };
+  // Las partidas no operacionales (otros ingresos y gastos) cuentan para la
+  // utilidad, no para el EBITDA: es lo que el contador reporta como resultado.
+  const antesDeImpuestos = ebit - p.intereses + (p.otrosIngresos ?? 0) - (p.otrosGastos ?? 0);
+  // Si el contador reportó el impuesto, ese; si no, se estima (con pérdida no
+  // se causa impuesto de renta: simplificación).
+  const impuestoReal = p.impuestoRenta != null;
+  const impuesto = impuestoReal ? p.impuestoRenta! : antesDeImpuestos > 0 ? antesDeImpuestos * TASA_RENTA : 0;
+  return { ...p, utilidadBruta, ebitda, ebit, antesDeImpuestos, impuesto, impuestoReal, utilidadNeta: antesDeImpuestos - impuesto };
 }
 
 /** Suma varios periodos en uno (p. ej. los últimos 12 meses). */
 export function sumarPeriodos(periodos: Periodo[], mes = "total"): Periodo {
-  const t: Periodo = { mes, ventas: 0, costoVentas: 0, gastosAdmin: 0, gastosVentas: 0, depreciacion: 0, intereses: 0 };
+  const t = { mes, ventas: 0, costoVentas: 0, gastosAdmin: 0, gastosVentas: 0, depreciacion: 0, intereses: 0, otrosIngresos: 0, otrosGastos: 0 };
   for (const p of periodos) {
     t.ventas += p.ventas; t.costoVentas += p.costoVentas; t.gastosAdmin += p.gastosAdmin;
     t.gastosVentas += p.gastosVentas; t.depreciacion += p.depreciacion; t.intereses += p.intereses;
+    t.otrosIngresos += p.otrosIngresos ?? 0; t.otrosGastos += p.otrosGastos ?? 0;
   }
-  return t;
+  // El impuesto real solo se suma si todos los periodos lo traen; si no, se estima.
+  const todosConImpuesto = periodos.length > 0 && periodos.every(p => p.impuestoRenta != null);
+  return { ...t, impuestoRenta: todosConImpuesto ? periodos.reduce((a, p) => a + p.impuestoRenta!, 0) : null };
 }
 
 /** Ordena por mes y deja solo los últimos `n`. */
@@ -79,7 +96,7 @@ export type TotalesBalance = {
 
 export function totalesBalance(b: Balance): TotalesBalance {
   const activoCorriente = b.caja + b.cuentasPorCobrar + b.inventario + b.otrosActivosCorrientes;
-  const activoTotal = activoCorriente + b.activosFijos;
+  const activoTotal = activoCorriente + (b.inversiones ?? 0) + b.activosFijos;
   const pasivoCorriente = b.proveedores + b.obligacionesCP + b.impuestosLaborales;
   const pasivoTotal = pasivoCorriente + b.deudaLP;
   return { activoCorriente, activoTotal, pasivoCorriente, pasivoTotal, diferencia: activoTotal - (pasivoTotal + b.patrimonio) };
@@ -128,10 +145,15 @@ const dias = (v: number) => `${Math.round(v)} días`;
  * Indicadores con los últimos 12 meses de resultados y el balance al corte.
  * La rotación de cartera y de proveedores usa los últimos 3 meses, que reflejan
  * mejor el ritmo actual que el año completo.
+ *
+ * Con `anual`, `periodos` es UN cierre anual: los resultados son los del año y
+ * la rotación se calcula sobre 365 días.
  */
-export function indicadores(periodos: Periodo[], balance: Balance | null): Indicador[] {
-  const doce = ultimosMeses(periodos, 12);
-  const tres = ultimosMeses(periodos, 3);
+export function indicadores(periodos: Periodo[], balance: Balance | null, opciones: { anual?: boolean } = {}): Indicador[] {
+  const anual = !!opciones.anual;
+  const doce = anual ? periodos.slice(-1) : ultimosMeses(periodos, 12);
+  const tres = anual ? doce : ultimosMeses(periodos, 3);
+  const diasBase = anual ? 365 : 90;
   const r = estadoResultados(sumarPeriodos(doce));
   const ventas3 = tres.reduce((a, p) => a + p.ventas, 0);
   const costo3 = tres.reduce((a, p) => a + p.costoVentas, 0);
@@ -141,8 +163,9 @@ export function indicadores(periodos: Periodo[], balance: Balance | null): Indic
   const liquidez = t ? div(t.activoCorriente, t.pasivoCorriente) : null;
   const acida = t && b ? div(t.activoCorriente - b.inventario, t.pasivoCorriente) : null;
   const endeudamiento = t ? div(t.pasivoTotal, t.activoTotal) : null;
-  const diasCartera = b && ventas3 > 0 ? (b.cuentasPorCobrar / ventas3) * 90 : null;
-  const diasProveedores = b && costo3 > 0 ? (b.proveedores / costo3) * 90 : null;
+  const diasCartera = b && ventas3 > 0 ? (b.cuentasPorCobrar / ventas3) * diasBase : null;
+  const diasProveedores = b && costo3 > 0 ? (b.proveedores / costo3) * diasBase : null;
+  const periodoTxt = anual ? "en el año" : "en 12 meses";
   const margenBruto = div(r.utilidadBruta, r.ventas);
   const margenEbitda = div(r.ebitda, r.ventas);
   const margenNeto = div(r.utilidadNeta, r.ventas);
@@ -173,7 +196,7 @@ export function indicadores(periodos: Periodo[], balance: Balance | null): Indic
     {
       clave: "cobertura", nombre: "Cobertura de intereses", grupo: "Endeudamiento", formato: "veces",
       valor: cobertura, semaforo: sinIntereses ? "bien" : masEsMejor(cobertura, 3, 1.5),
-      lectura: sinIntereses ? "No pagó intereses en los últimos 12 meses."
+      lectura: sinIntereses ? `No pagó intereses ${anual ? "en el año" : "en los últimos 12 meses"}.`
         : cobertura === null ? "Faltan resultados para calcularla."
         : `La operación genera ${decimales(cobertura)} veces lo que se paga en intereses.`,
     },
@@ -193,7 +216,7 @@ export function indicadores(periodos: Periodo[], balance: Balance | null): Indic
       clave: "margenNeto", nombre: "Margen neto", grupo: "Rentabilidad", formato: "porcentaje",
       valor: margenNeto, semaforo: masEsMejor(margenNeto, 0.08, 0),
       lectura: margenNeto === null ? "Cargue los resultados para calcularlo."
-        : margenNeto < 0 ? `Perdió ${pct(-margenNeto)} de las ventas en los últimos 12 meses.`
+        : margenNeto < 0 ? `Perdió ${pct(-margenNeto)} de las ventas ${anual ? "en el año" : "en los últimos 12 meses"}.`
         : `Le quedan ${pct(margenNeto)} de las ventas como utilidad, después de todo.`,
     },
     {
@@ -201,12 +224,13 @@ export function indicadores(periodos: Periodo[], balance: Balance | null): Indic
       valor: roe, semaforo: masEsMejor(roe, 0.15, 0.05),
       lectura: !b ? "Cargue el balance para calcularla."
         : roe === null ? "El patrimonio es cero o negativo: este indicador no aplica."
-        : `Por cada $100 que tienen invertidos los socios, la empresa ganó $${Math.round(roe * 100)} en 12 meses.`,
+        : roe < 0 ? `Por cada $100 que tienen invertidos los socios, la empresa perdió $${Math.round(-roe * 100)} ${periodoTxt}.`
+        : `Por cada $100 que tienen invertidos los socios, la empresa ganó $${Math.round(roe * 100)} ${periodoTxt}.`,
     },
     {
       clave: "diasCartera", nombre: "Días de cartera", grupo: "Ciclo de caja", formato: "dias",
       valor: diasCartera, semaforo: menosEsMejor(diasCartera, 45, 75),
-      lectura: diasCartera === null ? "Necesita el balance y las ventas de los últimos 3 meses."
+      lectura: diasCartera === null ? (anual ? "Necesita el balance y las ventas del año." : "Necesita el balance y las ventas de los últimos 3 meses.")
         : `Sus clientes le pagan en promedio a ${dias(diasCartera)}.`,
     },
     {
@@ -215,7 +239,7 @@ export function indicadores(periodos: Periodo[], balance: Balance | null): Indic
       // Sano si le pagan antes de lo que usted paga: el proveedor le financia el ciclo.
       semaforo: diasProveedores === null || diasCartera === null ? null
         : diasProveedores >= diasCartera ? "bien" : diasProveedores >= diasCartera * 0.6 ? "atencion" : "riesgo",
-      lectura: diasProveedores === null ? "Necesita el balance y el costo de los últimos 3 meses."
+      lectura: diasProveedores === null ? (anual ? "Necesita el balance y el costo de ventas del año." : "Necesita el balance y el costo de los últimos 3 meses.")
         : diasCartera === null ? `Paga a sus proveedores a ${dias(diasProveedores)}.`
         : diasProveedores >= diasCartera
           ? `Paga a sus proveedores a ${dias(diasProveedores)}, después de cobrarle a sus clientes: bien para la caja.`

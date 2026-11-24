@@ -8,8 +8,8 @@ import { toast } from "@/lib/toast";
 import { boton, tarjeta } from "@/components/ui/estilos";
 import { cn } from "@/lib/cn";
 import { formatoDia } from "@/lib/fecha-bogota";
-import { totalesBalance, balanceCuadra, type Balance, type Periodo } from "@/lib/finanzas/estados";
-import { repartirAcumulado, mesesEntre, type Acumulado } from "@/lib/finanzas/lectura-ia";
+import { totalesBalance, balanceCuadra, estadoResultados, type Balance, type Periodo } from "@/lib/finanzas/estados";
+import { repartirAcumulado, mesesEntre, anioCompleto, type Acumulado } from "@/lib/finanzas/lectura-ia";
 import { millones, mesCorto } from "@/lib/finanzas/formato";
 import { TablaMeses, enviar } from "./comun";
 import { CupoIA, avisarUsoIA } from "./cupo-ia";
@@ -17,10 +17,22 @@ import { CupoIA, avisarUsoIA } from "./cupo-ia";
 type Lectura = {
   periodos: Periodo[];
   acumulado: Acumulado | null;
+  acumuladoAnterior?: Acumulado | null;
   balance: (Balance & { corte: string }) | null;
+  balanceAnterior?: (Balance & { corte: string }) | null;
+  actividad?: string;
   advertencias: string[];
   unidadDocumento: string;
 };
+
+/** Un acumulado de año completo como cierre anual para /api/finanzas/cierres. */
+function comoCierre(a: Acumulado, anio: number) {
+  return {
+    anio, ventas: a.ventas, costoVentas: a.costoVentas, gastosAdmin: a.gastosAdmin, gastosVentas: a.gastosVentas,
+    depreciacion: a.depreciacion, intereses: a.intereses, otrosIngresos: a.otrosIngresos ?? 0, otrosGastos: a.otrosGastos ?? 0,
+    impuestoRenta: a.impuestoRenta ?? null,
+  };
+}
 
 const UNIDAD: Record<string, string> = { miles: "miles de pesos", millones: "millones de pesos" };
 
@@ -85,6 +97,7 @@ export function LeerConIA() {
   const [guardando, setGuardando] = useState<"meses" | "balance" | "todo" | null>(null);
   // Después de guardar: qué quedó guardado, y el botón para cargar otro informe.
   const [guardado, setGuardado] = useState<string | null>(null);
+  const [guardadoAnual, setGuardadoAnual] = useState(false);
   const [claveInput, setClaveInput] = useState(0);
   const [arrastrando, setArrastrando] = useState(false);
 
@@ -141,15 +154,42 @@ export function LeerConIA() {
     }
   }
 
+  // Un año completo (ene–dic) se guarda como cierre anual: el análisis es año
+  // contra año, con la utilidad real del contador. No se reparte en meses.
+  const anioCierre = lectura?.acumulado ? anioCompleto(lectura.acumulado) : null;
+  const anioAnterior = lectura?.acumuladoAnterior ? anioCompleto(lectura.acumuladoAnterior) : null;
+  const esCierreAnual = anioCierre !== null && meses.length === 0;
+
   /**
-   * Guarda de una vez todo lo que la IA leyó: los meses (si el estado de
-   * resultados viene acumulado del año, pide confirmar el reparto en meses
-   * iguales) y el balance. Antes había que encontrar dos botones y, con un
-   * acumulado, primero "Repartir": era fácil irse sin guardar nada.
+   * Guarda de una vez todo lo que la IA leyó: los meses, o el cierre anual (y
+   * el del año anterior si venía), o el acumulado parcial repartido en meses
+   * iguales (pide confirmarlo), y el balance (y el anterior). Antes había que
+   * encontrar varios botones: era fácil irse sin guardar nada.
    */
   async function guardarTodo() {
     if (!lectura) return;
     let mesesAGuardar = meses;
+    if (esCierreAnual) {
+      setGuardando("todo");
+      const hecho: string[] = [];
+      try {
+        const cierres = [comoCierre(lectura.acumulado!, anioCierre!)];
+        if (lectura.acumuladoAnterior && anioAnterior !== null) cierres.push(comoCierre(lectura.acumuladoAnterior, anioAnterior));
+        await enviar("/api/finanzas/cierres", "PUT", { cierres, ...(lectura.actividad ? { actividad: lectura.actividad } : {}) });
+        hecho.push(cierres.length > 1 ? `los cierres ${cierres.map(c => c.anio).sort().join(" y ")}` : `el cierre ${anioCierre}`);
+        for (const b of [lectura.balanceAnterior, lectura.balance]) {
+          if (!b) continue;
+          await enviar("/api/finanzas/balance", "PUT", b);
+          hecho.push(`el balance al ${formatoDia(b.corte)}`);
+        }
+        terminar(hecho, true);
+      } catch (e) {
+        toast.error(`${hecho.length ? `Se guardó ${hecho.join(" y ")}, pero ` : ""}${(e as Error).message}`);
+      } finally {
+        setGuardando(null);
+      }
+      return;
+    }
     if (mesesAGuardar.length === 0 && lectura.acumulado) {
       const n = mesesEntre(lectura.acumulado.desde, lectura.acumulado.hasta).length;
       if (!confirm(`El estado de resultados viene acumulado de ${mesCorto(lectura.acumulado.desde)} a ${mesCorto(lectura.acumulado.hasta)}. Se guardará repartido en ${n} meses iguales (es un promedio, no el dato real de cada mes). ¿Continuar?`)) return;
@@ -166,18 +206,23 @@ export function LeerConIA() {
         await enviar("/api/finanzas/balance", "PUT", lectura.balance);
         hecho.push(`el balance al ${formatoDia(lectura.balance.corte)}`);
       }
-      setGuardado(hecho.join(" y "));
-      setLectura(null);
-      setMeses([]);
-      setArchivo(null);
-      setClaveInput(k => k + 1);
-      router.refresh();
+      terminar(hecho, false);
     } catch (e) {
       // Lo que alcanzó a guardarse queda guardado; se dice qué faltó.
       toast.error(`${hecho.length ? `Se guardó ${hecho.join(" y ")}, pero ` : ""}${(e as Error).message}`);
     } finally {
       setGuardando(null);
     }
+  }
+
+  function terminar(hecho: string[], anual: boolean) {
+    setGuardado(hecho.join(", ").replace(/, ([^,]*)$/, " y $1"));
+    setGuardadoAnual(anual);
+    setLectura(null);
+    setMeses([]);
+    setArchivo(null);
+    setClaveInput(k => k + 1);
+    router.refresh();
   }
 
   function cargarOtro() {
@@ -240,7 +285,7 @@ export function LeerConIA() {
           <p className="flex flex-1 items-center gap-1.5 text-sm text-emerald-800">
             <IconCircleCheck size={16} />Listo: se guardó {guardado}. Ya lo ve en Resumen, Estados e Indicadores.
           </p>
-          <Link href="/dashboard/finanzas/informe" className={boton("primario", "sm")}>Generar el informe del mes</Link>
+          <Link href="/dashboard/finanzas/informe" className={boton("primario", "sm")}>{guardadoAnual ? "Generar el informe del año" : "Generar el informe del mes"}</Link>
           <button type="button" onClick={cargarOtro} className={boton("secundario", "sm")}>
             <IconFilePlus size={15} />Cargar otro informe
           </button>
@@ -259,16 +304,29 @@ export function LeerConIA() {
           )}
           {sinNada && <p className="text-sm text-slate-600">No se encontraron estados financieros en este documento.</p>}
 
+          {lectura.actividad && (
+            <p className="text-sm text-slate-700"><span className="font-semibold">A qué se dedica la empresa, según el documento:</span> {lectura.actividad}</p>
+          )}
+
           {hayQueGuardar && (
             <div className="flex flex-wrap items-center gap-2 rounded-lg border border-brand-100 bg-brand-50 px-3 py-2">
-              <p className="flex-1 text-sm text-slate-700">Revise las cifras de abajo y guárdelas. Puede corregir cualquier mes después en &quot;Meses cargados&quot;.</p>
+              <p className="flex-1 text-sm text-slate-700">
+                {esCierreAnual
+                  ? "Revise las cifras de abajo y guárdelas. Se guardan como cierre anual: el análisis compara el año con el anterior."
+                  : "Revise las cifras de abajo y guárdelas. Puede corregir cualquier mes después en \"Meses cargados\"."}
+              </p>
               <button type="button" onClick={guardarTodo} disabled={guardando !== null} className={boton("primario", "sm")}>
                 <IconDeviceFloppy size={15} />{guardando === "todo" ? "Guardando…" : "Guardar todo lo leído"}
               </button>
             </div>
           )}
 
-          {lectura.acumulado && !repartido && (
+          {esCierreAnual && (
+            <CierreLeido actual={lectura.acumulado!} anio={anioCierre!}
+              anterior={anioAnterior !== null ? lectura.acumuladoAnterior ?? null : null} anioAnterior={anioAnterior} />
+          )}
+
+          {lectura.acumulado && !repartido && !esCierreAnual && (
             <div className="space-y-2">
               <p className="text-sm text-slate-700">
                 El estado de resultados viene acumulado de <strong>{mesCorto(lectura.acumulado.desde)}</strong> a{" "}
@@ -296,6 +354,11 @@ export function LeerConIA() {
           )}
 
           {lectura.balance && <BalanceLeido balance={lectura.balance} guardando={guardando === "balance"} onGuardar={guardarBalance} />}
+          {lectura.balanceAnterior && (
+            <p className="text-xs text-slate-500">
+              También se leyó el balance al {formatoDia(lectura.balanceAnterior.corte)}{" "}(año anterior): se guarda con &quot;Guardar todo lo leído&quot;.
+            </p>
+          )}
         </div>
       )}
     </section>
@@ -306,7 +369,7 @@ function BalanceLeido({ balance: b, guardando, onGuardar }: { balance: Balance &
   const t = totalesBalance(b);
   const filas: [string, number][] = [
     ["Caja y bancos", b.caja], ["Cuentas por cobrar", b.cuentasPorCobrar], ["Inventario", b.inventario],
-    ["Otros activos corrientes", b.otrosActivosCorrientes], ["Activos fijos", b.activosFijos], ["Proveedores", b.proveedores],
+    ["Otros activos corrientes", b.otrosActivosCorrientes], ["Inversiones", b.inversiones ?? 0], ["Activos fijos", b.activosFijos], ["Proveedores", b.proveedores],
     ["Obligaciones financieras CP", b.obligacionesCP], ["Impuestos y laborales", b.impuestosLaborales], ["Deuda de largo plazo", b.deudaLP],
     ["Patrimonio", b.patrimonio],
   ];
@@ -329,6 +392,56 @@ function BalanceLeido({ balance: b, guardando, onGuardar }: { balance: Balance &
       <button type="button" onClick={onGuardar} disabled={guardando} className={boton("primario", "sm")}>
         {guardando ? "Guardando…" : "Guardar este balance"}
       </button>
+    </div>
+  );
+}
+
+/** El cierre anual leído (y el del año anterior), hasta la utilidad neta, para revisarlo antes de guardar. */
+function CierreLeido({ actual, anio, anterior, anioAnterior }: { actual: Acumulado; anio: number; anterior: Acumulado | null; anioAnterior: number | null }) {
+  const ra = estadoResultados({ ...actual, mes: String(anio) });
+  const rb = anterior ? estadoResultados({ ...anterior, mes: String(anioAnterior) }) : null;
+  const filas: [string, (r: typeof ra) => number, boolean?][] = [
+    ["Ventas (ingresos operacionales)", r => r.ventas],
+    ["Costo de ventas", r => r.costoVentas],
+    ["Gastos de administración", r => r.gastosAdmin],
+    ["Gastos de ventas", r => r.gastosVentas],
+    ["EBITDA", r => r.ebitda, true],
+    ["Depreciación", r => r.depreciacion],
+    ["Gastos financieros", r => r.intereses],
+    ["Ingresos no operacionales", r => r.otrosIngresos ?? 0],
+    ["Gastos no operacionales", r => r.otrosGastos ?? 0],
+    ["Utilidad antes de impuestos", r => r.antesDeImpuestos, true],
+    [ra.impuestoReal ? "Impuesto de renta" : "Impuesto de renta (estimado 35 %)", r => r.impuesto],
+    ["Utilidad neta", r => r.utilidadNeta, true],
+  ];
+  return (
+    <div className="space-y-2">
+      <p className="text-sm text-slate-700">
+        Estado de resultados del <strong>año {anio}</strong>{rb ? <> comparado con <strong>{anioAnterior}</strong></> : null} (cierre anual):
+      </p>
+      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 text-xs text-slate-500">
+            <tr>
+              <th className="px-3 py-1.5 text-left font-semibold">Concepto</th>
+              <th className="px-3 py-1.5 text-right font-semibold">{anio}</th>
+              {rb && <th className="px-3 py-1.5 text-right font-semibold">{anioAnterior}</th>}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {filas.map(([n, f, total]) => (
+              <tr key={n} className={total ? "font-semibold text-slate-900" : "text-slate-700"}>
+                <td className="px-3 py-1">{n}</td>
+                <td className={cn("px-3 py-1 text-right tabular-nums", total && f(ra) < 0 && "text-red-600")}>{millones(f(ra))}</td>
+                {rb && <td className={cn("px-3 py-1 text-right tabular-nums", total && f(rb) < 0 && "text-red-600")}>{millones(f(rb))}</td>}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {!ra.impuestoReal && (
+        <p className="text-xs text-slate-500">El documento no trae el impuesto de renta: se estima al 35 % sobre la utilidad antes de impuestos.</p>
+      )}
     </div>
   );
 }

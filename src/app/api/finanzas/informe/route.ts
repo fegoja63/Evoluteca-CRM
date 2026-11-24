@@ -30,8 +30,19 @@ export async function GET() {
 const mm = (v: number) => Math.round(v / 100_000) / 10;
 const enMillones = (f: FilaResultados | null) => f && Object.fromEntries(Object.entries(f).map(([k, v]) => [k, typeof v === "number" ? mm(v) : v]));
 
-/** Lo que se le agrega al resumen del Gerente IA: la comparación del mes. */
+/** Lo que se le agrega al resumen del Gerente IA: la comparación del mes (o del año). */
 function comparativo(c: CifrasInforme) {
+  if (c.modo === "anual") {
+    return {
+      anioDelInforme: c.mes,
+      anioActual: enMillones(c.actual),
+      anioAnterior: enMillones(c.anterior) ?? "no cargado",
+      aniosCargados: c.serie.map(enMillones),
+      salud: c.salud ?? null,
+      composicion: c.composicion ? { cadaCienPesosVendidos: c.composicion } : null,
+      proyeccion: "no hay: con un cierre anual no hay meses para proyectar",
+    };
+  }
   return {
     mesDelInforme: c.mes,
     mesActual: enMillones(c.actual),
@@ -74,7 +85,7 @@ export async function POST() {
   const rentabilidadClientes = rentabilidad.map(f => ({ cliente: f.cliente, ventas: Number(f.ventas), costo: Number(f.costo), diasPago: f.diasPago }));
   const cifras = calcularCifras({ empresa: tenant?.nombre ?? "", ...datos, rentabilidadClientes });
   if (!cifras) {
-    return NextResponse.json({ error: "Primero cargue al menos un mes de estado de resultados (pestaña Cargar datos)." }, { status: 400 });
+    return NextResponse.json({ error: "Primero suba sus estados financieros (pestaña Subir estados): un cierre anual o al menos un mes." }, { status: 400 });
   }
 
   const permitido = await permitirYRegistrar(`ia-informe:${session?.user?.id ?? tenantId}`, 3, 60 * 1000);

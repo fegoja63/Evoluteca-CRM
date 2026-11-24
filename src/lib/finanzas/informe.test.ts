@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { mesMas, calcularCifras, limpiarTexto, proyectar, saludFinanciera, type EntradaCifras } from "./informe";
 import { supuestosSugeridos } from "./caja";
+import { mesesDelCierre } from "./modo";
 
 const M = 1_000_000;
 const p = (mes: string, ventas: number) => ({ mes, ventas, costoVentas: ventas / 2, gastosAdmin: 10 * M, gastosVentas: 0, depreciacion: 0, intereses: 0 });
@@ -104,5 +105,41 @@ describe("saludFinanciera", () => {
     expect(saludFinanciera(["bien", "riesgo"])?.etiqueta).toBe("En atención");
     expect(saludFinanciera(["riesgo", "atencion", "riesgo"])?.etiqueta).toBe("Frágil");
     expect(saludFinanciera([null])).toBeNull();
+  });
+});
+
+describe("calcularCifras con un cierre anual", () => {
+  const cierre = (anio: string, ventas: number, extra: Partial<ReturnType<typeof p>> & { otrosGastos?: number; impuestoRenta?: number | null } = {}) =>
+    ({ ...p(anio, ventas), ...extra });
+
+  it("compara año contra año, con la utilidad real y sin proyección mensual", () => {
+    const cierres = [cierre("2024", 2117.6 * M, { impuestoRenta: 201.5 * M }), cierre("2025", 2299.4 * M, { otrosGastos: 1100 * M, impuestoRenta: 180 * M })];
+    const c = calcularCifras({ ...entrada([]), modo: "anual", cierres, periodos: mesesDelCierre(cierres[1]), actividad: "Arrendamiento de inmuebles" })!;
+    expect(c.modo).toBe("anual");
+    expect(c.mes).toBe("2025");
+    expect(c.anterior?.mes).toBe("2024");
+    expect(c.anioAnterior).toBeNull();
+    expect(c.ultimos12).toBeNull();
+    expect(c.proyeccion).toBeNull();
+    expect(c.actividad).toBe("Arrendamiento de inmuebles");
+    expect(c.mesesDesdeDato).toBe(11);
+    expect(c.actual.impuestoReal).toBe(true);
+    expect(c.actual.impuesto).toBe(180 * M);
+    // Con los gastos no operacionales la empresa pierde, aunque la operación gane.
+    expect(c.actual.ebitda).toBeGreaterThan(0);
+    expect(c.actual.utilidadNeta).toBeLessThan(0);
+    expect(c.composicion?.otrosGastos).toBeGreaterThan(0);
+    expect(c.serie.map(f => f.mes)).toEqual(["2024", "2025"]);
+    // El punto de equilibrio es mensual: sale de los promedios del año (10 M ÷ 12), no del total.
+    expect(c.equilibrio!.gastosFijos).toBeLessThan(1 * M);
+  });
+});
+
+describe("saludFinanciera con pérdida", () => {
+  it("una empresa que pierde plata no sale Sólida aunque tenga liquidez", () => {
+    const s = saludFinanciera(["bien", "bien", "bien", "riesgo"], { perdida: true })!;
+    expect(s.puntaje).toBe(50);
+    expect(s.etiqueta).toBe("En atención");
+    expect(saludFinanciera(["bien", "bien", "bien", "riesgo"])!.etiqueta).toBe("Sólida");
   });
 });

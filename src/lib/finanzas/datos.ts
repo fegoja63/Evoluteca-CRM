@@ -8,8 +8,9 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { estadoLicencia, type ResumenLicencia } from "@/lib/licencias";
 import { diaISO, fechaISO, fechaDesdeBogota } from "@/lib/fecha-bogota";
-import { rolVeFinanzas, aPeriodo, aBalance } from "./acceso";
-import { indicadores, type Balance, type Periodo } from "./estados";
+import { rolVeFinanzas, aPeriodo, aBalance, aCierre } from "./acceso";
+import { indicadores, ultimosMeses, type Balance, type Indicador, type Periodo } from "./estados";
+import { modoAnalisis, mesesDelCierre, type ModoAnalisis } from "./modo";
 import { supuestosSugeridos, type FacturaPorCobrar, type NegocioPipeline, type Supuestos } from "./caja";
 
 export type AccesoPagina =
@@ -26,22 +27,58 @@ export async function accesoPaginaFinanzas(): Promise<AccesoPagina> {
 }
 
 export type DatosFinancieros = {
+  /** Los meses cargados (estado de resultados mes a mes). */
   periodos: Periodo[];
+  /** Cierres anuales (mes = "YYYY"), del más viejo al más reciente. */
+  cierres: Periodo[];
+  /**
+   * "anual" si lo más reciente que tiene la empresa es un cierre de año (no hay
+   * meses posteriores): el análisis compara año contra año. Ver lib/finanzas/modo.
+   */
+  modo: ModoAnalisis;
   balance: (Balance & { corte: string }) | null;
+  /** El corte anterior al último (para comparar balances). */
+  balanceAnterior: (Balance & { corte: string }) | null;
+  /** A qué se dedica la empresa según sus estados (lectura con IA). */
+  actividad: string | null;
 };
 
 export async function cargarDatosFinancieros(tenantId: string): Promise<DatosFinancieros> {
-  const [filas, bal] = await Promise.all([
+  const [filas, cierresDb, balances, tenant] = await Promise.all([
     prisma.periodoFinanciero.findMany({ where: { tenantId }, orderBy: { mes: "asc" } }),
-    prisma.balanceFinanciero.findFirst({ where: { tenantId }, orderBy: { corte: "desc" } }),
+    prisma.cierreAnual.findMany({ where: { tenantId }, orderBy: { anio: "asc" } }),
+    prisma.balanceFinanciero.findMany({ where: { tenantId }, orderBy: { corte: "desc" }, take: 2 }),
+    prisma.tenant.findUnique({ where: { id: tenantId }, select: { actividadFinanciera: true } }),
   ]);
+  const periodos = filas.map(aPeriodo);
+  const cierres = cierresDb.map(aCierre);
+  const conCorte = (b: (typeof balances)[number] | undefined) => (b ? { corte: diaISO(b.corte), ...aBalance(b) } : null);
   return {
-    periodos: filas.map(aPeriodo),
-    balance: bal ? { corte: diaISO(bal.corte), ...aBalance(bal) } : null,
+    periodos, cierres, modo: modoAnalisis(periodos, cierres),
+    balance: conCorte(balances[0]), balanceAnterior: conCorte(balances[1]),
+    actividad: tenant?.actividadFinanciera ?? null,
   };
 }
 
+/**
+ * Los meses con que trabajan la caja, el punto de equilibrio y las demás
+ * cuentas mensuales. Con un cierre anual son el año repartido en 12 meses
+ * iguales (promedios), porque no hay detalle mes a mes.
+ */
+export function mesesDeCalculo(d: DatosFinancieros): Periodo[] {
+  return d.modo === "anual" ? mesesDelCierre(d.cierres[d.cierres.length - 1]) : d.periodos;
+}
+
+/** Indicadores con los datos del modo: el último cierre anual o los últimos 12 meses. */
+export function indicadoresDe(d: DatosFinancieros): Indicador[] {
+  return d.modo === "anual"
+    ? indicadores(d.cierres.slice(-1), d.balance, { anual: true })
+    : indicadores(ultimosMeses(d.periodos, 12), d.balance);
+}
+
 export type DatosCaja = DatosFinancieros & {
+  /** Los meses cargados de verdad (en `periodos` van los de cálculo). */
+  mesesReales: Periodo[];
   hoy: string;
   supuestos: Supuestos;
   /** false = todavía no los ha guardado: son los sugeridos desde los estados. */
@@ -83,7 +120,8 @@ export async function cargarDatosCaja(tenantId: string): Promise<DatosCaja> {
     _sum: { valor: true },
   });
 
-  const dias = indicadores(datos.periodos, datos.balance).find(i => i.clave === "diasCartera")?.valor ?? null;
+  const dias = indicadoresDe(datos).find(i => i.clave === "diasCartera")?.valor ?? null;
+  const meses = mesesDeCalculo(datos);
   const supuestos: Supuestos = guardados ? {
     nominaMensual: Number(guardados.nominaMensual), gastosFijosMensuales: Number(guardados.gastosFijosMensuales),
     cuotaDeudaMensual: Number(guardados.cuotaDeudaMensual), proveedoresSemanales: Number(guardados.proveedoresSemanales),
@@ -92,10 +130,14 @@ export async function cargarDatosCaja(tenantId: string): Promise<DatosCaja> {
     ivaBimestral: Number(guardados.ivaBimestral), diaImpuestos: guardados.diaImpuestos,
     ingresosRecurrentes: Number(guardados.ingresosRecurrentes), plazoRecurrentes: guardados.plazoRecurrentes,
     ventasProyectadas: Array.isArray(guardados.ventasProyectadas) ? (guardados.ventasProyectadas as { mes: string; monto: number }[]) : [],
-  } : supuestosSugeridos(datos.periodos, dias);
+  } : supuestosSugeridos(meses, dias, { sinCRM: soloFinanzas });
 
   return {
     ...datos,
+    // La caja y el punto de equilibrio trabajan con meses (en el modo anual,
+    // el año repartido en promedios); los meses reales quedan en mesesReales.
+    periodos: meses,
+    mesesReales: datos.periodos,
     hoy,
     ganadoMes: Number(ganadas?._sum.valor ?? 0),
     carteraDetalle: facturas.map(f => ({ cliente: f.cliente, monto: Number(f.monto), vence: diaISO(f.vence) })),

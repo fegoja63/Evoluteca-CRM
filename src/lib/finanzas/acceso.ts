@@ -30,17 +30,30 @@ export async function exigirAccesoFinanzas(uso: "leer" | "editar"): Promise<{ te
 
 // ── De la base (Decimal) a números para los cálculos ────────────────────────
 
-type FilaPeriodo = { mes: string; ventas: Prisma.Decimal; costoVentas: Prisma.Decimal; gastosAdmin: Prisma.Decimal; gastosVentas: Prisma.Decimal; depreciacion: Prisma.Decimal; intereses: Prisma.Decimal };
+type FilaPeriodo = {
+  mes: string; ventas: Prisma.Decimal; costoVentas: Prisma.Decimal; gastosAdmin: Prisma.Decimal; gastosVentas: Prisma.Decimal;
+  depreciacion: Prisma.Decimal; intereses: Prisma.Decimal;
+  otrosIngresos?: Prisma.Decimal; otrosGastos?: Prisma.Decimal; impuestoRenta?: Prisma.Decimal | null;
+};
 
 export function aPeriodo(f: FilaPeriodo): Periodo {
   return {
     mes: f.mes, ventas: Number(f.ventas), costoVentas: Number(f.costoVentas), gastosAdmin: Number(f.gastosAdmin),
     gastosVentas: Number(f.gastosVentas), depreciacion: Number(f.depreciacion), intereses: Number(f.intereses),
+    otrosIngresos: Number(f.otrosIngresos ?? 0), otrosGastos: Number(f.otrosGastos ?? 0),
+    impuestoRenta: f.impuestoRenta == null ? null : Number(f.impuestoRenta),
   };
 }
 
+type FilaCierre = Omit<FilaPeriodo, "mes"> & { anio: number };
+
+/** Un cierre anual de la base como Periodo (mes = "YYYY"). */
+export function aCierre(f: FilaCierre): Periodo {
+  return aPeriodo({ ...f, mes: String(f.anio) });
+}
+
 export const CAMPOS_BALANCE = [
-  "caja", "cuentasPorCobrar", "inventario", "otrosActivosCorrientes", "activosFijos",
+  "caja", "cuentasPorCobrar", "inventario", "otrosActivosCorrientes", "inversiones", "activosFijos",
   "proveedores", "obligacionesCP", "impuestosLaborales", "deudaLP", "patrimonio",
 ] as const;
 
