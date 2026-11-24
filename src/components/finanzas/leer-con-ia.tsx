@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { IconSparkles, IconUpload, IconDeviceFloppy, IconCircleCheck, IconFilePlus } from "@tabler/icons-react";
 import { toast } from "@/lib/toast";
@@ -236,6 +237,7 @@ export function LeerConIA() {
           <p className="flex flex-1 items-center gap-1.5 text-sm text-emerald-800">
             <IconCircleCheck size={16} />Listo: se guardó {guardado}. Ya lo ve en Resumen, Estados e Indicadores.
           </p>
+          <Link href="/dashboard/finanzas/informe" className={boton("primario", "sm")}>Generar el informe del mes</Link>
           <button type="button" onClick={cargarOtro} className={boton("secundario", "sm")}>
             <IconFilePlus size={15} />Cargar otro informe
           </button>
