@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 
 const PESTANAS = [
   { href: "/dashboard/finanzas", label: "Resumen" },
+  { href: "/dashboard/finanzas/informe", label: "Informe" },
   { href: "/dashboard/finanzas/caja", label: "Caja proyectada" },
   { href: "/dashboard/finanzas/estados", label: "Estados financieros" },
   { href: "/dashboard/finanzas/indicadores", label: "Indicadores" },

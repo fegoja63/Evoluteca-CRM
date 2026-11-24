@@ -143,6 +143,7 @@ model Tenant {
   suscripcionesPush        SuscripcionPush[]
   conversacionesAgente     ConversacionAgente[]
   partesArchivoTemporal    ParteArchivoTemporal[]
+  informesFinancieros      InformeFinanciero[]
   secuencias               Secuencia[]
   inscripcionesSecuencia   InscripcionSecuencia[]
 
@@ -1583,4 +1584,24 @@ model ParteArchivoTemporal {
   @@unique([subidaId, indice])
   @@index([tenantId, creadoEn])
   @@map("partes_archivo_temporal")
+}
+
+// Informe de análisis financiero del mes (Gerente Financiero › Informe): una
+// foto de las cifras que calculó el código al generarlo + el texto que
+// redactó la IA. Se guarda para verlo, descargarlo en PDF y comparar mes a
+// mes (ver lib/finanzas/informe.ts).
+model InformeFinanciero {
+  id       String   @id @default(uuid())
+  // Último mes con estado de resultados cuando se generó (AAAA-MM).
+  mes      String
+  cifras   Json
+  texto    Json
+  creadoBy String?
+  creadoEn DateTime @default(now())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, creadoEn])
+  @@map("informes_financieros")
 }

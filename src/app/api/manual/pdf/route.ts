@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.47"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.48"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -1237,8 +1237,9 @@ export async function GET() {
 
       React.createElement(H2, null, "11.2 Cargar datos"),
       React.createElement(H3, null, "Leer los estados del contador con IA"),
-      React.createElement(P, null, "Sube el PDF, una foto o el Excel tal como te lo entregó el contador (máximo 4 MB). En unos segundos la IA propone el estado de resultados y el balance, ya convertidos a pesos si el documento venía en miles o millones, y señala lo que debes revisar. Nada se guarda hasta que tú confirmas: guarda los meses y el balance por separado. Cada lectura cuenta como una acción de IA de tu plan."),
-      React.createElement(Tip, null, "Si el contador te entrega el año completo (un acumulado), el sistema puede repartirlo en meses iguales. Es un promedio aproximado, no el dato real de cada mes: úsalo para empezar y reemplázalo cuando tengas los meses."),
+      React.createElement(P, null, "Haz clic en el recuadro \"Haga clic aquí para buscar el archivo, o arrástrelo\" (o arrastra el archivo encima) y sube los estados tal como te los entregó el contador: PDF, Excel, Word, una foto, OpenOffice, CSV u otro, hasta 15 MB. La IA empieza a leerlo de inmediato y propone el estado de resultados y el balance, ya convertidos a pesos si el documento venía en miles o millones, y señala lo que debes revisar. Nada se guarda hasta que tú confirmas con \"Guardar todo lo leído\" (guarda los meses y el balance de una vez). Al terminar, \"Cargar otro informe\" deja la pantalla lista para el siguiente archivo. Cada lectura cuenta como una acción de IA de tu plan."),
+      React.createElement(Nota, null, "Los formatos antiguos de Office (.xls, .doc) y las fotos HEIC del iPhone no se pueden leer: guárdalos como Excel (.xlsx), PDF o JPG. Un archivo de más de 3,5 MB se sube por partes (verás \"Subiendo 2 de 4…\"); las fotos muy pesadas se achican solas."),
+      React.createElement(Tip, null, "Si el contador te entrega el año completo (un acumulado), \"Guardar todo lo leído\" te pregunta si lo reparte en meses iguales. Es un promedio aproximado, no el dato real de cada mes: úsalo para empezar y reemplázalo cuando tengas los meses."),
       React.createElement(H3, null, "Plantilla mensual"),
       React.createElement(P, null, "Descarga la plantilla de Excel (trae los 12 meses anteriores ya escritos), llénala con una fila por mes y súbela indicando si las cifras están en pesos, miles o millones. Antes de guardar ves lo que se leyó y las filas con problemas; si las ventas se ven sospechosamente bajas, la pantalla te pregunta si te equivocaste de unidad. Un mes que ya estaba cargado se reemplaza."),
       React.createElement(H3, null, "Meses cargados y balance"),
@@ -1277,6 +1278,14 @@ export async function GET() {
 
       React.createElement(H2, null, "11.8 Gerente IA"),
       React.createElement(P, null, "Con \"Diagnóstico del mes\" la IA explica qué está pasando con la caja y la rentabilidad, por qué y qué hacer primero, con una lista de acciones. También puedes hacerle preguntas (por ejemplo \"¿Puedo contratar a una persona más?\") y repreguntar. Usa únicamente las cifras que el sistema calcula con tus datos — estados, caja, cartera, rentabilidad por cliente y pipeline —, no inventa números, y cada consulta cuenta como una acción de IA de tu plan."),
+      React.createElement(H2, null, "11.9 Informe de análisis financiero"),
+      React.createElement(P, null, "En la pestaña Informe, \"Generar informe del mes\" arma el informe mensual que entregaría un asesor financiero externo, para leerlo con calma o llevarlo a socios y junta. También lo puedes generar desde el aviso que aparece al terminar de cargar datos. Trae:"),
+      React.createElement(LI, null, "Resumen ejecutivo y las 3 decisiones más urgentes."),
+      React.createElement(LI, null, "Resultados del mes contra el mes anterior y el mismo mes del año pasado, con lo que explica el cambio y los últimos 12 meses."),
+      React.createElement(LI, null, "Balance e indicadores con semáforo, explicados en palabras simples."),
+      React.createElement(LI, null, "Caja de las próximas 13 semanas: cuándo se pone en riesgo y qué negocios del Pipeline ayudan; y el punto de equilibrio."),
+      React.createElement(LI, null, "Rentabilidad por cliente (si la cargaste), de 3 a 5 recomendaciones con su porqué e impacto esperado, y preguntas para el contador."),
+      React.createElement(P, null, "Se ve en pantalla y con \"Descargar PDF\" se descarga con el logo y el color de tu empresa. Cada informe queda guardado con una foto de las cifras de ese momento: en \"Informes anteriores\" comparas un mes con otro. Las cifras las calcula el sistema; la IA solo las analiza y redacta. Cada informe cuenta como una acción de IA de tu plan."),
       React.createElement(Nota, null, "El Gerente Financiero es una herramienta de análisis: no reemplaza la asesoría contable, tributaria ni financiera certificada."),
 
       React.createElement(Sep, null),

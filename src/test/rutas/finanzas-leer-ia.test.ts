@@ -171,7 +171,7 @@ describe("archivos grandes (hasta 15 MB) por partes", () => {
     expect(bloque.type).toBe("document");
     expect(Buffer.from(bloque.source.data, "base64").length).toBe(10 * 1024 * 1024);
     expect(await prisma.parteArchivoTemporal.count({ where: { tenantId: A.tenantId, subidaId } })).toBe(0);
-  });
+  }, 120_000); // sube 10 MB a la base de pruebas: con la red lenta pasa de 30 s
 
   it("más de 15 MB se rechaza", async () => {
     comoUsuario(A, "ADMINISTRADOR");
