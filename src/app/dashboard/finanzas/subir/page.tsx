@@ -8,13 +8,13 @@ export const dynamic = "force-dynamic";
 
 // Pestaña "Subir estados": la lectura con IA de los estados del contador, sola
 // y a la vista (antes estaba mezclada con la plantilla y los formularios de
-// "Cargar datos"). Al lado, qué pasa después y cuánto cupo de IA gasta.
+// "Cargar a mano"). Al lado, qué pasa después y cuánto cupo de IA gasta.
 export default async function SubirEstadosPage() {
   const acceso = await accesoPaginaFinanzas();
   if (acceso.bloqueo) return <SinAccesoFinanzas motivo={acceso.bloqueo} />;
 
   return (
-    <MarcoFinanzas licencia={acceso.licencia} enSubir>
+    <MarcoFinanzas licencia={acceso.licencia}>
       {acceso.soloLectura ? (
         <p className={tarjeta("p-5 text-sm text-slate-500")}>La licencia no está vigente: el módulo está en solo lectura.</p>
       ) : (
@@ -49,7 +49,7 @@ export default async function SubirEstadosPage() {
             </div>
             <p className="text-xs text-slate-500">
               ¿Prefiere escribir las cifras usted mismo o usar la plantilla de Excel?{" "}
-              <Link href="/dashboard/finanzas/cargar" className="font-semibold text-brand-700 hover:underline">Cargar datos a mano</Link>
+              <Link href="/dashboard/finanzas/cargar" className="font-semibold text-brand-700 hover:underline">Cargar a mano</Link>
             </p>
           </aside>
         </div>
