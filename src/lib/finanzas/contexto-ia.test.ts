@@ -53,7 +53,7 @@ describe("contextoFinanciero", () => {
 describe("contextoFinanciero con un cierre anual", () => {
   const cierre = { ...mes("2025", 2299 * M), otrosGastos: 1100 * M, impuestoRenta: 180 * M };
   const c = contextoFinanciero({
-    empresa: "Huertas de prueba", hoy: "2026-11-24", modo: "anual", cierres: [mes("2024", 2117 * M), cierre],
+    empresa: "Empresa de prueba", hoy: "2026-11-24", modo: "anual", cierres: [mes("2024", 2117 * M), cierre],
     actividad: "Arrendamiento de bienes inmuebles", periodos: [], balance: BALANCE, supuestos: SUPUESTOS, supuestosGuardados: true, pipeline: [],
   });
 

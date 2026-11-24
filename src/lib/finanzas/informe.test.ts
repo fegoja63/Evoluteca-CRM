@@ -144,7 +144,7 @@ describe("saludFinanciera con pérdida", () => {
   });
 });
 
-describe("escenarios y qué pasa si (Huertas de El Cedro 2025, en millones)", () => {
+describe("escenarios y qué pasa si (cierre anual de ejemplo, en millones)", () => {
   const c2024 = { mes: "2024", ventas: 2117.6, costoVentas: 0, gastosAdmin: 1380.9, gastosVentas: 47, depreciacion: 89.8, intereses: 68.4, otrosIngresos: 31.6, otrosGastos: 0.7, impuestoRenta: 201.5 };
   const c2025 = { mes: "2025", ventas: 2299.4, costoVentas: 0, gastosAdmin: 1664, gastosVentas: 130.8, depreciacion: 79.9, intereses: 33.9, otrosIngresos: 29.3, otrosGastos: 315.2, impuestoRenta: 180 };
 

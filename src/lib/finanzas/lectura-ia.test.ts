@@ -46,7 +46,7 @@ describe("limpiarLecturaIA", () => {
   });
 
   it("lee un cierre anual con el año anterior, las partidas no operacionales, el impuesto real y la actividad", () => {
-    // Como Huertas de El Cedro: el año 2025 al lado de 2024 y los dos balances.
+    // Un cierre anual típico: el año 2025 al lado de 2024 y los dos balances.
     const r = limpiarLecturaIA({
       ...base,
       acumulado: { desde: "2025-01", hasta: "2025-12", ...ceros, ventas: 2299.4 * M, gastosAdmin: 1664 * M, otrosIngresos: 29.3 * M, otrosGastos: -315.2 * M, impuestoRenta: 180 * M },
