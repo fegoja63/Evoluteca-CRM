@@ -233,6 +233,51 @@ function VistaInforme({ informe }: { informe: Informe }) {
         <Parrafos xs={t.resultados} />
       </section>
 
+      {(c.queSiPasa?.length ?? 0) > 0 && (
+        <section>
+          <h4 className="mb-2 text-sm font-bold text-slate-800">Qué pasa si…</h4>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs text-slate-500">
+                  <th className="py-1 pr-3 font-semibold">Palanca</th>
+                  <th className="py-1 pr-3 text-right font-semibold">Cambio en la utilidad</th>
+                  <th className="py-1 text-right font-semibold">Utilidad neta resultante</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {c.queSiPasa!.map(q => (
+                  <tr key={q.palanca}>
+                    <td className="py-1.5 pr-3 text-slate-700">{q.palanca}</td>
+                    <td className="py-1.5 pr-3 text-right font-semibold tabular-nums text-emerald-700">+{millones(q.cambio)}</td>
+                    <td className={`py-1.5 text-right tabular-nums ${q.utilidadNeta < 0 ? "text-red-600" : "text-slate-800"}`}>{millones(q.utilidadNeta)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-1 text-2xs text-slate-400">Cada palanca se mide por separado, con impuesto de renta estimado del 35 % sobre el cambio.</p>
+        </section>
+      )}
+
+      {c.escenarios && (
+        <section>
+          <h4 className="mb-2 text-sm font-bold text-slate-800">Escenarios {c.escenarios.anio}</h4>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {c.escenarios.lista.map(e => (
+              <div key={e.nombre} className={`rounded-xl border p-3 ${e.nombre === "Base" ? "border-brand-400" : "border-slate-200"}`}>
+                <p className="text-2xs font-semibold uppercase tracking-wide text-slate-400">{e.nombre}</p>
+                <p className={`mt-0.5 text-lg font-bold tabular-nums ${e.utilidadNeta < 0 ? "text-red-600" : "text-slate-900"}`}>{millones(e.utilidadNeta)}</p>
+                <p className="text-2xs text-slate-500">utilidad neta · ventas {millones(e.ventas)} · EBITDA {millones(e.ebitda)}</p>
+                <p className="mt-1 text-2xs text-slate-500">{e.supuesto}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mb-2 mt-1 text-2xs text-slate-400">Estimación del sistema a partir del último cierre; impuesto de renta estimado al 35 %. No reemplaza un presupuesto.</p>
+          <Parrafos xs={t.proyeccion ?? []} />
+        </section>
+      )}
+
       {p && (
         <section>
           <h4 className="mb-2 text-sm font-bold text-slate-800">Proyección</h4>

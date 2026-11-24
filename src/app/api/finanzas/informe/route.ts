@@ -40,7 +40,13 @@ function comparativo(c: CifrasInforme) {
       aniosCargados: c.serie.map(enMillones),
       salud: c.salud ?? null,
       composicion: c.composicion ? { cadaCienPesosVendidos: c.composicion } : null,
-      proyeccion: "no hay: con un cierre anual no hay meses para proyectar",
+      escenarios: c.escenarios ? {
+        anio: c.escenarios.anio,
+        crecimientoDelUltimoAnio: `${Math.round(c.escenarios.crecimiento * 100)} %`,
+        lista: c.escenarios.lista.map(e => ({ nombre: e.nombre, supuesto: e.supuesto, ventas: mm(e.ventas), ebitda: mm(e.ebitda), utilidadNeta: mm(e.utilidadNeta) })),
+      } : null,
+      queSiPasa: (c.queSiPasa ?? []).map(q => ({ palanca: q.palanca, cambioEnUtilidad: mm(q.cambio), utilidadNetaResultante: mm(q.utilidadNeta) })),
+      balanceAnterior: c.balanceAnterior ? Object.fromEntries(Object.entries(c.balanceAnterior).map(([k, v]) => [k, typeof v === "number" ? mm(v) : v])) : null,
     };
   }
   return {
@@ -52,6 +58,7 @@ function comparativo(c: CifrasInforme) {
     // Ya calculados por el sistema: la IA los lee y los explica, no los recalcula.
     salud: c.salud ?? null,
     composicion: c.composicion ? { cadaCienPesosVendidos: c.composicion } : null,
+    queSiPasa12Meses: (c.queSiPasa ?? []).map(q => ({ palanca: q.palanca, cambioEnUtilidad: mm(q.cambio), utilidadNetaResultante: mm(q.utilidadNeta) })),
     proyeccion: c.proyeccion ? {
       metodo: c.proyeccion.metodo === "estacional"
         ? "mismo mes del año pasado × crecimiento de los últimos 3 meses contra el año pasado"
