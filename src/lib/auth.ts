@@ -6,6 +6,7 @@ import { loginSchema } from "@/lib/validations/auth";
 import { estaBloqueado, registrarIntentoFallido, limpiarIntentos } from "@/lib/rate-limit";
 import { registrarAuditoria } from "@/lib/auditoria";
 import { tieneDosFactores, codigoValido, consumirCodigoRespaldo } from "@/lib/dos-factores";
+import { estadoSesion } from "@/lib/sesion-vigente";
 
 const VENTANA_LOGIN_MS = 15 * 60 * 1000; // 15 minutos
 const MAX_INTENTOS_LOGIN = 5;
@@ -163,6 +164,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (trigger === "update" && session) {
         if (session.name) token.name = session.name;
         if (session.email) token.email = session.email;
+      }
+      // Sesión ya iniciada: se revisa contra la base (con 60 s de caché, ver
+      // lib/sesion-vigente) que el usuario y su empresa sigan activos. Si no,
+      // devolver null cierra la sesión: un usuario desactivado o borrado, o
+      // una empresa suspendida o borrada, pierde el acceso de inmediato y no
+      // cuando venza el token. De paso, un cambio de rol aplica sin volver a
+      // iniciar sesión. Si la base falla, no se saca a nadie por un corte.
+      // En el middleware (Edge) Prisma no corre: ahí solo se mira que haya
+      // sesión, y la revisión la hacen la página y la API, que corren en Node.
+      if (!user && token.sub && token.tenantId && process.env.NEXT_RUNTIME !== "edge") {
+        try {
+          const estado = await estadoSesion(token.sub, token.tenantId as string);
+          if (!estado.vigente) return null;
+          token.rol = estado.rol;
+          token.tenantNombre = estado.tenantNombre;
+        } catch (e) {
+          console.error("[auth] no se pudo revisar la sesión:", (e as Error).message);
+        }
       }
       return token;
     },
