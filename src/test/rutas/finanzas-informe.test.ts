@@ -32,7 +32,15 @@ const textoIA = {
   balanceIndicadores: ["La liquidez es de 1,3 veces."],
   caja: ["El punto más bajo llega en noviembre."],
   clientes: [],
-  recomendaciones: [{ accion: "Cobrar la cartera", porque: "Hay $96 M por cobrar", impacto: "Hasta $40 M de caja" }],
+  hallazgoPrincipal: "La caja alcanza para 10 días si no se cobra la cartera.",
+  proyeccion: ["Diciembre sería el mes más fuerte."],
+  riesgos: ["Un cliente concentra el 40 % de las ventas."],
+  oportunidades: ["Cobrar $40 M de cartera vencida."],
+  recomendaciones: [
+    { accion: "Renegociar la deuda", porque: "Los intereses suben", impacto: "$2 M al mes", plazo: "90 días", responsable: "Gerencia", indicador: "Intereses: de $4 M a $2 M" },
+    { accion: "Cobrar la cartera", porque: "Hay $96 M por cobrar", impacto: "Hasta $40 M de caja", plazo: "30 días", responsable: "Comercial", indicador: "Días de cartera: de 60 a 45" },
+  ],
+  metasProximoMes: [{ indicador: "Días de caja", actual: "10", meta: "30" }],
   preguntasContador: ["¿La depreciación está completa?"],
 };
 const respuestaIA = { stop_reason: "end_turn", usage: { input_tokens: 5000, output_tokens: 1500 }, parsed_output: textoIA };
@@ -89,6 +97,11 @@ describe("informe de análisis financiero", () => {
     // Se limpia: máximo 3 decisiones y sin párrafos vacíos.
     expect(informe.texto.decisionesUrgentes).toHaveLength(3);
     expect(informe.texto.resultados).toEqual(["Las ventas fueron $136 M."]);
+    // El plan de acción queda ordenado por plazo; las cifras traen proyección y salud.
+    expect(informe.texto.recomendaciones.map(r => r.plazo)).toEqual(["30 días", "90 días"]);
+    const cifras = informe.cifras as unknown as { proyeccion: { proximos: unknown[] } | null; salud: { puntaje: number } | null };
+    expect(cifras.proyeccion?.proximos).toHaveLength(3);
+    expect(cifras.salud).not.toBeNull();
     const uso = await prisma.usoIA.findMany({ where: { tenantId: A.tenantId } });
     expect(uso.reduce((s, u) => s + u.cantidad, 0)).toBe(1);
     expect(await prisma.informeFinanciero.count({ where: { tenantId: A.tenantId } })).toBe(1);

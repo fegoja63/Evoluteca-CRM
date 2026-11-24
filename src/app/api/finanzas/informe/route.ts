@@ -38,6 +38,21 @@ function comparativo(c: CifrasInforme) {
     mesAnterior: enMillones(c.anterior) ?? "no cargado",
     mismoMesDelAnioPasado: enMillones(c.anioAnterior) ?? "no cargado",
     ultimos12Meses: c.ultimos12 ? { ...enMillones(c.ultimos12), meses: c.ultimos12.meses } : null,
+    // Ya calculados por el sistema: la IA los lee y los explica, no los recalcula.
+    salud: c.salud ?? null,
+    composicion: c.composicion ? { cadaCienPesosVendidos: c.composicion } : null,
+    proyeccion: c.proyeccion ? {
+      metodo: c.proyeccion.metodo === "estacional"
+        ? "mismo mes del año pasado × crecimiento de los últimos 3 meses contra el año pasado"
+        : "promedio de los últimos 3 meses",
+      crecimientoContraAnioPasado: c.proyeccion.crecimiento,
+      proximosMeses: c.proyeccion.proximos.map(m => ({ mes: m.mes, ventas: mm(m.ventas), utilidadNeta: mm(m.utilidadNeta) })),
+      cierreDelAnio: c.proyeccion.anio ? {
+        anio: c.proyeccion.anio.anio, mesesReales: c.proyeccion.anio.mesesReales,
+        ventasReales: mm(c.proyeccion.anio.ventasReales), utilidadReal: mm(c.proyeccion.anio.utilidadReal),
+        ventasCierre: mm(c.proyeccion.anio.ventasCierre), utilidadCierre: mm(c.proyeccion.anio.utilidadCierre),
+      } : null,
+    } : null,
   };
 }
 
