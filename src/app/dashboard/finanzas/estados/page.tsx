@@ -169,7 +169,7 @@ function TablaBalance({ balance: b, anterior: p }: { balance: BalanceConCorte; a
       </div>
       {!balanceCuadra(b) && (
         <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-          El balance no cuadra: el activo difiere del pasivo más el patrimonio en {millones(t.diferencia)}. Revise las cifras en Cargar datos.
+          El balance no cuadra: el activo difiere del pasivo más el patrimonio en {millones(t.diferencia)}. Revise las cifras en Cargar a mano.
         </p>
       )}
     </div>

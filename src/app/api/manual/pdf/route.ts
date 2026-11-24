@@ -106,7 +106,7 @@ function PageHeader({ base }: { base: string }) {
 
 function Footer({ numero }: { numero: number }) {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.50"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Usuario v1.51"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -1231,13 +1231,13 @@ export async function GET() {
       React.createElement(Nota, null, "Las finanzas de la empresa son información de dirección: los usuarios Comerciales no ven el módulo. Si la licencia vence, tus cifras no se borran: el módulo queda en solo lectura."),
 
       React.createElement(H2, null, "11.1 Primeros pasos"),
-      React.createElement(Paso, { n: 1, titulo: "Carga tus cifras", desc: "En la pestaña Subir estados (o con el botón \"Subir estados financieros\" de arriba) sube el archivo de tu contador y la IA lo lee; en Cargar datos usas la plantilla mensual o los escribes a mano. Lo ideal: los últimos 12 meses del estado de resultados y el balance del último corte." }),
+      React.createElement(Paso, { n: 1, titulo: "Carga tus cifras", desc: "En la pestaña Subir estados (la segunda, resaltada) sube el archivo de tu contador y la IA lo lee; en Cargar a mano usas la plantilla mensual o escribes las cifras. Lo ideal: los últimos 12 meses del estado de resultados y el balance del último corte." }),
       React.createElement(Paso, { n: 2, titulo: "Confirma los supuestos de caja", desc: "En Caja proyectada › Supuestos revisa nómina, gastos fijos, créditos, proveedores, impuestos e IVA, día de pago a la DIAN, ventas de contado, contratos vigentes y días de cobro, y guárdalos." }),
       React.createElement(Paso, { n: 3, titulo: "Revisa cada mes", desc: "Actualiza el mes que cerró y el balance; la alerta de caja, los indicadores y el diagnóstico se recalculan solos. Si quieres más precisión, carga también la cartera por cliente y la rentabilidad por cliente." }),
 
-      React.createElement(H2, null, "11.2 Cargar datos"),
+      React.createElement(H2, null, "11.2 Subir estados y cargar a mano"),
       React.createElement(H3, null, "Leer los estados del contador con IA"),
-      React.createElement(P, null, "La lectura con IA tiene su propia pestaña, Subir estados (la segunda, resaltada), y el botón \"Subir estados financieros\" de arriba lleva a ella desde cualquier pantalla del módulo. Haz clic en el recuadro \"Haga clic aquí para buscar el archivo, o arrástrelo\" (o arrastra el archivo encima) y sube los estados tal como te los entregó el contador: PDF, Excel, Word, una foto, OpenOffice, CSV u otro, hasta 15 MB. La IA empieza a leerlo de inmediato y propone el estado de resultados y el balance, ya convertidos a pesos si el documento venía en miles o millones, y señala lo que debes revisar. Nada se guarda hasta que tú confirmas con \"Guardar todo lo leído\" (guarda los meses y el balance de una vez). Al terminar, \"Cargar otro informe\" deja la pantalla lista para el siguiente archivo."),
+      React.createElement(P, null, "La lectura con IA tiene su propia pestaña, Subir estados (la segunda, resaltada): es el único acceso, desde cualquier pantalla del módulo. Haz clic en el recuadro \"Haga clic aquí para buscar el archivo, o arrástrelo\" (o arrastra el archivo encima) y sube los estados tal como te los entregó el contador: PDF, Excel, Word, una foto, OpenOffice, CSV u otro, hasta 15 MB. La IA empieza a leerlo de inmediato y propone el estado de resultados y el balance, ya convertidos a pesos si el documento venía en miles o millones, y señala lo que debes revisar. Nada se guarda hasta que tú confirmas con \"Guardar todo lo leído\" (guarda los meses y el balance de una vez). Al terminar, \"Cargar otro informe\" deja la pantalla lista para el siguiente archivo."),
       React.createElement(H3, null, "Estados mensuales o cierre anual"),
       React.createElement(P, null, "Puedes subir estados mes a mes o el cierre anual que entrega el contador (el año al lado del año anterior). Si el archivo trae un año completo (enero a diciembre), se guarda como cierre anual, junto con el año anterior y los dos balances si vienen, y el módulo pasa a análisis anual: compara año contra año con la utilidad que reportó el contador (ingresos y gastos no operacionales e impuesto de renta real). La IA también toma del documento a qué se dedica la empresa e identifica las inversiones (CDT, fiducias) aparte."),
       React.createElement(Nota, null, "Los resultados no son iguales en los dos casos. Con el cierre anual no hay detalle mes a mes: la caja proyectada y el punto de equilibrio usan promedios (año ÷ 12) y no hay temporada ni proyección por meses. Con estados mensuales sí, pero si el contador no reporta el impuesto de cada mes, se estima al 35 % y la utilidad puede diferir de la del cierre auditado. Cada pantalla te dice con cuál de los dos se hizo el análisis."),

@@ -14,7 +14,7 @@ const PESTANAS: { href: string; label: string; destacada?: boolean }[] = [
   { href: "/dashboard/finanzas/indicadores", label: "Indicadores" },
   { href: "/dashboard/finanzas/clientes", label: "Rentabilidad por cliente" },
   { href: "/dashboard/finanzas/gerente", label: "Gerente IA" },
-  { href: "/dashboard/finanzas/cargar", label: "Cargar datos" },
+  { href: "/dashboard/finanzas/cargar", label: "Cargar a mano" },
 ];
 
 export function PestanasFinanzas() {

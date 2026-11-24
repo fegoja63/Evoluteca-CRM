@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { IconCoin, IconFileUpload } from "@tabler/icons-react";
+import { IconCoin } from "@tabler/icons-react";
 import type { ResumenLicencia } from "@/lib/licencias";
 import { formatoDia } from "@/lib/fecha-bogota";
 import { boton, insignia, tarjeta } from "@/components/ui/estilos";
@@ -7,11 +7,11 @@ import { PestanasFinanzas } from "./pestanas-finanzas";
 
 /**
  * Título, estado de la licencia y pestañas, común a todas las pantallas del
- * módulo. Con la licencia vigente trae el botón "Subir estados financieros",
- * que lleva a la pestaña "Subir estados"; en esa misma pestaña no se muestra
- * (`enSubir`).
+ * módulo. Para subir los estados del contador hay UN solo acceso: la pestaña
+ * "Subir estados", segunda y resaltada (antes también había un botón rojo
+ * aquí arriba y otro en "Cargar datos", y tres botones iguales confundían).
  */
-export function MarcoFinanzas({ licencia, enSubir = false, children }: { licencia: ResumenLicencia; enSubir?: boolean; children: React.ReactNode }) {
+export function MarcoFinanzas({ licencia, children }: { licencia: ResumenLicencia; children: React.ReactNode }) {
   return (
     <div className="space-y-6">
       {/* Título y pestañas quedan fijos arriba al hacer scroll en pantallas
@@ -25,15 +25,8 @@ export function MarcoFinanzas({ licencia, enSubir = false, children }: { licenci
           </h1>
           <p className="mt-1 text-sm text-slate-500">Los números de su empresa, claros y a tiempo para decidir.</p>
         </div>
-        {licencia.estado === "VIGENTE" && (
-          <div className="flex flex-wrap items-center gap-2">
-            {licencia.hasta && <span className={insignia("exito")}>Activo hasta el {formatoDia(licencia.hasta)}</span>}
-            {!enSubir && (
-              <Link href="/dashboard/finanzas/subir" className={boton("primario", "sm")}>
-                <IconFileUpload size={15} stroke={1.75} />Subir estados financieros
-              </Link>
-            )}
-          </div>
+        {licencia.estado === "VIGENTE" && licencia.hasta && (
+          <span className={insignia("exito")}>Activo hasta el {formatoDia(licencia.hasta)}</span>
         )}
         {licencia.estado === "VENCIDA" && <span className={insignia("alerta")}>Licencia vencida · solo lectura</span>}
       </div>
