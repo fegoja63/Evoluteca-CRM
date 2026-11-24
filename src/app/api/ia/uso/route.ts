@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { fechaISO } from "@/lib/fecha-bogota";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,8 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-  const periodo = new Date().toISOString().slice(0, 7);
+  // Mismo mes que usa el contador (registrarUsoIA): el de Bogotá, no el de UTC.
+  const periodo = fechaISO().slice(0, 7);
   const [tenant, uso] = await Promise.all([
     prisma.tenant.findUnique({
       where: { id: session.user.tenantId },

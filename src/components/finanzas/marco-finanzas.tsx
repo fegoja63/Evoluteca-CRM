@@ -7,11 +7,11 @@ import { PestanasFinanzas } from "./pestanas-finanzas";
 
 /**
  * Título, estado de la licencia y pestañas, común a todas las pantallas del
- * módulo. Con la licencia vigente trae el botón "Cargar estados financieros"
- * (la pestaña "Cargar datos" queda al final y no se notaba); en esa misma
- * pestaña no se muestra (`enCargar`).
+ * módulo. Con la licencia vigente trae el botón "Subir estados financieros",
+ * que lleva a la pestaña "Subir estados"; en esa misma pestaña no se muestra
+ * (`enSubir`).
  */
-export function MarcoFinanzas({ licencia, enCargar = false, children }: { licencia: ResumenLicencia; enCargar?: boolean; children: React.ReactNode }) {
+export function MarcoFinanzas({ licencia, enSubir = false, children }: { licencia: ResumenLicencia; enSubir?: boolean; children: React.ReactNode }) {
   return (
     <div className="space-y-6">
       {/* Título y pestañas quedan fijos arriba al hacer scroll en pantallas
@@ -28,9 +28,9 @@ export function MarcoFinanzas({ licencia, enCargar = false, children }: { licenc
         {licencia.estado === "VIGENTE" && (
           <div className="flex flex-wrap items-center gap-2">
             {licencia.hasta && <span className={insignia("exito")}>Activo hasta el {formatoDia(licencia.hasta)}</span>}
-            {!enCargar && (
-              <Link href="/dashboard/finanzas/cargar" className={boton("primario", "sm")}>
-                <IconFileUpload size={15} stroke={1.75} />Cargar estados financieros
+            {!enSubir && (
+              <Link href="/dashboard/finanzas/subir" className={boton("primario", "sm")}>
+                <IconFileUpload size={15} stroke={1.75} />Subir estados financieros
               </Link>
             )}
           </div>

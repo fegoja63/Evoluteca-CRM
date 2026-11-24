@@ -16,7 +16,7 @@ export default async function CargarFinanzasPage() {
     prisma.cuentaPorCobrar.findMany({ where: { tenantId: acceso.tenantId }, orderBy: { vence: "asc" } }),
   ]);
   return (
-    <MarcoFinanzas licencia={acceso.licencia} enCargar>
+    <MarcoFinanzas licencia={acceso.licencia}>
       <CargarDatosFinancieros periodos={datos.periodos} balance={datos.balance} soloLectura={acceso.soloLectura} />
       <div className="mt-6">
         <CarteraPorCobrar

@@ -7,6 +7,7 @@ import { toast } from "@/lib/toast";
 import { boton, insignia, tarjeta } from "@/components/ui/estilos";
 import { formatoFechaHora, formatoDia } from "@/lib/fecha-bogota";
 import { millones, mesCorto, variacion, TONO_SEMAFORO } from "@/lib/finanzas/formato";
+import { CupoIA, avisarUsoIA } from "./cupo-ia";
 import { PLAZOS, type CifrasInforme, type TextoInforme } from "@/lib/finanzas/informe";
 
 type Informe = { id: string; mes: string; creadoEn: string; cifras: CifrasInforme; texto: TextoInforme };
@@ -35,6 +36,7 @@ export function InformeFinanciero({ soloLectura }: { soloLectura: boolean }) {
     if (!res?.ok) { toast.error(d?.error ?? "No se pudo generar el informe. Revise su conexión e inténtelo de nuevo."); return; }
     setInformes(prev => [d.informe, ...(prev ?? [])]);
     setElegido(d.informe.id);
+    avisarUsoIA();
     toast.success("Informe listo. Puede descargarlo en PDF.");
   }
 
@@ -53,8 +55,9 @@ export function InformeFinanciero({ soloLectura }: { soloLectura: boolean }) {
               Puntaje de salud financiera, hallazgo principal y decisiones urgentes; resultados contra el mes anterior y el año
               pasado, proyección al cierre del año, indicadores con semáforo, caja de 13 semanas, riesgos y oportunidades, plan de
               acción a 30-60-90 días y metas del próximo mes. Las cifras las calcula el sistema; la IA las analiza. Se descarga en
-              PDF con gráficas para socios o junta. Usa 1 acción de IA.
+              PDF con gráficas para socios o junta.
             </p>
+            {!soloLectura && <CupoIA className="mt-1.5" />}
           </div>
           {!soloLectura && (
             <button onClick={generar} disabled={generando} className={boton("primario", "md", "shrink-0")}>
@@ -80,7 +83,7 @@ export function InformeFinanciero({ soloLectura }: { soloLectura: boolean }) {
       ) : !actual ? (
         <p className={tarjeta("p-5 text-sm text-slate-500")}>
           Todavía no hay informes. {soloLectura ? "" : "Pulse \"Generar informe del mes\" después de cargar sus estados financieros."}{" "}
-          <Link href="/dashboard/finanzas/cargar" className="font-semibold text-brand-700 hover:underline">Cargar datos</Link>
+          <Link href="/dashboard/finanzas/subir" className="font-semibold text-brand-700 hover:underline">Subir estados financieros</Link>
         </p>
       ) : (
         <VistaInforme informe={actual} />

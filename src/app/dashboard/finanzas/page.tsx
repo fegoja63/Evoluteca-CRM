@@ -41,7 +41,7 @@ export default async function FinanzasPage() {
             Con el estado de resultados de los últimos meses y el balance, verá sus estados ordenados y sus indicadores con semáforo.
           </p>
           {!acceso.soloLectura && (
-            <Link href="/dashboard/finanzas/cargar" className={boton("primario", "md", "mt-4")}>Cargar mis datos</Link>
+            <Link href="/dashboard/finanzas/subir" className={boton("primario", "md", "mt-4")}>Subir mis estados financieros</Link>
           )}
         </div>
       ) : (

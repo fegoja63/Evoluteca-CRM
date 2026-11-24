@@ -15,7 +15,7 @@ type Factura = { id: string; cliente: string; monto: number; vence: string };
 type Props = { facturas: Factura[]; carteraBalance: number | null; hoy: string; soloLectura: boolean };
 
 /**
- * 5. Cartera por cliente (opcional): cada factura con su vencimiento. Con ella,
+ * 4. Cartera por cliente (opcional): cada factura con su vencimiento. Con ella,
  * la caja cobra cada factura en su fecha en lugar de repartir el total del balance.
  */
 export function CarteraPorCobrar({ facturas, carteraBalance, hoy, soloLectura }: Props) {
@@ -56,7 +56,7 @@ export function CarteraPorCobrar({ facturas, carteraBalance, hoy, soloLectura }:
   return (
     <section className={tarjeta("p-5 space-y-3")}>
       <div>
-        <h2 className="text-base font-semibold text-slate-800">{soloLectura ? "Cartera por cliente" : "5. Cartera por cliente (opcional)"}</h2>
+        <h2 className="text-base font-semibold text-slate-800">{soloLectura ? "Cartera por cliente" : "4. Cartera por cliente (opcional)"}</h2>
         <p className="mt-1 text-sm text-slate-500">
           Las facturas que le deben, con su vencimiento. Si las carga, la caja proyectada cobra cada una en su fecha (una vencida, en 15 días)
           en lugar de repartir el total del balance.

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { IconSparkles, IconSend } from "@tabler/icons-react";
+import { CupoIA, avisarUsoIA } from "./cupo-ia";
 import { toast } from "@/lib/toast";
 import { boton, campo, tarjeta } from "@/components/ui/estilos";
 
@@ -36,6 +37,7 @@ export function GerenteIA({ soloLectura, compacto = false }: { soloLectura: bool
     setPensando(false);
     if (!res.ok) { toast.error(data.error ?? "No se pudo responder. Inténtelo de nuevo."); return; }
     setRespuestas(prev => [...prev, data]);
+    avisarUsoIA();
     setPregunta("");
   }
 
@@ -47,6 +49,7 @@ export function GerenteIA({ soloLectura, compacto = false }: { soloLectura: bool
           <div>
             <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800"><IconSparkles size={18} className="text-brand-600" />Diagnóstico del mes</h2>
             <p className="mt-1 text-xs text-slate-500">El gerente con IA lee sus estados, la caja y el pipeline, y le dice qué está pasando, por qué y qué hacer.</p>
+            {!soloLectura && <CupoIA className="mt-1.5" />}
           </div>
           {!soloLectura && (
             <button type="button" onClick={() => preguntar()} disabled={pensando} className={boton("primario", "sm")}>
@@ -85,8 +88,9 @@ export function GerenteIA({ soloLectura, compacto = false }: { soloLectura: bool
               <IconSparkles size={18} className="text-brand-600" />Pregúntele a sus números
             </h2>
             <p className="mt-1 text-sm text-slate-500">
-              Responde con sus estados financieros, indicadores, caja proyectada y pipeline. Cada consulta cuenta como una acción de IA de su plan.
+              Responde con sus estados financieros, indicadores, caja proyectada y pipeline.
             </p>
+            <CupoIA className="mt-1.5" />
           </div>
           <button type="button" onClick={() => preguntar()} disabled={pensando} className={boton("primario", "sm")}>
             {pensando && respuestas.length === 0 ? "Analizando…" : "Diagnóstico del mes"}

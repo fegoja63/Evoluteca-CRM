@@ -1,0 +1,49 @@
+import Link from "next/link";
+import { accesoPaginaFinanzas } from "@/lib/finanzas/datos";
+import { MarcoFinanzas, SinAccesoFinanzas } from "@/components/finanzas/marco-finanzas";
+import { LeerConIA } from "@/components/finanzas/leer-con-ia";
+import { tarjeta } from "@/components/ui/estilos";
+
+export const dynamic = "force-dynamic";
+
+// Pestaña "Subir estados": la lectura con IA de los estados del contador, sola
+// y a la vista (antes estaba mezclada con la plantilla y los formularios de
+// "Cargar datos"). Al lado, qué pasa después y cuánto cupo de IA gasta.
+export default async function SubirEstadosPage() {
+  const acceso = await accesoPaginaFinanzas();
+  if (acceso.bloqueo) return <SinAccesoFinanzas motivo={acceso.bloqueo} />;
+
+  return (
+    <MarcoFinanzas licencia={acceso.licencia} enSubir>
+      {acceso.soloLectura ? (
+        <p className={tarjeta("p-5 text-sm text-slate-500")}>La licencia no está vigente: el módulo está en solo lectura.</p>
+      ) : (
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <LeerConIA />
+          <aside className={tarjeta("h-fit space-y-4 p-5 text-sm text-slate-600")}>
+            <div>
+              <h2 className="font-semibold text-slate-800">Qué pasa al subirlo</h2>
+              <ol className="mt-2 list-decimal space-y-1.5 pl-5">
+                <li>La IA lee el estado de resultados y el balance, y los convierte a pesos.</li>
+                <li>Usted revisa las cifras y lo que la IA le pide verificar.</li>
+                <li>Con &quot;Guardar todo lo leído&quot; quedan en Resumen, Estados, Indicadores, Caja e Informe.</li>
+              </ol>
+            </div>
+            <div>
+              <h2 className="font-semibold text-slate-800">Créditos de IA</h2>
+              <p className="mt-1">
+                Cada lectura usa <strong>1 crédito</strong>, igual que cada informe del mes y cada consulta al gerente con IA.
+                Los créditos son un cupo <strong>mensual del plan de su empresa</strong> (por ejemplo 100 al mes), compartido
+                por todas las funciones de IA y por todos sus usuarios. Se renueva el día 1 de cada mes.
+              </p>
+            </div>
+            <p className="text-xs text-slate-500">
+              ¿Prefiere escribir las cifras usted mismo o usar la plantilla de Excel?{" "}
+              <Link href="/dashboard/finanzas/cargar" className="font-semibold text-brand-700 hover:underline">Cargar datos a mano</Link>
+            </p>
+          </aside>
+        </div>
+      )}
+    </MarcoFinanzas>
+  );
+}
