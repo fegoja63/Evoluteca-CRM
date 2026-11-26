@@ -87,7 +87,7 @@ function PageHeader({ base }: { base: string }) {
 }
 function Footer() {
   return React.createElement(View, { style: s.footer, fixed: true },
-    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.22"),
+    React.createElement(Text, { style: s.footerTxt }, "Evoluteca CRM — Manual de Pruebas · Cuenta Demo Evoluteca v2.23"),
     React.createElement(Text, { style: s.footerTxt, render: ({ pageNumber }: { pageNumber: number }) => `Página ${pageNumber}` } as object),
   );
 }
@@ -456,6 +456,7 @@ export async function GET() {
       React.createElement(LI, null, "Motivos de pérdida: el desglose de por qué se caen los negocios —Precio muy alto, Eligió a la competencia, Sin respuesta del cliente y Presupuesto insuficiente— con la cantidad y el valor perdido por cada motivo."),
       React.createElement(LI, null, "Metas de venta (mes y año) y metas por vendedor, con su porcentaje de avance."),
       React.createElement(LI, null, "Panel \"El Lunes\" (arriba del todo): actividad comercial de los últimos 7 días, ticket promedio de una operación ganada y movimiento de clientes (nuevos, activos, inactivos y perdidos) y cumplimiento del proceso por vendedor (qué parte de lo agendado se hizo, tareas vencidas y negocios sin próximo paso)."),
+      React.createElement(LI, null, "Reunión semanal (debajo de El Lunes): por vendedor, la meta semanal, el compromiso de la semana y lo que lleva hecho en contactos nuevos, negocios nuevos, llamadas, reuniones y visitas y propuestas, más lo prometido frente a lo hecho la semana pasada. Pruebe \"Fijar meta semanal\" y \"Registrar compromiso\"; el CRM cuenta solo lo hecho y el correo del lunes trae \"¿Cumplimos lo que prometimos?\"."),
       React.createElement(LI, null, "Pronóstico de cierre a 30/60/90 días y conversión Contacto › Oportunidad › Venta, para leer el pipeline hacia adelante y ver dónde se pierde el avance."),
 
       React.createElement(H2, null, "8.4 Agenda a fondo"),
@@ -543,6 +544,7 @@ export async function GET() {
       React.createElement(Check, null, "Exploré Reportes: embudo, metas, top clientes y motivos de pérdida."),
       React.createElement(Check, null, "Abrí el Asistente IA y probé varias funciones (resumen de cliente, brief del pipeline, análisis de tendencias, pregúntale a tus datos, redactor de correos, revisor de propuestas, oportunidades de crecimiento e informe mensual)."),
       React.createElement(Check, null, "Armé el Plan para ganar de una oportunidad y agendé uno de sus pasos; preparé una reunión desde la Agenda y redacté el correo de seguimiento de una minuta, y analicé el negocio de un cliente con un documento."),
+      React.createElement(Check, null, "Fijé una meta semanal y registré el compromiso de la semana de un vendedor en Reportes › Reunión semanal."),
       React.createElement(Check, null, "Elegí una metodología de ventas y probé el Coach de objeciones en una oportunidad."),
       React.createElement(Check, null, "Activé el Chat web, conversé como cliente y vi la oportunidad que se creó; revisé el Embudo de entrada en El Lunes."),
       React.createElement(Check, null, "Armé una secuencia con pasos de correo, llamada y WhatsApp, redacté mensajes en Reactivar clientes y activé Reseñas y recompra."),

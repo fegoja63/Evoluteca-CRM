@@ -120,6 +120,8 @@ model Tenant {
   plantillasCotizacion     PlantillaCotizacion[]
   metasVenta               MetaVenta[]
   metasVendedor            MetaVendedor[]
+  metasActividad           MetaActividad[]
+  compromisosSemanales     CompromisoSemanal[]
   eventosTimeline          EventoTimeline[]
   expedientes              Expediente[]
   terminosExpediente       TerminoExpediente[]
@@ -403,6 +405,8 @@ model Usuario {
   tenantId               String
   tenant                 Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   metasVendedor          MetaVendedor[]
+  metasActividad         MetaActividad[]
+  compromisosSemanales   CompromisoSemanal[]
   registrosHoras         RegistroHoras[]
   actividadesAsignadas   Actividad[]            @relation("ActividadResponsable")
   suscripcionesPush      SuscripcionPush[]
@@ -459,6 +463,10 @@ model Contacto {
   notas       String?
   extras      Json?
   creadoEn    DateTime  @default(now())
+  // Quién lo creó a mano (para los indicadores de actividad semanal). Queda
+  // vacío en los que llegan solos (chat web, formulario, enlace para agendar)
+  // y en las importaciones, que no son prospección del vendedor.
+  creadoBy    String?
   eliminadoEn DateTime?
 
   tenantId String
@@ -842,6 +850,8 @@ model Cotizacion {
   horaInicio             String?
   horaFin                String?
   creadoEn               DateTime            @default(now())
+  // Quién la creó (para los indicadores de actividad semanal: propuestas).
+  creadoBy               String?
   eliminadoEn            DateTime?
 
   tenantId String
@@ -1048,6 +1058,60 @@ model MetaVendedor {
   @@unique([tenantId, userId, anio, mes])
   @@index([tenantId])
   @@map("metas_vendedor")
+}
+
+// ---- Reunión semanal: metas de actividad y compromisos ----
+//
+// Los indicadores que anticipan la venta (contactos nuevos, negocios nuevos,
+// llamadas, reuniones y propuestas), por vendedor y por semana (lunes a
+// domingo, Bogotá). Ver src/lib/actividad-semanal.ts.
+
+// Meta semanal estándar de actividad de un vendedor (la fija el administrador o
+// el gerente). 0 = sin meta en ese indicador.
+model MetaActividad {
+  id            String   @id @default(uuid())
+  contactos     Int      @default(0)
+  negocios      Int      @default(0)
+  llamadas      Int      @default(0)
+  reuniones     Int      @default(0)
+  propuestas    Int      @default(0)
+  actualizadoEn DateTime @updatedAt
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  userId  String
+  usuario Usuario @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@index([tenantId])
+  @@map("metas_actividad")
+}
+
+// Lo que un vendedor se compromete a hacer en una semana concreta. Se compara
+// con lo que el CRM registra que hizo. 0 = sin compromiso en ese indicador.
+model CompromisoSemanal {
+  id            String   @id @default(uuid())
+  semana        String // lunes de la semana, "YYYY-MM-DD" (Bogotá)
+  contactos     Int      @default(0)
+  negocios      Int      @default(0)
+  llamadas      Int      @default(0)
+  reuniones     Int      @default(0)
+  propuestas    Int      @default(0)
+  nota          String? // compromiso libre: "cerrar la renovación de X"
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+  creadoBy      String?
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  userId  String
+  usuario Usuario @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId, semana])
+  @@index([tenantId, semana])
+  @@map("compromisos_semanales")
 }
 
 // ---- Timeline de eventos por cliente ----

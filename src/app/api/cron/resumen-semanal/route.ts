@@ -11,6 +11,9 @@ import { barrasHorizontales, barraApilada, barrasComparadas, variacion, tituloGr
 import { DIAS_EMBUDO, tasaPaso } from "@/lib/embudo-entrada";
 import { embudoEntrada } from "@/lib/embudo-entrada-carga";
 import { medianocheBogota } from "@/lib/fecha-bogota";
+import { aConteo, cumplimiento, etiquetaDe, lunesDe, moverSemana, textoSemana, tieneAlgo } from "@/lib/actividad-semanal";
+import { actividadReal } from "@/lib/actividad-semanal-carga";
+import { escapeHtml } from "@/lib/html";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -85,6 +88,35 @@ function contarPorTipo(acts: { tipo: string }[]) {
     porTipo[key] = (porTipo[key] ?? 0) + 1;
   }
   return porTipo;
+}
+
+// ④ Compromisos de la semana pasada: lo prometido frente a lo hecho, por
+// vendedor (el COMERCIAL solo ve el suyo). Vacío si nadie se comprometió.
+async function bloqueCompromisos(u: Usuario, ahora: Date): Promise<string> {
+  const semana = moverSemana(lunesDe(ahora), -1);
+  const compromisos = await prisma.compromisoSemanal.findMany({
+    where: { tenantId: u.tenantId, semana, ...(u.rol === "COMERCIAL" ? { userId: u.id } : {}), usuario: { activo: true } },
+    select: { userId: true, contactos: true, negocios: true, llamadas: true, reuniones: true, propuestas: true, nota: true, usuario: { select: { nombre: true } } },
+    orderBy: { usuario: { nombre: "asc" } },
+  });
+  const conCifras = compromisos.filter(c => tieneAlgo(aConteo(c)));
+  if (!conCifras.length) return "";
+  const real = await actividadReal(u.tenantId, semana, conCifras.map(c => c.userId));
+  const filas = conCifras.map(c => {
+    const r = cumplimiento(aConteo(c), real.get(c.userId)!);
+    const color = (r.pct ?? 0) >= 80 ? "#047857" : (r.pct ?? 0) >= 50 ? "#b45309" : "#dc2626";
+    const detalle = r.indicadores
+      .map(i => `${etiquetaDe(i.clave, true)} ${i.prometido} → <strong style="color:${i.cumplido ? "#047857" : "#dc2626"}">${i.real}</strong>`)
+      .join(" · ");
+    return `<div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;margin-top:6px">
+      <p style="margin:0;font-size:13px;color:#1e293b"><strong>${escapeHtml(c.usuario.nombre)}</strong>
+        <span style="float:right;font-weight:700;color:${color}">${r.cumplidos} de ${r.total} (${r.pct} %)</span></p>
+      <p style="margin:4px 0 0;font-size:12px;color:#475569">${detalle}</p>
+      ${c.nota ? `<p style="margin:4px 0 0;font-size:12px;color:#64748b">Además: ${escapeHtml(c.nota)}</p>` : ""}
+    </div>`;
+  }).join("");
+  return `<p style="margin:0 0 4px;font-size:12px;color:#64748b">Semana del ${textoSemana(semana)}: prometido → hecho.</p>${filas}
+    <p style="margin:8px 0 0;font-size:12px;color:#334155">Los compromisos de esta semana se registran en Reportes → Reunión semanal.</p>`;
 }
 
 // Construye el correo "Resumen del Lunes" de un usuario. Devuelve null si no hay
@@ -302,6 +334,8 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
     </div>
   </div>`;
 
+  const compromisos = await bloqueCompromisos(u, ahora);
+
   const html = wrapper(`${header("Tu resumen del lunes", tenantInfo.logoUrl)}
     <div style="background:#f8fafc;padding:22px 24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
       <p style="font-size:14px;color:#64748b;margin:0 0 14px">Hola <strong>${u.nombre}</strong>, ${sujeto.semana}:</p>
@@ -311,6 +345,7 @@ async function construirResumen(u: Usuario, tenantInfo: TenantInfo, f: Fechas): 
       ${bloquePregunta("① ¿Qué oportunidades puedo cerrar?", q1, "#eff6ff")}
       ${bloquePregunta("② ¿Qué operaciones están bloqueadas?", q2, "#fffbeb")}
       ${bloquePregunta("③ ¿Qué acción generará ventas futuras?", q3 + graficaActividad, "#f0fdf4")}
+      ${compromisos ? bloquePregunta("④ ¿Cumplimos lo que prometimos?", compromisos, "#f5f3ff") : ""}
       <div style="margin-top:18px">${btn(`${BASE_URL}/dashboard/reportes`, "Abrir el Panel del Lunes")}</div>
       ${footer()}
     </div>`);

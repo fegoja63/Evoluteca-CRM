@@ -99,6 +99,7 @@ export async function POST(request: Request) {
 
     return tx.cotizacion.create({
       data: {
+        creadoBy: session.user.id,
         empresaId: empresaId || null,
         contactoId: contactoId || null,
         oportunidadId: opId,
