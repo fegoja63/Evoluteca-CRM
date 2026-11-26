@@ -72,6 +72,7 @@ export async function POST(request: Request) {
       notas: notas || null,
       empresaId: empresaId || null,
       tenantId: session.user.tenantId,
+      creadoBy: session.user.id,
     },
     include: { empresa: { select: { id: true, nombre: true } } },
   });

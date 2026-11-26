@@ -19,6 +19,7 @@ export async function POST(_req: Request, props: { params: Promise<{ id: string 
   const nueva = await prisma.cotizacion.create({
     data: {
       tenantId:      original.tenantId,
+      creadoBy:      session.user.id,
       estado:        "BORRADOR",
       empresaId:     original.empresaId,
       contactoId:    original.contactoId,

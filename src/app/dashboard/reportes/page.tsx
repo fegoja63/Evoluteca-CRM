@@ -19,6 +19,7 @@ import { MoneyInput } from "@/components/money-input";
 import { AnalisisTendenciasIA } from "@/components/analisis-tendencias-ia";
 import { TendenciasGraficas } from "@/components/tendencias-graficas";
 import { PanelLunes } from "@/components/panel-lunes";
+import { ReunionSemanal } from "@/components/reunion-semanal";
 import { tarjeta } from "@/components/ui/estilos";
 import { SkeletonKpis, SkeletonTabla } from "@/components/ui/estados";
 import { mapaEtapas } from "@/lib/etapas-color";
@@ -728,6 +729,8 @@ export default function ReportesPage() {
       </div>
 
       <PanelLunes />
+
+      <ReunionSemanal />
 
       <AnalisisTendenciasIA />
       <TendenciasGraficas />
